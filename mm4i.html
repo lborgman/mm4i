@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- This page © Copyright 2023, Lennart Borgman -->
+    <meta name="author" content="Lennart Borgman">
+    <meta name="description" content="Mindmaps web page that you can manipulate on your phone">
+
+
+    <!-- See index.html -->
+    <base href=".">
+    <script>console.log("baseURI", document.baseURI);</script>
+    <script src="./init-error.js"></script>
+    <!-- <script type="module" src="./pwa.js"></script> -->
+    <script type="module" src="./anchors-with-base.js"></script>
+    <script src="./mm4i-importmaps.js"></script>
+    <script type="module" src="./js/mod/tools.js"></script>
+
+
+    <!-- <link rel="manifest" href="./mm4i/manifest-mm4i.json"> -->
+    <meta name="theme-color" content="#c0ca33">
+
+    <title>Mindmaps 4 Internet</title>
+    <link rel="icon" type="image/svg+xml" href="./img/mm4i.svg">
+
+
+    <!-- for MWC, https://github.com/material-components/material-web -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons&amp;display=block" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Required styles for Material Web -->
+    <!-- <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.css"> -->
+    <link rel="stylesheet" href="./ext/mdc/14.0.0/material-components-web.css">
+
+    <link rel="stylesheet" href="./css/fc4i.css">
+    <style>
+        :root {
+            background-color: darkolivegreen;
+        }
+
+        #PWA-version {
+            position: fixed;
+            top: 0px;
+            z-index: 5;
+            left: 80px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            padding-left: 8px;
+            padding-right: 8px;
+            background-color: olive;
+        }
+
+        #jsmind-search-inputs {
+            top: 0;
+            height: 40px;
+            margin-top: unset;
+            background-color: blueviolet;
+            display: none;
+            align-items: center;
+            width: fit-content;
+            padding-right: 8px;
+            padding-left: 8px;
+        }
+
+        .display-jsmind-search #jsmind-search-inputs {
+            display: flex;
+        }
+
+
+        /** For DOCTYPE: */
+        body {
+            height: 100vh;
+        }
+
+        #jsmind_container {
+            height: 100vh;
+            width: 100vw;
+            pointer-events: all;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            NOoverflow: hidden;
+            position: relative;
+        }
+
+
+
+        #jsmindtest-point-handle {
+            position: fixed;
+            background: gray;
+        }
+
+        jmnodes.pointhandle-state-idle #jsmindtest-point-handle {
+            background: black;
+        }
+
+        jmnodes.pointhandle-state-init #jsmindtest-point-handle {
+            background: yellow;
+        }
+
+        jmnodes.pointhandle-state-dist #jsmindtest-point-handle {
+            background: greenyellow;
+        }
+
+        jmnodes.pointhandle-state-move #jsmindtest-point-handle {
+            background: red;
+        }
+
+        jmnodes {
+            touch-action: none !important;
+        }
+
+        div.jsmind-inner {
+            touch-action: pinch-zoom !important;
+            scrollbar-width: none;
+        }
+
+
+        /*********************/
+        /***** jmnode */
+        jmnode {
+            touch-action: none;
+        }
+
+        jmnodes jmnode.selected {
+            outline: 4px dotted yellowgreen;
+        }
+
+        .jsmind_container jmnodes jmnode {
+            transition-duration: 1s;
+            transition-property: left, top, width, height, transform 0.3s;
+        }
+
+        .jsmind_container jmnodes jmnode .jmnode-text {
+            overflow: hidden;
+        }
+
+
+        /* jmnode has notes */
+        .has-notes-mark {
+            position: absolute;
+            bottom: -15px;
+            left: -4px;
+        }
+
+        .left-side .has-notes-mark {
+            left: unset;
+            right: -4px;
+        }
+
+        .has-notes-mark>button {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-content: center;
+            font-size: 22px;
+            color: red;
+            color: rgb(0, 0, 255);
+            color: darkviolet;
+            border-radius: 50%;
+            background: rgba(135, 206, 235, 0.3);
+            /* border: 1px solid blue; */
+            border: 1px solid rgba(0, 0, 255, 0.5);
+        }
+
+
+
+        /*********************/
+        /***** Expanding jmnode */
+
+        jmnodes jmexpander {
+            height: 32px;
+            width: 32px;
+            font-size: 32px;
+            font-weight: 900;
+            line-height: 32px;
+            border-radius: 50%;
+            background: green;
+            color: black;
+        }
+
+        /* This does not display if I have set overflow:hidden on jmnode. */
+        NOjmnode.has-children::after {
+            content: "+";
+            overflow: visible;
+            position: absolute;
+            font-size: 28px;
+            top: calc(50% - 32px / 2);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid green;
+            background: rgba(0, 255, 0, 0.8);
+            background: rgba(0, 255, 0, 0.9);
+            background: green;
+            color: white;
+            z-index: 100;
+            display: flex;
+            align-content: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        jmnode.has-children.is-expanded::after {
+            content: "-";
+        }
+
+        jmnode.has-children.left-side::after {
+            left: -30px;
+        }
+
+        jmnode.has-children.right-side::after {
+            right: -30px;
+        }
+
+        #jsmind_container jmnodes jmexpander {
+            visibility: hidden;
+        }
+
+
+
+        /*********************/
+        /***** Moving jmnode */
+
+        jmnodes>jmnode.jsmind-drag-dragged {
+            outline: 5px inset white !important;
+            opacity: 0.5 !important;
+            filter: grayscale(0.8) !important;
+        }
+
+        .jsmind-inner {
+            --shside: 0px;
+        }
+
+        jmnodes>jmnode[nodeid=root].jsmind-drag-target.jsmind-drag-root-leftside {
+            --shside: -20px;
+        }
+
+        jmnodes>jmnode[nodeid=root].jsmind-drag-target.jsmind-drag-root-rightside {
+            --shside: 20px;
+        }
+
+        jmnodes>jmnode[nodeid=root].jsmind-drag-target.jsmind-drag-root-leftside::before {
+            content: "";
+            height: 100%;
+            background-color: red;
+            position: absolute;
+            left: -20px;
+            border-top-left-radius: 50%;
+            border-bottom-left-radius: 50%;
+            width: 20px;
+            height: 20px;
+        }
+
+        jmnodes>jmnode[nodeid=root].jsmind-drag-target.jsmind-drag-root-rightside::after {
+            content: "";
+            height: 100%;
+            background-color: red;
+            position: absolute;
+            right: -20px;
+            border-top-right-radius: 50%;
+            border-bottom-right-radius: 50%;
+            width: 20px;
+            height: 20px;
+        }
+
+        jmnodes>jmnode.jsmind-drag-target {
+            outline: 5px dotted red !important;
+            box-shadow: 0 var(--shup) var(--shsize) var(--shsize) red !important;
+            box-shadow: var(--shside) var(--shup) var(--shsize) var(--shsize) blue !important;
+        }
+
+        jmnodes>jmnode.jsmind-drag-tparent {
+            outline: 5px dotted orange !important;
+        }
+
+        jmnodes>jmnode.jsmind-drag-tparent {
+            box-shadow: 0 var(--shup) calc(1.5 * var(--shsize)) calc(1.5 * var(--shsize)) orange !important;
+        }
+
+        /* .NOjsmind-drag-near-child { outline: 2px dashed red !important; } */
+
+        jmnodes>jmnode.jsmind-drag-upper-child {
+            outline: 3px dashed red !important;
+            transform: translate(0, -15px) !important;
+            transform-origin: top left !important;
+        }
+
+        jmnodes>jmnode.jsmind-drag-lower-child {
+            outline: 3px dashed red !important;
+            transform: translate(0, 15px) !important;
+            transform-origin: bottom left !important;
+        }
+
+        jmnodes>jmnode.jsmind-drag-dropped-at {
+            outline: 7px dotted lawngreen !important;
+        }
+
+
+        jmnodes>jmnodejmnode.jsmind-drag-target.jsmind-drag-root-leftside {
+            border-left: 8px dotted red !important;
+        }
+
+        jmnodes>jmnodejmnode.jsmind-drag-target.jsmind-drag-root-rightside {
+            border-right: 8px dotted red !important;
+        }
+
+
+        /*********************/
+        /***** Zoom */
+        #mm4i-zoom-buttons {
+            background-color: olive;
+            background-color: #9c9c00;
+            position: fixed;
+            top: 8px;
+            left: 160px;
+            display: flex;
+            z-index: 5;
+        }
+    </style>
+    <link id="jsmind-my-colors" rel="stylesheet" href="./css/var-colors.css">
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.css" />
+
+    <!-- <script src="./src/js/fc4i-importmaps.js"></script> -->
+
+
+    <script src="./js/umd/idb.js"></script>
+    <!-- <script src="./src/js/is-displayed.js"></script> -->
+
+
+    <link rel="stylesheet" href="./ext/jsmind/jsmind-mm4i.css" />
+    <link rel="stylesheet" href="./css/jsmind-edit.css">
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #jsmind-ednode-debug-button {
+            right: 48px;
+        }
+    </style>
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind@0.5/es6/jsmind.js"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind/es6/jsmind.js"></script> -->
+    <script src="./ext/jsmind/jsmind-dbg.js"></script>
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind@0.5/es6/jsmind.draggable-node.js"></script> -->
+    <!-- <script src="./ext/jsmind/230406-jsmind.draggable-node.js"></script> -->
+
+    <!-- <script src="./ext/jsmind/chrome-src-jsmind.draggable-node.js"></script> -->
+
+    <!-- <script src="./src/js/mindmap-helpers.js"></script> -->
+</head>
+
+<body class="NOno-test-items">
+    <div id="PWA-version"></div>
+    <!-- 
+    <script>
+        setTimeout(() => {
+            const style =
+                `
+        position:fixed; bottom:0; right:0;
+        display: flex; justify-content: center;
+        width:fit-content; height:25px;
+        padding:2px 10px;
+        background:black; color:yellow;
+        opacity:0.5;
+        z-index:10;
+        `;
+            const myVer = mkElt("div", { id: "jsmind-test-my-ver", style }, "New version");
+            document.body.appendChild(myVer);
+        }, 1000);
+    </script>
+    -->
+
+    <script src="./ext/mdc/material-components-web.js"></script>
+    <!-- <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script> -->
+
+
+    <div id="jsmind_container" class="jsmind_container"></div>
+
+    <!-- Mirror must be display:block for rendering -->
+    <!-- <div id="jsmind-draggable-container4mirror" style="left: -1000px;"></div> -->
+
+    <script type="module">
+        console.log("here is mm4i.html");
+        // (async () => {
+        const modMdc = await importFc4i("util-mdc");
+        const modJsMind = await importFc4i("jsmind");
+        const modEditFc4iMM = await importFc4i("jsmind-edit-spec-fc4i");
+        const modJsEditCommon = await importFc4i("jsmind-edit-common");
+        modJsEditCommon.basicInit4jsmind();
+        modJsEditCommon.pageSetup();
+        const aboutLink = makeAbsLink("./about");
+        modJsEditCommon.addToPageMenu("About", aboutLink);
+        // })();
+    </script>
+</body>
+
+</html>
