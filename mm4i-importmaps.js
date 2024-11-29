@@ -29,7 +29,7 @@ console.log(`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
         "fc4i-items": "./src/js/share.js",
         "flashcards": "./src/js/mod/flashcards.js",
         "idb-common": "./js/mod/idb-common.js",
-        "images": "./src/js/images.js",
+        "images": "./js/mod/images.js",
         "is-displayed": "./js/mod/is-displayed.js",
 
         // The jsmind entry is not used yet:

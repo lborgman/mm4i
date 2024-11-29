@@ -1611,7 +1611,7 @@ export class CustomRenderer4jsMind {
                 const currBgObj = modJsEditCommon.getShapeEtcBgObj(currentShapeEtc);
                 if (bgName != currBgObj?.bgName) {
                     // getBgFromElts
-                    const bgValue = getBgValueFromElt(bgName);
+                    const bgValue = await getBgValueFromElt(bgName);
                     currentShapeEtc.background = modJsEditCommon.mkJmnodeBgObj(bgName, bgValue)
                 }
             }
@@ -1647,7 +1647,7 @@ export class CustomRenderer4jsMind {
             if (!elt) throw Error("Could not find input[name=bg-choice]:checked");
             return elt;
         }
-        function getBgValueFromElt(bgName) {
+        async function getBgValueFromElt(bgName) {
             let bgValue;
             switch (bgName) {
                 case "bg-choice-none":
@@ -1663,9 +1663,21 @@ export class CustomRenderer4jsMind {
                     bgValue = taImgPattern.value.trim();
                     break;
                 case "bg-choice-img-clipboard":
-                    if (!clipImage.blob) return;
-                    // return clipImage;
-                    bgValue = clipImage.blob;
+                    if (clipImage.blob) {
+                        bgValue = clipImage.blob;
+                    } else {
+                        // FIX-ME: return minimal image
+                        const canvas = document.createElement("canvas");
+                        canvas.width = 1;
+                        canvas.height = 1;
+                        const ctx = canvas.getContext("2d");
+                        ctx.fillStyle = "red";
+                        ctx.fillRect(0, 0, 1, 1);
+                        bgValue = await new Promise(resolve => {
+                            canvas.toBlob(blob => { resolve(blob); }, "image/webp");
+                        });
+                    }
+
                     break;
                 default:
                     throw Error(`Unknown bg-choice: ${bgName}`);
@@ -1678,7 +1690,7 @@ export class CustomRenderer4jsMind {
             const bgName = elt.id;
             let bgValue = undefined;
             console.log("getBgCssValue", elt, bgName);
-            bgValue = getBgValueFromElt(bgName);
+            bgValue = await getBgValueFromElt(bgName);
             const bgObj = modJsEditCommon.mkJmnodeBgObj(bgName, bgValue);
             return bgObj;
         }
