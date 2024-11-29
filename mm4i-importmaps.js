@@ -61,7 +61,6 @@ console.log(`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
 
         // Tests:
         "easymde": "https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js",
-        "pannellum2d": "./ext/pannellum/pannellum2d.js",
         "jssm": "https://cdn.jsdelivr.net/npm/jssm@latest/dist/jssm.es6.mjs",
         "jssm-viz": "./ext/jssm/jssm-viz.es6.js",
         "mm4i-fsm": "./js/mm4i-fsm.js",
