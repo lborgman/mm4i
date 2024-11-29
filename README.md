@@ -5,7 +5,7 @@ Mindmaps in your web browser. So you can use it in your mobile phone. Or in your
 Here is an [app](https://lborgman.github.io/mm4i/mm4i.html) for that.
 No installation required. Since it is a web page.
 
-<p style="background:red; padding:30px">
+<p style="background:yellow; width:250px; margin-left:20px; padding:20px; border:2px solid red;">
 Please notice that it is not quite ready here yet.
 (I am transfering the code from another place.)
 </p>
