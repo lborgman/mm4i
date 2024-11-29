@@ -8,11 +8,11 @@ Here is the [app](https://lborgman.github.io/mm4i/mm4i.html).
 
 ## Acknowledgement
 
-jsmind
-jssm
-jssm-viz
-viz-js
-EasyMDE
+* jsmind
+* jssm
+    * jssm-viz
+    * viz-js
+* EasyMDE
 
 Visual Studio Code
 GitHub
