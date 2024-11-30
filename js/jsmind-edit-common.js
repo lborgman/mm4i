@@ -1000,7 +1000,7 @@ export async function pageSetup() {
         btnJsmindDebug.id = idBtnJsmindDebug;
         btnJsmindDebug.classList.add("test-item");
         btnJsmindDebug.classList.add("jsmind-actions");
-        jsMindContainer.appendChild(btnJsmindDebug);
+        // jsMindContainer.appendChild(btnJsmindDebug);
         btnJsmindDebug.addEventListener("click", evt => {
             console.log("btnJsmindMenu");
             evt.stopPropagation();
