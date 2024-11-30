@@ -966,9 +966,6 @@ export async function pageSetup() {
             return fabNetwG;
         }
         const fabNetwG = await mkFabNetwG();
-        // document.body.appendChild(fabNetwG);
-        // jsMindContainer.appendChild(fabNetwG);
-        // fabNetwG.style.marginLeft = "30px";
         return fabNetwG;
     }
 
@@ -1010,8 +1007,9 @@ export async function pageSetup() {
             jsMindContainer.classList.toggle("show-jsmind-debug");
         });
 
-        const nwgFAB = await mkNetGraphFAB4mindmap();
-        jsMindContainer.appendChild(nwgFAB);
+        // FIX-ME:
+        // const nwgFAB = await mkNetGraphFAB4mindmap();
+        // jsMindContainer.appendChild(nwgFAB);
 
 
         btnJsmindMenu = modMdc.mkMDCiconButton("menu", "Open menu", 40);
