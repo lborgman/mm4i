@@ -319,10 +319,23 @@
             background-color: olive;
             background-color: #9c9c00;
             position: fixed;
-            top: 8px;
-            left: 160px;
+            top: 0px;
+            right: 0px;
+            height: 40px;
             display: flex;
             z-index: 5;
+        }
+
+        #mm4i-zoom-buttons>button {
+            aspect-ratio: 1 / 1;
+            border: none;
+            background-color: transparent;
+            font-size: 24px;
+        }
+
+        #mm4i-zoom-buttons>button.display-zoomed {
+            border: 1px solid gray;
+            font-size: 1em;
         }
     </style>
     <link id="jsmind-my-colors" rel="stylesheet" href="./css/var-colors.css">

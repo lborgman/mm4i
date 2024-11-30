@@ -149,14 +149,6 @@ function mkZoomButton(elt, inOrOut) {
     const btn = document.createElement("button");
     btn.textContent = dir;
     btn.title = `Zoom ${dir}`;
-    // @ts-ignore
-    btn.style = `
-        aspect-ratio: 1 / 1;
-        width: 32px;
-        background-color: transparent;
-        font-size: 24px;
-        border: none;
-    `;
     btn.addEventListener("click", () => {
         console.log("btn ", dir, amount);
         changeScale(elt, amount);
@@ -164,22 +156,24 @@ function mkZoomButton(elt, inOrOut) {
     return btn;
 }
 
-const idDisplayZoomed = "display-zoomed";
-function mkDisplayZoomed() {
-    const div = document.createElement("div");
-    div.textContent = "100%";
-    div.id = idDisplayZoomed;
-    // @ts-ignore
-    div.style = `
-        display: inline-flex;
-        align-items: center;
-        NOpadding: 4px;
-    `;
-    return div;
+const clsDisplayZoomed = "display-zoomed";
+function mkDisplayZoomed(elt) {
+    const btn = document.createElement("button");
+    btn.textContent = "100%";
+    btn.classList.add(clsDisplayZoomed);
+    btn.title = "zoom 100%";
+    // changeScale(elt, amount);
+    btn.addEventListener("click", evt => {
+        const scale = 1;
+        elt.style.transform = `scale(${scale})`;
+        displayZoomed(scale);
+    });
+    return btn;
 }
 function displayZoomed(scaled) {
     const perc = Math.round(scaled * 100);
-    const elt = document.getElementById(idDisplayZoomed);
+    // const elt = document.getElementById(clsDisplayZoomed);
+    const elt = document.getElementById("mm4i-zoom-buttons")?.querySelector(clsDisplayZoomed);
     // @ts-ignore
     elt.textContent = `${perc}%`;
 }
@@ -199,7 +193,7 @@ export function mkZoomButtons(elt, horOrVer) {
 
     const btnPlus = mkZoomButton(elt, "+");
     const btnMinus = mkZoomButton(elt, "-");
-    const eltZoomed = mkDisplayZoomed();
+    const eltZoomed = mkDisplayZoomed(elt);
     const cont = document.createElement("div");
     cont.appendChild(btnPlus);
     cont.appendChild(eltZoomed);
