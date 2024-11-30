@@ -172,10 +172,11 @@ function mkDisplayZoomed(elt) {
 }
 function displayZoomed(scaled) {
     const perc = Math.round(scaled * 100);
-    // const elt = document.getElementById(clsDisplayZoomed);
-    const elt = document.getElementById("mm4i-zoom-buttons")?.querySelector(clsDisplayZoomed);
+    const eltZoom = document.getElementById("mm4i-zoom-buttons");
     // @ts-ignore
-    elt.textContent = `${perc}%`;
+    const eltDisplay = eltZoom.querySelector(`.${clsDisplayZoomed}`);
+    // @ts-ignore
+    eltDisplay.textContent = `${perc}%`;
 }
 
 
