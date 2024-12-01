@@ -6,10 +6,6 @@
     <title>temp3z.html</title>
 
     <style>
-        :root {
-            background-color: darkolivegreen;
-        }
-
         body {
             height: 100vh;
         }
@@ -17,10 +13,14 @@
         #container {
             height: 100vh;
             width: 100vw;
-            display: flex;
+            position: relative;
+
+            /* The problem is somehow related to flex: */
+            NOdisplay: flex;
+            flex-direction: column;
+            flex-direction: row;
             align-items: center;
             justify-content: center;
-            position: relative;
         }
 
 
@@ -51,8 +51,7 @@
 
         #svg-cont {
             width: 498px;
-            height: 595px;
-            NOoutline: red dotted 1px;
+            height: 1px;
             background-color: orange;
         }
     </style>
@@ -69,5 +68,92 @@
     <div id="zoom-buttons"> Zoom buttons </div>
     <div id="bottom-bar"> Idle </div>
 </body>
+
+<script>
+    function getScreenWH() {
+        const saH = screen.availHeight;
+        const saW = screen.availWidth;
+        const wiH = window.innerHeight;
+        const wiW = window.innerWidth;
+        console.log(`screen saH:${saH} saW:${saW}, window wiH:${wiH} wiW:${wiW}`);
+    }
+    function getBottomBarBounds() {
+        const elt = document.getElementById("bottom-bar");
+        const bcr = elt.getBoundingClientRect();
+        console.log(`bottom`, bcr);
+        return bcr;
+    }
+    function getZoomBarBounds() {
+        const elt = document.getElementById("zoom-buttons");
+        const bcr = elt.getBoundingClientRect();
+        console.log(`zoom buttons`, bcr);
+        return bcr;
+    }
+
+    function getSvgContSize() {
+        const elt = document.getElementById("svg-cont");
+        const s = getComputedStyle(elt);
+        const w = s.width;
+        const h = s.height;
+        console.log(`svg-cont w:${w} h:${h}`, elt);
+    }
+    function getProblemSizes() {
+        getScreenWH();
+        getZoomBarBounds();
+        getBottomBarBounds();
+        getSvgContSize();
+        isAndroid();
+        isChromium();
+    }
+
+    getProblemSizes();
+
+
+    function isAndroid() {
+        let android = false;
+        if (navigator.userAgent.includes("Android")) {
+            android = true;
+        }
+        console.log("android", android);
+        return android;
+    }
+    function isChromium() {
+        let chromium = false;
+        if (navigator.userAgent.includes("Chromium")) {
+            chromium = true;
+        }
+        console.log("chromium", chromium);
+        return chromium;
+    }
+</script>
+<script type="module">
+    function checkProblem() {
+        const bcrZ = getZoomBarBounds();
+        const bcrB = getBottomBarBounds();
+        const saW = screen.availWidth;
+        const saH = screen.availHeight;
+        const problemZ = bcrZ.right > saW;
+        const problemB = bcrB.bottom > saW;
+        if (problemZ || problemB) {
+            const fixIt = confirm("Problem found, apply workaround?");
+            if (fixIt) {
+                if (problemZ) {
+                    const eltZ = document.getElementById("zoom-buttons");
+                    const left = saW - bcrZ.width;
+                    eltZ.style.left = `${left}px`;
+                    console.log({ eltZ });
+                }
+                if (problemB) {
+                    const eltB = document.getElementById("bottom-bar");
+                    const top = saH - bcrB.height;
+                    eltB.style.top = `${top}px`;
+                    console.log({ eltB });
+                }
+            }
+        }
+    }
+    checkProblem();
+
+</script>
 
 </html>
