@@ -135,20 +135,22 @@
         const problemZ = bcrZ.right > saW;
         const problemB = bcrB.bottom > saW;
         if (problemZ || problemB) {
-            const fixIt = confirm("Problem found, apply workaround?");
+            const fixIt = confirm("Problem found, apply workaround? (ver 2)");
             if (fixIt) {
-                if (problemZ) {
-                    const eltZ = document.getElementById("zoom-buttons");
-                    const left = saW - bcrZ.width;
-                    eltZ.style.left = `${left}px`;
-                    console.log({ eltZ });
-                }
-                if (problemB) {
-                    const eltB = document.getElementById("bottom-bar");
-                    const top = saH - bcrB.height;
-                    eltB.style.top = `${top}px`;
-                    console.log({ eltB });
-                }
+                setTimeout(() => {
+                    if (problemZ) {
+                        const eltZ = document.getElementById("zoom-buttons");
+                        const left = saW - bcrZ.width;
+                        eltZ.style.left = `${left}px`;
+                        console.log({ eltZ });
+                    }
+                    if (problemB) {
+                        const eltB = document.getElementById("bottom-bar");
+                        const top = saH - bcrB.height;
+                        eltB.style.top = `${top}px`;
+                        console.log({ eltB });
+                    }
+                });
             }
         }
     }
