@@ -129,18 +129,20 @@
 <script type="module">
     function checkProblem() {
         const bcrZ = getZoomBarBounds();
+        console.log("initial bcrZ", bcrZ);
         const bcrB = getBottomBarBounds();
         const saW = screen.availWidth;
         const saH = screen.availHeight;
         const problemZ = bcrZ.right > saW;
         const problemB = bcrB.bottom > saW;
         if (problemZ || problemB) {
-            const fixIt = confirm("Problem found, apply workaround? (ver 4)");
+            const fixIt = confirm("Problem found, apply workaround? (ver 5)");
             if (fixIt) {
                 setTimeout(() => {
                     if (problemZ) {
                         const eltZ = document.getElementById("zoom-buttons");
                         const bcrZ = getZoomBarBounds();
+                        console.log("bcrZ in setTimeout", bcrZ);
                         const left = saW - bcrZ.width;
                         eltZ.style.left = `${left}px`;
                         console.log({ eltZ });
