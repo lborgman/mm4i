@@ -135,7 +135,7 @@
         const problemZ = bcrZ.right > saW;
         const problemB = bcrB.bottom > saW;
         if (problemZ || problemB) {
-            const fixIt = confirm("Problem found, apply workaround? (ver 2)");
+            const fixIt = confirm("Problem found, apply workaround? (ver 3)");
             if (fixIt) {
                 setTimeout(() => {
                     if (problemZ) {
@@ -150,7 +150,7 @@
                         eltB.style.top = `${top}px`;
                         console.log({ eltB });
                     }
-                });
+                }, 1000);
             }
         }
     }
