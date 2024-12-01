@@ -80,13 +80,13 @@
     function getBottomBarBounds() {
         const elt = document.getElementById("bottom-bar");
         const bcr = elt.getBoundingClientRect();
-        console.log(`bottom`, bcr);
+        // console.log(`bottom`, bcr);
         return bcr;
     }
     function getZoomBarBounds() {
         const elt = document.getElementById("zoom-buttons");
         const bcr = elt.getBoundingClientRect();
-        console.log(`zoom buttons`, bcr);
+        // console.log(`zoom buttons`, bcr);
         return bcr;
     }
 
@@ -106,7 +106,7 @@
         isChromium();
     }
 
-    getProblemSizes();
+    // getProblemSizes();
 
 
     function isAndroid() {
@@ -136,7 +136,7 @@
         const problemZ = bcrZ.right > saW;
         const problemB = bcrB.bottom > saW;
         if (problemZ || problemB) {
-            const fixIt = confirm("Problem found, apply workaround? (ver 5)");
+            const fixIt = confirm("Problem found, apply workaround? (ver 6)");
             if (fixIt) {
                 setTimeout(() => {
                     if (problemZ) {
