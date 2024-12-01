@@ -29,3 +29,6 @@ And then, preferably the computer I always bring with me, my mobile.
 
 Visual Studio Code
 GitHub
+
+## Dev
+[mobile display bug](https://lborgman.github.io/mm4i/mobile-disp-bug.html)
