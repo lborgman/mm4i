@@ -1,0 +1,166 @@
+<html>
+<!-- test workaround -->
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>temp-workaround-3z.html</title>
+
+    <style>
+        body {
+            height: 100vh;
+        }
+
+        #container {
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+
+            /* The problem is somehow related to flex: */
+            NOdisplay: flex;
+            flex-direction: column;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+        }
+
+
+        #zoom-buttons {
+            background-color: #9c9c00;
+            position: fixed;
+            top: 10px;
+            width: 100px;
+            left: calc(100vw - 100px);
+            padding: 4px;
+            z-index: 5;
+        }
+
+        #bottom-bar {
+            position: fixed;
+            left: 0px;
+            top: calc(100vh - 30px);
+            width: 100vw;
+            height: 30px;
+            padding: 4px;
+            background-color: black;
+            color: orange;
+            z-index: 5;
+        }
+
+        #zoom-scroll {
+            position: relative;
+            outline: black dotted 1px;
+        }
+
+        #svg-cont {
+            width: 498px;
+            height: 1px;
+            background-color: orange;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div id="zoom-scroll">
+            <div id="svg-cont">
+                <!-- <svg width="498" height="595"> </svg> -->
+            </div>
+        </div>
+    </div>
+    <div id="zoom-buttons"> Zoom buttons </div>
+    <div id="bottom-bar"> Idle </div>
+</body>
+
+<script>
+    function getScreenWH() {
+        const saH = screen.availHeight;
+        const saW = screen.availWidth;
+        const wiH = window.innerHeight;
+        const wiW = window.innerWidth;
+        console.log(`screen saH:${saH} saW:${saW}, window wiH:${wiH} wiW:${wiW}`);
+    }
+    function getBottomBarBounds() {
+        const elt = document.getElementById("bottom-bar");
+        const bcr = elt.getBoundingClientRect();
+        // console.log(`bottom`, bcr);
+        return bcr;
+    }
+    function getZoomBarBounds() {
+        const elt = document.getElementById("zoom-buttons");
+        const bcr = elt.getBoundingClientRect();
+        // console.log(`zoom buttons`, bcr);
+        return bcr;
+    }
+
+    function getSvgContSize() {
+        const elt = document.getElementById("svg-cont");
+        const s = getComputedStyle(elt);
+        const w = s.width;
+        const h = s.height;
+        console.log(`svg-cont w:${w} h:${h}`, elt);
+    }
+    function getProblemSizes() {
+        getScreenWH();
+        getZoomBarBounds();
+        getBottomBarBounds();
+        getSvgContSize();
+        isAndroid();
+        isChromium();
+    }
+
+    // getProblemSizes();
+
+
+    function isAndroid() {
+        let android = false;
+        if (navigator.userAgent.includes("Android")) {
+            android = true;
+        }
+        console.log("android", android);
+        return android;
+    }
+    function isChromium() {
+        let chromium = false;
+        if (navigator.userAgent.includes("Chromium")) {
+            chromium = true;
+        }
+        console.log("chromium", chromium);
+        return chromium;
+    }
+</script>
+<script type="module">
+    // https://issues.chromium.org/issues/381679574
+    function checkProblem() {
+        const bcrZ = getZoomBarBounds();
+        const bcrB = getBottomBarBounds();
+        const saW = screen.availWidth;
+        const saH = screen.availHeight;
+        const problemZ = bcrZ.right > saW;
+        const problemB = bcrB.bottom > saW;
+
+        const eltZ = document.getElementById("zoom-buttons");
+        window["eltZ"] = eltZ;
+
+        const anyProblem = problemZ || problemB;
+        // const anyProblem = problemZ;
+        if (anyProblem) {
+            if (problemZ) {
+                const bcrZ = getZoomBarBounds();
+                console.log(`bcrZ.right > saW, ${bcrZ.right} > ${saW}`);
+                console.log("bcrZ", bcrZ, eltZ);
+            }
+            if (false && problemB) {
+                const eltB = document.getElementById("bottom-bar");
+                const bcrB = getBottomBarBounds();
+                console.log({ eltB });
+            }
+        } else {
+            console.log("seems ok, eltZ", eltZ);
+        }
+    }
+    checkProblem();
+
+</script>
+
+</html>
