@@ -87,11 +87,13 @@
 </body>
 
 <script>
-    function addTitleToBottomBar() {
-        const elt = document.getElementById("bottom-bar");
-        elt.textContent = document.title;
+    function addTitleToFixed() {
+        const eltB = document.getElementById("bottom-bar");
+        eltB.textContent = document.title;
+        const eltZ = document.getElementById("zoom-buttons");
+        eltZ.textContent = document.title;
     }
-    addTitleToBottomBar();
+    addTitleToFixed();
     function getScreenWH() {
         const saH = screen.availHeight;
         const saW = screen.availWidth;
