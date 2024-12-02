@@ -89,6 +89,22 @@
 </body>
 
 <script>
+    function addRefresh() {
+        const url = new URL(window.location.href);
+        const pars = url.searchParams;
+        pars.delete("nocache")
+        pars.append("nocache", Date.now())
+        const href = url.href;
+        const eltB = document.getElementById("bottom-bar");
+        console.log({href}, eltB);
+        const eltA = document.createElement("a");
+        eltA.textContent = "Refresh";
+        eltA.href = href;
+        eltA.style.color = "yellow";
+        eltB.textContent = "";
+        eltB.appendChild(eltA);
+    }
+
     function addTitleToFixed() {
         const eltB = document.getElementById("bottom-bar");
         eltB.textContent = document.title;
@@ -195,6 +211,7 @@
             console.log("seems ok, eltZ", eltZ);
         }
     }
+    addRefresh();
     setTimeout(() => { checkProblem(); }, 1000);
 
 </script>
