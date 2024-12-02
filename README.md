@@ -31,6 +31,6 @@ Visual Studio Code
 GitHub
 
 ## Dev
-[mobile display bug example](https://lborgman.github.io/mm4i/mobile-disp-bug.html)
-[mobile display bug issue](https://issues.chromium.org/issues/381679574)
-[mobile display bug workaround](https://lborgman.github.io/mm4i/mobile-disp-bug-workaround.html)
+* [mobile display bug example](https://lborgman.github.io/mm4i/mobile-disp-bug.html)
+* [mobile display bug issue](https://issues.chromium.org/issues/381679574)
+* [mobile display bug workaround](https://lborgman.github.io/mm4i/mobile-disp-bug-workaround.html)
