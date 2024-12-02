@@ -4,12 +4,15 @@
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>tmp-w3B.html</title>
+    <title>tmp-w3E.html</title>
 
     <style>
-        :root {
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
         }
+
 
         body {
             height: 100vh;
@@ -34,7 +37,7 @@
             position: fixed;
             top: 10px;
             width: 200px;
-            left: calc(100vw - 210px);
+            left: calc(100vw - 201px);
             padding: 4px;
             z-index: 5;
         }
@@ -42,10 +45,13 @@
         #bottom-bar {
             position: fixed;
             left: 0px;
-            top: calc(100vh - 30px);
+            top: calc(100vh - 31px);
             width: 100vw;
             height: 30px;
-            padding: 4px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: center;
+            justify-content: center;
             background-color: black;
             color: orange;
             z-index: 5;
@@ -141,24 +147,37 @@
         const saW = screen.availWidth;
         const saH = screen.availHeight;
         const problemZ = bcrZ.right > saW;
-        const problemB = bcrB.bottom > saW;
+        const problemB = bcrB.bottom > saH;
 
         const eltZ = document.getElementById("zoom-buttons");
         window["eltZ"] = eltZ;
+        const eltB = document.getElementById("bottom-bar");
+        window["eltB"] = eltB;
 
         const anyProblem = problemZ || problemB;
-        // const anyProblem = problemZ;
         if (anyProblem) {
             if (problemZ) {
                 const bcrZ = getZoomBarBounds();
                 console.log(`bcrZ.right > saW, ${bcrZ.right} > ${saW}`);
                 console.log("bcrZ", bcrZ, eltZ);
             }
-            if (false && problemB) {
-                const eltB = document.getElementById("bottom-bar");
+            if (problemB) {
                 const bcrB = getBottomBarBounds();
-                console.log({ eltB });
+                console.log(`bcrB.bottom > saH, ${bcrB.bottom} > ${saH}`);
+                console.log("bcrB", bcrB, eltB);
             }
+            const eltTell = document.createElement("div");
+            eltTell.textContent = "Sorry, workaround did not work";
+            eltTell.style = `
+                position: fixed;
+                top: 100px;
+                left: 20px;
+                width: 200px;
+                padding: 8px;
+                background: red;
+                z-index: 100;
+            `;
+            document.body.appendChild(eltTell);
         } else {
             console.log("seems ok, eltZ", eltZ);
         }
