@@ -87,6 +87,11 @@
 </body>
 
 <script>
+    function addTitleToBottomBar() {
+        const elt = document.getElementById("bottom-bar");
+        elt.textContent = document.title;
+    }
+    addTitleToBottomBar();
     function getScreenWH() {
         const saH = screen.availHeight;
         const saW = screen.availWidth;
