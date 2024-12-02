@@ -29,8 +29,8 @@
             background-color: #9c9c00;
             position: fixed;
             top: 10px;
-            width: 100px;
-            left: calc(100vw - 100px);
+            width: 200px;
+            left: calc(100vw - 200px);
             padding: 4px;
             z-index: 5;
         }
@@ -159,7 +159,7 @@
             console.log("seems ok, eltZ", eltZ);
         }
     }
-    checkProblem();
+    setTimeout(() => { checkProblem(); }, 1000);
 
 </script>
 
