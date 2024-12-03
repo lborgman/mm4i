@@ -421,7 +421,7 @@ function savePointerPos(evt) {
 //// Try body instead (same problem)
 // document.body.addEventListener("pointermove", savePointerPos);
 // document.body.addEventListener("pointerdown", savePointerPos);
-//// Try getEltFsm
+//// Try getEltFsm (this works also in Android Chrome!)
 function addPosListener(eltFsm) {
     // const eltFsm = getEltFsm();
     eltFsm.addEventListener("pointermove", savePointerPos);
@@ -1023,7 +1023,7 @@ export async function pageSetup() {
     // const divSearchInputs = mkElt("div", { id: idSearchInputs });
 
     divSearchInputs.classList.add("jsmind-actions");
-    const divHits = mkElt("div", { id: idDivHits, class: "mdc-card" });
+    const divHits = mkElt("div", { id: idDivHits, class: "NOmdc-card" });
     divHits.classList.add("display-none");
     divSearchInputs.appendChild(divHits);
 
