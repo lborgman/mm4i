@@ -134,6 +134,10 @@ class PointHandle {
         // this.#eltPointHandle.style.left = `${evtPointerLast.clientX - PointHandle.sizePointHandle / 2}px`;
         // this.#eltPointHandle.style.top = `${evtPointerLast.clientY - PointHandle.sizePointHandle / 2}px`;
 
+        if (evtPointerLast.clientX == undefined) {
+            debugger;
+            throw Error("evtPointerLast is not initialized");
+        }
         const clientX = evtPointerLast.clientX;
         const clientY = evtPointerLast.clientY;
         posPointHandle = {
@@ -193,7 +197,10 @@ class PointHandle {
         }
         const diffX = posPointHandle.start.clientX - evtPointerLast.clientX;
         const diffY = posPointHandle.start.clientY - evtPointerLast.clientY;
-        if (isNaN(diffX) || isNaN(diffY)) throw Error("diffX or diffY isNaN");
+        if (isNaN(diffX) || isNaN(diffY)) {
+            debugger;
+            throw Error(" ddiffX oriffY isNaN");
+        }
         if (this.isState("dist")) {
             const diff2 = diffX * diffX + diffY * diffY;
             // const diffPH = PointHandle.diffPointHandle;
@@ -392,20 +399,35 @@ const evtPointerLast = {};
  * @param {PointerEvent} evt 
  */
 function savePointerPos(evt) {
-    if (!(evt instanceof PointerEvent)) throw Error("Expeced PointerEvent");
+    let posHolder = evt;
+    // if (!(evt instanceof PointerEvent)) throw Error("Expected PointerEvent");
+    if (evt instanceof TouchEvent) {
+        const touches = evt.touches;
+        if (touches.length > 1) return;
+        if (touches.length != 1) throw Error(`savePointerPos: touches.length == ${touches.length}`);
+        posHolder = touches[0];
+    }
+    if (posHolder.clientX == undefined) throw Error("savePointerPos: posHolder.clientX == undefined");
+
     // evt.preventDefault();
     // evt.stopPropagation();
     // evt.stopImmediatePropagation();
 
-    evtPointerLast.clientX = evt.clientX;
-    evtPointerLast.clientY = evt.clientY;
-    evtPointerLast.screenX = evt.screenX;
-    evtPointerLast.screenY = evt.screenY;
+    evtPointerLast.clientX = posHolder.clientX;
+    evtPointerLast.clientY = posHolder.clientY;
+    evtPointerLast.screenX = posHolder.screenX;
+    evtPointerLast.screenY = posHolder.screenY;
     evtPointerLast.target = evt.target;
 
 }
-window.addEventListener("pointermove", savePointerPos);
-window.addEventListener("pointerdown", savePointerPos);
+
+//// FIX-ME: This seems to have stopped working in Android Chrome (at least in Chrome dev tools)???
+// window.addEventListener("pointermove", savePointerPos);
+// window.addEventListener("pointerdown", savePointerPos);
+//// Try body instead
+document.body.addEventListener("pointermove", savePointerPos);
+document.body.addEventListener("pointerdown", savePointerPos);
+document.body.addEventListener("touchmove", savePointerPos);
 
 
 

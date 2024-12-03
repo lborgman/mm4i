@@ -44,8 +44,10 @@ export class ScrollAtDragBorder {
             ].join(";");
             const eltVis = mkElt("div", { style });
             this.visuals.push(eltVis);
-            const elt2moveParent = elt2move.parentElement;
-            elt2moveParent.appendChild(eltVis);
+            // const elt2moveParent = elt2move.parentElement;
+            // elt2moveParent.appendChild(eltVis);
+            // Add to body to avoid scaling:
+            document.body.appendChild(eltVis);
             return eltVis;
         }
         this.eltVisualLeft = addVisual();
