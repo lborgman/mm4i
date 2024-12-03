@@ -1564,6 +1564,10 @@ div.bg-choice:not(input[disabled]):has(input:checked) {
     display: none;
 }
 
+#jsmind-search-inputs button {
+    background-color: white;
+}
+
 #jsmind-search-inputs.showing-provider-hits #provider-hits {
     display: flex;
 }
@@ -1719,13 +1723,7 @@ jmnode.has-children.right-side::after {
 
 #jsmind-div-hits {
     position: static;
-    /* left: 40; */
-    /* top: 40; */
-    /* z-index: 5; */
-    background: red;
-    background: greenyellow;
     background: transparent;
-    color: white;
     color: black;
     display: flex;
     flex-direction: row;
@@ -1733,14 +1731,11 @@ jmnode.has-children.right-side::after {
     flex-wrap: wrap;
     gap: 5px;
     padding: 2px;
-    padding-left: 4px;
-    padding-right: 4px;
     min-height: 36px;
 }
 
 #jsmind-div-hits button {
     min-width: 32px;
-    color: white;
     color: black;
 }
 
@@ -1756,8 +1751,9 @@ jmnodes.showing-hits jmnode:not(.jsmind-hit) {
 jmnode.jsmind-hit::after {
     content: "Hit!";
     filter: none !important;
-    background-color: red !important;
-    background-color: blueviolet !important;
+    /* background-color: red !important; */
+    /* background-color: blueviolet !important; */
+    background-color: var(--search-color) !important;
     color: yellow !important;
     font-size: 18px !important;
     height: 28px !important;

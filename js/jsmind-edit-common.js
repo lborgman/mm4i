@@ -1008,9 +1008,7 @@ export async function pageSetup() {
     let btnJsmindMenu;
     const idBtnJsmindMenu = "jsmind-menu-button";
     let btnJsmindSearch;
-    const idBtnJsmindSearch = "jsmind-search-button";
-    // let divSearchInputs;
-    const idSearchInputs = "jsmind-search-inputs";
+    // const idBtnJsmindSearch = "jsmind-search-button";
 
     const inpSearch = mkElt("input", { type: "search", placeholder: "Search nodes", id: "jsmind-inp-node-search" });
     // const inpSearch = modMdc.mkMDCtextFieldInput( "jsmind-inp-node-search", "search");
@@ -1019,10 +1017,10 @@ export async function pageSetup() {
     const tfSearch = inpSearch;
 
     const eltProvHits = mkElt("div", { id: "provider-hits" });
-    const divSearchInputs = mkElt("div", { id: idSearchInputs }, [tfSearch, eltProvHits]);
-    // const divSearchInputs = mkElt("div", { id: idSearchInputs });
-
+    const divSearchInputs = mkElt("div", { id: "jsmind-search-inputs" }, [tfSearch, eltProvHits]);
     divSearchInputs.classList.add("jsmind-actions");
+    divSearchInputs.classList.add("mdc-card");
+
     const divHits = mkElt("div", { id: idDivHits, class: "NOmdc-card" });
     divHits.classList.add("display-none");
     divSearchInputs.appendChild(divHits);
@@ -1057,7 +1055,8 @@ export async function pageSetup() {
             displayContextMenu(btnJsmindMenu);
         });
         btnJsmindSearch = modMdc.mkMDCiconButton("search", "Search", 40);
-        btnJsmindSearch.id = idBtnJsmindSearch;
+        btnJsmindSearch.id = "jsmind-search-button";
+        ;
         btnJsmindSearch.classList.add("jsmind-actions");
         // jsMindContainer.appendChild(btnJsmindSearch);
         jsMindContainer.appendChild(divJsmindSearch);
@@ -1071,7 +1070,7 @@ export async function pageSetup() {
             clearSearchHits();
             if (visibleSearchInputs()) {
                 const divInputs = document.getElementById("jsmind-search-inputs");
-                if (!divInputs) { throw Error(`Could not find jsmind-search-inputs`); }
+                if (!divInputs) { throw Error(`Could not find #jsmind-search-inputs`); }
                 if (divInputs.classList.contains("showing-provider-hits")) {
                     setProviderNodeHits();
                 } else {
@@ -1371,7 +1370,7 @@ export async function pageSetup() {
             // @ts-ignore
             jsMindContainer.classList.add("display-jsmind-search");
             const divInputs = document.getElementById("jsmind-search-inputs");
-            // @ts-ignore
+            if (!divInputs) { throw Error(`Could not find #jsmind-search-inputs`); }
             divInputs.classList.add("showing-provider-hits");
         }
         console.log({ arrHits: arrIdHits });
@@ -1411,14 +1410,17 @@ export async function pageSetup() {
         function setBtnCurrNum(num) {
             const eltTxt = btnCurr.querySelector(".mdc-button__label");
             eltTxt.textContent = `${num} (${arrIdHits.length})`;
+            btnCurr.title = `Select hit ${num}`;
         }
         const btnPrev = await modMdc.mkMDCbutton("<");
+        btnPrev.title = "Select previous hit";
         btnPrev.addEventListener("click", () => {
             let nextNum = getBtnCurrNum() - 1;
             if (nextNum < 1) nextNum = arrIdHits.length;
             setHitTo(nextNum);
         });
         const btnNext = await modMdc.mkMDCbutton(">");
+        btnNext.title = "Select next hit";
         btnNext.addEventListener("click", () => {
             let nextNum = getBtnCurrNum() + 1;
             if (nextNum > arrIdHits.length) nextNum = 1;

@@ -43,6 +43,8 @@
         :root {
             background-color: darkolivegreen;
             position: fixed;
+            --search-color: blue;
+            --search-color: blueviolet;
         }
 
         #PWA-version {
@@ -58,17 +60,48 @@
             background-color: olive;
         }
 
-        #jsmind-search-inputs {
-            top: 0;
-            height: 40px;
-            margin-top: unset;
-            background-color: blueviolet;
-            display: none;
-            align-items: center;
-            width: fit-content;
-            padding-right: 8px;
-            padding-left: 8px;
+        #jsmind-search-button {
+            left: 40px;
         }
+
+        .display-jsmind-search #jsmind-search-button {
+            background-color: var(--search-color);
+        }
+
+        #jsmind-search-inputs {
+            position: fixed;
+            left: 80px;
+            top: 0;
+            /* height: 40px; */
+            min-height: 40px;
+            /* margin-top: unset; */
+            margin-top: 0px;
+            background-color: blueviolet;
+            background-color: var(--search-color);
+            display: none;
+            padding: 8px;
+            gap: 8px;
+        }
+
+        #jsmind-div-hits>div {
+            position: static;
+            background: transparent;
+            color: black;
+            display: flex;
+            flex-direction: row;
+            align-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 2px;
+            min-height: 36px;
+        }
+
+        #jsmind-div-hits button {
+            min-width: 32px;
+            color: black;
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
 
         .display-jsmind-search #jsmind-search-inputs {
             display: flex;
@@ -236,6 +269,7 @@
             opacity: 0.5 !important;
             filter: grayscale(0.8) !important;
         }
+
         jmnodes>jmnode.jsmind-drag-dragged:hover {
             box-shadow: 0 var(--shup) calc(1.5 * var(--shsize)) calc(1.5 * var(--shsize)) yellow !important;
         }
@@ -379,7 +413,7 @@
 </head>
 
 <body class="NOno-test-items">
-    <div id="PWA-version"></div>
+    <div id="PWA-version">(no version yet)</div>
     <!-- 
     <script>
         setTimeout(() => {
