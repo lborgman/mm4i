@@ -146,7 +146,9 @@ class PointHandle {
         };
         eltJmnodeFrom = jmnodeDragged;
 
-        this.#jmnodesPointHandle.appendChild(this.#eltPointHandle);
+        // this.#jmnodesPointHandle.appendChild(this.#eltPointHandle);
+        // Avoid scaling:
+        document.body.appendChild(this.#eltPointHandle);
 
         this.#eltPointHandle.style.left = `${clientX - PointHandle.sizePointHandle / 2}px`;
         this.#eltPointHandle.style.top = `${clientY - PointHandle.sizePointHandle / 2}px`;
