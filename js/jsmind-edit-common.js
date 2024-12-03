@@ -1872,16 +1872,26 @@ export async function pageSetup() {
     addScrollIntoViewOnSelect();
     function jsmindSearchNodes(strSearch) {
         // @ts-ignore
-        const nodeEltArray = [...jsMindContainer.querySelectorAll("jmnode[nodeid]")];
-        nodeEltArray.forEach(n => n.classList.remove("jsmind-hit"));
+        const jmnodeEltArray = [...jsMindContainer.querySelectorAll("jmnode[nodeid]")];
+        jmnodeEltArray.forEach(n => n.classList.remove("jsmind-hit"));
         if (strSearch.length === 0) return;
         const searchLower = strSearch.toLocaleLowerCase();
         // FIX-ME: words
-        const matchingNodes = nodeEltArray.filter(node => {
-            const topic = node.textContent;
+        const nodes = jmDisplayed.data.jm.mind.nodes;
+        const matchingNodes = jmnodeEltArray.filter(jmnode => {
+            const topic = jmnode.textContent;
             // @ts-ignore
             const topicLower = topic.toLocaleLowerCase();
-            return topicLower.indexOf(searchLower) >= 0;
+            if (topicLower.indexOf(searchLower) >= 0) return true;
+            const node_id = getNodeIdFromDOMelt(jmnode);
+            const node = nodes[node_id];
+            const node_data = node.data;
+            const notes = node_data.shapeEtc?.notes;
+            if (notes) {
+                const notesLower = notes.toLocaleLowerCase();
+                if (notesLower.indexOf(searchLower) >= 0) return true;
+            }
+            return false;
         });
         const arrIdHits = matchingNodes.map(n => jsMind.my_get_nodeID_from_DOM_element(n));
         setNodeHitsFromArray(arrIdHits, "search");
