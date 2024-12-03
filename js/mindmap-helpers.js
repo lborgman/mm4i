@@ -180,6 +180,7 @@ export function mkEltLinkMindmapA(topic, mkey, mhits, provider) {
 
 
 
+/*
 export async function pasteCustomClipDialog() {
     const modMdc = await importFc4i("util-mdc");
     const arrClip = fetchJsmindCopied4Mindmap();
@@ -216,6 +217,7 @@ export async function pasteCustomClipDialog() {
         }));
     });
 }
+*/
 
 async function mkDivOneCustomClip(objCustomClip) {
     const modMdc = await importFc4i("util-mdc");
@@ -249,6 +251,7 @@ async function mkDivOneCustomClip(objCustomClip) {
     return divClip;
 }
 
+/*
 async function dialogShowCustomClipboard() {
     const modMdc = await importFc4i("util-mdc");
     const modCustRend = await importFc4i("jsmind-cust-rend");
@@ -266,6 +269,7 @@ async function dialogShowCustomClipboard() {
     });
     modMdc.mkMDCdialogAlert(body, "Close");
 }
+*/
 
 export async function dialogAdded2CustomClipboard(objAdded) {
     const modMdc = await importFc4i("util-mdc");
@@ -295,6 +299,8 @@ export async function dialogAdded2CustomClipboard(objAdded) {
     console.log({ dlg });
     function closeDialog() { dlg.mdc.close(); }
 }
+
+/*
 async function dialogCustomPaste2Mindmap() {
     const arrCopied4Mindmap = fetchJsmindCopied4Mindmap();
     if (!arrCopied4Mindmap) debugger; // eslint-disable-line no-debugger
@@ -314,7 +320,7 @@ async function dialogCustomPaste2Mindmap() {
     }
     dialogMindMaps(info);
 }
-
+*/
 
 
 
@@ -329,6 +335,7 @@ function getJsmindCopied4Mindmap() {
     return localStorage.getItem("jsmind-copied4mindmap");
 }
 
+/*
 export function addJsmindCopied4Mindmap(key, provider) {
     const strJson = JSON.stringify({ key, provider });
     const objAdded = JSON.parse(strJson);
@@ -342,6 +349,9 @@ export function addJsmindCopied4Mindmap(key, provider) {
     setJsmindCopied4Mindmap(strArr);
     return objAdded;
 }
+*/
+
+/*
 function removeJsmindCopied4Mindmap(objRemove) {
     const strRemove = JSON.stringify(objRemove);
     const arrOldClips = fetchJsmindCopied4Mindmap() || [];
@@ -351,6 +361,8 @@ function removeJsmindCopied4Mindmap(objRemove) {
     });
     setJsmindCopied4Mindmap(JSON.stringify(arrNewClips));
 }
+*/
+/*
 function fetchJsmindCopied4Mindmap() {
     const strJson = getJsmindCopied4Mindmap();
     if (strJson) {
@@ -360,11 +372,14 @@ function fetchJsmindCopied4Mindmap() {
         return obj;
     }
 }
+*/
+/*
 function clearJsmindCopied4Mindmap() {
     // FIX-ME: not used
     console.warn("clearJsmindCopied4Mindmap");
     localStorage.removeItem("jsmind-copied4mindmap");
 }
+*/
 
 
 

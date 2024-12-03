@@ -394,13 +394,15 @@ const evtPointerLast = {};
  */
 function savePointerPos(evt) {
     let posHolder = evt;
-    // if (!(evt instanceof PointerEvent)) throw Error("Expected PointerEvent");
+    if (!(evt instanceof PointerEvent)) throw Error("Expected PointerEvent");
+    /*
     if (evt instanceof TouchEvent) {
         const touches = evt.touches;
         if (touches.length > 1) return;
         if (touches.length != 1) throw Error(`savePointerPos: touches.length == ${touches.length}`);
         posHolder = touches[0];
     }
+    */
     if (posHolder.clientX == undefined) throw Error("savePointerPos: posHolder.clientX == undefined");
 
     // evt.preventDefault();
@@ -1643,6 +1645,7 @@ export async function pageSetup() {
         }
 
 
+        /*
         async function pasteCustom2node() {
             // const liDelete = mkMenuItem("Delete node", deleteNode);
             const selected_node = getSelected_node();
@@ -1654,9 +1657,10 @@ export async function pageSetup() {
             if (!objCustom) return;
             convertPlainJmnode2ProviderLink(eltJmnode, jmDisplayed, objCustom);
         }
+        */
 
-        const liTestConvertToCustom = mkMenuItem("Link node to custom content", pasteCustom2node);
-        markIfNoSelected(liTestConvertToCustom);
+        // const liTestConvertToCustom = mkMenuItem("Link node to custom content", pasteCustom2node);
+        // markIfNoSelected(liTestConvertToCustom);
 
         // const liTestPointHandle = mkMenuItem("test pointHandle", setupPointHandle);
         // liTestPointHandle.classList.add("test-item");
@@ -1841,7 +1845,7 @@ export async function pageSetup() {
             liAddChild,
             liAddSibling,
             liDelete,
-            liTestConvertToCustom,
+            // liTestConvertToCustom,
             liDragAccessibility,
             liEditMindmap,
             liMindmapsA,
