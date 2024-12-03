@@ -308,6 +308,7 @@ outline: 4px groove ${F};
         const eltJmnode = target.closest("jmnode");
         // if (eltJmnode && (!eltJmnode.classList.contains("root"))) { actionWhere = "n"; }
         if (eltJmnode) {
+            // savePointerPos
             actionWhere = "n";
             if (eltJmnode.classList.contains("root")) actionWhere = "nr";
         }

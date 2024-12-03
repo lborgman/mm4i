@@ -108,12 +108,6 @@ class PointHandle {
         this.#eltPointHandle.style.pointerEvents = "none"; // FIX-ME: why???
     }
     get element() { return this.#eltPointHandle; }
-    OLDsavePosBounded = (evt) => {
-        evt.preventDefault();
-        evt.stopPropagation();
-        evt.stopImmediatePropagation();
-        savePointerPos.bind(this)(evt);
-    }
     initializePointHandle = (eltJmnode, pointerType) => {
         const jmnodeDragged = eltJmnode;
         if (!jmnodeDragged) return;
@@ -126,7 +120,7 @@ class PointHandle {
                 this.#diffPointHandle = 80; // FIX-ME:
                 break;
             default:
-                this.#diffPointHandle = 60;
+                this.#diffPointHandle = 80;
         }
 
         if (!pointHandle.isState("idle")) throw Error(`Expected state "idle" but it was ${this.#state}`);
@@ -424,10 +418,15 @@ function savePointerPos(evt) {
 //// FIX-ME: This seems to have stopped working in Android Chrome (at least in Chrome dev tools)???
 // window.addEventListener("pointermove", savePointerPos);
 // window.addEventListener("pointerdown", savePointerPos);
-//// Try body instead
-document.body.addEventListener("pointermove", savePointerPos);
-document.body.addEventListener("pointerdown", savePointerPos);
-document.body.addEventListener("touchmove", savePointerPos);
+//// Try body instead (same problem)
+// document.body.addEventListener("pointermove", savePointerPos);
+// document.body.addEventListener("pointerdown", savePointerPos);
+//// Try getEltFsm
+function addPosListener(eltFsm) {
+    // const eltFsm = getEltFsm();
+    eltFsm.addEventListener("pointermove", savePointerPos);
+    eltFsm.addEventListener("pointerdown", savePointerPos);
+}
 
 
 
@@ -872,6 +871,18 @@ export async function addToPageMenu(lbl, what) {
     extraPageMenuItems.push(liMenuItem);
 }
 
+/**
+ * 
+ * @returns {Element}
+ */
+function getEltFsm() {
+    const eltJsMindContainer = document.getElementById("jsmind_container");
+    if (!eltJsMindContainer) throw Error("Could not find #jsmind_container");
+    const eltFsm = eltJsMindContainer.querySelector(".jsmind-inner");
+    if (!eltFsm) throw Error("Could not find .jsmind-inner");
+    return eltFsm;
+}
+
 export async function pageSetup() {
     const nodeHits = new URLSearchParams(location.search).get("nodehits");
     const nodeProvider = new URLSearchParams(location.search).get("provider");
@@ -1218,10 +1229,7 @@ export async function pageSetup() {
         const newState = args[0].to;
         logJssmState(newState);
     });
-    const eltJsMindContainer = document.getElementById("jsmind_container");
-    if (!eltJsMindContainer) throw Error("Could not find #jsmind_container");
-    const eltFsm = eltJsMindContainer.querySelector(".jsmind-inner");
-    if (!eltFsm) throw Error("Could not find .jsmind-inner");
+    const eltFsm = getEltFsm();
 
 
     ////// FSL hooks
@@ -1262,6 +1270,7 @@ export async function pageSetup() {
     });
 
     modFsm.setupFsmListeners(eltFsm);
+    addPosListener(eltFsm);
 
 
 
