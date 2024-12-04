@@ -33,6 +33,7 @@ export class ScrollAtFixedSpeed {
 }
 export class ScrollAtDragBorder {
     constructor(elt2move, scrollBorderWidth) {
+        console.log("scrollAtDragBorder elt2move", elt2move);
         this.elt2move = elt2move;
         this.bw = scrollBorderWidth;
         this.visuals = [];

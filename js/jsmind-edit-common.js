@@ -1256,7 +1256,7 @@ export async function pageSetup() {
         const jmnodes = getJmnodesFromJm(jmDisplayed);
         const jsmindInner = jmnodes.closest(".jsmind-inner");
         const eltScroll = jsmindInner.parentElement;
-        funStopScroll = startGrabScroll(eltScroll);
+        funStopScroll = startGrabMove(eltScroll);
     });
     modFsm.fsm.hook_exit("c_Move", () => { if (funStopScroll) funStopScroll(); });
 
@@ -1285,7 +1285,9 @@ export async function pageSetup() {
     const eltJmnodes = getJmnodesFromJm(jmDisplayed);
 
     const modScrollHelp = await importFc4i("scroll-help");
-    instScrollAtDragBorder = new modScrollHelp.ScrollAtDragBorder(eltJmnodes, 60);
+    const eltScroll = eltJmnodes.closest("div.jsmind-zoom-scroll");
+    // instScrollAtDragBorder = new modScrollHelp.ScrollAtDragBorder(eltJmnodes, 60);
+    instScrollAtDragBorder = new modScrollHelp.ScrollAtDragBorder(eltScroll, 60);
 
     // Windows
     eltJmnodes.addEventListener("dblclick", evt => {
@@ -1891,74 +1893,41 @@ export async function pageSetup() {
 
 
 
-    function startGrabScroll(ele) {
-        let isScrolling = true;
+    function startGrabMove(ele) {
+        let isMoving = true;
         const ourElement = ele;
         let n = 0;
 
         function getLeft() { return ele.style.left ? parseFloat(ele.style.left) : 0; }
         function getTop() { return ele.style.top ? parseFloat(ele.style.top) : 0; }
         ele.style.cursor = "grabbing";
-        const posScrollData = {
-            //left: ele.scrollLeft,
+        const posMovingData = {
             left: getLeft(),
-            // top: ele.scrollTop,
             top: getTop(),
-            // clientX: evtPointerLast.clientX,
-            // clientY: evtPointerLast.clientY,
             screenX: evtPointerLast.screenX,
             screenY: evtPointerLast.screenY,
         }
-        function requestScroll() {
-            if (!isScrolling) return;
-            // window.addE
-            // evtPointerLast.clientY = evt.clientY;
-
-            // Scroll the element
-            /*
-            const dx = evtPointerLast.clientX - posScrollData.clientX;
-            const dy = evtPointerLast.clientY - posScrollData.clientY;
-            if (isNaN(dx)) { isScrolling = false; return; }
-            if (isNaN(dy)) { isScrolling = false; return; }
- 
-            ele.scrollTop = posScrollData.top - dy;
-            const scrollLeft = posScrollData.left - dx;
-            ele.scrollLeft = scrollLeft;
-            if (ele.scrollLeft != scrollLeft) {
-                const styleEle = window.getComputedStyle(ele);
-                const parent = ele.parentElement;
-                const styleParent = window.getComputedStyle(parent);
-                debugger;
-                throw Error(`Could not set scrollLeft = ${scrollLeft}`);
-            }
-            */
-            // const oldLeft = getLeft();
-            // const oldTop = getTop();
-            const oldLeft = posScrollData.left;
-            const oldTop = posScrollData.top;
-            // const dx = evtPointerLast.clientX - posScrollData.clientX + posScrollData.left;
-            // const dy = evtPointerLast.clientY - posScrollData.clientY;
-            const dx = evtPointerLast.screenX - posScrollData.screenX;
-            const dy = evtPointerLast.screenY - posScrollData.screenY;
+        function requestMove() {
+            if (!isMoving) return;
+            const oldLeft = posMovingData.left;
+            const oldTop = posMovingData.top;
+            const dx = evtPointerLast.screenX - posMovingData.screenX;
+            const dy = evtPointerLast.screenY - posMovingData.screenY;
             const newLeft = oldLeft + dx;
             const newTop = oldTop + dy;
             if (isNaN(newLeft)) debugger;
             if (isNaN(newTop)) debugger;
-            // const newLeftPx = `${newLeft.toFixed(0)}px`.replace("-0px", "0px");
-            // const newTopPx = `${newTop.toFixed(0)}px`.replace("-0px", "0px");
             const newLeftPx = `${newLeft}px`.replace("-0px", "0px");
             const newTopPx = `${newTop}px`.replace("-0px", "0px");
             ele.style.left = newLeftPx;
             ele.style.top = newTopPx;
-            // if (ele.style.left != newLeftPx) debugger;
-            // if (n++ % 20 === 0) console.log("rs", oldLeft, newLeft);
 
-            requestAnimationFrame(requestScroll);
+            requestAnimationFrame(requestMove);
         }
-        requestScroll();
+        requestMove();
         return () => {
             ourElement.style.cursor = "";
-            isScrolling = false;
+            isMoving = false;
         }
     }
 
