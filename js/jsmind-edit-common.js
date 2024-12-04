@@ -1285,7 +1285,7 @@ export async function pageSetup() {
     const eltJmnodes = getJmnodesFromJm(jmDisplayed);
 
     const modScrollHelp = await importFc4i("scroll-help");
-    const eltScroll = eltJmnodes.closest("div.jsmind-zoom-scroll");
+    const eltScroll = eltJmnodes.closest("div.jsmind-zoom-move");
     // instScrollAtDragBorder = new modScrollHelp.ScrollAtDragBorder(eltJmnodes, 60);
     instScrollAtDragBorder = new modScrollHelp.ScrollAtDragBorder(eltScroll, 60);
 

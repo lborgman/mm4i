@@ -130,16 +130,17 @@ export async function setupFsmListeners(eltFsm) {
     if (eltContainer.id != "jsmind_container") throw Error("not #jsmind_container");
 
 
-    // We need another layer to handle zoom/scroll:
-    const eltZoomScroll = document.createElement("div");
-    eltZoomScroll.classList.add("jsmind-zoom-scroll");
-    eltZoomScroll.style = `
+    // We need another layer to handle zoom/move:
+    const eltZoomMove = document.createElement("div");
+    eltZoomMove.classList.add("jsmind-zoom-move");
+    // @ts-ignore
+    eltZoomMove.style = `
         position: relative;
         outline: 4px dotted black;
     `;
     eltInner.remove();
-    eltZoomScroll.appendChild(eltInner);
-    eltContainer.appendChild(eltZoomScroll);
+    eltZoomMove.appendChild(eltInner);
+    eltContainer.appendChild(eltZoomMove);
 
 
 
