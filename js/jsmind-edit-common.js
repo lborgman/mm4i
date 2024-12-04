@@ -1284,10 +1284,10 @@ export async function pageSetup() {
     jmDisplayed.disable_event_handle("dblclick");
     const eltJmnodes = getJmnodesFromJm(jmDisplayed);
 
-    const modScrollHelp = await importFc4i("scroll-help");
+    const modMoveHelp = await importFc4i("move-help");
     const eltScroll = eltJmnodes.closest("div.jsmind-zoom-move");
     // instScrollAtDragBorder = new modScrollHelp.ScrollAtDragBorder(eltJmnodes, 60);
-    instScrollAtDragBorder = new modScrollHelp.ScrollAtDragBorder(eltScroll, 60);
+    instScrollAtDragBorder = new modMoveHelp.ScrollAtDragBorder(eltScroll, 60);
 
     // Windows
     eltJmnodes.addEventListener("dblclick", evt => {

@@ -55,7 +55,7 @@ console.log(`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
         "mm4i-jsmind.drag-node": "./ext/jsmind/testing/mm4i-jsmind.drag-node.js",
         // "mm4i-jsmind.draggable-nodes": "./ext/jsmind/testing/jsmind.draggable-node-TEMP.js",
         "sharing-params": "./src/js/mod/sharing-params.js",
-        "scroll-help": "./js/mod/scroll-help.js",
+        "move-help": "./js/mod/move-help.js",
         "toolsJs": "./js/mod/tools.js",
         "util-mdc": "./js/mod/util-mdc.js",
 

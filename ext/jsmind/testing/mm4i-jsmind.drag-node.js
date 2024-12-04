@@ -42,24 +42,6 @@ export async function setupNewDragging() {
         jsMind.register_plugin(draggablePlugin);
     });
 
-    // const root_node = ourJm.get_root();
-    // const eltRoot = getDOMeltFromNode(root_node);
-
-    // const eltJmnodes = eltRoot.closest("jmnodes");
-
-    // const instScrollAtDragBorder = new ScrollAtDragBorder(eltJmnodes, 60);
-    // instScrollAtDragBorder.startScroller();
-
-    // const modScrollHelp = await importFc4i("scroll-help");
-    // instScrollAtDragBorder = new modScrollHelp.ScrollAtDragBorder(eltJmnodes, 60);
-
-    // FIX-ME: make local again
-    // let eltDragged;
-
-
-
-
-
 }
 
 export function setJmnodeDragged(jmnode) {

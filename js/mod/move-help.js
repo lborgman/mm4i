@@ -1,7 +1,7 @@
 // @ts-check
-const SCROLL_HELP_VER = "0.0.7";
-console.log(`here is scroll-help.js, module, ${SCROLL_HELP_VER}`);
-if (document.currentScript) { throw "scroll-help.js is not loaded as module"; }
+const MOVE_HELP_VER = "0.0.7";
+console.log(`here is move-help.js, module, ${MOVE_HELP_VER}`);
+if (document.currentScript) { throw "move-help.js is not loaded as module"; }
 
 export class ScrollAtFixedSpeed {
     constructor(elt2move) {
