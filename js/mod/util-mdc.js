@@ -243,7 +243,7 @@ export function mkMDCiconButton(icon, ariaLabel, sizePx) {
     // if (small) btn.classList.add("icon-button-small");
     if (sizePx) {
         btn.classList.add("icon-button-sized");
-        btn.style.setProperty("--icon-button-size", sizePx);
+        btn.style.setProperty("--icon-button-size", `${sizePx}px`);
     }
     if (ariaLabel) {
         btn.setAttribute("aria-label", ariaLabel);

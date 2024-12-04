@@ -836,7 +836,6 @@ function mkMenuItem(lbl, fun) {
     });
     return li;
 }
-const idContextMenu = "jsmind-context-menu";
 let divContextMenu;
 let jmDisplayed;
 
@@ -862,7 +861,7 @@ function focusSelectedNode() {
 
 const extraPageMenuItems = [];
 export async function addToPageMenu(lbl, what) {
-    if (document.getElementById("jsmind-context-menu")) throw Error("Must be called before menu first display")
+    if (document.getElementById("mm4i-page-menu")) throw Error("Must be called before menu first display")
     let liMenuItem;
     if ("function" == typeof what) {
         liMenuItem = mkMenuItem(lbl, what)
@@ -1008,9 +1007,7 @@ export async function pageSetup() {
 
 
     let btnJsmindMenu;
-    const idBtnJsmindMenu = "jsmind-menu-button";
     let btnJsmindSearch;
-    // const idBtnJsmindSearch = "jsmind-search-button";
 
     const inpSearch = mkElt("input", { type: "search", placeholder: "Search nodes", id: "jsmind-inp-node-search" });
     // const inpSearch = modMdc.mkMDCtextFieldInput( "jsmind-inp-node-search", "search");
@@ -1048,13 +1045,14 @@ export async function pageSetup() {
 
 
         btnJsmindMenu = modMdc.mkMDCiconButton("menu", "Open menu", 40);
-        btnJsmindMenu.id = idBtnJsmindMenu;
+        btnJsmindMenu.id = "mm4i-menu-button";
         btnJsmindMenu.classList.add("jsmind-actions");
         jsMindContainer.appendChild(btnJsmindMenu);
         btnJsmindMenu.addEventListener("click", evt => {
             // console.log("btnJsmindMenu");
             evt.stopPropagation();
-            displayContextMenu(btnJsmindMenu);
+            // displayContextMenu(btnJsmindMenu);
+            togglePageMenu();
         });
         btnJsmindSearch = modMdc.mkMDCiconButton("search", "Search", 40);
         btnJsmindSearch.id = "jsmind-search-button";
@@ -1506,14 +1504,13 @@ export async function pageSetup() {
 
     jsMindContainer.appendChild(divDebugLog);
 
-    async function getDivContextMenu() {
-        if (!divContextMenu) {
-            divContextMenu = modMdc.mkMDCmenuDiv();
-            divContextMenu.classList.add("is-menu-div");
-            document.body.appendChild(divContextMenu);
-            divContextMenu.id = idContextMenu;
-        }
-        return divContextMenu;
+    async function mkDivContextMenu() {
+        const div = modMdc.mkMDCmenuDiv();
+        div.classList.add("is-menu-div");
+        // document.body.appendChild(div);
+        // divContextMenu.id = idContextMenu;
+        div.classList.add("mm4i-context-menu");
+        return div;
     }
     let highestNodeId = 0;
     jmDisplayed.enable_edit();
@@ -1547,7 +1544,16 @@ export async function pageSetup() {
         jmDisplayed.toggle_node(nodeId);
     });
 
+    function targetIsJmnode(evt) {
+        const targ = evt.target;
+        const jmnode = targ.closest("jmnode");
+        return jmnode;
+    }
 
+
+    /*
+    // This was a way to make a longpress.
+    // Not used any more. Use jssm instead.
     let msDelayContextMenu = 0;
     jsMindContainer.addEventListener("NOtouchmove", evt => {
         // evt.preventDefault();
@@ -1573,11 +1579,6 @@ export async function pageSetup() {
         }
     });
 
-    function targetIsJmnode(evt) {
-        const targ = evt.target;
-        const jmnode = targ.closest("jmnode");
-        return jmnode;
-    }
     function stopContextMenu() { restartDisplayContextMenu(); }
     const restartDisplayContextMenu = (() => {
         let tmr;
@@ -1588,11 +1589,49 @@ export async function pageSetup() {
             tmr = setTimeout(doDisplay, msDelayContextMenu);
         }
     })();
+    */
 
 
+    let pageMenu;
+    function hidePageMenu() {
+        pageMenu.style.opacity = 0;
+        setTimeout(() => { pageMenu.remove(); }, 300);
+    }
+    async function displayPageMenu() {
+        pageMenu = await mkPageMenu();
+        const btnMenu = document.getElementById("mm4i-menu-button");
+        displayMenuForButton(pageMenu, btnMenu);
+    }
+    function togglePageMenu() {
+        if (!pageMenu?.parentElement) {
+            displayPageMenu();
+        } else {
+            hidePageMenu();
+        }
+    }
+    function displayMenuForButton(divMenu, btnMenu) {
+        const compBtnStyle = getComputedStyle(btnMenu);
+        document.body.appendChild(divMenu);
+        const menuStyle = divMenu.style;
+        menuStyle.opacity = 0;
+        menuStyle.display = "block";
+        menuStyle.left = compBtnStyle.left;
+        menuStyle.right = compBtnStyle.right;
+        const btnHeight = parseFloat(compBtnStyle.height);
+        const btnTop = parseFloat(compBtnStyle.top);
+        menuStyle.top = `${btnTop + btnHeight}px`;
+        const compMenuStyle = getComputedStyle(divMenu);
+        const right = parseInt(compMenuStyle.right);
+        if (right <= 0) divMenu.style.left = parseInt(divMenu.style.left) + right - 30;
+        const bottom = parseInt(compMenuStyle.bottom);
+        if (bottom < 0) divMenu.style.top = parseInt(divMenu.style.top) + bottom;
+        divMenu.style.opacity = 1;
+    }
     async function displayContextMenu(forElt, left, top) {
-        const divMenu = await getDivContextMenu();
-        await mkPageMenu();
+        // const divMenu = await mkDivContextMenu();
+        const divMenu = await mkPageMenu();
+        // divMenu.id = "mm4i-page-menu";
+        document.body.appendChild(divMenu);
         divMenu.forElt = forElt;
         // Set values in integer, read them as ..px
         if (left) divMenu.style.left = left;
@@ -1645,72 +1684,14 @@ export async function pageSetup() {
         }
 
 
-        /*
-        async function pasteCustom2node() {
-            // const liDelete = mkMenuItem("Delete node", deleteNode);
-            const selected_node = getSelected_node();
-            // if (!selected_node) Error("No selected node");
-            if (!selected_node) return;
-            const eltJmnode = jsMind.my_get_DOM_element_from_node(selected_node);
-            const objCustom = await modMMhelpers.pasteCustomClipDialog();
-            console.log({ objCustom });
-            if (!objCustom) return;
-            convertPlainJmnode2ProviderLink(eltJmnode, jmDisplayed, objCustom);
-        }
-        */
-
-        // const liTestConvertToCustom = mkMenuItem("Link node to custom content", pasteCustom2node);
-        // markIfNoSelected(liTestConvertToCustom);
-
-        // const liTestPointHandle = mkMenuItem("test pointHandle", setupPointHandle);
-        // liTestPointHandle.classList.add("test-item");
-
         // https://html2canvas.hertzen.com/getting-started.html
-        // const liTestMirror = mkMenuItem("test mirror", testStartMirror);
-        const liDragAccessibility = mkMenuItem("Drag accessiblity", dialogDragAccessibility);
 
-        // const mm4iAbsLink = makeAbsLink("./mm4i/mm4i.html");
-        // const liMindmapsA = mkMenuItemA("List Mindmaps", mm4iAbsLink);
+        // const liDragAccessibility = mkMenuItem("Drag accessiblity", dialogDragAccessibility);
         const liMindmapsA = mkMenuItemA("List Mindmaps", "./mm4i.html");
-        console.log({ liMindmapsA });
-
         const liEditMindmap = mkMenuItem("Edit Mindmap", dialogEditMindmap);
-        // const idScreenMirrorPoint = "jsmindtest-screen-mirror-point";
-        // const idScreenMirrorColor = "jsmindtest-screen-mirror-color";
 
-
-        async function dialogDragAccessibility() {
-            const oldWay = theDragTouchAccWay;
-            const newWay = await dialogMirrorWay();
-            if (newWay == oldWay || !newWay) return;
-            // teardownPointHandle();
-            // teardownMirror();
-            switchDragTouchAccWay(newWay);
-        }
 
         // https://www.npmjs.com/package/pinch-zoom-js
-        /*
-    const liTestPinchZoom = mkMenuItem("test pinch-zoom a",
-        async () => {
-            const src = "https://unpkg.com/pinch-zoom-js@2.3.5/dist/pinch-zoom.min.js";
-            // const eltScript = mkElt("script", { src });
-            // document.body.appendChild(eltScript);
-            const modPZ = await import(src);
-            const addZoom = () => {
-                console.log("***** addZoom");
-                const jmnodes = document.querySelector("jmnodes");
-                if (!jmnodes) throw Error("Could not find <jmnodes>");
-                // const options = { }
-                // const pz = new PinchZoom(jmnodes, options);
-                const pz = new modPZ.default(jmnodes.parentElement);
-                console.log({ pz });
-            }
-            // setTimeout(addZoom, 1000);
-            addZoom();
-        });
-    liTestPinchZoom.classList.add("test-item");
-        */
-
 
 
         const liAddChild = mkMenuItem("Add child node", () => addNode("child"));
@@ -1846,7 +1827,7 @@ export async function pageSetup() {
             liAddSibling,
             liDelete,
             // liTestConvertToCustom,
-            liDragAccessibility,
+            // liDragAccessibility,
             liEditMindmap,
             liMindmapsA,
         ];
@@ -1860,9 +1841,10 @@ export async function pageSetup() {
         const arrMenuAll = [...arrMenuEntries, ...extraPageMenuItems, ...arrMenuTestEntries];
 
         const ulMenu = modMdc.mkMDCmenuUl(arrMenuAll);
-        const divMenu = await getDivContextMenu();
+        const divMenu = await mkDivContextMenu();
         divMenu.textContent = "";
         divMenu.appendChild(ulMenu);
+        divMenu.id = "mm4i-page-menu";
         return divMenu;
     }
 

@@ -118,7 +118,7 @@ div.container-remember .mdc-card {
     width: 250px;
     display: grid;
     gap: 10px;
-    box-shadow: 3px 5px 5px 0px rgba(255,255,0,0.75);
+    box-shadow: 3px 5px 5px 0px rgba(255, 255, 0, 0.75);
 }
 
 /* #prompt4update * { } */
@@ -1354,9 +1354,13 @@ xdetails[open]:has(.expander)>.expander>.expander-content {
     color: wheat;
 }
 
-.icon-button-sized {
-    transform: scale(calc(var(--icon-button-size) / 48));
-    transform-origin: 0 0;
+.mdc-icon-button.material-icons.icon-button-sized {
+    NOtransform: scale(calc(var(--icon-button-size) / 48));
+    NOtransform-origin: 0 0;
+    height: var(--icon-button-size) !important;
+    width: var(--icon-button-size) !important;
+    font-size: calc( ( var( --icon-button-size ) * 24 ) / 48 ) !important;
+    padding: calc((var(--icon-button-size) * 12) / 48) !important;
 }
 
 
@@ -1509,17 +1513,6 @@ div.bg-choice:not(input[disabled]):has(input:checked) {
 }
 
 
-#jsmind-context-menu {
-    opacity: 1;
-    background-color: var(--mdc-theme-primary);
-    /* https://www.smashingmagazine.com/2022/06/simplify-color-palette-css-color-mix/ */
-    background-color: color-mix(in srgb, var(--mdc-theme-primary) 70%, white);
-    position: fixed;
-    left: 0;
-    top: calc(2.5 * var(--font-size));
-    display: block;
-    z-index: 6;
-}
 
 .jsmind-actions {
     position: fixed;
@@ -1528,15 +1521,11 @@ div.bg-choice:not(input[disabled]):has(input:checked) {
     z-index: 5;
 }
 
-#jsmind-menu-button {
-    left: 0;
-}
-
 #jsmind-search-div {
     position: fixed;
     left: 40px;
     z-index: 6;
-    --icon-button-size: 40;
+    --icon-button-size: 40px;
 }
 
 #jsmind-search-button {
