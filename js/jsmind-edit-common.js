@@ -125,15 +125,14 @@ class PointHandle {
 
         if (!pointHandle.isState("idle")) throw Error(`Expected state "idle" but it was ${this.#state}`);
         this.#state = "init";
-        // this.#eltPointHandle.style.left = `${evtPointerLast.clientX - PointHandle.sizePointHandle / 2}px`;
-        // this.#eltPointHandle.style.top = `${evtPointerLast.clientY - PointHandle.sizePointHandle / 2}px`;
 
-        if (evtPointerLast.clientX == undefined) {
+        const savedPointerPos = getSavedPointerPos();
+        if (savedPointerPos.clientX == undefined) {
             debugger;
-            throw Error("evtPointerLast is not initialized");
+            throw Error("savedPointerPos is not initialized");
         }
-        const clientX = evtPointerLast.clientX;
-        const clientY = evtPointerLast.clientY;
+        const clientX = savedPointerPos.clientX;
+        const clientY = savedPointerPos.clientY;
         posPointHandle = {
             start: {
                 clientX,
@@ -182,15 +181,17 @@ class PointHandle {
     }
     checkPointHandleDistance() {
         // if (!evtPointerLast) return; // FIX-ME
+        const savedPointerPos = getSavedPointerPos();
+        // const savedPointerPos = evtPointerLast;
         if (this.isState("init")) {
             this.#state = "dist";
 
-            this.#eltPointHandle.style.left = `${evtPointerLast.clientX - PointHandle.sizePointHandle / 2}px`;
-            this.#eltPointHandle.style.top = `${evtPointerLast.clientY - PointHandle.sizePointHandle / 2}px`;
+            this.#eltPointHandle.style.left = `${savedPointerPos.clientX - PointHandle.sizePointHandle / 2}px`;
+            this.#eltPointHandle.style.top = `${savedPointerPos.clientY - PointHandle.sizePointHandle / 2}px`;
             // console.log("checkPointHandleDistance start", { posPointHandle });
         }
-        const diffX = posPointHandle.start.clientX - evtPointerLast.clientX;
-        const diffY = posPointHandle.start.clientY - evtPointerLast.clientY;
+        const diffX = posPointHandle.start.clientX - savedPointerPos.clientX;
+        const diffY = posPointHandle.start.clientY - savedPointerPos.clientY;
         if (isNaN(diffX) || isNaN(diffY)) {
             debugger;
             throw Error(" ddiffX oriffY isNaN");
@@ -395,26 +396,21 @@ const evtPointerLast = {};
 function savePointerPos(evt) {
     let posHolder = evt;
     if (!(evt instanceof PointerEvent)) throw Error("Expected PointerEvent");
-    /*
-    if (evt instanceof TouchEvent) {
-        const touches = evt.touches;
-        if (touches.length > 1) return;
-        if (touches.length != 1) throw Error(`savePointerPos: touches.length == ${touches.length}`);
-        posHolder = touches[0];
-    }
-    */
     if (posHolder.clientX == undefined) throw Error("savePointerPos: posHolder.clientX == undefined");
-
-    // evt.preventDefault();
-    // evt.stopPropagation();
-    // evt.stopImmediatePropagation();
 
     evtPointerLast.clientX = posHolder.clientX;
     evtPointerLast.clientY = posHolder.clientY;
     evtPointerLast.screenX = posHolder.screenX;
     evtPointerLast.screenY = posHolder.screenY;
     evtPointerLast.target = evt.target;
+}
 
+function getSavedPointerPos() {
+    if (isNaN(evtPointerLast.screenX)) {
+        debugger; // eslint-disable-line no-debugger
+        throw Error("evtPointerLast.screenX is NaN");
+    }
+    return evtPointerLast;
 }
 
 //// FIX-ME: This seems to have stopped working in Android Chrome (at least in Chrome dev tools)???
@@ -465,12 +461,11 @@ let eltOverJmnode;
 let movePointHandleProblem = false;
 function movePointHandle() {
     if (movePointHandleProblem) return;
-    // if (!posPointHandle.diffX) return;
-    const clientX = evtPointerLast.clientX;
-    const clientY = evtPointerLast.clientY;
+    const savedPointerPos = getSavedPointerPos();
+    const clientX = savedPointerPos.clientX;
+    const clientY = savedPointerPos.clientY;
     if (!clientX) return;
     try {
-        // const sp = eltPointHandle.style;
         const sp = pointHandle.element.style;
         const left = clientX + posPointHandle.diffX - PointHandle.sizePointHandle / 2;
         sp.left = `${left}px`;
@@ -478,8 +473,8 @@ function movePointHandle() {
         sp.top = `${top}px`;
         modJsmindDraggable.hiHereIam(left, top);
         // modJsmindDraggable.hiHereIam(clientX, clientY); // use event point
-        const screenX = evtPointerLast.screenX;
-        const screenY = evtPointerLast.screenY;
+        const screenX = savedPointerPos.screenX;
+        const screenY = savedPointerPos.screenY;
         instMoveEltAtDragBorder.checkPoint(screenX, screenY)
         // scrollatdragborder
     } catch (err) {
@@ -1919,19 +1914,18 @@ export async function pageSetup() {
 
         elt2move.style.cursor = "grabbing";
         elt2move.style.filter = "grayscale(0.5)";
-        // console.log({ modMoveHelp });
+        const savedPointerPos = getSavedPointerPos();
         const movingData = modMoveHelp.setInitialMovingData(elt2move,
-            evtPointerLast.screenX,
-            evtPointerLast.screenY,
+            savedPointerPos.screenX,
+            savedPointerPos.screenY,
         );
         function requestMove() {
             if (!isMoving) return;
             const oldLeft = movingData.left;
             const oldTop = movingData.top;
-            // const dx = evtPointerLast.screenX - movingData.screenX;
-            const dx = modMoveHelp.getMovingDx(movingData, evtPointerLast.screenX);
-            // const dy = evtPointerLast.screenY - movingData.screenY;
-            const dy = modMoveHelp.getMovingDy(movingData, evtPointerLast.screenY);
+            const savedPointerPos = getSavedPointerPos();
+            const dx = modMoveHelp.getMovingDx(movingData, savedPointerPos.screenX);
+            const dy = modMoveHelp.getMovingDy(movingData, savedPointerPos.screenY);
             const newLeft = oldLeft + dx;
             const newTop = oldTop + dy;
             if (isNaN(newLeft) || isNaN(newTop)) {

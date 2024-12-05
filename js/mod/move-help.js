@@ -37,6 +37,8 @@ export class MoveEltAtFixedSpeed {
         const elt2move = this.elt2move
         // const elt2scroll = elt2move.parentElement;
         // console.log({ stepX, ms, elt2scroll, elt2move });
+        // FIX-ME:
+        const moveData = setInitialMovingData();
         const moveFun = () => {
             elt2scroll.scrollBy(stepX, 0);
             const bcr = elt2move.getBoundingClientRect();
