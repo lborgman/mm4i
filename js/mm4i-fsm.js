@@ -126,21 +126,24 @@ export async function setupFsmListeners(eltFsm) {
     if (!eltInner.classList.contains("jsmind-inner")) throw Error("not .jsmind-inner");
     if (eltInner.tagName !== "DIV") throw Error("not DIV");
 
-    const eltContainer = eltInner.parentElement;
+    const eltContainer = eltInner.parentElement.parentElement;
     if (eltContainer.id != "jsmind_container") throw Error("not #jsmind_container");
 
 
     // We need another layer to handle zoom/move:
-    const eltZoomMove = document.createElement("div");
-    eltZoomMove.classList.add("jsmind-zoom-move");
-    // @ts-ignore
-    eltZoomMove.style = `
-        position: relative;
-        outline: 4px dotted black;
-    `;
-    eltInner.remove();
-    eltZoomMove.appendChild(eltInner);
-    eltContainer.appendChild(eltZoomMove);
+    if (!eltInner.closest("div.jsmind-zoom-move")) {
+        throw Error("div.jsmind-zoom-move should already have been added");
+        const eltZoomMove = document.createElement("div");
+        eltZoomMove.classList.add("jsmind-zoom-move");
+        // @ts-ignore
+        eltZoomMove.style = `
+            position: relative;
+            outline: 4px dotted black;
+        `;
+        eltInner.remove();
+        eltZoomMove.appendChild(eltInner);
+        eltContainer.appendChild(eltZoomMove);
+    }
 
 
 

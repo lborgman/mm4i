@@ -894,7 +894,7 @@ export async function pageSetup() {
     // useCanvas = confirm("Use canvas?");
 
 
-    const idDivJmnodesMain = "jsmind_container";
+    const idDivJsmindContainer = "jsmind_container";
     // const idDivJmnodesMirror = "jsmind-draggable-container4mirror";
     // let mirrorContainer;
 
@@ -902,11 +902,11 @@ export async function pageSetup() {
     // const idMirroredWrapper = "jsmindtest-div-mirrored-wrapper";
     // let divMirroredWrapper;
 
-    const jsMindContainer = document.getElementById(idDivJmnodesMain);
-    if (!jsMindContainer) throw Error(`Could not find ${idDivJmnodesMain}`);
+    const jsMindContainer = document.getElementById(idDivJsmindContainer);
+    if (!jsMindContainer) throw Error(`Could not find ${idDivJsmindContainer}`);
 
     function clearSearchHits() {
-        if (!jsMindContainer) throw Error(`Could not find ${idDivJmnodesMain}`);
+        if (!jsMindContainer) throw Error(`Could not find ${idDivJsmindContainer}`);
         const nodeEltArray = [...jsMindContainer.querySelectorAll("jmnode[nodeid]")];
         nodeEltArray.forEach(n => n.classList.remove("jsmind-hit"));
     }
@@ -915,7 +915,7 @@ export async function pageSetup() {
     const idDivHits = "jsmind-div-hits";
 
     const defaultOptJmDisplay = {
-        container: idDivJmnodesMain,
+        container: idDivJsmindContainer,
         editable: true,
         view: {
             // draggable: true,
@@ -1219,6 +1219,25 @@ export async function pageSetup() {
     const nowBefore = Date.now();
     jmDisplayed = await displayMindMap(mind, usedOptJmDisplay);
 
+    // We need another layer to handle zoom/move:
+    const eltContainer = document.getElementById(usedOptJmDisplay.container);
+    if (!eltContainer) throw Error("Could not find jsmind container");
+    const eltInner = eltContainer?.querySelector("div.jsmind-inner");
+    if (!eltInner) throw Error("Could not find div.jsmind-inner");
+    if (!eltInner.closest("div.jsmind-zoom-move")) {
+        const eltZoomMove = document.createElement("div");
+        eltZoomMove.classList.add("jsmind-zoom-move");
+        // @ts-ignore
+        eltZoomMove.style = `
+                position: relative;
+                outline: 4px dotted black;
+            `;
+        eltInner.remove();
+        eltZoomMove.appendChild(eltInner);
+        eltContainer.appendChild(eltZoomMove);
+    }
+
+
 
 
 
@@ -1251,11 +1270,8 @@ export async function pageSetup() {
         const { eltJmnode, pointerType } = hookData.data;
         if (eltJmnode && (!eltJmnode.classList.contains("root"))) throw Error("eltJmnode in c_Move");
         funStopScroll = undefined;
-        // return; // FIX-ME:
-        // if (pointerType != "mouse") return; // FIX-ME: implemnt my on scroll
         const jmnodes = getJmnodesFromJm(jmDisplayed);
-        const jsmindInner = jmnodes.closest(".jsmind-inner");
-        const eltScroll = jsmindInner.parentElement;
+        const eltScroll = jmnodes.closest("div.jsmind-zoom-move");
         funStopScroll = startGrabMove(eltScroll);
     });
     modFsm.fsm.hook_exit("c_Move", () => { if (funStopScroll) funStopScroll(); });
@@ -1286,7 +1302,6 @@ export async function pageSetup() {
 
     const modMoveHelp = await importFc4i("move-help");
     const eltScroll = eltJmnodes.closest("div.jsmind-zoom-move");
-    // instScrollAtDragBorder = new modScrollHelp.ScrollAtDragBorder(eltJmnodes, 60);
     instScrollAtDragBorder = new modMoveHelp.ScrollAtDragBorder(eltScroll, 60);
 
     // Windows
@@ -1893,40 +1908,46 @@ export async function pageSetup() {
 
 
 
-    function startGrabMove(ele) {
+    // const modMoveHelp = await importFc4i("move-help");
+    function startGrabMove(elt2move) {
+        console.log("startGrabMove", elt2move);
         let isMoving = true;
-        const ourElement = ele;
+        // const ourElement2move = elt2move;
         let n = 0;
 
-        function getLeft() { return ele.style.left ? parseFloat(ele.style.left) : 0; }
-        function getTop() { return ele.style.top ? parseFloat(ele.style.top) : 0; }
-        ele.style.cursor = "grabbing";
-        const posMovingData = {
-            left: getLeft(),
-            top: getTop(),
-            screenX: evtPointerLast.screenX,
-            screenY: evtPointerLast.screenY,
-        }
+        elt2move.style.cursor = "grabbing";
+        elt2move.style.filter = "grayscale(0.5)";
+        // console.log({ modMoveHelp });
+        const movingData = modMoveHelp.setInitialMovingData(elt2move,
+            evtPointerLast.screenX,
+            evtPointerLast.screenY,
+        );
         function requestMove() {
             if (!isMoving) return;
-            const oldLeft = posMovingData.left;
-            const oldTop = posMovingData.top;
-            const dx = evtPointerLast.screenX - posMovingData.screenX;
-            const dy = evtPointerLast.screenY - posMovingData.screenY;
+            const oldLeft = movingData.left;
+            const oldTop = movingData.top;
+            // const dx = evtPointerLast.screenX - movingData.screenX;
+            const dx = modMoveHelp.getMovingDx(movingData, evtPointerLast.screenX);
+            // const dy = evtPointerLast.screenY - movingData.screenY;
+            const dy = modMoveHelp.getMovingDy(movingData, evtPointerLast.screenY);
             const newLeft = oldLeft + dx;
             const newTop = oldTop + dy;
-            if (isNaN(newLeft)) debugger;
-            if (isNaN(newTop)) debugger;
+            if (isNaN(newLeft) || isNaN(newTop)) {
+                debugger;
+                throw Error(`isNan: newLeft:${newLeft}, newTop:${newTop}`);
+            }
             const newLeftPx = `${newLeft}px`.replace("-0px", "0px");
             const newTopPx = `${newTop}px`.replace("-0px", "0px");
-            ele.style.left = newLeftPx;
-            ele.style.top = newTopPx;
+            elt2move.style.left = newLeftPx;
+            elt2move.style.top = newTopPx;
 
             requestAnimationFrame(requestMove);
         }
         requestMove();
         return () => {
-            ourElement.style.cursor = "";
+            // ourElement2move.style.cursor = "";
+            movingData.movingElt.style.cursor = "";
+            movingData.movingElt.style.filter = "";
             isMoving = false;
         }
     }

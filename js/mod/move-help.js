@@ -3,6 +3,23 @@ const MOVE_HELP_VER = "0.0.7";
 console.log(`here is move-help.js, module, ${MOVE_HELP_VER}`);
 if (document.currentScript) { throw "move-help.js is not loaded as module"; }
 
+export function setInitialMovingData(elt2move, screenX, screenY) {
+    function getLeft() { return elt2move.style.left ? parseFloat(elt2move.style.left) : 0; }
+    function getTop() { return elt2move.style.top ? parseFloat(elt2move.style.top) : 0; }
+    const posMovingData = {
+        movingElt: elt2move,
+        left: getLeft(),
+        top: getTop(),
+        // screenX: evtPointerLast.screenX,
+        // screenY: evtPointerLast.screenY,
+        screenX,
+        screenY,
+    }
+    return posMovingData;
+}
+export function getMovingDx(movingData, screenX) { return screenX - movingData.screenX; }
+export function getMovingDy(movingData, screenY) { return screenY - movingData.screenY; }
+
 export class ScrollAtFixedSpeed {
     constructor(elt2move) {
         this.elt2move = elt2move;
