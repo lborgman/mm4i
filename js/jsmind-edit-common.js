@@ -22,7 +22,7 @@ const modTools = await importFc4i("toolsJs");
 const modFsm = await importFc4i("mm4i-fsm");
 window["fsm"] = modFsm.fsm;
 
-let instScrollAtDragBorder;
+let instMoveEltAtDragBorder;
 class PointHandle {
     static sizePointHandle = 20;
     // static diffPointHandle = 60;
@@ -167,7 +167,7 @@ class PointHandle {
         }
         // console.log("teardwon...", { eltJmnodeFrom });
         modJsmindDraggable.stopNow();
-        instScrollAtDragBorder.hideScroller();
+        instMoveEltAtDragBorder.hideMover();
         // evtPointerLast = undefined; // FIX-ME
     }
     setupPointHandle() {
@@ -209,7 +209,7 @@ class PointHandle {
             // modJsmindDraggable.setPointerDiff(diffX, diffY);
             modJsmindDraggable.nextHereIamMeansStart(eltJmnodeFrom);
             this.#state = "move";
-            instScrollAtDragBorder.showScroller();
+            instMoveEltAtDragBorder.showMover();
             return;
         }
         movePointHandle();
@@ -478,7 +478,9 @@ function movePointHandle() {
         sp.top = `${top}px`;
         modJsmindDraggable.hiHereIam(left, top);
         // modJsmindDraggable.hiHereIam(clientX, clientY); // use event point
-        instScrollAtDragBorder.checkPoint(clientX, clientY)
+        const screenX = evtPointerLast.screenX;
+        const screenY = evtPointerLast.screenY;
+        instMoveEltAtDragBorder.checkPoint(screenX, screenY)
         // scrollatdragborder
     } catch (err) {
         console.error("movePointHandle", err);
@@ -1302,7 +1304,7 @@ export async function pageSetup() {
 
     const modMoveHelp = await importFc4i("move-help");
     const eltScroll = eltJmnodes.closest("div.jsmind-zoom-move");
-    instScrollAtDragBorder = new modMoveHelp.ScrollAtDragBorder(eltScroll, 60);
+    instMoveEltAtDragBorder = new modMoveHelp.MoveEltAtDragBorder(eltScroll, 60);
 
     // Windows
     eltJmnodes.addEventListener("dblclick", evt => {

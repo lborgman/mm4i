@@ -20,7 +20,7 @@ export function setInitialMovingData(elt2move, screenX, screenY) {
 export function getMovingDx(movingData, screenX) { return screenX - movingData.screenX; }
 export function getMovingDy(movingData, screenY) { return screenY - movingData.screenY; }
 
-export class ScrollAtFixedSpeed {
+export class MoveEltAtFixedSpeed {
     constructor(elt2move) {
         this.elt2move = elt2move;
     }
@@ -35,24 +35,24 @@ export class ScrollAtFixedSpeed {
         const stepX = pxlPerSec < 0 ? -1 : 1;
         const ms = Math.abs(1000 / pxlPerSec);
         const elt2move = this.elt2move
-        const elt2scroll = elt2move.parentElement;
+        // const elt2scroll = elt2move.parentElement;
         // console.log({ stepX, ms, elt2scroll, elt2move });
-        const scrollFun = () => {
+        const moveFun = () => {
             elt2scroll.scrollBy(stepX, 0);
             const bcr = elt2move.getBoundingClientRect();
             // console.log(bcr.left, this.prevLeft);
             if (this.prevLeft == bcr.left) this.stopX();
             this.prevLeft = bcr.left;
         }
-        this.tmiX = setInterval(scrollFun, ms);
+        this.tmiX = setInterval(moveFun, ms);
     }
 
 }
-export class ScrollAtDragBorder {
-    constructor(elt2move, scrollBorderWidth) {
-        console.log("scrollAtDragBorder elt2move", elt2move);
+export class MoveEltAtDragBorder {
+    constructor(elt2move, moveBorderWidth) {
+        console.log("MoveEltAtDragBorder elt2move", elt2move);
         this.elt2move = elt2move;
-        this.bw = scrollBorderWidth;
+        this.bw = moveBorderWidth;
         this.visuals = [];
         const addVisual = () => {
             const style = [
@@ -71,7 +71,7 @@ export class ScrollAtDragBorder {
         this.eltVisualLeft = addVisual();
         this.eltVisualRight = addVisual();
         // console.log("right", this.eltVisualRight);
-        this.scroller = new ScrollAtFixedSpeed(elt2move);
+        this.mover = new MoveEltAtFixedSpeed(elt2move);
         const updateLimits = () => this.updateScreenLimits();
         window.addEventListener("resize", () => { updateLimits(); });
         updateLimits();
@@ -98,24 +98,24 @@ export class ScrollAtDragBorder {
         styleR.left = `${bcr.left + bcr.width - this.bw - scrollbarW}px`
         styleR.left = `${this.limits.right}px`
     }
-    checkPoint(cx) {
-        const oldCx = this.cx;
-        const outsideRight = cx > this.limits.right;
-        const outsideLeft = cx < this.limits.left;
-        if (!(outsideLeft || outsideRight)) this.scroller.stopX();
-        this.cx = cx;
-        const scrollSpeed = 150;
+    checkPoint(screenX, screenY) {
+        const oldSx = this.sx;
+        const outsideRight = screenX > this.limits.right;
+        const outsideLeft = screenX < this.limits.left;
+        if (!(outsideLeft || outsideRight)) this.mover.stopX();
+        this.sx = screenX;
+        const moveSpeed = 150;
         if (outsideLeft) {
-            this.scroller.startX(-scrollSpeed);
-            if (oldCx) { if (cx > oldCx) this.scroller.stopX(); }
+            this.mover.startX(-moveSpeed);
+            if (oldSx) { if (screenX > oldSx) this.mover.stopX(); }
         }
         if (outsideRight) {
-            this.scroller.startX(scrollSpeed);
-            if (oldCx) { if (cx < oldCx) this.scroller.stopX(); }
+            this.mover.startX(moveSpeed);
+            if (oldSx) { if (screenX < oldSx) this.mover.stopX(); }
         }
     }
-    stopScrolling() { this.scroller.stopX(); }
-    showScroller() { this.showVisuals(); }
-    hideScroller() { this.hideVisuals(); }
-    checkScroll(cX, cY) { this.checkPoint(cX, cY); }
+    stopMoving() { this.mover.stopX(); }
+    showMover() { this.showVisuals(); }
+    hideMover() { this.hideVisuals(); }
+    checkMove(cX, cY) { this.checkPoint(cX, cY); }
 }

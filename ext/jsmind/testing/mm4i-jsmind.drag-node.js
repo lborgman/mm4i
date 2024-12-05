@@ -33,7 +33,7 @@ let ourJm;
 let eltDragged;
 let jmnodeTarget;
 let childDragLine;
-// let instScrollAtDragBorder;
+// let instMoveEltAtDragBorder;
 export async function setupNewDragging() {
     ourJm = await new Promise((resolve) => {
         const draggablePlugin = new jsMind.plugin('draggable_nodes', function (thisIsOurJm) {
@@ -139,11 +139,11 @@ export function nextHereIamMeansStart(eltFrom) {
     dragPauseTimer.stop();
     eltDragged = eltFrom;
     jmnodeTarget = undefined;
-    // instScrollAtDragBorder.showScroller();
+    // instMoveEltAtDragBorder.showMover();
 }
 export function hiHereIam(cX, cY) {
     if (colClientX == cX && colClientY == cY) return;
-    // instScrollAtDragBorder.checkPoint(cX, cY);
+    // instMoveEltAtDragBorder.checkPoint(cX, cY);
     colClientX = cX;
     colClientY = cY;
     dragPauseTimer.restart();
@@ -157,7 +157,7 @@ function unmarkDragged() { if (eltDragged) markAsDragged(eltDragged, false); }
 
 export function stopNow() {
     dragPauseTimer.stop();
-    // instScrollAtDragBorder.hideScroller();
+    // instMoveEltAtDragBorder.hideMover();
     childDragLine?.removeLine();
     childDragLine = undefined;
     if (eltDragged) markAsDragged(eltDragged, false);
