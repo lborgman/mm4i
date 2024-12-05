@@ -1207,3 +1207,63 @@ export class TimeoutTimer {
         return this.tmr !== undefined;
     }
 }
+
+
+////////////////////////////////////
+//// Pos listeners
+
+/*
+    The callback function in
+        elt.addEventListener("pointermove", ...)
+    will be called very many times when the input device is moved.
+
+    To be able to handle this the input device position is saved
+    in the callback, but nothing else is done there.
+
+    The saved position is later used by the callback function to
+    requestAnimationFrame.
+*/
+
+const savedPointerPos = {};
+/**
+ * 
+ * @param {PointerEvent} evt 
+ */
+function savePointerPos(evt) {
+    let posHolder = evt;
+    if (!(evt instanceof PointerEvent)) throw Error("Expected PointerEvent");
+    if (posHolder.clientX == undefined) throw Error("savePointerPos: posHolder.clientX == undefined");
+
+    savedPointerPos.clientX = posHolder.clientX;
+    savedPointerPos.clientY = posHolder.clientY;
+    savedPointerPos.screenX = posHolder.screenX;
+    savedPointerPos.screenY = posHolder.screenY;
+    savedPointerPos.target = evt.target;
+}
+export function getSavedPointerPos() {
+    if (isNaN(savedPointerPos.screenX)) {
+        debugger; // eslint-disable-line no-debugger
+        throw Error("savedPointerPos.screenX is NaN");
+    }
+    return savedPointerPos;
+}
+
+
+let abortPosListeners;
+export function addPosListeners(eltFsm) {
+    removePosListeners();
+    abortPosListeners = new AbortController();
+    eltFsm.addEventListener("pointermove", savePointerPos, {
+        signal: abortPosListeners.signal
+    });
+    eltFsm.addEventListener("pointerdown", savePointerPos, {
+        signal: abortPosListeners.signal
+    });
+}
+
+// https://kettanaito.com/blog/dont-sleep-on-abort-controller
+export function removePosListeners() {
+    abortPosListeners?.abort();
+    abortPosListeners = undefined;
+}
+window["r"] = removePosListeners; // FIX-ME:

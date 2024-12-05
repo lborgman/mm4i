@@ -10,8 +10,6 @@ export function setInitialMovingData(elt2move, screenX, screenY) {
         movingElt: elt2move,
         left: getLeft(),
         top: getTop(),
-        // screenX: evtPointerLast.screenX,
-        // screenY: evtPointerLast.screenY,
         screenX,
         screenY,
     }

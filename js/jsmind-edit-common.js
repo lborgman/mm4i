@@ -126,7 +126,7 @@ class PointHandle {
         if (!pointHandle.isState("idle")) throw Error(`Expected state "idle" but it was ${this.#state}`);
         this.#state = "init";
 
-        const savedPointerPos = getSavedPointerPos();
+        const savedPointerPos = modTools.getSavedPointerPos();
         if (savedPointerPos.clientX == undefined) {
             debugger;
             throw Error("savedPointerPos is not initialized");
@@ -164,10 +164,8 @@ class PointHandle {
         if (eltOverJmnode) {
 
         }
-        // console.log("teardwon...", { eltJmnodeFrom });
         modJsmindDraggable.stopNow();
         instMoveEltAtDragBorder.hideMover();
-        // evtPointerLast = undefined; // FIX-ME
     }
     setupPointHandle() {
         console.log("setupPointHandle");
@@ -180,15 +178,12 @@ class PointHandle {
         this.teardownPointHandleAndAct();
     }
     checkPointHandleDistance() {
-        // if (!evtPointerLast) return; // FIX-ME
-        const savedPointerPos = getSavedPointerPos();
-        // const savedPointerPos = evtPointerLast;
+        const savedPointerPos = modTools.getSavedPointerPos();
         if (this.isState("init")) {
             this.#state = "dist";
 
             this.#eltPointHandle.style.left = `${savedPointerPos.clientX - PointHandle.sizePointHandle / 2}px`;
             this.#eltPointHandle.style.top = `${savedPointerPos.clientY - PointHandle.sizePointHandle / 2}px`;
-            // console.log("checkPointHandleDistance start", { posPointHandle });
         }
         const diffX = posPointHandle.start.clientX - savedPointerPos.clientX;
         const diffY = posPointHandle.start.clientY - savedPointerPos.clientY;
@@ -388,48 +383,11 @@ theDragTouchAccWay = "pointHandle"; // FIX-ME:
  * */
 let posPointHandle;
 
-const evtPointerLast = {};
-/**
- * 
- * @param {PointerEvent} evt 
- */
-function savePointerPos(evt) {
-    let posHolder = evt;
-    if (!(evt instanceof PointerEvent)) throw Error("Expected PointerEvent");
-    if (posHolder.clientX == undefined) throw Error("savePointerPos: posHolder.clientX == undefined");
 
-    evtPointerLast.clientX = posHolder.clientX;
-    evtPointerLast.clientY = posHolder.clientY;
-    evtPointerLast.screenX = posHolder.screenX;
-    evtPointerLast.screenY = posHolder.screenY;
-    evtPointerLast.target = evt.target;
-}
-
-function getSavedPointerPos() {
-    if (isNaN(evtPointerLast.screenX)) {
-        debugger; // eslint-disable-line no-debugger
-        throw Error("evtPointerLast.screenX is NaN");
-    }
-    return evtPointerLast;
-}
-
-//// FIX-ME: This seems to have stopped working in Android Chrome (at least in Chrome dev tools)???
-// window.addEventListener("pointermove", savePointerPos);
-// window.addEventListener("pointerdown", savePointerPos);
-//// Try body instead (same problem)
-// document.body.addEventListener("pointermove", savePointerPos);
-// document.body.addEventListener("pointerdown", savePointerPos);
-//// Try getEltFsm (this works also in Android Chrome!)
-function addPosListener(eltFsm) {
-    // const eltFsm = getEltFsm();
-    eltFsm.addEventListener("pointermove", savePointerPos);
-    eltFsm.addEventListener("pointerdown", savePointerPos);
-}
 
 
 
 // https://javascript.info/pointer-events
-
 /*
  * 
  * @param {PointerEvent} evt 
@@ -461,7 +419,7 @@ let eltOverJmnode;
 let movePointHandleProblem = false;
 function movePointHandle() {
     if (movePointHandleProblem) return;
-    const savedPointerPos = getSavedPointerPos();
+    const savedPointerPos = modTools.getSavedPointerPos();
     const clientX = savedPointerPos.clientX;
     const clientY = savedPointerPos.clientY;
     if (!clientX) return;
@@ -1282,7 +1240,14 @@ export async function pageSetup() {
     });
 
     modFsm.setupFsmListeners(eltFsm);
-    addPosListener(eltFsm);
+    //// FIX-ME: This seems to have stopped working in Android Chrome (at least in Chrome dev tools)???
+    // window.addEventListener("pointermove", savePointerPos);
+    // window.addEventListener("pointerdown", savePointerPos);
+    //// Try body instead (same problem)
+    // document.body.addEventListener("pointermove", savePointerPos);
+    // document.body.addEventListener("pointerdown", savePointerPos);
+    //// Try getEltFsm (this works also in Android Chrome!)
+    modTools.addPosListeners(eltFsm);
 
 
 
@@ -1914,7 +1879,7 @@ export async function pageSetup() {
 
         elt2move.style.cursor = "grabbing";
         elt2move.style.filter = "grayscale(0.5)";
-        const savedPointerPos = getSavedPointerPos();
+        const savedPointerPos = modTools.getSavedPointerPos();
         const movingData = modMoveHelp.setInitialMovingData(elt2move,
             savedPointerPos.screenX,
             savedPointerPos.screenY,
@@ -1923,7 +1888,7 @@ export async function pageSetup() {
             if (!isMoving) return;
             const oldLeft = movingData.left;
             const oldTop = movingData.top;
-            const savedPointerPos = getSavedPointerPos();
+            const savedPointerPos = modTools.getSavedPointerPos();
             const dx = modMoveHelp.getMovingDx(movingData, savedPointerPos.screenX);
             const dy = modMoveHelp.getMovingDy(movingData, savedPointerPos.screenY);
             const newLeft = oldLeft + dx;
