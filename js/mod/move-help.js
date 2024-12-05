@@ -59,6 +59,8 @@ export class MoveEltAtDragBorder {
                 "background-color: rgba(255, 0, 0, 0.2)",
                 "position: fixed",
                 "display: none",
+                "pointer-events: none",
+                "touch-actions: none",
             ].join(";");
             const eltVis = mkElt("div", { style });
             this.visuals.push(eltVis);
