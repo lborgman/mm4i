@@ -72,7 +72,7 @@ function markAsDroppedAt(jmnode, on) { markDragNode(jmnode, "dropped-at", on); }
 
 const markNames = ["dragged", "target", "tparent", "upper-child", "lower-child", "dropped-at"];
 function markDragNode(jmnode, how, on) {
-    console.log("////MARK", how, on);
+    // console.log("////MARK", how, on);
     if (jmnode.tagName !== "JMNODE") throw Error(`${jmnode.tagName} !== "JMNODE`);
 
     if (markNames.indexOf(how) == -1) throw Error(`Don't know how to mark as ${how}`);
@@ -231,12 +231,12 @@ function whenDragPauses() {
     // hiHereIam
     // childDragLine?.moveFreeEnd(colClientX, colClientY);
     const newElementAtPoint = document.elementFromPoint(colClientX, colClientY);
-    console.log({ newElementAtPoint });
+    // console.log({ newElementAtPoint });
     if (!newElementAtPoint) return; // FIX-ME: clear up here, or?
     if (newElementAtPoint != oldElementAtPoint) {
         oldElementAtPoint = newElementAtPoint;
         const newJmnodeTarget = newElementAtPoint.closest("jmnode");
-        console.log({ newJmnodeTarget });
+        // console.log({ newJmnodeTarget });
         if (newJmnodeTarget != jmnodeTarget) {
             unmarkTarget();
             jmnodeTarget = newJmnodeTarget;

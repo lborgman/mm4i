@@ -1231,14 +1231,13 @@ const savedPointerPos = {};
  */
 function savePointerPos(evt) {
     let posHolder = evt;
-    if (!(evt instanceof PointerEvent)) throw Error("Expected PointerEvent");
-    if (posHolder.clientX == undefined) throw Error("savePointerPos: posHolder.clientX == undefined");
+    // if (!(evt instanceof PointerEvent)) throw Error("Expected PointerEvent");
+    if (posHolder.screenX == undefined) throw Error("savePointerPos: posHolder.screenX == undefined");
 
     savedPointerPos.clientX = posHolder.clientX;
     savedPointerPos.clientY = posHolder.clientY;
     savedPointerPos.screenX = posHolder.screenX;
     savedPointerPos.screenY = posHolder.screenY;
-    savedPointerPos.target = evt.target;
 }
 export function getSavedPointerPos() {
     if (isNaN(savedPointerPos.screenX)) {
@@ -1251,12 +1250,13 @@ export function getSavedPointerPos() {
 
 let abortPosListeners;
 export function addPosListeners(eltFsm) {
+    console.warn("eltFsm is not used", eltFsm);
     removePosListeners();
     abortPosListeners = new AbortController();
-    eltFsm.addEventListener("pointermove", savePointerPos, {
+    document.addEventListener("pointermove", savePointerPos, {
         signal: abortPosListeners.signal
     });
-    eltFsm.addEventListener("pointerdown", savePointerPos, {
+    document.addEventListener("pointerdown", savePointerPos, {
         signal: abortPosListeners.signal
     });
 }

@@ -417,12 +417,16 @@ function jmnodeFromPoint(cX, cY) {
 */
 let eltOverJmnode;
 let movePointHandleProblem = false;
+let im = 0;
 function movePointHandle() {
     if (movePointHandleProblem) return;
     const savedPointerPos = modTools.getSavedPointerPos();
     const clientX = savedPointerPos.clientX;
     const clientY = savedPointerPos.clientY;
-    if (!clientX) return;
+    const screenX = savedPointerPos.screenX;
+    const screenY = savedPointerPos.screenY;
+    if (!screenX) return;
+    if ((im++ % 40) == 0) console.log("mPH, screenX", screenX);
     try {
         const sp = pointHandle.element.style;
         const left = clientX + posPointHandle.diffX - PointHandle.sizePointHandle / 2;
@@ -430,52 +434,12 @@ function movePointHandle() {
         const top = clientY + posPointHandle.diffY - PointHandle.sizePointHandle / 2;
         sp.top = `${top}px`;
         modJsmindDraggable.hiHereIam(left, top);
-        // modJsmindDraggable.hiHereIam(clientX, clientY); // use event point
-        const screenX = savedPointerPos.screenX;
-        const screenY = savedPointerPos.screenY;
-        instMoveEltAtDragBorder.checkPoint(screenX, screenY)
-        // scrollatdragborder
+        instMoveEltAtDragBorder.checkPointerPos(screenX, screenY)
     } catch (err) {
         console.error("movePointHandle", err);
         movePointHandleProblem = true;
     }
-    return;
-    /*
-    const eltsOver = document.elementsFromPoint(left, top);
-    const eltFromOverJmnode = (eltsOver.filter(elt => { return elt.tagName == "JMNODE" }))[0];
-    // console.log("from over jmnode", eltFromOverJmnode);
-    if (eltFromOverJmnode) {
-        if (eltOverJmnode) {
-            if (eltOverJmnode != eltFromOverJmnode) { unmarkOver(); }
-        }
-        if (!eltOverJmnode) {
-            markOver(eltFromOverJmnode);
-        }
-    } else {
-        unmarkOver();
-    }
-    function markOver(elt) {
-        eltOverJmnode = elt;
-        // eltOverJmnode.classList.add(cssClsDragTarget);
-        // modJsmindDraggable.markAsTarget(eltOverJmnode, true);
-    }
-    function unmarkOver() {
-        if (eltOverJmnode) {
-            // eltOverJmnode.classList.remove(cssClsDragTarget);
-            // modJsmindDraggable.markAsTarget(eltOverJmnode, false);
-            eltOverJmnode = undefined;
-        }
-    }
-    */
 }
-/*
-function getposPointHandle() {
-    const sp = eltPointHandle.style;
-    const screenX = sp.left;
-    const screenY = sp.top;
-    return { screenX, screenY };
-}
-*/
 /////////////////////////////////////////////////////
 
 export const arrShapeClasses = getMatchesInCssRules(/\.(jsmind-shape-[^.:#\s]*)/);
@@ -1879,10 +1843,10 @@ export async function pageSetup() {
 
         elt2move.style.cursor = "grabbing";
         elt2move.style.filter = "grayscale(0.5)";
-        const savedPointerPos = modTools.getSavedPointerPos();
+        // const savedPointerPos = modTools.getSavedPointerPos();
         const movingData = modMoveHelp.setInitialMovingData(elt2move,
-            savedPointerPos.screenX,
-            savedPointerPos.screenY,
+            // savedPointerPos.screenX,
+            // savedPointerPos.screenY,
         );
         function requestMove() {
             if (!isMoving) return;

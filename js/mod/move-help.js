@@ -3,15 +3,18 @@ const MOVE_HELP_VER = "0.0.7";
 console.log(`here is move-help.js, module, ${MOVE_HELP_VER}`);
 if (document.currentScript) { throw "move-help.js is not loaded as module"; }
 
-export function setInitialMovingData(elt2move, screenX, screenY) {
+const modTools = await importFc4i("toolsJs");
+
+export function setInitialMovingData(elt2move) {
     function getLeft() { return elt2move.style.left ? parseFloat(elt2move.style.left) : 0; }
     function getTop() { return elt2move.style.top ? parseFloat(elt2move.style.top) : 0; }
+    const savedPointerPos = modTools.getSavedPointerPos();
     const posMovingData = {
         movingElt: elt2move,
         left: getLeft(),
         top: getTop(),
-        screenX,
-        screenY,
+        screenX: savedPointerPos.screenX,
+        screenY: savedPointerPos.screenY,
     }
     return posMovingData;
 }
@@ -23,28 +26,29 @@ export class MoveEltAtFixedSpeed {
         this.elt2move = elt2move;
     }
     stopX() {
-        clearInterval(this.tmiX);
-        this.tmiX = undefined;
+        this.isMoving = false;
     }
-    // 100 pixel / sec seems good
-    startX(pxlPerSec) {
+    startX(direction) {
+        if (this.isMoving) return;
         this.stopX();
-        this.prevLeft = undefined;
-        const stepX = pxlPerSec < 0 ? -1 : 1;
-        const ms = Math.abs(1000 / pxlPerSec);
+        this.isMoving = true;
+        const msOverScreen = 8000;
+        const pxlPerMs = window.innerWidth / msOverScreen;
+        console.log("startX", { pxlPerMs });
+        const startTime = Date.now();
         const elt2move = this.elt2move
-        // const elt2scroll = elt2move.parentElement;
-        // console.log({ stepX, ms, elt2scroll, elt2move });
-        // FIX-ME:
-        const moveData = setInitialMovingData();
-        const moveFun = () => {
-            elt2scroll.scrollBy(stepX, 0);
-            const bcr = elt2move.getBoundingClientRect();
-            // console.log(bcr.left, this.prevLeft);
-            if (this.prevLeft == bcr.left) this.stopX();
-            this.prevLeft = bcr.left;
+        const movingData = setInitialMovingData(elt2move);
+        const startLeft = movingData.left;
+        const ourThis = this;
+        function moveFun() {
+            if (!ourThis.isMoving) return;
+            const dx = direction * (Date.now() - startTime) * pxlPerMs;
+            const newLeft = startLeft + dx;
+            const newLeftPx = `${newLeft}px`.replace("-0px", "0px");
+            elt2move.style.left = newLeftPx;
+            requestAnimationFrame(moveFun);
         }
-        this.tmiX = setInterval(moveFun, ms);
+        moveFun();
     }
 
 }
@@ -78,16 +82,25 @@ export class MoveEltAtDragBorder {
         window.addEventListener("resize", () => { updateLimits(); });
         updateLimits();
     }
-    showVisuals() { this.visuals.forEach(v => v.style.display = "block"); }
+    showVisuals() {
+        this.visuals.forEach(v => {
+            v.style.display = "block";
+            setTimeout(() => {
+                window["b"] = v.getBoundingClientRect();
+            });
+        });
+    }
     hideVisuals() { this.visuals.forEach(v => v.style.display = "none"); }
     updateScreenLimits() {
         const elt2moveParent = this.elt2move.parentElement;
-        const scrollbarW = elt2moveParent.offsetWidth - elt2moveParent.clientWidth;
+        // const scrollbarW = elt2moveParent.offsetWidth - elt2moveParent.clientWidth;
         const bcr = elt2moveParent.getBoundingClientRect();
         this.limits = {
             left: bcr.left + this.bw,
-            right: bcr.right - this.bw - scrollbarW,
+            right: bcr.left + bcr.width - this.bw, // - scrollbarW,
         }
+        window["l"] = this.limits; // FIX-ME
+        console.log(">>>>>> this.limits", l);
         const styleL = this.eltVisualLeft.style;
         styleL.width = `${this.bw}px`;
         styleL.height = `${bcr.height}px`;
@@ -97,27 +110,31 @@ export class MoveEltAtDragBorder {
         styleR.width = `${this.bw}px`;
         styleR.height = `${bcr.height}px`;
         styleR.top = `${bcr.top}px`
-        styleR.left = `${bcr.left + bcr.width - this.bw - scrollbarW}px`
+        // styleR.left = `${bcr.left + bcr.width - this.bw - scrollbarW}px`
         styleR.left = `${this.limits.right}px`
     }
-    checkPoint(screenX, screenY) {
-        const oldSx = this.sx;
+    checkPointerPos(screenX, screenY) {
+        if (!this.limits) throw Error("this.limits is not set");
         const outsideRight = screenX > this.limits.right;
         const outsideLeft = screenX < this.limits.left;
         if (!(outsideLeft || outsideRight)) this.mover.stopX();
+        const oldSx = this.sx;
         this.sx = screenX;
-        const moveSpeed = 150;
         if (outsideLeft) {
-            this.mover.startX(-moveSpeed);
-            if (oldSx) { if (screenX > oldSx) this.mover.stopX(); }
+            this.mover.startX(1);
+            if (oldSx) {
+                if (screenX > oldSx) {
+                    this.mover.stopX();
+                }
+            }
         }
         if (outsideRight) {
-            this.mover.startX(moveSpeed);
+            this.mover.startX(-1);
             if (oldSx) { if (screenX < oldSx) this.mover.stopX(); }
         }
     }
     stopMoving() { this.mover.stopX(); }
     showMover() { this.showVisuals(); }
     hideMover() { this.hideVisuals(); }
-    checkMove(cX, cY) { this.checkPoint(cX, cY); }
+    // checkMove(cX, cY) { this.checkPointerPos(cX, cY); }
 }
