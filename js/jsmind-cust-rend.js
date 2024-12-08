@@ -738,6 +738,12 @@ export class CustomRenderer4jsMind {
             const ae = document.activeElement;
             const isCancel = ae == btnCancel;
             console.log(isCancel, { ae });
+            const divS = btnSave.closest("div.mdc-dialog__surface");
+            if (!isCancel) {
+                divS.style.backgroundColor = "red";
+            } else {
+                divS.style.backgroundColor = "lawngreen";
+            }
         }, 1);
 
         function somethingToSaveNotes() {
