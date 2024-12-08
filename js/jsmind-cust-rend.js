@@ -730,13 +730,15 @@ export class CustomRenderer4jsMind {
         btnEdit.addEventListener("click", evt => {
         });
         setTimeout(() => {
-            const btn = getBtnSave();
-            console.log({ btn });
+            const btnSave = getBtnSave();
+            const btnCancel = btnSave.nextElementSibling;
+            console.log({ btnSave, btnCancel });
             // debugger;
-            btn.focus();
+            btnCancel.focus();
             const ae = document.activeElement;
-            console.log({ ae });
-        }, 2000);
+            const isCancel = ae == btnCancel;
+            console.log(isCancel, { ae });
+        }, 1);
 
         function somethingToSaveNotes() {
             return easyMDE.value().trim() != initialNotesVal;
