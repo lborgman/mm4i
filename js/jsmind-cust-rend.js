@@ -70,9 +70,9 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
     const eltContainer = eltCursorDiv.closest("div.EasyMDEContainer");
     const eltToolbar = eltContainer.querySelector("div.editor-toolbar");
     eltToolbar.style.display = "none";
-    const btnEdit = modMdc.mkMDCiconButton("edit", "Edit my notes");
-    btnEdit.id = "edit-my-notes";
-    btnEdit.style = `
+    const btnEditMyNotes = modMdc.mkMDCiconButton("edit", "Edit my notes");
+    btnEditMyNotes.id = "edit-my-notes";
+    btnEditMyNotes.style = `
         position: absolute;
         right: 5px;
         top: 5px;
@@ -81,12 +81,12 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
         background: color-mix(in srgb, var(--mdc-theme-primary) 30%, #ffffff);
     `;
     eltContainer.style.position = "relative";
-    eltContainer.appendChild(btnEdit);
+    eltContainer.appendChild(btnEditMyNotes);
     easyMDE.togglePreview();
     taNotes.blur();
-    btnEdit.addEventListener("click", evt => {
+    btnEditMyNotes.addEventListener("click", evt => {
         evt.preventDefault();
-        btnEdit.remove();
+        btnEditMyNotes.remove();
         eltToolbar.style.display = "";
         eltToolbar.scrollIntoView();
         const btnPreview = eltToolbar.querySelector("button.preview");
@@ -725,35 +725,42 @@ export class CustomRenderer4jsMind {
         ]);
         const easyMDE = await setupEasyMDE4Notes(taNotes, initialNotesVal);
         easyMDE.value(initialNotesVal);
+        easyMDE.element.toggleAttribute("inert");
+        easyMDE.codemirror.options.readOnly = true;
         // debugger;
+        let btnSave;
         const btnEdit = body.querySelector("#edit-my-notes");
         btnEdit.addEventListener("click", evt => {
+            setTimeout(() => {
+                const btnSave = getBtnSave();
+                const btnCancel = btnSave.nextElementSibling;
+                const divS = btnSave.closest("div.mdc-dialog__surface");
+                const divMDE = divS.querySelector("div.EasyMDEContainer")
+                const ta = divMDE.previousElementSibling;
+                ta.toggleAttribute("inert");
+                divMDE.toggleAttribute("inert");
+                console.log({ btnSave, btnCancel, divS, divMDE, ta });
+
+                // debugger;
+                // btnCancel.focus();
+                const ae = document.activeElement;
+                const isCancel = ae == btnCancel;
+                console.log(">>>>>>>>> ae", isCancel, ae);
+                if (!isCancel) {
+                    divS.style.backgroundColor = "red";
+                } else {
+                    divS.style.backgroundColor = "lawngreen";
+                }
+            }, 1);
         });
-        setTimeout(() => {
-            const btnSave = getBtnSave();
-            const btnCancel = btnSave.nextElementSibling;
-            console.log({ btnSave, btnCancel });
-            // debugger;
-            btnCancel.focus();
-            const ae = document.activeElement;
-            const isCancel = ae == btnCancel;
-            console.log(isCancel, { ae });
-            const divS = btnSave.closest("div.mdc-dialog__surface");
-            if (!isCancel) {
-                divS.style.backgroundColor = "red";
-            } else {
-                divS.style.backgroundColor = "lawngreen";
-            }
-        }, 1);
 
         function somethingToSaveNotes() {
             return easyMDE.value().trim() != initialNotesVal;
         }
-        let btnSave;
         function getBtnSave() {
             if (btnSave) return btnSave;
-            // const contBtns = body.querySelector(".mdc-dialog__actions");
-            const contBtns = body.closest(".mdc-dialog__surface").querySelector(".mdc-dialog__actions");
+            const contBtns = document.body.querySelector(".mdc-dialog__actions");
+            // const contBtns = document.body.closest(".mdc-dialog__surface").querySelector(".mdc-dialog__actions");
             // FIX-ME: Should be the first?
             btnSave = contBtns.querySelector("button");
             if (btnSave.textContent != "save") throw Error("Did not find the save button");
