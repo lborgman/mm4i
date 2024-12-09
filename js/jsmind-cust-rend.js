@@ -61,7 +61,7 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
     const modEasyMDE = await importFc4i("easymde");
     console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
     const easyMDE = new EasyMDE({
-        autofocus: false,
+        // autofocus: false,
         element: taNotes,
         // readOnly: "nocursor",
         status: false,
@@ -98,6 +98,8 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
     // taNotes.blur();
     btnEditMyNotes.addEventListener("click", evt => {
         evt.preventDefault();
+        evt.stopImmediatePropagation();
+        evt.stopPropagation();
         btnEditMyNotes.remove();
         eltToolbar.style.display = "";
         eltToolbar.scrollIntoView();
@@ -730,17 +732,28 @@ export class CustomRenderer4jsMind {
         const shapeEtc = node_data.shapeEtc || {};
         const initialNotesVal = shapeEtc.notes || "";
         const taNotes = mkElt("textarea");
+        const eltNotes = mkElt("div", undefined, taNotes);
         const body = mkElt("div", undefined, [
             // mkElt("h2", undefined, "Node Notes"),
             mkElt("h2", undefined, node.topic),
-            taNotes
+            // taNotes
+            eltNotes
         ]);
-        const easyMDE = await setupEasyMDE4Notes(taNotes, initialNotesVal);
-        easyMDE.codemirror.options.readOnly = true;
+        let easyMDE;
+        setTimeout(async () => {
+            easyMDE = await setupEasyMDE4Notes(taNotes, initialNotesVal);
+            easyMDE.codemirror.options.readOnly = "nocursor";
+            easyMDE.codemirror.on("changes", () => {
+                // saveEmdChanges();
+                requestSetStateBtnSaveable();
+            });
+        }, 1000);
+        // setTimeout(() => eltNotes.toggleAttribute("inert"), 10);
         let btnSave;
-        const btnEdit = body.querySelector("#edit-my-notes");
-        btnEdit.addEventListener("click", evt => {
+        const btnEditNote = body.querySelector("#edit-my-notes");
+        btnEditNote?.addEventListener("click", evt => {
             setTimeout(() => {
+                easyMDE.codemirror.options.readOnly = false;
                 const btnSave = getBtnSave();
                 const btnCancel = btnSave.nextElementSibling;
                 const divS = btnSave.closest("div.mdc-dialog__surface");
@@ -769,20 +782,29 @@ export class CustomRenderer4jsMind {
         function getBtnSave() {
             if (btnSave) return btnSave;
             const contBtns = document.body.querySelector(".mdc-dialog__actions");
+            if (!contBtns) throw Error("Did not find contBtns");
             // const contBtns = document.body.closest(".mdc-dialog__surface").querySelector(".mdc-dialog__actions");
             // FIX-ME: Should be the first?
             btnSave = contBtns.querySelector("button");
             if (btnSave.textContent != "save") throw Error("Did not find the save button");
             return btnSave;
         }
-        function setStateBtnSave() {
+        function setStateBtnSaveDisabled(disable) {
+            const tof = typeof disable;
+            if (tof != "boolean") throw Error(`Expected boolean, got ${tof} disable:${disable}`);
             const btn = getBtnSave();
             if (!btn) return;
-            btn.disabled = !somethingToSaveNotes();
+            // btn.disabled = !somethingToSaveNotes();
+            btn.disabled = disable
         }
-        const debounceStateBtnSave = debounce(setStateBtnSave, 300);
-        function requestSetStateBtnSave() { debounceStateBtnSave(); }
-        requestSetStateBtnSave();
+        function setStateBtnSaveable() {
+            setStateBtnSaveDisabled(!somethingToSaveNotes());
+        }
+        const debounceStateBtnSaveable = debounce(setStateBtnSaveable, 300);
+        function requestSetStateBtnSaveable() { debounceStateBtnSaveable(); }
+        // requestSetStateBtnSaveable();
+        // FIX-ME: move to mdc-util
+        setTimeout(() => setStateBtnSaveDisabled(true), 50);
 
         const save = await modMdc.mkMDCdialogConfirm(body, "save", "cancel");
         console.log({ save });
