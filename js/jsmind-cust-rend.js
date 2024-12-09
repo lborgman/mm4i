@@ -66,11 +66,23 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
         status: false,
         // toolbar: [],
     });
+
     easyMDE.value(valNotes);
-    const eltCursorDiv = easyMDE.codemirror.display.cursorDiv;
-    const eltContainer = eltCursorDiv.closest("div.EasyMDEContainer");
+    easyMDE.togglePreview();
+
+    const cdmi = easyMDE.codemirror;
+    cdmi.options.readOnly = "nocursor";
+
     const eltToolbar = eltContainer.querySelector("div.editor-toolbar");
     eltToolbar.style.display = "none";
+
+    const eltContainer = eltCursorDiv.closest("div.EasyMDEContainer");
+    eltContainer.style.position = "relative";
+
+    // const eltCursorDiv = easyMDE.codemirror.display.cursorDiv;
+    const eltCursorDiv = cdmi.display.cursorDiv;
+    eltContainer.appendChild(btnEditMyNotes);
+
     const btnEditMyNotes = modMdc.mkMDCiconButton("edit", "Edit my notes");
     btnEditMyNotes.id = "edit-my-notes";
     btnEditMyNotes.style = `
@@ -81,10 +93,7 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
         color: green;
         background: color-mix(in srgb, var(--mdc-theme-primary) 30%, #ffffff);
     `;
-    eltContainer.style.position = "relative";
-    eltContainer.appendChild(btnEditMyNotes);
-    easyMDE.togglePreview();
-    taNotes.blur();
+    // taNotes.blur();
     btnEditMyNotes.addEventListener("click", evt => {
         evt.preventDefault();
         btnEditMyNotes.remove();
