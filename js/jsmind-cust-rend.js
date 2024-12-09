@@ -69,7 +69,7 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
     });
 
     easyMDE.value(valNotes);
-    easyMDE.togglePreview();
+    // easyMDE.togglePreview();
 
     const cdmi = easyMDE.codemirror;
     cdmi.options.readOnly = "nocursor";
@@ -736,10 +736,7 @@ export class CustomRenderer4jsMind {
             taNotes
         ]);
         const easyMDE = await setupEasyMDE4Notes(taNotes, initialNotesVal);
-        // easyMDE.value(initialNotesVal);
-        // easyMDE.element.toggleAttribute("inert");
         easyMDE.codemirror.options.readOnly = true;
-        // debugger;
         let btnSave;
         const btnEdit = body.querySelector("#edit-my-notes");
         btnEdit.addEventListener("click", evt => {
