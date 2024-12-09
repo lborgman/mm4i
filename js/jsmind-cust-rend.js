@@ -724,7 +724,7 @@ export class CustomRenderer4jsMind {
             taNotes
         ]);
         const easyMDE = await setupEasyMDE4Notes(taNotes, initialNotesVal);
-        easyMDE.value(initialNotesVal);
+        // easyMDE.value(initialNotesVal);
         easyMDE.element.toggleAttribute("inert");
         easyMDE.codemirror.options.readOnly = true;
         // debugger;
