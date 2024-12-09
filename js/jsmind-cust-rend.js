@@ -73,17 +73,18 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
     const cdmi = easyMDE.codemirror;
     cdmi.options.readOnly = "nocursor";
 
-    const eltToolbar = eltContainer.querySelector("div.editor-toolbar");
-    eltToolbar.style.display = "none";
+    const eltCursorDiv = cdmi.display.cursorDiv;
 
     const eltContainer = eltCursorDiv.closest("div.EasyMDEContainer");
     eltContainer.style.position = "relative";
 
-    // const eltCursorDiv = easyMDE.codemirror.display.cursorDiv;
-    const eltCursorDiv = cdmi.display.cursorDiv;
-    eltContainer.appendChild(btnEditMyNotes);
+    const eltToolbar = eltContainer.querySelector("div.editor-toolbar");
+    eltToolbar.style.display = "none";
+
 
     const btnEditMyNotes = modMdc.mkMDCiconButton("edit", "Edit my notes");
+    eltContainer.appendChild(btnEditMyNotes);
+
     btnEditMyNotes.id = "edit-my-notes";
     btnEditMyNotes.style = `
         position: absolute;
