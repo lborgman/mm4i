@@ -737,7 +737,7 @@ export class CustomRenderer4jsMind {
         ]);
         const easyMDE = await setupEasyMDE4Notes(taNotes, initialNotesVal);
         // easyMDE.value(initialNotesVal);
-        easyMDE.element.toggleAttribute("inert");
+        // easyMDE.element.toggleAttribute("inert");
         easyMDE.codemirror.options.readOnly = true;
         // debugger;
         let btnSave;
@@ -749,8 +749,8 @@ export class CustomRenderer4jsMind {
                 const divS = btnSave.closest("div.mdc-dialog__surface");
                 const divMDE = divS.querySelector("div.EasyMDEContainer")
                 const ta = divMDE.previousElementSibling;
-                ta.toggleAttribute("inert");
-                divMDE.toggleAttribute("inert");
+                // ta.toggleAttribute("inert");
+                // divMDE.toggleAttribute("inert");
                 console.log({ btnSave, btnCancel, divS, divMDE, ta });
 
                 // debugger;
