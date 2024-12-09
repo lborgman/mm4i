@@ -61,6 +61,7 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
     const modEasyMDE = await importFc4i("easymde");
     console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
     const easyMDE = new EasyMDE({
+        autofocus: false,
         element: taNotes,
         status: false,
         // toolbar: [],
