@@ -63,6 +63,7 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
     const easyMDE = new EasyMDE({
         autofocus: false,
         element: taNotes,
+        // readOnly: "nocursor",
         status: false,
         // toolbar: [],
     });
