@@ -754,7 +754,7 @@ export class CustomRenderer4jsMind {
             easyMDE.codemirror.on("changes", () => {
                 requestSetStateBtnSaveable();
             });
-        }, 1);
+        }, 1000);
         let btnSave;
         const btnEditNote = body.querySelector("#edit-my-notes");
         btnEditNote?.addEventListener("click", evt => {
