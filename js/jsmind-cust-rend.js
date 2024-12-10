@@ -744,7 +744,8 @@ export class CustomRenderer4jsMind {
         const eltNotes = mkElt("div", undefined, taNotes);
         const body = mkElt("div", undefined, [
             // mkElt("h2", undefined, "Node Notes"),
-            mkElt("h2", undefined, node.topic),
+            mkElt("h2", undefined, "Edit node notes"),
+            mkElt("h3", undefined, node.topic),
             // taNotes
             eltNotes
         ]);
