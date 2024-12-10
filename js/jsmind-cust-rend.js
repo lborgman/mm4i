@@ -816,6 +816,8 @@ export class CustomRenderer4jsMind {
         console.log({ save });
         if (save) {
             if (!somethingToSaveNotes()) throw Error("Save button enabled but nothing to save?");
+            shapeEtc.notes = easyMDE.value().trim();
+            setTimeout(() => { modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed); }, 2000);
         }
     }
     async editNodeDialog(eltJmnode, scrollToNotes) {
