@@ -743,10 +743,8 @@ export class CustomRenderer4jsMind {
         const taNotes = mkElt("textarea");
         const eltNotes = mkElt("div", undefined, taNotes);
         const body = mkElt("div", undefined, [
-            // mkElt("h2", undefined, "Node Notes"),
             mkElt("h2", undefined, "Edit node notes"),
             mkElt("h3", undefined, node.topic),
-            // taNotes
             eltNotes
         ]);
         let easyMDE;
@@ -754,11 +752,9 @@ export class CustomRenderer4jsMind {
             easyMDE = await setupEasyMDE4Notes(taNotes, initialNotesVal);
             easyMDE.codemirror.options.readOnly = "nocursor";
             easyMDE.codemirror.on("changes", () => {
-                // saveEmdChanges();
                 requestSetStateBtnSaveable();
             });
-        }, 1000);
-        // setTimeout(() => eltNotes.toggleAttribute("inert"), 10);
+        }, 1);
         let btnSave;
         const btnEditNote = body.querySelector("#edit-my-notes");
         btnEditNote?.addEventListener("click", evt => {
