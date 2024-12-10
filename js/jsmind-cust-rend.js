@@ -67,9 +67,9 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
         status: false,
         // toolbar: [],
     });
-
+    window["easyMDE"] = easyMDE;
     easyMDE.value(valNotes);
-    // easyMDE.togglePreview();
+    easyMDE.togglePreview();
 
     const cdmi = easyMDE.codemirror;
     cdmi.options.readOnly = "nocursor";
@@ -78,6 +78,14 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
 
     const eltContainer = eltCursorDiv.closest("div.EasyMDEContainer");
     eltContainer.style.position = "relative";
+
+    const eltPreview = eltContainer.querySelector("div.editor-preview");
+    console.log({ eltPreview });
+
+    const eltDialogSurface = eltContainer.closest("div.mdc-dialog__surface");
+    const styleSurface = getComputedStyle(eltDialogSurface);
+    eltPreview.style.backgroundColor = styleSurface.backgroundColor;
+
 
     const eltToolbar = eltContainer.querySelector("div.editor-toolbar");
     eltToolbar.style.display = "none";
@@ -105,6 +113,7 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
         eltToolbar.scrollIntoView();
         const btnPreview = eltToolbar.querySelector("button.preview");
         const btnBold = eltToolbar.querySelector("button.bold");
+        easyMDE.codemirror.options.readOnly = false;
         // FIX-ME: There must be a better way to do this???
         setTimeout(() => {
             // easyMDE.togglePreview();
@@ -759,12 +768,8 @@ export class CustomRenderer4jsMind {
                 const divS = btnSave.closest("div.mdc-dialog__surface");
                 const divMDE = divS.querySelector("div.EasyMDEContainer")
                 const ta = divMDE.previousElementSibling;
-                // ta.toggleAttribute("inert");
-                // divMDE.toggleAttribute("inert");
                 console.log({ btnSave, btnCancel, divS, divMDE, ta });
 
-                // debugger;
-                // btnCancel.focus();
                 const ae = document.activeElement;
                 const isCancel = ae == btnCancel;
                 console.log(">>>>>>>>> ae", isCancel, ae);
