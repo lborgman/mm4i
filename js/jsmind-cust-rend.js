@@ -115,7 +115,7 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
             easyMDE.togglePreview();
             // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
             easyMDE.codemirror.refresh();
-            const cud = MYeasyMDE.codemirror.display.cursorDiv;
+            const cud = easyMDE.codemirror.display.cursorDiv;
             const cont = cud.closest("div.EasyMDEContainer");
             const ta = cont.querySelector("textarea");
             window["myFocusTaNotes"] = ta;
