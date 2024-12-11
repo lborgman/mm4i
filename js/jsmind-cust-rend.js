@@ -58,6 +58,7 @@ export class providerDetails {
 }
 
 async function setupEasyMDE4Notes(taNotes, valNotes) {
+    window["MYtaNotes"] = taNotes;
     const modEasyMDE = await importFc4i("easymde");
     console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
     const easyMDE = new EasyMDE({
@@ -66,6 +67,7 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
     });
     window["MYeasyMDE"] = easyMDE;
     easyMDE.value(valNotes);
+    if (easyMDE.isPreviewActive()) throw Error("easyMDE.isPreviewActive()");
     easyMDE.togglePreview();
 
     easyMDE.codemirror.options.readOnly = "nocursor";
@@ -109,16 +111,10 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
             btnEditMyNotes.remove();
             eltToolbar.style.display = "";
             eltToolbar.scrollIntoView();
-            const btnPreview = eltToolbar.querySelector("button.preview");
-            // const btnBold = eltToolbar.querySelector("button.bold");
             easyMDE.codemirror.options.readOnly = false;
-            // FIX-ME: There must be a better way to do this???
-            setTimeout(() => {
-                // easyMDE.togglePreview();
-                btnPreview.click();
-                // btnBold.click(); btnBold.click();
-                taNotes.focus();
-            }, 10);
+            easyMDE.togglePreview();
+            // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
+            easyMDE.codemirror.refresh();
         });
     }
     return easyMDE;
