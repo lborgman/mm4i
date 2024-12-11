@@ -61,13 +61,10 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
     const modEasyMDE = await importFc4i("easymde");
     console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
     const easyMDE = new EasyMDE({
-        // autofocus: false,
         element: taNotes,
-        // readOnly: "nocursor",
         status: false,
-        // toolbar: [],
     });
-    window["easyMDE"] = easyMDE;
+    window["MYeasyMDE"] = easyMDE;
     easyMDE.value(valNotes);
     easyMDE.togglePreview();
 
@@ -76,23 +73,25 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
 
     const eltCursorDiv = cdmi.display.cursorDiv;
 
-    const eltContainer = eltCursorDiv.closest("div.EasyMDEContainer");
-    eltContainer.style.position = "relative";
+    const eltMDEContainer = eltCursorDiv.closest("div.EasyMDEContainer");
+    eltMDEContainer.style.position = "relative";
 
-    const eltPreview = eltContainer.querySelector("div.editor-preview");
+    const eltPreview = eltMDEContainer.querySelector("div.editor-preview");
     console.log({ eltPreview });
 
-    const eltDialogSurface = eltContainer.closest("div.mdc-dialog__surface");
-    const styleSurface = getComputedStyle(eltDialogSurface);
-    eltPreview.style.backgroundColor = styleSurface.backgroundColor;
+    setTimeout(() => {
+        const eltDialogSurface = taNotes.closest("div.mdc-dialog__surface");
+        const styleSurface = getComputedStyle(eltDialogSurface);
+        eltPreview.style.backgroundColor = styleSurface.backgroundColor;
+    }, 110);
 
 
-    const eltToolbar = eltContainer.querySelector("div.editor-toolbar");
+    const eltToolbar = eltMDEContainer.querySelector("div.editor-toolbar");
     eltToolbar.style.display = "none";
 
 
     const btnEditMyNotes = modMdc.mkMDCiconButton("edit", "Edit my notes");
-    eltContainer.appendChild(btnEditMyNotes);
+    eltMDEContainer.appendChild(btnEditMyNotes);
 
     btnEditMyNotes.id = "edit-my-notes";
     btnEditMyNotes.style = `
@@ -103,7 +102,6 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
         color: green;
         background: color-mix(in srgb, var(--mdc-theme-primary) 30%, #ffffff);
     `;
-    // taNotes.blur();
     btnEditMyNotes.addEventListener("click", evt => {
         evt.preventDefault();
         evt.stopImmediatePropagation();
@@ -741,19 +739,19 @@ export class CustomRenderer4jsMind {
         const shapeEtc = node_data.shapeEtc || {};
         const initialNotesVal = shapeEtc.notes || "";
         const taNotes = mkElt("textarea");
-        const eltNotes = mkElt("div", undefined, taNotes);
+        const eltMDEwrapper = mkElt("div", undefined, taNotes);
         const body = mkElt("div", undefined, [
             mkElt("h2", undefined, "Edit node notes"),
             mkElt("h3", undefined, node.topic),
-            eltNotes
         ]);
         let easyMDE;
+        easyMDE = await setupEasyMDE4Notes(taNotes, initialNotesVal);
+        easyMDE.codemirror.options.readOnly = "nocursor";
+        easyMDE.codemirror.on("changes", () => {
+            requestSetStateBtnSaveable();
+        });
         setTimeout(async () => {
-            easyMDE = await setupEasyMDE4Notes(taNotes, initialNotesVal);
-            easyMDE.codemirror.options.readOnly = "nocursor";
-            easyMDE.codemirror.on("changes", () => {
-                requestSetStateBtnSaveable();
-            });
+            body.appendChild(eltMDEwrapper);
         }, 100);
         let btnSave;
         const btnEditNote = body.querySelector("#edit-my-notes");
