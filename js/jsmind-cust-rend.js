@@ -117,9 +117,12 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
             easyMDE.codemirror.refresh();
             const cud = easyMDE.codemirror.display.cursorDiv;
             const cont = cud.closest("div.EasyMDEContainer");
+            // contenteditable on mobile, textarea on desktop
+            const editable = cont.querySelector("div[contenteditable]")
             const ta = cont.querySelector("textarea");
-            window["myFocusTaNotes"] = ta;
-            setTimeout(() => { ta.focus(); }, 1000);
+            const eltFocus = editable || ta;
+            window["MYeltFocusNotes"] = eltFocus;
+            setTimeout(() => { eltFocus.focus(); }, 1000);
         });
     }
     return easyMDE;
