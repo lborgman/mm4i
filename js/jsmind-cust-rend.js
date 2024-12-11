@@ -68,59 +68,59 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
     easyMDE.value(valNotes);
     easyMDE.togglePreview();
 
-    const cdmi = easyMDE.codemirror;
-    cdmi.options.readOnly = "nocursor";
+    easyMDE.codemirror.options.readOnly = "nocursor";
 
-    const eltCursorDiv = cdmi.display.cursorDiv;
-
-    const eltMDEContainer = eltCursorDiv.closest("div.EasyMDEContainer");
-    eltMDEContainer.style.position = "relative";
-
-    const eltPreview = eltMDEContainer.querySelector("div.editor-preview");
-    console.log({ eltPreview });
-
-    setTimeout(() => {
+    function setMDEpreviewColor() {
+        const eltPreview = eltMDEContainer.querySelector("div.editor-preview");
+        console.log({ eltPreview });
         const eltDialogSurface = taNotes.closest("div.mdc-dialog__surface");
         const styleSurface = getComputedStyle(eltDialogSurface);
         eltPreview.style.backgroundColor = styleSurface.backgroundColor;
-    }, 110);
+    }
 
+    setTimeout(() => { setMDEpreviewColor(); }, 110);
+
+    const eltCursorDiv = easyMDE.codemirror.display.cursorDiv;
+    const eltMDEContainer = eltCursorDiv.closest("div.EasyMDEContainer");
 
     const eltToolbar = eltMDEContainer.querySelector("div.editor-toolbar");
     eltToolbar.style.display = "none";
 
 
-    const btnEditMyNotes = modMdc.mkMDCiconButton("edit", "Edit my notes");
-    eltMDEContainer.appendChild(btnEditMyNotes);
+    addEditMyNotesButton();
+    function addEditMyNotesButton() {
+        eltMDEContainer.style.position = "relative";
+        const btnEditMyNotes = modMdc.mkMDCiconButton("edit", "Edit my notes");
+        eltMDEContainer.appendChild(btnEditMyNotes);
 
-    btnEditMyNotes.id = "edit-my-notes";
-    btnEditMyNotes.style = `
+        btnEditMyNotes.id = "edit-my-notes";
+        btnEditMyNotes.style = `
         position: absolute;
         right: 5px;
         top: 5px;
         border-radius: 50%;
         color: green;
         background: color-mix(in srgb, var(--mdc-theme-primary) 30%, #ffffff);
-    `;
-    btnEditMyNotes.addEventListener("click", evt => {
-        evt.preventDefault();
-        evt.stopImmediatePropagation();
-        evt.stopPropagation();
-        btnEditMyNotes.remove();
-        eltToolbar.style.display = "";
-        eltToolbar.scrollIntoView();
-        const btnPreview = eltToolbar.querySelector("button.preview");
-        const btnBold = eltToolbar.querySelector("button.bold");
-        easyMDE.codemirror.options.readOnly = false;
-        // FIX-ME: There must be a better way to do this???
-        setTimeout(() => {
-            // easyMDE.togglePreview();
-            btnPreview.click();
-            btnBold.click();
-            btnBold.click();
-            taNotes.focus();
-        }, 10);
-    });
+        `;
+        btnEditMyNotes.addEventListener("click", evt => {
+            evt.preventDefault();
+            evt.stopImmediatePropagation();
+            evt.stopPropagation();
+            btnEditMyNotes.remove();
+            eltToolbar.style.display = "";
+            eltToolbar.scrollIntoView();
+            const btnPreview = eltToolbar.querySelector("button.preview");
+            // const btnBold = eltToolbar.querySelector("button.bold");
+            easyMDE.codemirror.options.readOnly = false;
+            // FIX-ME: There must be a better way to do this???
+            setTimeout(() => {
+                // easyMDE.togglePreview();
+                btnPreview.click();
+                // btnBold.click(); btnBold.click();
+                taNotes.focus();
+            }, 10);
+        });
+    }
     return easyMDE;
 }
 
@@ -1122,8 +1122,7 @@ export class CustomRenderer4jsMind {
 
         // modMdc.mkMDC
 
-        // const taNotes = mkElt("textarea", undefined, "# My notes");
-        const taNotes = mkElt("textarea");
+        const taNotes = mkElt("textarea", { placeholder: "Enter notes for this node" });
 
         const divNotesTab = mkElt("div", undefined, [
             // tafTopic,
@@ -1133,7 +1132,8 @@ export class CustomRenderer4jsMind {
         divNotesTab.style.gap = "30px";
 
         async function activateNotesTab() {
-            const valNotes = initNotes ? initNotes : "# My Notes";
+            // const valNotes = initNotes ? initNotes : "# My Notes";
+            const valNotes = initNotes;
             const easyMDE = await setupEasyMDE4Notes(taNotes, valNotes);
             easyMDE.codemirror.on("changes", () => { saveEmdChanges(); })
             window.easyMDE = easyMDE;
