@@ -118,7 +118,8 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
             const cud = MYeasyMDE.codemirror.display.cursorDiv;
             const cont = cud.closest("div.EasyMDEContainer");
             const ta = cont.querySelector("textarea");
-            setTimeout(() => { ta.focus(); }, 1);
+            window["myFocusTaNotes"] = ta;
+            setTimeout(() => { ta.focus(); }, 1000);
         });
     }
     return easyMDE;
