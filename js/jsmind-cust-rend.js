@@ -1153,11 +1153,17 @@ export class CustomRenderer4jsMind {
         // modMdc.mkMDC
 
         const taNotes = mkElt("textarea", { placeholder: "Enter notes for this node" });
+        const divInert = mkElt("div", undefined, taNotes);
+        divInert.toggleAttribute("inert");
+        const divOuter = mkElt("div", undefined, divInert);
+
 
         const divNotesTab = mkElt("div", undefined, [
             // tafTopic,
             tfTopic,
-            taNotes,
+            // taNotes,
+            // divInert,
+            divOuter,
         ]);
         divNotesTab.style.gap = "30px";
 
@@ -1165,6 +1171,8 @@ export class CustomRenderer4jsMind {
             // const valNotes = initNotes ? initNotes : "# My Notes";
             const valNotes = initNotes;
             const easyMDE = await setupEasyMDE4Notes(taNotes, valNotes);
+            // const elt = taNotes.parentElement;
+            addEditMyNotesButton(divOuter, easyMDE);
             easyMDE.codemirror.on("changes", () => { saveEmdChanges(); })
             window.easyMDE = easyMDE;
         }
