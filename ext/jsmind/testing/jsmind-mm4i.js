@@ -1991,7 +1991,7 @@
             this.e_nodes = $.c('jmnodes');
             this.e_editor = $.c('input');
             this.e_panel.className = 'jsmind-inner jmnode-overflow-' + this.opts.node_overflow;
-            this.e_panel.tabIndex = 1;
+            // this.e_panel.tabIndex = 1;
             this.e_panel.appendChild(this.graph.element());
             this.e_panel.appendChild(this.e_nodes);
 
