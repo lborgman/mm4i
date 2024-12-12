@@ -117,11 +117,20 @@ function getLocalISOtime(dateTime) {
 }
 */
 
-// Quick fix for waiting for mkElt is really ready!
+// Quick fix for waiting for mkElt etc is really ready!
 // javascript - Performance of MutationObserver to detect nodes in entire DOM - Stack Overflow
 // https://stackoverflow.com/questions/31659567/performance-of-mutationobserver-to-detect-nodes-in-entire-dom/39332340
 // FIX-ME: Is not this just a version of debounce?
+/**
+ * 
+ * @param {HTMLElement} elt 
+ * @param {number=} ms 
+ * @param {Object=} observeWhat 
+ * @param {number=} msMaxWait 
+ * @returns 
+ */
 export function wait4mutations(elt, ms, observeWhat, msMaxWait) {
+    const msTimer = ms || 10;
     observeWhat = observeWhat || { attributes: true, characterData: true, childList: true, subtree: true, };
     return new Promise(resolve => {
         let tmr;
@@ -147,7 +156,7 @@ export function wait4mutations(elt, ms, observeWhat, msMaxWait) {
                     restartTimer();
                 });
             }
-            setTimeout(fin, ms);
+            setTimeout(fin, msTimer);
             mu?.observe(elt, observeWhat);
         }
         // const mu = new MutationObserver(mutations => { restartTimer(); });

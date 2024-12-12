@@ -66,12 +66,30 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
         status: false,
     });
     window["MYeasyMDE"] = easyMDE;
+    easyMDE.codemirror.options.readOnly = "nocursor";
     easyMDE.value(valNotes);
     if (easyMDE.isPreviewActive()) throw Error("easyMDE.isPreviewActive()");
     easyMDE.togglePreview();
-
+    const cud = easyMDE.codemirror.display.cursorDiv;
+    const cont = cud.closest("div.EasyMDEContainer");
+    const code = cont.querySelector("div.CodeMirror-code");
+    console.log("cud", cud, "\ncont", cont, "\ncode", code, code.isConnected);
+    await modTools.wait4mutations(cont);
+    const code2 = cont.querySelector("div.CodeMirror-code");
+    const editable = cont.querySelector("div[contenteditable]")
+    const ta = cont.querySelector("textarea");
+    const editor = editable || ta;
+    window["MYeditor"] = editor;
+    console.log(
+        "\ncode2", code2, code2.isConnected,
+        "\neditable", editable,
+        "\nta", ta,
+        "\neditor", editor,
+        editor?.isConnected, document.activeElement);
     easyMDE.codemirror.options.readOnly = "nocursor";
+    // debugger;
 
+    // FIX-ME: move
     function setMDEpreviewColor() {
         const eltPreview = eltMDEContainer.querySelector("div.editor-preview");
         console.log({ eltPreview });
@@ -89,14 +107,17 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
     eltToolbar.style.display = "none";
 
 
-    addEditMyNotesButton();
-    function addEditMyNotesButton() {
-        eltMDEContainer.style.position = "relative";
-        const btnEditMyNotes = modMdc.mkMDCiconButton("edit", "Edit my notes");
-        eltMDEContainer.appendChild(btnEditMyNotes);
+    // addEditMyNotesButton();
+    return easyMDE;
+}
+function addEditMyNotesButton(container, easyMDE) {
+    container.style.position = "relative";
+    const btnEditMyNotes = modMdc.mkMDCiconButton("edit", "Edit my notes");
+    container.appendChild(btnEditMyNotes);
+    // eltMDEContainer.parentElement.parentElement.appendChild(btnEditMyNotes);
 
-        btnEditMyNotes.id = "edit-my-notes";
-        btnEditMyNotes.style = `
+    btnEditMyNotes.id = "edit-my-notes";
+    btnEditMyNotes.style = `
         position: absolute;
         right: 5px;
         top: 5px;
@@ -104,28 +125,29 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
         color: green;
         background: color-mix(in srgb, var(--mdc-theme-primary) 30%, #ffffff);
         `;
-        btnEditMyNotes.addEventListener("click", evt => {
-            evt.preventDefault();
-            evt.stopImmediatePropagation();
-            evt.stopPropagation();
-            btnEditMyNotes.remove();
-            eltToolbar.style.display = "";
-            eltToolbar.scrollIntoView();
-            easyMDE.codemirror.options.readOnly = false;
-            easyMDE.togglePreview();
-            // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
-            easyMDE.codemirror.refresh();
-            const cud = easyMDE.codemirror.display.cursorDiv;
-            const cont = cud.closest("div.EasyMDEContainer");
-            // contenteditable on mobile, textarea on desktop
-            const editable = cont.querySelector("div[contenteditable]")
-            const ta = cont.querySelector("textarea");
-            const eltFocus = editable || ta;
-            window["MYeltFocusNotes"] = eltFocus;
-            setTimeout(() => { eltFocus.focus(); }, 1000);
-        });
-    }
-    return easyMDE;
+    btnEditMyNotes.addEventListener("click", evt => {
+        evt.preventDefault();
+        evt.stopImmediatePropagation();
+        evt.stopPropagation();
+        btnEditMyNotes.remove();
+        const eltToolbar = container.querySelector("div.editor-toolbar");
+        eltToolbar.style.display = "";
+        eltToolbar.scrollIntoView();
+        easyMDE.codemirror.options.readOnly = false;
+        const divInert = container.querySelector("div[inert]");
+        divInert.toggleAttribute("inert");
+        easyMDE.togglePreview();
+        // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
+        easyMDE.codemirror.refresh();
+        const cud = easyMDE.codemirror.display.cursorDiv;
+        const cont = cud.closest("div.EasyMDEContainer");
+        // contenteditable on mobile, textarea on desktop
+        const editable = cont.querySelector("div[contenteditable]")
+        const ta = cont.querySelector("textarea");
+        const eltFocus = editable || ta;
+        window["MYeltFocusNotes"] = eltFocus;
+        setTimeout(() => { eltFocus.focus(); }, 1000);
+    });
 }
 
 export class CustomRenderer4jsMind {
@@ -744,18 +766,22 @@ export class CustomRenderer4jsMind {
         const initialNotesVal = shapeEtc.notes || "";
         const taNotes = mkElt("textarea");
         const eltMDEwrapper = mkElt("div", undefined, taNotes);
+        const eltOuterWrapper = mkElt("div", undefined, eltMDEwrapper);
         const body = mkElt("div", undefined, [
             mkElt("h2", undefined, "Edit node notes"),
             mkElt("h3", undefined, node.topic),
         ]);
         let easyMDE;
+        eltMDEwrapper.toggleAttribute("inert");
         easyMDE = await setupEasyMDE4Notes(taNotes, initialNotesVal);
-        easyMDE.codemirror.options.readOnly = "nocursor";
+        addEditMyNotesButton(eltOuterWrapper, easyMDE);
+        // easyMDE.codemirror.options.readOnly = "nocursor";
         easyMDE.codemirror.on("changes", () => {
             requestSetStateBtnSaveable();
         });
         setTimeout(async () => {
-            body.appendChild(eltMDEwrapper);
+            // body.appendChild(eltMDEwrapper);
+            body.appendChild(eltOuterWrapper);
         }, 100);
         let btnSave;
         const btnEditNote = body.querySelector("#edit-my-notes");
