@@ -135,7 +135,8 @@ function addEditMyNotesButton(container, easyMDE) {
         eltToolbar.scrollIntoView();
         easyMDE.codemirror.options.readOnly = false;
         const divInert = container.querySelector("div[inert]");
-        divInert.toggleAttribute("inert");
+        // divInert.toggleAttribute("inert");
+        divInert.removeAttribute("inert");
         easyMDE.togglePreview();
         // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
         easyMDE.codemirror.refresh();
@@ -772,7 +773,8 @@ export class CustomRenderer4jsMind {
             mkElt("h3", undefined, node.topic),
         ]);
         let easyMDE;
-        eltMDEwrapper.toggleAttribute("inert");
+        // eltMDEwrapper.toggleAttribute("inert");
+        eltMDEwrapper.setAttribute("inert", "");
         easyMDE = await setupEasyMDE4Notes(taNotes, initialNotesVal);
         addEditMyNotesButton(eltOuterWrapper, easyMDE);
         // easyMDE.codemirror.options.readOnly = "nocursor";
@@ -1154,7 +1156,8 @@ export class CustomRenderer4jsMind {
 
         const taNotes = mkElt("textarea", { placeholder: "Enter notes for this node" });
         const divInert = mkElt("div", undefined, taNotes);
-        divInert.toggleAttribute("inert");
+        // divInert.toggleAttribute("inert");
+        divInert.setAttribute("inert", "");
         const divOuter = mkElt("div", undefined, divInert);
 
 

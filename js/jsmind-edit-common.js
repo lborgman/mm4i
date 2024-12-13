@@ -750,8 +750,19 @@ function mkMenuItem(lbl, fun) {
     li.addEventListener("click", evt => {
         evt.preventDefault();
         evt.stopPropagation();
-        fun();
-        hideContextMenu();
+        console.log(li);
+        const ul = li.closest("ul");
+        console.log(ul);
+        [...ul.children].forEach(li => {
+            if (li.tagName != "LI") throw Error("is not li");
+            li.style.backgroundColor = "";
+        });
+        // li.style.backgroundColor = "red";
+        li.style.backgroundColor = "rgba(0,255,0,0.4)";
+        hidePageMenu();
+        setTimeout(()=> {fun()}, 200);
+
+        // hideContextMenu();
     });
     return li;
 }
@@ -801,6 +812,12 @@ function getEltFsm() {
     const eltFsm = eltJsMindContainer.querySelector(".jsmind-inner");
     if (!eltFsm) throw Error("Could not find .jsmind-inner");
     return eltFsm;
+}
+
+let pageMenu;
+function hidePageMenu() {
+    pageMenu.style.opacity = 0;
+    setTimeout(() => { pageMenu.remove(); }, 300);
 }
 
 export async function pageSetup() {
@@ -1536,13 +1553,13 @@ export async function pageSetup() {
     */
 
 
-    let pageMenu;
-    function hidePageMenu() {
-        pageMenu.style.opacity = 0;
-        setTimeout(() => { pageMenu.remove(); }, 300);
+    function markMenuItemOnClick(evt) {
+        const li = evt.target.closest("li");
+        console.log(li);
     }
     async function displayPageMenu() {
         pageMenu = await mkPageMenu();
+        pageMenu.addEventListener("click", markMenuItemOnClick);
         const btnMenu = document.getElementById("mm4i-menu-button");
         displayMenuForButton(pageMenu, btnMenu);
     }
@@ -1620,11 +1637,11 @@ export async function pageSetup() {
         }
         function markIfNoSelected(li) {
             if (selected_node) return;
-            li.classList.add("jsmind-menu-no-selected-node");
+            li.setAttribute("inert", "");
         }
         function markIfNoMother(li) {
             if (selected_node?.parent) return;
-            li.classList.add("jsmind-menu-no-selected-node");
+            li.setAttribute("inert", "");
         }
 
 
@@ -1715,7 +1732,6 @@ export async function pageSetup() {
                 }));
             });
             console.log({ res });
-            debugger;
             if (!res) return;
 
 

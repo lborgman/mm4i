@@ -1359,7 +1359,7 @@ xdetails[open]:has(.expander)>.expander>.expander-content {
     NOtransform-origin: 0 0;
     height: var(--icon-button-size) !important;
     width: var(--icon-button-size) !important;
-    font-size: calc( ( var( --icon-button-size ) * 24 ) / 48 ) !important;
+    font-size: calc((var(--icon-button-size) * 24) / 48) !important;
     padding: calc((var(--icon-button-size) * 12) / 48) !important;
 }
 
@@ -1378,8 +1378,8 @@ xdetails[open]:has(.expander)>.expander>.expander-content {
     display: grid;
     grid-template-rows: min-content 40% 1fr;
     grid-template-rows: min-content 1fr;
-    COMMENT: https://stackoverflow.com/questions/72137185/make-children-full-height-of-parent-flex-box-css,
-    flex-grow: 1;
+    COMMENT: https: //stackoverflow.com/questions/72137185/make-children-full-height-of-parent-flex-box-css,
+        flex-grow: 1;
 }
 
 div.mdc-dialog__surface:has(#jsmind-ednode) {
@@ -1393,13 +1393,13 @@ div.mdc-dialog__surface:has(#jsmind-ednode) {
 #jsmind-ednode-parts {
     display: grid;
     grid-template-rows: 40% min-content 1fr;
-    COMMENT: https://css-tricks.com/animating-css-grid-how-to-examples/,
-    transition: 1s;
+    COMMENT: https: //css-tricks.com/animating-css-grid-how-to-examples/,
+        transition: 1s;
 }
 
 #jsmind-ednode-parts>* {
-    COMMENT: https://css-tricks.com/preventing-a-grid-blowout/,
-    min-width: 0;
+    COMMENT: https: //css-tricks.com/preventing-a-grid-blowout/,
+        min-width: 0;
 }
 
 #jsmind-ednode-parts div.tab-elts {
@@ -1432,7 +1432,8 @@ div.mdc-dialog__surface:has(#jsmind-ednode) {
 }
 
 #jsmind-ednode-content div.topic-choice:has(input:checked) {
-    NObackground: rgba(0, 255, 0, 0.15); MDC radio button not visible,
+    NObackground: rgba(0, 255, 0, 0.15);
+    MDC radio button not visible,
     background-color: yellowgreen;
 }
 
@@ -1472,7 +1473,12 @@ div.bg-choice:not(input[disabled]):has(input:checked) {
     flex-direction: column;
     gap: 10px;
 }
-/* Coverage CSS does not work: https://issues.chromium.org/issues/349610459 */
+
+/*
+    FIX-ME:
+    Coverage CSS does not work: https://issues.chromium.org/issues/349610459
+    Where to report bugs in Chrome Dev tools: https://issuetracker.google.com/issues/383778253
+*/
 
 #jsmind-test-div-debug-log {
     display: none;
@@ -1580,7 +1586,15 @@ div.bg-choice:not(input[disabled]):has(input:checked) {
 
 /* .jsmind_container { } */
 
-.jsmind-menu-no-selected-node {
+/*
+.NOjsmind-menu-no-selected-node {
+    opacity: 0.5;
+    background-color: gray;
+}
+*/
+
+ul[role="menu"]>li[inert] {
+    NObackground-color: red !important;
     opacity: 0.5;
     background-color: gray;
 }
