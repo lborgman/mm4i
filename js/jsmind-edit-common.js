@@ -1211,7 +1211,8 @@ export async function pageSetup() {
     // document.body.addEventListener("pointermove", savePointerPos);
     // document.body.addEventListener("pointerdown", savePointerPos);
     //// Try getEltFsm (this works also in Android Chrome!)
-    modTools.addPosListeners(eltFsm);
+    // modTools.addPosListeners(eltFsm);
+    modTools.addPosListeners();
 
 
 

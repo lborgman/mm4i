@@ -1259,7 +1259,7 @@ export function getSavedPointerPos() {
 
 let abortPosListeners;
 export function addPosListeners(eltFsm) {
-    console.warn("eltFsm is not used", eltFsm);
+    if (eltFsm) console.warn("eltFsm is not used", eltFsm);
     removePosListeners();
     abortPosListeners = new AbortController();
     document.addEventListener("pointermove", savePointerPos, {

@@ -1378,7 +1378,7 @@ xdetails[open]:has(.expander)>.expander>.expander-content {
     display: grid;
     grid-template-rows: min-content 40% 1fr;
     grid-template-rows: min-content 1fr;
-    /* https://stackoverflow.com/questions/72137185/make-children-full-height-of-parent-flex-box-css */
+    COMMENT: https://stackoverflow.com/questions/72137185/make-children-full-height-of-parent-flex-box-css,
     flex-grow: 1;
 }
 
@@ -1393,12 +1393,12 @@ div.mdc-dialog__surface:has(#jsmind-ednode) {
 #jsmind-ednode-parts {
     display: grid;
     grid-template-rows: 40% min-content 1fr;
-    /* https://css-tricks.com/animating-css-grid-how-to-examples/ */
+    COMMENT: https://css-tricks.com/animating-css-grid-how-to-examples/,
     transition: 1s;
 }
 
 #jsmind-ednode-parts>* {
-    /* https://css-tricks.com/preventing-a-grid-blowout/ */
+    COMMENT: https://css-tricks.com/preventing-a-grid-blowout/,
     min-width: 0;
 }
 
@@ -1432,7 +1432,7 @@ div.mdc-dialog__surface:has(#jsmind-ednode) {
 }
 
 #jsmind-ednode-content div.topic-choice:has(input:checked) {
-    /* background: rgba(0, 255, 0, 0.15); MDC radio button not visible */
+    NObackground: rgba(0, 255, 0, 0.15); MDC radio button not visible,
     background-color: yellowgreen;
 }
 
@@ -1472,6 +1472,7 @@ div.bg-choice:not(input[disabled]):has(input:checked) {
     flex-direction: column;
     gap: 10px;
 }
+/* Coverage CSS does not work: https://issues.chromium.org/issues/349610459 */
 
 #jsmind-test-div-debug-log {
     display: none;
@@ -1532,6 +1533,7 @@ div.bg-choice:not(input[disabled]):has(input:checked) {
     left: 40px;
 }
 
+/*
 #provider-hits {
     display: flex;
     justify-content: space-between;
@@ -1572,6 +1574,9 @@ div.bg-choice:not(input[disabled]):has(input:checked) {
 .display-jsmind-search .OLDjsmind-search-match {
     outline: 3px dotted greenyellow;
 }
+*/
+
+
 
 /* .jsmind_container { } */
 
@@ -1624,6 +1629,7 @@ jmnode.has-children.right-side::after {
 
 
 
+/*
 .jsmind-renderer-img {
     position: absolute;
     bottom: -4px;
@@ -1640,14 +1646,16 @@ jmnode.has-children.right-side::after {
     left: unset;
     right: -4px;
 }
+*/
 
 
 
+/*
 .jsmind-plain-link {
     position: absolute;
     bottom: -15px;
     left: -4px;
-    /* background-size: cover; */
+    NObackground-size: cover;
     text-decoration: none;
 }
 
@@ -1665,9 +1673,10 @@ jmnode.has-children.right-side::after {
     font-size: 22px;
     border-radius: 50%;
     background: rgba(135, 206, 235, 0.3);
-    /* border: 1px solid blue; */
+    NOborder: 1px solid blue;
     border: 1px solid rgba(0, 0, 255, 0.5);
 }
+*/
 
 
 
@@ -1762,6 +1771,7 @@ jmnode.jsmind-hit::after {
 
 
 
+/*
 .subject-card summary .for-details-open {
     padding: 8px;
     margin-bottom: 30px;
@@ -1776,6 +1786,7 @@ details[open]>summary .for-details-closed {
 details:not([open])>summary .for-details-open {
     display: none;
 }
+*/
 
 .display-none {
     display: none !important;
@@ -1865,6 +1876,7 @@ html.hide-error-popups .error-popup {
 
 
 
+/*
 .jsmind-test-custom-clip {
     position: relative;
     padding: 10px;
@@ -1911,3 +1923,4 @@ html.hide-error-popups .error-popup {
     flex-wrap: wrap;
     gap: 10px;
 }
+*/
