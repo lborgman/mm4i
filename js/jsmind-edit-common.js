@@ -1176,6 +1176,8 @@ export async function pageSetup() {
 
 
 
+    modTools.addPosListeners();
+
 
     ////// modFsm
     modFsm.fsm.hook_any_action(fsmEvent);
@@ -1221,15 +1223,6 @@ export async function pageSetup() {
     });
 
     modFsm.setupFsmListeners(eltFsm);
-    //// FIX-ME: This seems to have stopped working in Android Chrome (at least in Chrome dev tools)???
-    // window.addEventListener("pointermove", savePointerPos);
-    // window.addEventListener("pointerdown", savePointerPos);
-    //// Try body instead (same problem)
-    // document.body.addEventListener("pointermove", savePointerPos);
-    // document.body.addEventListener("pointerdown", savePointerPos);
-    //// Try getEltFsm (this works also in Android Chrome!)
-    // modTools.addPosListeners(eltFsm);
-    modTools.addPosListeners();
 
 
 

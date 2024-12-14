@@ -182,7 +182,7 @@ function mkButton(attrib, inner) {
     // console.log("checking web browser supported");
     // return;
     const missingFeatures = [];
-    const isChromiumBased = navigator.webdriver || typeof chrome === "object";
+    const isChromiumBased = navigator.webdriver || typeof window["chrome"] === "object";
     // const isChromiumBased = true;
     let isEdge = false;
     let isFirefox = false;
@@ -684,7 +684,9 @@ function removeTokensFromUrl(url) {
     const keys = urlParams.keys();
     for (const key of keys) {
         const val = urlParams.get(key);
-        if (val.length > 40) urlParams.set(key, "...");
+        if (val != null) {
+            if (val.length > 40) urlParams.set(key, "...");
+        }
     }
     return hostPart + "?" + urlParams.toString();
 }
@@ -1236,17 +1238,20 @@ export class TimeoutTimer {
 const savedPointerPos = {};
 /**
  * 
- * @param {PointerEvent} evt 
+ * @param {PointerEvent} evtParam 
  */
 function savePointerPos(evt) {
-    let posHolder = evt;
+    // let evt = evtParam;
     // if (!(evt instanceof PointerEvent)) throw Error("Expected PointerEvent");
-    if (posHolder.screenX == undefined) throw Error("savePointerPos: posHolder.screenX == undefined");
+    if (isNaN(evt.screenX)) {
+        debugger;
+        throw Error(`savePointerPos: evt.screenX == ${evt.screenX}`);
+    }
 
-    savedPointerPos.clientX = posHolder.clientX;
-    savedPointerPos.clientY = posHolder.clientY;
-    savedPointerPos.screenX = posHolder.screenX;
-    savedPointerPos.screenY = posHolder.screenY;
+    savedPointerPos.clientX = evt.clientX;
+    savedPointerPos.clientY = evt.clientY;
+    savedPointerPos.screenX = evt.screenX;
+    savedPointerPos.screenY = evt.screenY;
 }
 export function getSavedPointerPos() {
     if (isNaN(savedPointerPos.screenX)) {
@@ -1260,14 +1265,21 @@ export function getSavedPointerPos() {
 let abortPosListeners;
 export function addPosListeners(eltFsm) {
     if (eltFsm) console.warn("eltFsm is not used", eltFsm);
+    //// FIX-ME: This seems to have stopped working in Android Chrome (at least in Chrome dev tools)???
+    // window.addEventListener("pointermove", savePointerPos);
+    // window.addEventListener("pointerdown", savePointerPos);
+    //// Try body instead (same problem)
+    // document.body.addEventListener("pointermove", savePointerPos);
+    // document.body.addEventListener("pointerdown", savePointerPos);
+    //// Try getEltFsm (this works also in Android Chrome!)
     removePosListeners();
     abortPosListeners = new AbortController();
-    document.addEventListener("pointermove", savePointerPos, {
-        signal: abortPosListeners.signal
-    });
-    document.addEventListener("pointerdown", savePointerPos, {
-        signal: abortPosListeners.signal
-    });
+    const opts = {
+        signal: abortPosListeners.signal,
+        passive: true
+    };
+    document.addEventListener("pointermove", savePointerPos, opts);
+    document.addEventListener("pointerdown", savePointerPos, opts);
 }
 
 // https://kettanaito.com/blog/dont-sleep-on-abort-controller

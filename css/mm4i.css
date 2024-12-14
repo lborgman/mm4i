@@ -1355,8 +1355,8 @@ xdetails[open]:has(.expander)>.expander>.expander-content {
 }
 
 .mdc-icon-button.material-icons.icon-button-sized {
-    NOtransform: scale(calc(var(--icon-button-size) / 48));
-    NOtransform-origin: 0 0;
+    /* transform: scale(calc(var(--icon-button-size) / 48)); */
+    /* transform-origin: 0 0; */
     height: var(--icon-button-size) !important;
     width: var(--icon-button-size) !important;
     font-size: calc((var(--icon-button-size) * 24) / 48) !important;
@@ -1378,8 +1378,8 @@ xdetails[open]:has(.expander)>.expander>.expander-content {
     display: grid;
     grid-template-rows: min-content 40% 1fr;
     grid-template-rows: min-content 1fr;
-    COMMENT: https: //stackoverflow.com/questions/72137185/make-children-full-height-of-parent-flex-box-css,
-        flex-grow: 1;
+    /* https://stackoverflow.com/questions/72137185/make-children-full-height-of-parent-flex-box-css */
+    flex-grow: 1;
 }
 
 div.mdc-dialog__surface:has(#jsmind-ednode) {
@@ -1393,13 +1393,13 @@ div.mdc-dialog__surface:has(#jsmind-ednode) {
 #jsmind-ednode-parts {
     display: grid;
     grid-template-rows: 40% min-content 1fr;
-    COMMENT: https: //css-tricks.com/animating-css-grid-how-to-examples/,
-        transition: 1s;
+    /* https://css-tricks.com/animating-css-grid-how-to-examples/ */
+    transition: 1s;
 }
 
 #jsmind-ednode-parts>* {
-    COMMENT: https: //css-tricks.com/preventing-a-grid-blowout/,
-        min-width: 0;
+    /* https://css-tricks.com/preventing-a-grid-blowout/ */
+    min-width: 0;
 }
 
 #jsmind-ednode-parts div.tab-elts {
@@ -1432,8 +1432,8 @@ div.mdc-dialog__surface:has(#jsmind-ednode) {
 }
 
 #jsmind-ednode-content div.topic-choice:has(input:checked) {
-    NObackground: rgba(0, 255, 0, 0.15);
-    MDC radio button not visible,
+    /* background: rgba(0, 255, 0, 0.15); */
+    /* MDC radio button not visible, */
     background-color: yellowgreen;
 }
 
