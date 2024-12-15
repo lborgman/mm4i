@@ -443,7 +443,7 @@
 </head>
 
 <body class="NOno-test-items">
-    <div id="PWA-version">(temp ver 1.21)</div>
+    <div id="PWA-version">(temp ver 1.22)</div>
 
     <script src="./ext/mdc/material-components-web.js"></script>
     <!-- <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script> -->
@@ -454,8 +454,45 @@
     <!-- Mirror must be display:block for rendering -->
     <!-- <div id="jsmind-draggable-container4mirror" style="left: -1000px;"></div> -->
 
+    <script>
+        // let sx, sy, px, py;
+        function debugAddFollowPointer() {
+            document.addEventListener("pointermove", evt => {
+                sx = evt.screenX.toFixed();
+                sy = evt.screenY.toFixed();
+
+                px = evt.pageX.toFixed();
+                py = evt.pageY.toFixed();
+
+                const target = evt.target;
+                const bcr = target.getBoundingClientRect();
+                const cx = evt.clientX;
+                const cy = evt.clientY;
+                const cbx = cx + bcr.left;
+                const cby = cy + bcr.top;
+                const cxs = cx.toFixed();
+                const cys = cy.toFixed();
+                const cbxs = cbx.toFixed();
+                const cbys = cby.toFixed();
+
+                const tn = target.tagName;
+                const tnp = target.parentElement.tagName;
+
+                const st = getComputedStyle(target);
+                const stp = st.position;
+
+                self["tempPos"] =
+                    `s${sx},${sy} p${px},${py} c${cxs},${cys} cb${cbxs},${cbys} ${tn}-${tnp}+${stp}`;
+            }, { passive: true });
+            console.log("expression for pointermove: ");
+            console.log("%ctempPos", "font-size:20px; color:red;");
+            self["tempPos"] = "Waiting for pointermove";
+        }
+    </script>
     <script type="module">
         console.log("here is mm4i.html");
+        // https://michaelwornow.net/2024/01/02/display-x-y-coords-chrome-debugger
+        debugAddFollowPointer();
         // (async () => {
         const modMdc = await importFc4i("util-mdc");
         const modJsMind = await importFc4i("jsmind");

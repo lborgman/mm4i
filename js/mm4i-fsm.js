@@ -301,10 +301,12 @@ outline: 4px groove ${F};
         actionWithErrorCheck("end2", evt);
     });
 
+    const modTools = await importFc4i("toolsJs");
     eltFsm.addEventListener("pointerdown", evt => {
         evt.preventDefault();
         evt.stopImmediatePropagation();
         evt.stopPropagation();
+        modTools.savePointerdownPos(evt); // pos listener needs this
         console.log("eltFsm, pointerdown", evt);
         const target = evt.target;
         if (!eltFsm.contains(target)) return;

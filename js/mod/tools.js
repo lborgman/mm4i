@@ -1236,28 +1236,84 @@ export class TimeoutTimer {
 */
 
 const savedPointerPos = {};
+let aborter4HasSaved;
+let promHasSaved;
+setupWait4Saved();
+function setupWait4Saved() {
+    // if (aborter4HasSaved != undefined) throw Error("abort4HasSaved should be undefined here");
+    if (promHasSaved != undefined) throw Error("promHasSaved should be undefined here");
+    aborter4HasSaved = new AbortController();
+    promHasSaved = new Promise((resolve, reject) => {
+        aborter4HasSaved.signal.addEventListener("abort", evt => {
+            const reason = aborter4HasSaved.signal.reason;
+            if (reason == "has saved pos") {
+                console.log("abort resolve", reason);
+                resolve(reason);
+            } else {
+                console.log("abort reject", reason);
+                reject(reason);
+            }
+        });
+    });
+}
+
+
 /**
  * 
- * @param {PointerEvent} evtParam 
+ * @param {PointerEvent} evt
+ */
+export function savePointerdownPos(evt) {
+    if (evt.type != "pointerdown") {
+        debugger;
+        throw Error(`Expected event type "pointerdown", got "${evt.type}`);
+    }
+    savePointerPos(evt);
+}
+/**
+ * 
+ * @param {PointerEvent} evt
  */
 function savePointerPos(evt) {
-    // let evt = evtParam;
     // if (!(evt instanceof PointerEvent)) throw Error("Expected PointerEvent");
-    if (isNaN(evt.screenX)) {
+    const clientX = evt.clientX;
+    const clientY = evt.clientY;
+    let fail = isNaN(clientX) || isNaN(clientY);
+    if (fail) {
+        abortPosListeners.abort();
         debugger;
-        throw Error(`savePointerPos: evt.screenX == ${evt.screenX}`);
+        throw Error(`savePointerPos: sXY:${clientX.toFixed(1)},${clientY.toFixed(1)}`);
     }
 
-    savedPointerPos.clientX = evt.clientX;
-    savedPointerPos.clientY = evt.clientY;
-    savedPointerPos.screenX = evt.screenX;
-    savedPointerPos.screenY = evt.screenY;
+    savedPointerPos.clientX = clientX;
+    savedPointerPos.clientY = clientY;
+    switch (evt.type) {
+        case "pointermove":
+            break;
+        case "pointerdown":
+            console.log("savePointerPos pointerDown", clientX, clientY, evt);
+            // .signal AbortHandler
+            savedPointerPos.startX = clientX;
+            savedPointerPos.startY = clientY;
+            aborter4HasSaved.abort("has saved pos");
+            break;
+        default:
+            const msg = `savePointerPos, ${evt.type}`;
+            throw Error(msg);
+    }
+}
+export async function getAndClearStartPointerPos() {
+    await promHasSaved;
+    const startX = savedPointerPos.startX;
+    const startY = savedPointerPos.startY;
+    savedPointerPos.startX = undefined;
+    savedPointerPos.startY = undefined;
+    promHasSaved = undefined;
+    setupWait4Saved();
+    return { startX, startY };
 }
 export function getSavedPointerPos() {
-    if (isNaN(savedPointerPos.screenX)) {
-        debugger; // eslint-disable-line no-debugger
-        throw Error("savedPointerPos.screenX is NaN");
-    }
+    // Don't check anyting here, just return.
+    // Client should check in requestAnimationFrame
     return savedPointerPos;
 }
 
@@ -1272,7 +1328,8 @@ export function addPosListeners(eltFsm) {
     // document.body.addEventListener("pointermove", savePointerPos);
     // document.body.addEventListener("pointerdown", savePointerPos);
     //// Try getEltFsm (this works also in Android Chrome!)
-    removePosListeners();
+
+    // removePosListeners();
     abortPosListeners = new AbortController();
     const opts = {
         signal: abortPosListeners.signal,

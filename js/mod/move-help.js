@@ -13,13 +13,13 @@ export function setInitialMovingData(elt2move) {
         movingElt: elt2move,
         left: getLeft(),
         top: getTop(),
-        screenX: savedPointerPos.screenX,
-        screenY: savedPointerPos.screenY,
+        clientX: savedPointerPos.clientX,
+        clientY: savedPointerPos.clientY,
     }
     return posMovingData;
 }
-export function getMovingDx(movingData, screenX) { return screenX - movingData.screenX; }
-export function getMovingDy(movingData, screenY) { return screenY - movingData.screenY; }
+export function getMovingDx(movingData, clientX) { return clientX - movingData.clientX; }
+export function getMovingDy(movingData, clientY) { return clientY - movingData.clientY; }
 
 export class MoveEltAtFixedSpeed {
     constructor(elt2move) {
@@ -100,7 +100,7 @@ export class MoveEltAtDragBorder {
             right: bcr.left + bcr.width - this.bw, // - scrollbarW,
         }
         window["l"] = this.limits; // FIX-ME
-        console.log(">>>>>> this.limits", l);
+        // console.log(">>>>>> this.limits", l);
         const styleL = this.eltVisualLeft.style;
         styleL.width = `${this.bw}px`;
         styleL.height = `${bcr.height}px`;
@@ -113,24 +113,24 @@ export class MoveEltAtDragBorder {
         // styleR.left = `${bcr.left + bcr.width - this.bw - scrollbarW}px`
         styleR.left = `${this.limits.right}px`
     }
-    checkPointerPos(screenX, screenY) {
+    checkPointerPos(clientX, clientY) {
         if (!this.limits) throw Error("this.limits is not set");
-        const outsideRight = screenX > this.limits.right;
-        const outsideLeft = screenX < this.limits.left;
+        const outsideRight = clientX > this.limits.right;
+        const outsideLeft = clientX < this.limits.left;
         if (!(outsideLeft || outsideRight)) this.mover.stopX();
         const oldSx = this.sx;
-        this.sx = screenX;
+        this.sx = clientX;
         if (outsideLeft) {
             this.mover.startX(1);
             if (oldSx) {
-                if (screenX > oldSx) {
+                if (clientX > oldSx) {
                     this.mover.stopX();
                 }
             }
         }
         if (outsideRight) {
             this.mover.startX(-1);
-            if (oldSx) { if (screenX < oldSx) this.mover.stopX(); }
+            if (oldSx) { if (clientX < oldSx) this.mover.stopX(); }
         }
     }
     stopMoving() { this.mover.stopX(); }

@@ -22,6 +22,8 @@ const modTools = await importFc4i("toolsJs");
 const modFsm = await importFc4i("mm4i-fsm");
 window["fsm"] = modFsm.fsm;
 
+modTools.addPosListeners();
+
 let instMoveEltAtDragBorder;
 class PointHandle {
     static sizePointHandle = 20;
@@ -108,7 +110,7 @@ class PointHandle {
         this.#eltPointHandle.style.pointerEvents = "none"; // FIX-ME: why???
     }
     get element() { return this.#eltPointHandle; }
-    initializePointHandle = (eltJmnode, pointerType) => {
+    initializePointHandle = async (eltJmnode, pointerType) => {
         const jmnodeDragged = eltJmnode;
         if (!jmnodeDragged) return;
         if (jmnodeDragged.getAttribute("nodeid") == "root") return;
@@ -117,7 +119,7 @@ class PointHandle {
         switch (pointerType) {
             case "mouse":
                 this.#diffPointHandle = 0;
-                this.#diffPointHandle = 80; // FIX-ME:
+                // this.#diffPointHandle = 80; // FIX-ME:
                 break;
             default:
                 this.#diffPointHandle = 80;
@@ -126,29 +128,33 @@ class PointHandle {
         if (!pointHandle.isState("idle")) throw Error(`Expected state "idle" but it was ${this.#state}`);
         this.#state = "init";
 
-        const savedPointerPos = modTools.getSavedPointerPos();
-        if (savedPointerPos.clientX == undefined) {
+        // const savedPointerPos = modTools.getSavedPointerPos();
+        const savedStartPointerPos = await modTools.getAndClearStartPointerPos();
+        if (savedStartPointerPos.startX == undefined) {
             debugger;
-            throw Error("savedPointerPos is not initialized");
+            throw Error(".addPosListeners must be called earlier");
         }
-        const clientX = savedPointerPos.clientX;
-        const clientY = savedPointerPos.clientY;
+        const startX = savedStartPointerPos.startX;
+        const startY = savedStartPointerPos.startY;
+        if (isNaN(startX) || isNaN(startY)) {
+            debugger;
+            // FIX-ME:
+        }
         posPointHandle = {
             start: {
-                clientX,
-                clientY,
+                clientX: startX,
+                clientY: startY,
                 jmnodeDragged,
             },
             current: {}
         };
         eltJmnodeFrom = jmnodeDragged;
 
-        // this.#jmnodesPointHandle.appendChild(this.#eltPointHandle);
         // Avoid scaling:
-        document.body.appendChild(this.#eltPointHandle);
+        document.documentElement.appendChild(this.#eltPointHandle);
 
-        this.#eltPointHandle.style.left = `${clientX - PointHandle.sizePointHandle / 2}px`;
-        this.#eltPointHandle.style.top = `${clientY - PointHandle.sizePointHandle / 2}px`;
+        this.#eltPointHandle.style.left = `${startX - PointHandle.sizePointHandle / 2}px`;
+        this.#eltPointHandle.style.top = `${startY - PointHandle.sizePointHandle / 2}px`;
 
         requestCheckPointerHandleMove();
     }
@@ -180,11 +186,24 @@ class PointHandle {
     checkPointHandleDistance() {
         const savedPointerPos = modTools.getSavedPointerPos();
         if (this.isState("init")) {
-            this.#state = "dist";
+            // There are race problems, we may not have position yet.
+            // I see the race problem on mobile Android (and in dev tools!).
+            const clientX = savedPointerPos.clientX;
+            const clientY = savedPointerPos.clientY;
+            if (isNaN(clientX)) {
+                throw Error("Saving positions not started");
+            }
+            this.#eltPointHandle.style.left = `${clientX - PointHandle.sizePointHandle / 2}px`;
+            this.#eltPointHandle.style.top = `${clientY - PointHandle.sizePointHandle / 2}px`;
 
-            this.#eltPointHandle.style.left = `${savedPointerPos.clientX - PointHandle.sizePointHandle / 2}px`;
-            this.#eltPointHandle.style.top = `${savedPointerPos.clientY - PointHandle.sizePointHandle / 2}px`;
+            const ph = this.#eltPointHandle;
+            const php = ph.parentElement;
+            console.log("pointHandle", ph, "Parent", php);
+            this.#state = "dist";
+            // debugger;
         }
+        // const diffX = posPointHandle.start.clientX - savedPointerPos.clientX;
+        // const diffY = posPointHandle.start.clientY - savedPointerPos.clientY;
         const diffX = posPointHandle.start.clientX - savedPointerPos.clientX;
         const diffY = posPointHandle.start.clientY - savedPointerPos.clientY;
         if (isNaN(diffX) || isNaN(diffY)) {
@@ -421,20 +440,25 @@ let im = 0;
 function movePointHandle() {
     if (movePointHandleProblem) return;
     const savedPointerPos = modTools.getSavedPointerPos();
+    // const clientX = savedPointerPos.clientX;
+    // const clientY = savedPointerPos.clientY;
     const clientX = savedPointerPos.clientX;
     const clientY = savedPointerPos.clientY;
-    const screenX = savedPointerPos.screenX;
-    const screenY = savedPointerPos.screenY;
-    if (!screenX) return;
-    if ((im++ % 40) == 0) console.log("mPH, screenX", screenX);
+    if (isNaN(clientX) || isNaN(clientY)) {
+        debugger;
+        throw Error(`Saved pos is ${clientX}, ${clientY}`);
+    }
+    if ((im++ % 40) == 0) console.log("mPH, clientX", clientX);
     try {
         const sp = pointHandle.element.style;
+        // const left = clientX + posPointHandle.diffX - PointHandle.sizePointHandle / 2;
         const left = clientX + posPointHandle.diffX - PointHandle.sizePointHandle / 2;
         sp.left = `${left}px`;
+        // const top = clientY + posPointHandle.diffY - PointHandle.sizePointHandle / 2;
         const top = clientY + posPointHandle.diffY - PointHandle.sizePointHandle / 2;
         sp.top = `${top}px`;
         modJsmindDraggable.hiHereIam(left, top);
-        instMoveEltAtDragBorder.checkPointerPos(screenX, screenY)
+        instMoveEltAtDragBorder.checkPointerPos(clientX, clientY)
     } catch (err) {
         console.error("movePointHandle", err);
         movePointHandleProblem = true;
@@ -760,7 +784,7 @@ function mkMenuItem(lbl, fun) {
         // li.style.backgroundColor = "red";
         li.style.backgroundColor = "rgba(0,255,0,0.4)";
         hidePageMenu();
-        setTimeout(()=> {fun()}, 200);
+        setTimeout(() => { fun() }, 200);
 
         // hideContextMenu();
     });
@@ -1176,7 +1200,7 @@ export async function pageSetup() {
 
 
 
-    modTools.addPosListeners();
+    // modTools.addPosListeners();
 
 
     ////// modFsm
@@ -1190,13 +1214,14 @@ export async function pageSetup() {
 
     ////// FSL hooks
     function hookStartMovePointHandle(hookData) {
-        // setTimeout(() => {
         // pointHandle.setupPointHandle();
         const { eltJmnode, pointerType } = hookData.data;
         // debugger;
         modJsmindDraggable.setJmnodeDragged(eltJmnode);
-        pointHandle.initializePointHandle(eltJmnode, pointerType);
-        // });
+        // For pointerdown to save pos:
+        // setTimeout(() => {
+            pointHandle.initializePointHandle(eltJmnode, pointerType);
+        // }, 300);
     }
     modFsm.fsm.post_hook_entry("n_Move", (hookData) => {
         hookStartMovePointHandle(hookData);
@@ -1854,17 +1879,14 @@ export async function pageSetup() {
         elt2move.style.cursor = "grabbing";
         elt2move.style.filter = "grayscale(0.5)";
         // const savedPointerPos = modTools.getSavedPointerPos();
-        const movingData = modMoveHelp.setInitialMovingData(elt2move,
-            // savedPointerPos.screenX,
-            // savedPointerPos.screenY,
-        );
+        const movingData = modMoveHelp.setInitialMovingData(elt2move);
         function requestMove() {
             if (!isMoving) return;
             const oldLeft = movingData.left;
             const oldTop = movingData.top;
             const savedPointerPos = modTools.getSavedPointerPos();
-            const dx = modMoveHelp.getMovingDx(movingData, savedPointerPos.screenX);
-            const dy = modMoveHelp.getMovingDy(movingData, savedPointerPos.screenY);
+            const dx = modMoveHelp.getMovingDx(movingData, savedPointerPos.clientX);
+            const dy = modMoveHelp.getMovingDy(movingData, savedPointerPos.clientY);
             const newLeft = oldLeft + dx;
             const newTop = oldTop + dy;
             if (isNaN(newLeft) || isNaN(newTop)) {
