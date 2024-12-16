@@ -52,9 +52,9 @@ export class MoveEltAtFixedSpeed {
     }
 
 }
-export class MoveEltAtDragBorder {
+export class MoveAtDragBorder {
     constructor(elt2move, moveBorderWidth) {
-        // console.log("MoveEltAtDragBorder elt2move", elt2move);
+        // console.log("MoveAtDragBorder elt2move", elt2move);
         this.elt2move = elt2move;
         this.bw = moveBorderWidth;
         this.visuals = [];

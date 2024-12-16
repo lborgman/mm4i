@@ -24,7 +24,7 @@ window["fsm"] = modFsm.fsm;
 
 modTools.addPosListeners();
 
-let instMoveEltAtDragBorder;
+let instMoveAtDragBorder;
 class PointHandle {
     static sizePointHandle = 20;
     // static diffPointHandle = 60;
@@ -171,7 +171,7 @@ class PointHandle {
 
         }
         modJsmindDraggable.stopNow();
-        instMoveEltAtDragBorder.hideMover();
+        instMoveAtDragBorder.hideMover();
     }
     setupPointHandle() {
         console.log("setupPointHandle");
@@ -181,6 +181,7 @@ class PointHandle {
         this.#jmnodesPointHandle = elt;
     }
     teardownPointHandle() {
+        instMoveAtDragBorder.stopMoving();
         this.teardownPointHandleAndAct();
     }
     checkPointHandleDistance() {
@@ -224,7 +225,7 @@ class PointHandle {
             // modJsmindDraggable.setPointerDiff(diffX, diffY);
             modJsmindDraggable.nextHereIamMeansStart(eltJmnodeFrom);
             this.#state = "move";
-            instMoveEltAtDragBorder.showMover();
+            instMoveAtDragBorder.showMover();
             return;
         }
         movePointHandle();
@@ -458,7 +459,7 @@ function movePointHandle() {
         const top = clientY + posPointHandle.diffY - PointHandle.sizePointHandle / 2;
         sp.top = `${top}px`;
         modJsmindDraggable.hiHereIam(left, top);
-        instMoveEltAtDragBorder.checkPointerPos(clientX, clientY)
+        instMoveAtDragBorder.checkPointerPos(clientX, clientY)
     } catch (err) {
         console.error("movePointHandle", err);
         movePointHandleProblem = true;
@@ -1261,7 +1262,7 @@ export async function pageSetup() {
 
     const modMoveHelp = await importFc4i("move-help");
     const eltScroll = eltJmnodes.closest("div.jsmind-zoom-move");
-    instMoveEltAtDragBorder = new modMoveHelp.MoveEltAtDragBorder(eltScroll, 60);
+    instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60);
 
     // Windows
     eltJmnodes.addEventListener("dblclick", evt => {
