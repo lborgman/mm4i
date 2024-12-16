@@ -1,5 +1,5 @@
 const CUST_REND_VER = "0.0.3";
-console.log(`here is jsmind-cust-rend.js, module,${CUST_REND_VER}`);
+logConsoleHereIs(`here is jsmind-cust-rend.js, module,${CUST_REND_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 const modTools = await importFc4i("toolsJs");

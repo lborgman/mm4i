@@ -1,6 +1,6 @@
 // FIX-ME: Something is wrong with the next line if it is on line 1???
 const version = "0.1.0";
-console.log(`here is images.js, module ${version}`);
+logConsoleHereIs(`here is images.js, module ${version}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 let debugPasteLineOn = true;

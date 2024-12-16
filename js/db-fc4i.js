@@ -1,5 +1,5 @@
 const version = "0.1.0";
-console.log(`here is db-fc4i.js, module ${version}`);
+logConsoleHereIs(`here is db-fc4i.js, module ${version}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 const modIdbCmn = await importFc4i("idb-common");

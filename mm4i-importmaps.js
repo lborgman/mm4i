@@ -1,6 +1,6 @@
 // @ts-check
 const MM4I_IMPORTMAPS_VER = "0.2.6";
-console.log(`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
+logConsoleHereIs(`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
 // https://github.com/WICG/import-maps/issues/92
 {
     // https://www.npmjs.com/package/three?activeTab=versions, Current Tags

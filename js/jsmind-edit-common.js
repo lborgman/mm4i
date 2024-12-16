@@ -1,7 +1,7 @@
 // @ts-check
 
 const version = "0.1.001";
-console.log(`here is jsmind-edit-common.js, module, ${version}`);
+logConsoleHereIs(`here is jsmind-edit-common.js, module, ${version}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 // @ts-ignore
@@ -645,10 +645,7 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
     if (notes) {
         const reHttps = /(?:^|\W)(https:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()\[\]@:%_\+.~#?&\/=]*))(?:$|\s)/g;
         const m = [...notes.matchAll(reHttps)];
-        m.forEach(m2 => {
-            const url = m2[1];
-            console.log(`In notes: ${url}`);
-        });
+        // m.forEach(m2 => { const url = m2[1]; console.log(`In notes: ${url}`); });
         const hasLinks = m.length > 0;
 
         const icon = hasLinks ? "link" : "edit";
@@ -732,7 +729,7 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
 let modJsmindDraggable;
 // basicInit4jsmind();
 export function basicInit4jsmind() {
-    console.log("jsMind", typeof jsMind);
+    // console.log("jsMind", typeof jsMind);
     jsMind.my_get_DOM_element_from_node = (node) => { return node._data.view.element; }
     jsMind.my_get_nodeID_from_DOM_element = (elt) => {
         const tn = elt.tagName;
@@ -2032,7 +2029,7 @@ export function getMatchesInCssRules(re) {
             }
         }
     }
-    console.log({ selectors, }, re);
+    // console.log({ selectors, }, re);
     return [...selectors];
 }
 

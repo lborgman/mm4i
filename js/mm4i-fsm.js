@@ -1,6 +1,6 @@
 // @ts-check
 const MM4I_FSM_VER = "0.0.3";
-console.log(`here is mm4i-fsm.js, module,${MM4I_FSM_VER}`);
+logConsoleHereIs(`here is mm4i-fsm.js, module,${MM4I_FSM_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 const importFc4i = window["importFc4i"];

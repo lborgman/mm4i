@@ -3235,7 +3235,7 @@
         // await modTools.promiseDOMready();
     }
 
-    console.log(`Here is jsmind-mm4i.js, ${__version__}`);
+    logConsoleHereIs(`Here is jsmind-mm4i.js, ${__version__}`);
     class jsMind {
         static mind = Mind;
         static node = Node;

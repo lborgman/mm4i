@@ -1,5 +1,5 @@
 const VERSION = "0.1.0";
-console.log(`here is idb-common.js, module, ${VERSION}`);
+logConsoleHereIs(`here is idb-common.js, module, ${VERSION}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 // https://github.com/jakearchibald/idb

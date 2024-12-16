@@ -1,6 +1,9 @@
 // @ts-check
 const INIT_ERROR_VER = "0.1.7";
-console.log(`here is init-error.js ${INIT_ERROR_VER}`);
+function logConsoleHereIs(msg) {
+    // console.log(`%c${msg}`, "color:white; background-color:blue; padding: 0px 5px;");
+}
+logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
 
 {
     let numErrors = 0;

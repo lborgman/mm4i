@@ -1,6 +1,6 @@
 // @ts-check
 const TOOLS_VER = "0.0.7";
-console.log(`here is tools.js, module, ${TOOLS_VER}`);
+logConsoleHereIs(`here is tools.js, module, ${TOOLS_VER}`);
 if (document.currentScript) { throw "tools.js is not loaded as module"; }
 
 // @ts-ignore
@@ -1247,10 +1247,10 @@ function setupWait4Saved() {
         aborter4HasSaved.signal.addEventListener("abort", evt => {
             const reason = aborter4HasSaved.signal.reason;
             if (reason == "has saved pos") {
-                console.log("abort resolve", reason);
+                console.log(`promHasSaved: abort resolve: ${reason}`);
                 resolve(reason);
             } else {
-                console.log("abort reject", reason);
+                console.log(`promHasSaved: abort reject: ${reason}`);
                 reject(reason);
             }
         });
@@ -1318,6 +1318,12 @@ export function getSavedPointerPos() {
 }
 
 
+// https://x.com/FreyaHolmer/status/1781420147711906284
+// https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio
+// https://www.quirksmode.org/m/tests/mouseprops.html
+// https://jwood206.medium.com/positioning-with-mouse-events-offset-getboundingclientrect-and-getcomputedstyle-afe12bfcb5f
+// https://developer.mozilla.org/en-US/docs/Web/API/Window/innerWidth
+// https://stackoverflow.com/questions/6073505/what-is-the-difference-between-screenx-y-clientx-y-and-pagex-y
 let abortPosListeners;
 export function addPosListeners(eltFsm) {
     if (eltFsm) console.warn("eltFsm is not used", eltFsm);

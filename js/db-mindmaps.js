@@ -1,7 +1,7 @@
 "use strict";
 
 const version = "0.1.0";
-console.log(`here is db-mindmaps.js, module ${version}`);
+logConsoleHereIs(`here is db-mindmaps.js, module ${version}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 // const useLocalStorage = true;

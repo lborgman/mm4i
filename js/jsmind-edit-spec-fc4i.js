@@ -1,5 +1,5 @@
 const version = "0.1.0";
-console.log(`Here is jsmind-edit-spec-fc4i.js, module, ${version}`);
+logConsoleHereIs(`Here is jsmind-edit-spec-fc4i.js, module, ${version}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 

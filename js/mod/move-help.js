@@ -1,6 +1,6 @@
 // @ts-check
 const MOVE_HELP_VER = "0.0.7";
-console.log(`here is move-help.js, module, ${MOVE_HELP_VER}`);
+logConsoleHereIs(`here is move-help.js, module, ${MOVE_HELP_VER}`);
 if (document.currentScript) { throw "move-help.js is not loaded as module"; }
 
 const modTools = await importFc4i("toolsJs");
@@ -54,7 +54,7 @@ export class MoveEltAtFixedSpeed {
 }
 export class MoveEltAtDragBorder {
     constructor(elt2move, moveBorderWidth) {
-        console.log("MoveEltAtDragBorder elt2move", elt2move);
+        // console.log("MoveEltAtDragBorder elt2move", elt2move);
         this.elt2move = elt2move;
         this.bw = moveBorderWidth;
         this.visuals = [];

@@ -1,7 +1,7 @@
 // FIX-ME: Put minmaps in localStorage for now
 
 const VERSION = "0.1.0";
-console.log(`here is mindmap-helpers.js, module, ${VERSION}`);
+logConsoleHereIs(`here is mindmap-helpers.js, module, ${VERSION}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 const URL_MINDMAPS_PAGE = "./mm4i.html";
