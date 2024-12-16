@@ -458,6 +458,7 @@
     <script>
         // let sx, sy, px, py;
         function debugAddFollowPointer() {
+            if (/Android|iPhone/.test(navigator.userAgent)) return;
             document.addEventListener("pointermove", evt => {
                 sx = evt.screenX.toFixed();
                 sy = evt.screenY.toFixed();
