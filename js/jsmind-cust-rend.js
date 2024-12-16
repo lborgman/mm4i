@@ -1490,9 +1490,9 @@ export class CustomRenderer4jsMind {
             }
         }
         const debounceCheckImageUrl = debounce(checkImageUrl, 1500);
-        inpImageUrl.addEventListener("input", async () => {
+        inpImageUrl.addEventListener("input", errorHandlerAsyncEvent(async () => {
             debounceCheckImageUrl();
-        });
+        }));
         const btnNote = modMdc.mkMDCiconButton("info", "Test info");
         btnNote.style.verticalAlign = "top";
         btnNote.style.marginTop = "-10px";
@@ -1950,14 +1950,14 @@ export class CustomRenderer4jsMind {
             await addBackupCustom(objCustom);
         }
         const btnSelectCustomItem = modMdc.mkMDCbutton("Select database item", "raised");
-        btnSelectCustomItem.addEventListener("click", async () => {
+        btnSelectCustomItem.addEventListener("click", errorHandlerAsyncEvent(async () => {
             const objCustom = await modMMhelpers.pasteCustomClipDialog();
             console.log({ objCustom, eltCopied });
             if (!objCustom) return;
             await setDialogCustomItem(objCustom);
             showCustomItem();
             setCustomInCurrentShapeEtc(true);
-        });
+        }));
         const divSelectCustomItem = mkElt("p", undefined, btnSelectCustomItem);
 
         const divCustomTitImg = mkElt("div", undefined, [

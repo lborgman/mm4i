@@ -663,7 +663,7 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
         eltSpan.classList.add("has-notes-mark");
         eltJmnode.appendChild(eltSpan);
 
-        eltSpan.addEventListener("click", async evt => {
+        eltSpan.addEventListener("click", errorHandlerAsyncEvent(async evt => {
             evt.preventDefault();
             evt.stopPropagation();
             evt.stopImmediatePropagation();
@@ -672,7 +672,7 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
             const renderer = await modCustRend.getOurCustomRenderer();
             // renderer.editNodeDialog(eltJmnode, true);
             renderer.editNotesDialog(eltJmnode);
-        });
+        }));
     }
 
     const nodeLink = shapeEtc.nodeLink;
@@ -1217,7 +1217,7 @@ export async function pageSetup() {
         modJsmindDraggable.setJmnodeDragged(eltJmnode);
         // For pointerdown to save pos:
         // setTimeout(() => {
-            pointHandle.initializePointHandle(eltJmnode, pointerType);
+        pointHandle.initializePointHandle(eltJmnode, pointerType);
         // }, 300);
     }
     modFsm.fsm.post_hook_entry("n_Move", (hookData) => {
@@ -2637,7 +2637,7 @@ async function showDebugJssmState(currState) {
     elt.style.cursor = "pointer";
     elt.style.pointerEvents = "all";
     elt.title = "Click to show fsm jssm";
-    elt.addEventListener("click", async evt => {
+    elt.addEventListener("click", errorHandlerAsyncEvent(async evt => {
         evt.preventDefault();
         evt.stopPropagation();
         evt.stopImmediatePropagation();
@@ -2697,7 +2697,7 @@ async function showDebugJssmState(currState) {
                 window.open(url.href, "fsm-graph");
             }
         }
-    });
+    }));
 }
 let winProxyDotsViz;
 

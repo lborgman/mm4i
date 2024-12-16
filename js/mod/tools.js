@@ -874,9 +874,9 @@ async function popupDialog(title, body, severity) {
                         const styleUpdate = "background:black; color:white; padding:10px; display: none;";
                         const divUpdate = mkElt("div", { style: styleUpdate }, ["Update available ", btnUpdate]);
                         body.insertBefore(divUpdate, body.firstElementChild)
-                        btnUpdate.addEventListener("click", async evt => {
+                        btnUpdate.addEventListener("click", errorHandlerAsyncEvent(async evt => {
                             modPwa.updateNow();
-                        });
+                        }));
                         // if (modPwa.hasUpdate())
                         if (modPwa.isShowingUpdatePrompt()) {
                             console.log("?????? isShowingUpdatePrompt");

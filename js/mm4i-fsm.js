@@ -278,7 +278,7 @@ outline: 4px groove ${F};
     // return; // FIX-ME:
 
 
-    eltFsm.addEventListener("touchstart", async evt => {
+    eltFsm.addEventListener("touchstart", errorHandlerAsyncEvent(async evt => {
         const touches = evt.touches;
         const changedTouches = evt.changedTouches;
         const len = touches.length;
@@ -292,7 +292,7 @@ outline: 4px groove ${F};
         // console.log({ modZoom });
         // pinZoom = pinZoom || new modZoom.default(eltFsm);
         // pinZoom.enable();
-    });
+    }));
     eltFsm.addEventListener("touchend", evt => {
         // const touches = evt.touches;
         // const changedTouches = evt.changedTouches;
