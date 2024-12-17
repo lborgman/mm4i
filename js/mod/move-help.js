@@ -22,8 +22,9 @@ export function getMovingDx(movingData, clientX) { return clientX - movingData.c
 export function getMovingDy(movingData, clientY) { return clientY - movingData.clientY; }
 
 export class MoveEltAtFixedSpeed {
-    constructor(elt2move) {
+    constructor(elt2move, elt2show) {
         this.elt2move = elt2move;
+        this.elt2show = elt2show;
     }
     stopX() {
         this.isMoving = false;
@@ -37,11 +38,35 @@ export class MoveEltAtFixedSpeed {
         console.log("startX", { pxlPerMs });
         const startTime = Date.now();
         const elt2move = this.elt2move
+        const elt2show = this.elt2show
         const movingData = setInitialMovingData(elt2move);
         const startLeft = movingData.left;
         const ourThis = this;
+        let canMoveLeft = true;
+        let canMoveRight = true;
         function moveFun() {
             if (!ourThis.isMoving) return;
+            if (direction < 0) {
+                canMoveRight = true;
+                if (!canMoveLeft) {
+                    requestAnimationFrame(moveFun);
+                    return;
+                }
+                const bcr = elt2show.getBoundingClientRect();
+                if (bcr.right < window.innerWidth) {
+                    canMoveLeft = false;
+                }
+            } else {
+                canMoveLeft = true;
+                if (!canMoveRight) {
+                    requestAnimationFrame(moveFun);
+                    return;
+                }
+                const bcr = elt2show.getBoundingClientRect();
+                if (bcr.left > 0) {
+                    canMoveRight = false;
+                }
+            }
             const dx = direction * (Date.now() - startTime) * pxlPerMs;
             const newLeft = startLeft + dx;
             const newLeftPx = `${newLeft}px`.replace("-0px", "0px");
@@ -53,9 +78,10 @@ export class MoveEltAtFixedSpeed {
 
 }
 export class MoveAtDragBorder {
-    constructor(elt2move, moveBorderWidth) {
+    constructor(elt2move, moveBorderWidth, elt2show) {
         // console.log("MoveAtDragBorder elt2move", elt2move);
         this.elt2move = elt2move;
+        this.elt2show = elt2show;
         this.bw = moveBorderWidth;
         this.visuals = [];
         const addVisual = () => {
@@ -77,7 +103,7 @@ export class MoveAtDragBorder {
         this.eltVisualLeft = addVisual();
         this.eltVisualRight = addVisual();
         // console.log("right", this.eltVisualRight);
-        this.mover = new MoveEltAtFixedSpeed(elt2move);
+        this.mover = new MoveEltAtFixedSpeed(elt2move, elt2show);
         const updateLimits = () => this.updateScreenLimits();
         window.addEventListener("resize", () => { updateLimits(); });
         updateLimits();

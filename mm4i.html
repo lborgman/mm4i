@@ -444,7 +444,7 @@
 </head>
 
 <body class="NOno-test-items">
-    <div id="PWA-version">(temp ver 1.24)</div>
+    <div id="PWA-version">(temp ver 1.25)</div>
 
     <script src="./ext/mdc/material-components-web.js"></script>
     <!-- <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script> -->
@@ -478,7 +478,7 @@
                 const cbys = cby.toFixed();
 
                 const tn = target.tagName;
-                const tnp = target.parentElement.tagName;
+                const tnp = target.parentElement?.tagName;
 
                 const st = getComputedStyle(target);
                 const stp = st.position;

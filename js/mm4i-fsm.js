@@ -322,7 +322,7 @@ outline: 4px groove ${F};
         const pointerType = getPointerType(evt);
         const action = `${actionWhere}_down`;
         actionWithErrorCheck(action, { eltJmnode, pointerType });
-    }, { passive: true });
+    }, { passive: false });
     eltFsm.addEventListener("pointerup", evt => {
         console.log("eltFsm, pointerup", evt);
         const target = evt.target;

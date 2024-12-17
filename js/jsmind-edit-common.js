@@ -1262,7 +1262,8 @@ export async function pageSetup() {
 
     const modMoveHelp = await importFc4i("move-help");
     const eltScroll = eltJmnodes.closest("div.jsmind-zoom-move");
-    instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60);
+    const eltShow = eltJmnodes.closest("div.jsmind-inner");
+    instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60, eltShow);
 
     // Windows
     eltJmnodes.addEventListener("dblclick", evt => {
