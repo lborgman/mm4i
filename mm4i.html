@@ -421,6 +421,31 @@
             background-color: color-mix(in srgb, var(--mdc-theme-primary) 70%, white);
         }
 
+        #mm4i-page-menu span.mdc-list-item__text {
+            width: 100%;
+        }
+
+        #mm4i-page-menu span.mdc-list-item__text div.text-and-key {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        #mm4i-page-menu li.menu-text-and-key {
+            NObackground-color: red;
+        }
+
+        #mm4i-page-menu li.menu-text-and-key span.menu-item-key {
+            font-weight: bold;
+            opacity: 0.3;
+            font-style: italic;
+        }
+
+        #mm4i-page-menu li.menu-text-and-key[inert] span.menu-item-key {
+            visibility: hidden;
+        }
+
+
         #mm4i-menu-button {
             left: 0;
         }

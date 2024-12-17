@@ -767,8 +767,19 @@ function mkMenuItemA(lbl, url) {
     });
     return li;
 }
-function mkMenuItem(lbl, fun) {
-    const li = modMdc.mkMDCmenuItem(lbl);
+function mkMenuItem(lbl, fun, keyHint) {
+    // const li = modMdc.mkMDCmenuItem(lbl);
+
+    const lblAndKey = mkElt("div", undefined, lbl);
+    lblAndKey.classList.add("text-and-key");
+    if (keyHint) {
+        const keyLbl = mkElt("span", undefined, keyHint);
+        keyLbl.classList.add("menu-item-key");
+        lblAndKey.appendChild(keyLbl);
+    }
+
+    const li = modMdc.mkMDCmenuItem(lblAndKey);
+    li.classList.add("menu-text-and-key");
     li.addEventListener("click", evt => {
         evt.preventDefault();
         evt.stopPropagation();
@@ -1671,7 +1682,7 @@ export async function pageSetup() {
             modMMhelpers.createAndShowNewMindmap("./mm4i.html");
         }
         const liCreateMindmap = mkMenuItem("Create Mindmap", createMindMap);
-        const liEditMindmap = mkMenuItem("Edit Mindmap", dialogEditMindmap);
+        const liEditMindmap = mkMenuItem("Edit Mindmap", dialogEditMindmap, "Dblclick");
         if (!document.querySelector("jmnode")) { liEditMindmap.setAttribute("inert", ""); }
         const liMindmapsA = mkMenuItemA("List Mindmaps", "./mm4i.html");
 
@@ -1787,7 +1798,7 @@ export async function pageSetup() {
             jm.select_node(new_node);
         }
 
-        const liEditNode = mkMenuItem("Edit node", editNode);
+        const liEditNode = mkMenuItem("Edit node", editNode, "Dblclick");
         markIfNoSelected(liEditNode);
         async function editNode() {
             // FIX-ME: ???
