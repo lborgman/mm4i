@@ -890,6 +890,7 @@ export async function pageSetup() {
             enable: true, 		// whether to enable shortcut
             handles: {}, 			// Named shortcut key event processor
             mapping: { 			// shortcut key mapping
+                // FIX-ME: these does not work
                 addchild: [45, 4096 + 13], 	// <Insert>, <Ctrl> + <Enter>
                 addbrother: 13, // <Enter>
                 editnode: 113, 	// <F2>
@@ -1631,6 +1632,7 @@ export async function pageSetup() {
     }
 
     async function dialogEditMindmap() {
+        const modCustRend = await importFc4i("jsmind-cust-rend");
         const rend = await modCustRend.getOurCustomRenderer();
         await rend.editMindmapDialog();
     }
@@ -1664,9 +1666,14 @@ export async function pageSetup() {
 
         // https://html2canvas.hertzen.com/getting-started.html
 
-        // const liDragAccessibility = mkMenuItem("Drag accessiblity", dialogDragAccessibility);
-        const liMindmapsA = mkMenuItemA("List Mindmaps", "./mm4i.html");
+        const createMindMap = () => {
+            // modMMhelpers.createAndShowNewMindmap(linkMindmapsPage)
+            modMMhelpers.createAndShowNewMindmap("./mm4i.html");
+        }
+        const liCreateMindmap = mkMenuItem("Create Mindmap", createMindMap);
         const liEditMindmap = mkMenuItem("Edit Mindmap", dialogEditMindmap);
+        if (!document.querySelector("jmnode")) { liEditMindmap.setAttribute("inert", ""); }
+        const liMindmapsA = mkMenuItemA("List Mindmaps", "./mm4i.html");
 
 
         // https://www.npmjs.com/package/pinch-zoom-js
@@ -1780,16 +1787,26 @@ export async function pageSetup() {
             jm.select_node(new_node);
         }
 
-        const liDelete = mkMenuItem("Delete node", deleteNode);
-        markIfNoSelected(liDelete);
-        markIfNoMother(liDelete);
+        const liEditNode = mkMenuItem("Edit node", editNode);
+        markIfNoSelected(liEditNode);
+        async function editNode() {
+            // FIX-ME: ???
+            // const selected_node = getSelected_node();
+            const eltJmnode = document.querySelector("jmnode.selected");
+            const renderer = await modCustRend.getOurCustomRenderer();
+            renderer.editNodeDialog(eltJmnode);
+        }
+
+        const liDeleteNode = mkMenuItem("Delete node", deleteNode);
+        markIfNoSelected(liDeleteNode);
+        markIfNoMother(liDeleteNode);
 
         function deleteNode() {
             const selected_node = getSelected_node();
             if (selected_node) {
                 const mother = selected_node.parent;
                 if (!mother) {
-                    modMdc.mkMDCdialogAlert("This node can't be deleted");
+                    modMdc.mkMDCdialogAlert("Root node can't be deleted");
                 } else {
                     const jm = jmDisplayed;
                     jm.remove_node(selected_node);
@@ -1802,11 +1819,15 @@ export async function pageSetup() {
         const arrMenuEntries = [
             liAddChild,
             liAddSibling,
-            liDelete,
+            liDeleteNode,
+            liEditNode,
             // liTestConvertToCustom,
             // liDragAccessibility,
+            modMdc.mkMDCmenuItemSeparator(),
+            liCreateMindmap,
             liEditMindmap,
             liMindmapsA,
+            modMdc.mkMDCmenuItemSeparator(),
         ];
         const arrMenuTestEntries = [
             // liTestSvgDrawLine,

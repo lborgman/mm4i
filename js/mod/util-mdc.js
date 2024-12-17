@@ -637,6 +637,8 @@ export function anchorMenu(anchorElement, mdcMenuDiv) {
     anchorElement.classList.add("mdc-menu-surface--anchor");
     anchorElement.appendChild(mdcMenuDiv);
 }
+
+/*
 function OLDmkAnchoredMDCmenu(anchorElement, mdcMenuDiv) {
     if (anchorElement.parentElement) throw Error(`anchorElement has parentElement`);
     const tN = mdcMenuDiv.tagName;
@@ -644,6 +646,7 @@ function OLDmkAnchoredMDCmenu(anchorElement, mdcMenuDiv) {
     if (!mdcMenuDiv.classList.contains("mdc-menu")) throw Error(`mdcMenuDiv has not class "mdc-menu"`);
     return mkElt("div", { class: "mdc-menu-surface--anchor" }, [anchorElement, mdcMenuDiv]);
 }
+*/
 
 // The click event is on this
 export function mkMDCmenuItem(txt) {
@@ -660,6 +663,12 @@ export function mkMDCmenuItem(txt) {
         mkElt("span", { class: "mdc-list-item__text" }, txt),
     ]);
     */
+}
+
+export function mkMDCmenuItemSeparator() {
+    // <li class="mdc-list-divider" role="separator"></li>
+    const separator = mkElt("li", { class: "mdc-list-divider", role: "separator"});
+    return separator;
 }
 
 // https://material.io/components/lists/web#single-line-list
