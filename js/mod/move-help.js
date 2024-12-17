@@ -33,7 +33,9 @@ export class MoveEltAtFixedSpeed {
         if (this.isMoving) return;
         this.stopX();
         this.isMoving = true;
-        const msOverScreen = 8000;
+        // const msOverScreen = 8000;
+        // const msOverScreen = 4000;
+        const msOverScreen = 3000;
         const pxlPerMs = window.innerWidth / msOverScreen;
         console.log("startX", { pxlPerMs });
         const startTime = Date.now();
