@@ -6,6 +6,10 @@
 // const modErrorJs = await importFc4i("toolsJs");
 // const mkElt = modErrorJs.mkElt;
 
+const UTIL_MDC_VER = "0.8.0";
+logConsoleHereIs(`here is util-mdc.js, module,${UTIL_MDC_VER}`);
+if (document.currentScript) throw Error("import .currentScript"); // is module
+
 let materialIconsClass = "material-icons";
 export function getMaterialIconClass() { return materialIconsClass; }
 export function setMaterialIconClass(className) {
@@ -667,7 +671,7 @@ export function mkMDCmenuItem(txt) {
 
 export function mkMDCmenuItemSeparator() {
     // <li class="mdc-list-divider" role="separator"></li>
-    const separator = mkElt("li", { class: "mdc-list-divider", role: "separator"});
+    const separator = mkElt("li", { class: "mdc-list-divider", role: "separator" });
     return separator;
 }
 
@@ -919,15 +923,26 @@ export function mkMDCdialogActions(buttons) {
     return mkElt("div", { class: "mdc-dialog__actions" }, buttons);
 }
 
-export async function mkMDCdialogConfirm(body, titleOk, titleCancel, noCancel, funHandleResult, tellMeOkButton) {
+// export async function mkMDCdialogConfirm(body, titleOk, titleCancel, noCancel, funHandleResult, tellMeOkButton) {
+export async function mkMDCdialogConfirm(body, titleOk, titleCancel, funCheckSave, tellMeOkButton) {
     const tofTitle = typeof titleOk;
     accectValueType(tofTitle, "string");
-    const tofCancel = typeof titleCancel;
-    accectValueType(tofCancel, "string");
-    const tofNoCancel = typeof noCancel;
-    accectValueType(tofNoCancel, "boolean");
-    const tofFun = typeof funHandleResult;
-    accectValueType(tofFun, "function");
+
+    const noCancel = (titleCancel == null);
+    if (!noCancel) {
+        const tofCancel = typeof titleCancel;
+        accectValueType(tofCancel, "string");
+    }
+
+    // const tofNoCancel = typeof noCancel;
+    // accectValueType(tofNoCancel, "boolean");
+
+    if (funCheckSave != undefined) {
+        const tofFun = typeof funCheckSave;
+        accectValueType(tofFun, "function");
+        const numPar = funCheckSave.length;
+        if (numPar != 1) throw Error(`funCheckSave should take 1 parameter (${numPar})`)
+    }
     function accectValueType(tof, valType) {
         if (tof == "undefined") return;
         if (tof == valType) return;
@@ -938,20 +953,27 @@ export async function mkMDCdialogConfirm(body, titleOk, titleCancel, noCancel, f
     const btnOk = mkMDCdialogButton(titleOk, "confirm", true);
     if (tellMeOkButton) { tellMeOkButton(btnOk); }
     const btnCancel = mkMDCdialogButton(titleCancel, "close");
-    const funResolve = funHandleResult || (() => true);
-    // const handleResult = () => true;
-    // const eltActions = mkMDCdialogActions([btnOk, btnCancel]);
+    // const funResolve = funCheckSave || (() => true);
     const arrBtns = [btnOk, btnCancel];
     if (noCancel) arrBtns.length = 1;
     const eltActions = mkMDCdialogActions(arrBtns);
     const dlg = await mkMDCdialog(body, eltActions);
-    return await new Promise((resolve, reject) => {
+    return await new Promise((resolve) => {
+        dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async evt => {
+            if (funCheckSave) {
+                if (funCheckSave(false)) {
+                    const confirmed = await mkMDCdialogConfirm("You have made changes. Do you want to save them?", "save", "discard");
+                    console.log({ confirmed });
+                    funCheckSave(true);
+                }
+            }
+        }));
         dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async evt => {
             const action = evt.detail.action;
             switch (action) {
                 case "confirm":
-                    // resolve(true);
-                    resolve(funResolve());
+                    resolve(true);
+                    // resolve(funResolve());
                     break;
                 case "close":
                     resolve(false);
@@ -978,7 +1000,7 @@ export async function mkMDCdialogGetValue(body, funValue, titleOk) {
     });
 }
 export function mkMDCdialogAlertWait(body, titleClose) {
-    return mkMDCdialogConfirm(body, titleClose, undefined, true);
+    return mkMDCdialogConfirm(body, titleClose, null);
 }
 export function mkMDCdialogAlert(body, titleClose) {
     titleClose = titleClose || "Ok";

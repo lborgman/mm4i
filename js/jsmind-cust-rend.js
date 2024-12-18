@@ -119,8 +119,8 @@ function addEditMyNotesButton(container, easyMDE) {
     btnEditMyNotes.id = "edit-my-notes";
     btnEditMyNotes.style = `
         position: absolute;
-        right: 5px;
-        top: 5px;
+        right: -20px;
+        top: -15px;
         border-radius: 50%;
         color: green;
         background: color-mix(in srgb, var(--mdc-theme-primary) 30%, #ffffff);
@@ -753,7 +753,7 @@ export class CustomRenderer4jsMind {
                         resolve(false);
                         break;
                     default:
-                        throw Error(`error in mkMDCdialogConfirm, action is ${action}`)
+                        throw Error(`error in editMindmapDialog, action is ${action}`)
                 }
             }));
         });
@@ -778,9 +778,7 @@ export class CustomRenderer4jsMind {
         easyMDE = await setupEasyMDE4Notes(taNotes, initialNotesVal);
         addEditMyNotesButton(eltOuterWrapper, easyMDE);
         // easyMDE.codemirror.options.readOnly = "nocursor";
-        easyMDE.codemirror.on("changes", () => {
-            requestSetStateBtnSaveable();
-        });
+        // easyMDE.codemirror.on("changes", () => { requestSetStateBtnSaveable(); });
         setTimeout(async () => {
             // body.appendChild(eltMDEwrapper);
             body.appendChild(eltOuterWrapper);
@@ -836,15 +834,23 @@ export class CustomRenderer4jsMind {
         function requestSetStateBtnSaveable() { debounceStateBtnSaveable(); }
         // requestSetStateBtnSaveable();
         // FIX-ME: move to mdc-util
-        setTimeout(() => setStateBtnSaveDisabled(true), 50);
+        // setTimeout(() => setStateBtnSaveDisabled(true), 50);
 
-        const save = await modMdc.mkMDCdialogConfirm(body, "save", "cancel");
+        const funCheckSave = (save) => {
+            if (!save) return somethingToSaveNotes();
+            shapeEtc.notes = easyMDE.value().trim();
+            setTimeout(() => { modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed); }, 2000);
+        }
+        // const save = await modMdc.mkMDCdialogConfirm(body, "save", "cancel");
+        await modMdc.mkMDCdialogConfirm(body, "close", null, funCheckSave);
+        /*
         console.log({ save });
         if (save) {
             if (!somethingToSaveNotes()) throw Error("Save button enabled but nothing to save?");
             shapeEtc.notes = easyMDE.value().trim();
             setTimeout(() => { modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed); }, 2000);
         }
+        */
     }
     async editNodeDialog(eltJmnode, scrollToNotes) {
         const modJsEditCommon = await importFc4i("jsmind-edit-common");

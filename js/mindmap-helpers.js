@@ -109,7 +109,6 @@ async function dialogCreateMindMap() {
         console.log({ btnOk });
         btnOk.disabled = true;
     });
-    // modMdc.mkMDCdialogConfirm(body, titleOk, titleCancel)
     const res = await modMdc.mkMDCdialogConfirm(body);
     console.log({ res });
     if (res) {
