@@ -60,8 +60,8 @@ export class providerDetails {
 async function setupEasyMDE4Notes(taOrDiv, valNotes) {
     let newWay = false;
     let taEasyMde;
-        let divEasyMdeInert ;
-        let divEasyMdeOuterWrapper ;
+    let divEasyMdeInert;
+    let divEasyMdeOuterWrapper;
     if (taOrDiv.tagName == "TEXTAREA") {
         taEasyMde = taOrDiv;
         window["MYtaNotes"] = taOrDiv;
@@ -129,8 +129,9 @@ async function setupEasyMDE4Notes(taOrDiv, valNotes) {
     const eltToolbar = eltMDEContainer.querySelector("div.editor-toolbar");
     eltToolbar.style.display = "none";
 
-
-    return { easyMDE };
+    if (!newWay) { return { easyMDE }; }
+    const btnEditNote = addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
+    return { easyMDE, btnEditNote };
 }
 function addEditMyNotesButton(container, easyMDE) {
     container.style.position = "relative";
@@ -801,16 +802,15 @@ export class CustomRenderer4jsMind {
 
         // divEasyMdeInert.setAttribute("inert", "");
         // const { easyMDE } = await setupEasyMDE4Notes(taEasyMde, initialNotesVal);
-        const { easyMDE } = await setupEasyMDE4Notes(divEasyMdeOuterWrapper, initialNotesVal);
-        const btnEditNote = addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
+        const { easyMDE, btnEditNote } = await setupEasyMDE4Notes(divEasyMdeOuterWrapper, initialNotesVal);
+        // const btnEditNote = addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
 
         setTimeout(async () => {
             // body.appendChild(eltMDEwrapper);
             body.appendChild(divEasyMdeOuterWrapper);
         }, 100);
         let btnSave;
-        // const btnEditNote = body.querySelector("#edit-my-notes");
-        btnEditNote?.addEventListener("click", evt => {
+        btnEditNote.addEventListener("click", evt => {
             setTimeout(() => {
                 easyMDE.codemirror.options.readOnly = false;
                 const btnSave = getBtnSave();
