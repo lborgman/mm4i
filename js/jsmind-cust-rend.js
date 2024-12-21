@@ -57,18 +57,28 @@ export class providerDetails {
     get getRecLink() { return this.#getRecLink; }
 }
 
-async function setupEasyMDE4Notes(taNotes, valNotes) {
-    if (taNotes.tagName == "TEXTAREA") {
-
-        window["MYtaNotes"] = taNotes;
+async function setupEasyMDE4Notes(taOrDiv, valNotes) {
+    let newWay = false;
+    let taEasyMde;
+        let divEasyMdeInert ;
+        let divEasyMdeOuterWrapper ;
+    if (taOrDiv.tagName == "TEXTAREA") {
+        taEasyMde = taOrDiv;
+        window["MYtaNotes"] = taOrDiv;
     } else {
-        debugger;
-        throw Error("new way is not ready");
+        newWay = true;
+        // debugger;
+        taEasyMde = mkElt("textarea");
+        divEasyMdeInert = mkElt("div", undefined, taEasyMde);
+        // divEasyMdeOuterWrapper = mkElt("div", undefined, divEasyMdeInert);
+        divEasyMdeOuterWrapper = taOrDiv;
+        divEasyMdeOuterWrapper.appendChild(divEasyMdeInert);
+        // throw Error("new way is not ready");
     }
     const modEasyMDE = await importFc4i("easymde");
     console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
     const easyMDE = new EasyMDE({
-        element: taNotes,
+        element: taEasyMde,
         status: false,
     });
     window["MYeasyMDE"] = easyMDE;
@@ -77,6 +87,10 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
     easyMDE.value(valNotes);
     if (easyMDE.isPreviewActive()) throw Error("easyMDE.isPreviewActive()");
     easyMDE.togglePreview();
+
+    if (newWay) {
+        divEasyMdeInert.setAttribute("inert", "");
+    }
 
     const cud = easyMDE.codemirror.display.cursorDiv;
     const cont = cud.closest("div.EasyMDEContainer");
@@ -102,12 +116,12 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
     function setMDEpreviewColor() {
         const eltPreview = eltMDEContainer.querySelector("div.editor-preview");
         console.log({ eltPreview });
-        const eltDialogSurface = taNotes.closest("div.mdc-dialog__surface");
+        const eltDialogSurface = taOrDiv.closest("div.mdc-dialog__surface");
         const styleSurface = getComputedStyle(eltDialogSurface);
         eltPreview.style.backgroundColor = styleSurface.backgroundColor;
     }
 
-    setTimeout(() => { setMDEpreviewColor(); }, 110);
+    // setTimeout(() => { setMDEpreviewColor(); }, 110);
 
     const eltCursorDiv = easyMDE.codemirror.display.cursorDiv;
     const eltMDEContainer = eltCursorDiv.closest("div.EasyMDEContainer");
@@ -116,7 +130,7 @@ async function setupEasyMDE4Notes(taNotes, valNotes) {
     eltToolbar.style.display = "none";
 
 
-    return easyMDE;
+    return { easyMDE };
 }
 function addEditMyNotesButton(container, easyMDE) {
     container.style.position = "relative";
@@ -775,17 +789,19 @@ export class CustomRenderer4jsMind {
         const shapeEtc = node_data.shapeEtc || {};
         const initialNotesVal = shapeEtc.notes || "";
 
-        const taEasyMde = mkElt("textarea");
-        const divEasyMdeInert = mkElt("div", undefined, taEasyMde);
-        const divEasyMdeOuterWrapper = mkElt("div", undefined, divEasyMdeInert);
+        // const taEasyMde = mkElt("textarea");
+        // const divEasyMdeInert = mkElt("div", undefined, taEasyMde);
+        // const divEasyMdeOuterWrapper = mkElt("div", undefined, divEasyMdeInert);
+        const divEasyMdeOuterWrapper = mkElt("div");
 
         const body = mkElt("div", undefined, [
             mkElt("h2", undefined, "Edit node notes"),
             mkElt("h3", undefined, node.topic),
         ]);
 
-        divEasyMdeInert.setAttribute("inert", "");
-        const easyMDE = await setupEasyMDE4Notes(taEasyMde, initialNotesVal);
+        // divEasyMdeInert.setAttribute("inert", "");
+        // const { easyMDE } = await setupEasyMDE4Notes(taEasyMde, initialNotesVal);
+        const { easyMDE } = await setupEasyMDE4Notes(divEasyMdeOuterWrapper, initialNotesVal);
         const btnEditNote = addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
 
         setTimeout(async () => {
@@ -1183,7 +1199,7 @@ export class CustomRenderer4jsMind {
 
         async function activateNotesTab() {
             const valNotes = initNotes;
-            const easyMDE = await setupEasyMDE4Notes(taEasyMde, valNotes);
+            const { easyMDE } = await setupEasyMDE4Notes(taEasyMde, valNotes);
             addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
             easyMDE.codemirror.on("changes", () => { saveEmdChanges(); })
             window.easyMDE = easyMDE;
