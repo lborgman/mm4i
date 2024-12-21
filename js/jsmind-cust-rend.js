@@ -57,7 +57,7 @@ export class providerDetails {
     get getRecLink() { return this.#getRecLink; }
 }
 
-async function setupEasyMDE4Notes(taOrDiv, valNotes) {
+async function setupEasyMDEview(taOrDiv, valNotes) {
     let newWay = false;
     let taEasyMde;
     let divEasyMdeInert;
@@ -803,7 +803,7 @@ export class CustomRenderer4jsMind {
 
         // divEasyMdeInert.setAttribute("inert", "");
         // const { easyMDE } = await setupEasyMDE4Notes(taEasyMde, initialNotesVal);
-        const { easyMDE, btnEditNote } = await setupEasyMDE4Notes(divEasyMdeOuterWrapper, initialNotesVal);
+        const { easyMDE, btnEditNote } = await setupEasyMDEview(divEasyMdeOuterWrapper, initialNotesVal);
         // const btnEditNote = addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
 
         setTimeout(async () => {
@@ -1203,7 +1203,7 @@ export class CustomRenderer4jsMind {
             const valNotes = initNotes;
             // const { easyMDE } = await setupEasyMDE4Notes(taEasyMde, valNotes);
             // addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
-            const { easyMDE } = await setupEasyMDE4Notes(divEasyMdeOuterWrapper, valNotes);
+            const { easyMDE } = await setupEasyMDEview(divEasyMdeOuterWrapper, valNotes);
             easyMDE.codemirror.on("changes", () => { saveEmdChanges(); })
             window.easyMDE = easyMDE;
         }
