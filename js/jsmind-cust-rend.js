@@ -170,6 +170,7 @@ function addEditMyNotesButton(container, easyMDE) {
         const ta = cont.querySelector("textarea");
         const eltFocus = editable || ta;
         window["MYeltFocusNotes"] = eltFocus;
+        easyMDE.codemirror.options.readOnly = false;
         setTimeout(() => { eltFocus.focus(); }, 1000);
     });
     return btnEditMyNotes;
@@ -812,7 +813,7 @@ export class CustomRenderer4jsMind {
         let btnSave;
         btnEditNote.addEventListener("click", evt => {
             setTimeout(() => {
-                easyMDE.codemirror.options.readOnly = false;
+                // easyMDE.codemirror.options.readOnly = false;
                 const btnSave = getBtnSave();
                 const btnCancel = btnSave.nextElementSibling;
                 const divS = btnSave.closest("div.mdc-dialog__surface");
@@ -1185,10 +1186,11 @@ export class CustomRenderer4jsMind {
 
         // modMdc.mkMDC
 
-        const taEasyMde = mkElt("textarea", { placeholder: "Enter notes for this node" });
-        const divEasyMdeInert = mkElt("div", undefined, taEasyMde);
-        divEasyMdeInert.setAttribute("inert", "");
-        const divEasyMdeOuterWrapper = mkElt("div", undefined, divEasyMdeInert);
+        // const taEasyMde = mkElt("textarea", { placeholder: "Enter notes for this node" });
+        // const divEasyMdeInert = mkElt("div", undefined, taEasyMde);
+        // divEasyMdeInert.setAttribute("inert", "");
+        // const divEasyMdeOuterWrapper = mkElt("div", undefined, divEasyMdeInert);
+        const divEasyMdeOuterWrapper = mkElt("div");
 
 
         const divNotesTab = mkElt("div", undefined, [
@@ -1199,8 +1201,9 @@ export class CustomRenderer4jsMind {
 
         async function activateNotesTab() {
             const valNotes = initNotes;
-            const { easyMDE } = await setupEasyMDE4Notes(taEasyMde, valNotes);
-            addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
+            // const { easyMDE } = await setupEasyMDE4Notes(taEasyMde, valNotes);
+            // addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
+            const { easyMDE } = await setupEasyMDE4Notes(divEasyMdeOuterWrapper, valNotes);
             easyMDE.codemirror.on("changes", () => { saveEmdChanges(); })
             window.easyMDE = easyMDE;
         }
