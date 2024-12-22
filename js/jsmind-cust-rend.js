@@ -192,6 +192,13 @@ function addEditMyNotesButton(container, easyMDE) {
     return btnEditMyNotes;
 }
 
+function mkNodeNotesPlaceholder(node) {
+    if (node.isroot) {
+        return `Enter your notes for node "${node.topic}". (Root node for this mindmap.)`;
+    }
+    return `Enter your notes for node "${node.topic}".`;
+}
+
 export class CustomRenderer4jsMind {
     #providers = {};
     // constructor(THEjmDisplayed, linkRendererImg)
@@ -560,11 +567,24 @@ export class CustomRenderer4jsMind {
         }
         // sli = await modIsDisplayed.mkSliderInContainer(eltCont, min, max, initVal, step, title, funChange);
 
-        // tabs
+        ////// tabs
+
         // mkMdcTabBarSimple(tabsRecs, contentElts, moreOnActivate) 
-        const taDesc = modMdc.mkMDCtextFieldTextarea(undefined, 10, 10);
-        const tafDesc = modMdc.mkMDCtextareaField("Mindmap description", taDesc);
-        const divDesc = mkElt("div", undefined, tafDesc);
+
+        // const taDesc = modMdc.mkMDCtextFieldTextarea(undefined, 10, 10);
+        // const tafDesc = modMdc.mkMDCtextareaField("Mindmap description", taDesc);
+        // const divDesc = mkElt("div", undefined, tafDesc);
+
+        const pDesc = mkElt("p", undefined, "Mindmap description. Same as notes for root node.");
+        const divMDE = mkElt("div");
+        const divDesc = mkElt("div", undefined, [pDesc, divMDE]);
+        const root_node = this.THEjmDisplayed.get_root();
+        const valDescription = "dummy";
+        const placeholder = mkNodeNotesPlaceholder(root_node);
+        const { easyMDE, btnEdit } = await setupEasyMDEview(divMDE, valDescription, placeholder);
+        btnEdit.style.right = "-4px";
+        btnEdit.style.top = "-30px";
+        // easyMDE.codemirror.on("changes", () => { saveEmdChanges(); });
 
         const jmOpt = this.getJmOptions();
         const defaultLineW = jmOpt.view.line_width;
@@ -682,7 +702,7 @@ export class CustomRenderer4jsMind {
 
         const body = mkElt("div", undefined, [
             mkElt("h2", undefined, [
-                mkElt("span", {style:"font-style:italic;opacity: 0.5;margin-right:10px;"},"Mindmap:"),
+                mkElt("span", { style: "font-style:italic;opacity: 0.5;margin-right:10px;" }, "Mindmap:"),
                 mindmapName
             ]),
             eltTabs,
@@ -821,17 +841,14 @@ export class CustomRenderer4jsMind {
         const divEasyMdeOuterWrapper = mkElt("div");
 
         const body = mkElt("div", undefined, [
-            mkElt("h2", undefined,[
-                mkElt("span", {style:"font-style:italic;opacity:0.5;"}, "Notes for node "),
+            mkElt("h2", undefined, [
+                mkElt("span", { style: "font-style:italic;opacity:0.5;" }, "Notes for node "),
                 node.topic
             ])
         ]);
 
-        // divEasyMdeInert.setAttribute("inert", "");
-        // const { easyMDE } = await setupEasyMDE4Notes(taEasyMde, initialNotesVal);
-        const placeholder = `Enter your notes for node "${node.topic}"`;
+        const placeholder = mkNodeNotesPlaceholder(node);
         const { easyMDE, btnEdit } = await setupEasyMDEview(divEasyMdeOuterWrapper, initialVal, placeholder);
-        // const btnEditNote = addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
 
         setTimeout(async () => {
             // body.appendChild(eltMDEwrapper);
@@ -1228,9 +1245,7 @@ export class CustomRenderer4jsMind {
 
         async function activateNotesTab() {
             const valNotes = initNotes;
-            const placeholder = `Enter your notes for node "${initTopic}"`
-            // const { easyMDE } = await setupEasyMDE4Notes(taEasyMde, valNotes);
-            // addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
+            const placeholder = mkNodeNotesPlaceholder(node_copied);
             const { easyMDE, btnEdit } = await setupEasyMDEview(divEasyMdeOuterWrapper, valNotes, placeholder);
             btnEdit.style.right = "0px";
             btnEdit.style.top = "-20px";
