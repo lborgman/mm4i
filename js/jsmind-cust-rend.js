@@ -162,7 +162,7 @@ function addEditMyNotesButton(container, easyMDE) {
         top: -15px;
         border-radius: 50%;
         color: green;
-        background: color-mix(in srgb, var(--mdc-theme-primary) 30%, #ffffff);
+        background: color-mix(in srgb, var(--mdc-theme-primary) 30%, transparent);
         `;
     btnEditMyNotes.addEventListener("click", evt => {
         evt.preventDefault();
@@ -1231,9 +1231,11 @@ export class CustomRenderer4jsMind {
             const placeholder = `Enter your notes for node "${initTopic}"`
             // const { easyMDE } = await setupEasyMDE4Notes(taEasyMde, valNotes);
             // addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
-            const { easyMDE } = await setupEasyMDEview(divEasyMdeOuterWrapper, valNotes, placeholder);
+            const { easyMDE, btnEdit } = await setupEasyMDEview(divEasyMdeOuterWrapper, valNotes, placeholder);
+            btnEdit.style.right = "0px";
+            btnEdit.style.top = "-20px";
             easyMDE.codemirror.on("changes", () => { saveEmdChanges(); })
-            window.easyMDE = easyMDE;
+            window["easyMDE"] = easyMDE;
         }
 
         const jmnodesShapes = mkElt("jmnodes");
