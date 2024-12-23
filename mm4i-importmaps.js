@@ -26,6 +26,7 @@ logConsoleHereIs(`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
         "d3": "./ext/d3/d3.v7.js",
         "db-mindmaps": "./js/db-mindmaps.js",
         "db-fc4i": "./js/db-fc4i.js",
+        "easyMDE-helpers": "./js/mod/easyMDE-helpers.js",
         "fc4i-items": "./src/js/share.js",
         "flashcards": "./src/js/mod/flashcards.js",
         "idb-common": "./js/mod/idb-common.js",
