@@ -40,11 +40,32 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     }
     const modEasyMDE = await importFc4i("easymde");
     console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
+    const EasyMDE = window["EasyMDE"];
     const easyMDE = new EasyMDE({
         element: taEasyMde,
         status: false,
     });
     window["MYeasyMDE"] = easyMDE;
+    const modEasyMDEhelpers = await importFc4i("easyMDE-helpers");
+    await modEasyMDEhelpers.addAlfa(easyMDE);
+
+
+
+    // Add custom styling for special syntax
+    const idStyle = "cm-special-style-for-easyMDE";
+    if (!document.getElementById(idStyle)) {
+        const eltStyle = document.createElement("style");
+        eltStyle.id = idStyle;
+        eltStyle.textContent = `
+            .cm-alfa-link {
+                color: green;
+                text-decoration: underline;
+            }
+        `;
+        document.head.append(eltStyle);
+    }
+
+
 
     easyMDE.codemirror.options.readOnly = "nocursor";
     easyMDE.value(valueInitial);
@@ -94,8 +115,10 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
 
     if (!newWay) { return { easyMDE }; }
     const btnEdit = addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
+
     return { easyMDE, btnEdit };
 }
+
 function addEditMyNotesButton(container, easyMDE) {
     container.style.position = "relative";
     const btnEditMyNotes = modMdc.mkMDCiconButton("edit", "Edit my notes");
@@ -137,4 +160,42 @@ function addEditMyNotesButton(container, easyMDE) {
         setTimeout(() => { eltFocus.focus(); }, 1000);
     });
     return btnEditMyNotes;
+}
+
+
+let origEasyMDEmarkdown;
+async function saveOrigMarkdown() {
+    if (origEasyMDEmarkdown) return;
+    await importFc4i("easymde");
+    const EasyMDE = window["EasyMDE"];
+    origEasyMDEmarkdown = EasyMDE.prototype.markdown;
+}
+export async function addAlfa(easyMDE) {
+    await saveOrigMarkdown();
+    const EasyMDE = window["EasyMDE"];
+
+    function markHejRed(txt) {
+        const newTxt = txt.replaceAll(/hej/g, `<span style="color:red;">HEJ</span>`);
+        return newTxt;
+    }
+    const reAlfa = /<a href="(.*?)"(.*?)>@(.*?)<\/a>/g;
+    function markAlfa(txt) {
+        const newTxt = txt.replaceAll(reAlfa, `<a href="$1" class="cm-alfa-link" $2>$3</a>`);
+        return newTxt;
+    }
+    function markMore(txt) {
+        let newTxt = markHejRed(txt);
+        newTxt = markAlfa(newTxt);
+        return newTxt;
+    }
+    // modifyEasyMDEmarkdown(markHejRed);
+    modifyEasyMDEmarkdown(markMore);
+    console.log("++++ added HEJ");
+    function modifyEasyMDEmarkdown(funMore) {
+        EasyMDE.prototype.markdown = function (txt) {
+            // txt = origEasyMDEmarkdown(txt);
+            txt = origEasyMDEmarkdown.call(easyMDE,txt);
+            return funMore(txt);
+        }
+    }
 }
