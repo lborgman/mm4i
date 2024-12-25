@@ -117,7 +117,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     // if (!newWay) { return { easyMDE }; }
     const btnEdit = addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
 
-    divEasyMdeInert.removeAttribute("inert");
+    setTimeout(() => { divEasyMdeInert.removeAttribute("inert"); }, 500);
     return { easyMDE, btnEdit };
 }
 
