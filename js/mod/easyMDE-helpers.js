@@ -19,25 +19,26 @@ if (document.currentScript) throw Error("import .currentScript"); // is module
  * @returns 
  */
 export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) {
-    let newWay = false;
+    // let newWay = false;
     let taEasyMde;
     let divEasyMdeInert;
     let divEasyMdeOuterWrapper;
     if (taOrDiv.tagName == "TEXTAREA") {
         throw Error(`taOrDiv should be DIV: ${taOrDiv.tagName}`);
-        taEasyMde = taOrDiv;
-        window["MYtaNotes"] = taOrDiv;
-    } else {
-        newWay = true;
-        // debugger;
-        taEasyMde = mkElt("textarea");
-        if (valuePlaceholder) { taEasyMde.setAttribute("placeholder", valuePlaceholder); }
-        divEasyMdeInert = mkElt("div", undefined, taEasyMde);
-        // divEasyMdeOuterWrapper = mkElt("div", undefined, divEasyMdeInert);
-        divEasyMdeOuterWrapper = taOrDiv;
-        divEasyMdeOuterWrapper.appendChild(divEasyMdeInert);
-        // throw Error("new way is not ready");
+        // taEasyMde = taOrDiv;
+        // window["MYtaNotes"] = taOrDiv;
     }
+    // else {
+    // newWay = true;
+    // debugger;
+    taEasyMde = mkElt("textarea");
+    if (valuePlaceholder) { taEasyMde.setAttribute("placeholder", valuePlaceholder); }
+    divEasyMdeInert = mkElt("div", undefined, taEasyMde);
+    // divEasyMdeOuterWrapper = mkElt("div", undefined, divEasyMdeInert);
+    divEasyMdeOuterWrapper = taOrDiv;
+    divEasyMdeOuterWrapper.appendChild(divEasyMdeInert);
+    // throw Error("new way is not ready");
+    // }
     const modEasyMDE = await importFc4i("easymde");
     console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
     const EasyMDE = window["EasyMDE"];
@@ -72,9 +73,9 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     if (easyMDE.isPreviewActive()) throw Error("easyMDE.isPreviewActive()");
     easyMDE.togglePreview();
 
-    if (newWay) {
-        divEasyMdeInert.setAttribute("inert", "");
-    }
+    // if (newWay) {
+    divEasyMdeInert.setAttribute("inert", "");
+    // }
 
     const cud = easyMDE.codemirror.display.cursorDiv;
     const cont = cud.closest("div.EasyMDEContainer");
@@ -113,7 +114,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     const eltToolbar = eltMDEContainer.querySelector("div.editor-toolbar");
     eltToolbar.style.display = "none";
 
-    if (!newWay) { return { easyMDE }; }
+    // if (!newWay) { return { easyMDE }; }
     const btnEdit = addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
 
     return { easyMDE, btnEdit };
@@ -194,7 +195,7 @@ export async function addAlfa(easyMDE) {
     function modifyEasyMDEmarkdown(funMore) {
         EasyMDE.prototype.markdown = function (txt) {
             // txt = origEasyMDEmarkdown(txt);
-            txt = origEasyMDEmarkdown.call(easyMDE,txt);
+            txt = origEasyMDEmarkdown.call(easyMDE, txt);
             return funMore(txt);
         }
     }
