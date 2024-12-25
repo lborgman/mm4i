@@ -121,6 +121,8 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
         const btnClose = document.querySelector("button.mdc-dialog__button");
         if (!btnClose) throw Error("Did not find close button");
         if (!(btnClose instanceof HTMLButtonElement)) throw Error("btnClose is not HTMLButtonElement");
+        const tc = btnClose.textContent ;
+        if (tc != "close") throw Error(`btnClose.textContent is "${tc}", should be "close"`);
         btnClose.focus();
         divEasyMdeInert.removeAttribute("inert");
     }, 500);
