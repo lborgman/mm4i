@@ -146,8 +146,8 @@ function addEditMyNotesButton(container, easyMDE) {
         eltToolbar.scrollIntoView();
         easyMDE.codemirror.options.readOnly = false;
         const divInert = container.querySelector("div[inert]");
-        // divInert.toggleAttribute("inert");
-        divInert.removeAttribute("inert");
+        // Might already be removed
+        divInert?.removeAttribute("inert");
         easyMDE.togglePreview();
         // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
         easyMDE.codemirror.refresh();
