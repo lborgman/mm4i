@@ -118,12 +118,15 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     const btnEdit = addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
 
     setTimeout(() => {
-        const btnClose = document.querySelector("button.mdc-dialog__button");
-        if (!btnClose) throw Error("Did not find close button");
-        if (!(btnClose instanceof HTMLButtonElement)) throw Error("btnClose is not HTMLButtonElement");
-        const tc = btnClose.textContent ;
-        if (tc != "close") throw Error(`btnClose.textContent is "${tc}", should be "close"`);
-        btnClose.focus();
+        const arrBtns = [...document.querySelectorAll("button.mdc-dialog__button")];
+        const btnLast = arrBtns.pop();
+        if (!btnLast) throw Error("Did not find close button");
+        if (!(btnLast instanceof HTMLButtonElement)) throw Error("btnLast is not HTMLButtonElement");
+        // const tc = btnClose.textContent ;
+        // if (tc != "close") throw Error(`btnClose.textContent is "${tc}", should be "close"`);
+        const act = btnLast.dataset.mdcDialogAction;
+        if (!["close","confirm"].includes(act)) throw Error(`btnLast action is ${act}`);
+        btnLast.focus();
         divEasyMdeInert.removeAttribute("inert");
     }, 500);
     return { easyMDE, btnEdit };
