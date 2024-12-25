@@ -117,7 +117,13 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     // if (!newWay) { return { easyMDE }; }
     const btnEdit = addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
 
-    setTimeout(() => { divEasyMdeInert.removeAttribute("inert"); }, 500);
+    setTimeout(() => {
+        const btnClose = document.querySelector("button.mdc-dialog__button");
+        if (!btnClose) throw Error("Did not find close button");
+        if (!(btnClose instanceof HTMLButtonElement)) throw Error("btnClose is not HTMLButtonElement");
+        btnClose.focus();
+        divEasyMdeInert.removeAttribute("inert");
+    }, 500);
     return { easyMDE, btnEdit };
 }
 
