@@ -125,6 +125,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
         // const tc = btnClose.textContent ;
         // if (tc != "close") throw Error(`btnClose.textContent is "${tc}", should be "close"`);
         const act = btnLast.dataset.mdcDialogAction;
+        if (act == undefined) throw Error("btnLast has not .dataset.mdcDialogAction");
         if (!["close","confirm"].includes(act)) throw Error(`btnLast action is ${act}`);
         btnLast.focus();
         divEasyMdeInert.removeAttribute("inert");
