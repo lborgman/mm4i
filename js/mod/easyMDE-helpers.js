@@ -117,19 +117,50 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     // if (!newWay) { return { easyMDE }; }
     const btnEdit = addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
 
-    setTimeout(() => {
-        const arrBtns = [...document.querySelectorAll("button.mdc-dialog__button")];
-        const btnLast = arrBtns.pop();
-        if (!btnLast) throw Error("Did not find close button");
-        if (!(btnLast instanceof HTMLButtonElement)) throw Error("btnLast is not HTMLButtonElement");
-        // const tc = btnClose.textContent ;
-        // if (tc != "close") throw Error(`btnClose.textContent is "${tc}", should be "close"`);
-        const act = btnLast.dataset.mdcDialogAction;
-        if (act == undefined) throw Error("btnLast has not .dataset.mdcDialogAction");
-        if (!["close","confirm"].includes(act)) throw Error(`btnLast action is ${act}`);
-        btnLast.focus();
+
+    async function waitForConnected(elt, msMaxWait) {
+        if (elt.isConnected) {
+            console.log(`waitForConnected, was already connected`);
+            return;
+        }
+        // .isConnected is cheap, so check in short intervals
+        const msStartWait = Date.now();
+        return new Promise((resolve, reject) => {
+            const intervalId = setInterval(() => {
+                const msElapsed = Date.now() - msStartWait;
+                if (elt.isConnected) {
+                    console.log(`waitForConnected, connected after ${msElapsed} ms`);
+                    clearInterval(intervalId);
+                    console.log
+                    resolve(true);
+                }
+                if (msElapsed > msMaxWait) {
+                    clearInterval(intervalId);
+                    const msg = `waitForConnected: not connected after ${msMaxWait}ms`;
+                    console.error(msg, elt);
+                    throw Error(msg);
+                }
+            }, 100);
+        });
+    }
+    // To be able to click the links in the rendered document we must remove "inert".
+    // However if we do that directly the virtual keyboard will popup on an Android mobile.
+    // So we must first focus on an element outside of easyMDE.
+
+    // setTimeout(async () => {
+    // if (!btnEdit.isConnected) { throw Error("btnEdit is not yet connected to the document"); }
+    (async function () {
+        await waitForConnected(btnEdit, 800);
+        btnEdit.focus();
+        const eltActive = document.activeElement;
+        if (btnEdit != eltActive) {
+            console.error("active element is not btnEdit", eltActive);
+            throw Error(`document.activeElement is not btnEdit`);
+        }
         divEasyMdeInert.removeAttribute("inert");
-    }, 500);
+        // }, 600);
+    })();
+
     return { easyMDE, btnEdit };
 }
 
