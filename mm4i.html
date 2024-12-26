@@ -125,7 +125,6 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            NOoverflow: hidden;
             position: relative;
             touch-action: none;
         }
@@ -410,9 +409,9 @@
 
         #mm4i-page-menu {
             position: fixed;
-            NOleft: 0;
-            NOtop: calc(2.5 * var(--font-size));
-            NOopacity: 1;
+            /* left: 0; */
+            /* top: calc(2.5 * var(--font-size)); */
+            /* opacity: 1; */
             display: block;
             z-index: 6;
             transition: opacity 0.3s;
@@ -431,9 +430,11 @@
             gap: 20px;
         }
 
+        /*
         #mm4i-page-menu li.menu-text-and-key {
             NObackground-color: red;
         }
+        */
 
         #mm4i-page-menu li.menu-text-and-key span.menu-item-key {
             font-weight: bold;

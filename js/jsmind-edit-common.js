@@ -1,13 +1,13 @@
 // @ts-check
 
 const version = "0.1.001";
-logConsoleHereIs(`here is jsmind-edit-common.js, module, ${version}`);
+window["logConsoleHereIs"](`here is jsmind-edit-common.js, module, ${version}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
-// @ts-ignore
-const importFc4i = window.importFc4i;
-// @ts-ignore
-const mkElt = window.mkElt;
+const importFc4i = window["importFc4i"];
+const mkElt = window["mkElt"];
+const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
+
 // @ts-ignore
 const jsMind = window.jsMind;
 if (!jsMind) { throw Error("jsMind is not setup"); }
@@ -131,13 +131,13 @@ class PointHandle {
         // const savedPointerPos = modTools.getSavedPointerPos();
         const savedStartPointerPos = await modTools.getAndClearStartPointerPos();
         if (savedStartPointerPos.startX == undefined) {
-            debugger;
+            debugger; // eslint-disable-line no-debugger
             throw Error(".addPosListeners must be called earlier");
         }
         const startX = savedStartPointerPos.startX;
         const startY = savedStartPointerPos.startY;
         if (isNaN(startX) || isNaN(startY)) {
-            debugger;
+            debugger; // eslint-disable-line no-debugger
             // FIX-ME:
         }
         posPointHandle = {
@@ -208,7 +208,7 @@ class PointHandle {
         const diffX = posPointHandle.start.clientX - savedPointerPos.clientX;
         const diffY = posPointHandle.start.clientY - savedPointerPos.clientY;
         if (isNaN(diffX) || isNaN(diffY)) {
-            debugger;
+            debugger; // eslint-disable-line no-debugger
             throw Error(" ddiffX oriffY isNaN");
         }
         if (this.isState("dist")) {
@@ -446,7 +446,7 @@ function movePointHandle() {
     const clientX = savedPointerPos.clientX;
     const clientY = savedPointerPos.clientY;
     if (isNaN(clientX) || isNaN(clientY)) {
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         throw Error(`Saved pos is ${clientX}, ${clientY}`);
     }
     if ((im++ % 40) == 0) console.log("mPH, clientX", clientX);
@@ -1240,7 +1240,8 @@ export async function pageSetup() {
 
     let funStopScroll;
     modFsm.fsm.post_hook_entry("c_Move", (hookData) => {
-        const { eltJmnode, pointerType } = hookData.data;
+        // const { eltJmnode, pointerType } = hookData.data;
+        const { eltJmnode } = hookData.data;
         if (eltJmnode && (!eltJmnode.classList.contains("root"))) throw Error("eltJmnode in c_Move");
         funStopScroll = undefined;
         const jmnodes = getJmnodesFromJm(jmDisplayed);
@@ -1617,6 +1618,7 @@ export async function pageSetup() {
         if (bottom < 0) divMenu.style.top = parseInt(divMenu.style.top) + bottom;
         divMenu.style.opacity = 1;
     }
+    /*
     async function displayContextMenu(forElt, left, top) {
         // const divMenu = await mkDivContextMenu();
         const divMenu = await mkPageMenu();
@@ -1641,6 +1643,7 @@ export async function pageSetup() {
 
         divMenu.style.opacity = 1;
     }
+    */
 
     async function dialogEditMindmap() {
         const modCustRend = await importFc4i("jsmind-cust-rend");
@@ -1737,13 +1740,11 @@ export async function pageSetup() {
                 gap: 25px;
             `;
 
-            // # my notes
             const modEasyMDE = await importFc4i("easymde");
             console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
-            const easyMDE = new EasyMDE({
+            const easyMDE = new window["EasyMDE"]({
                 element: taNotes,
                 status: false,
-                // toolbar: [],
             });
 
 
@@ -1757,7 +1758,7 @@ export async function pageSetup() {
 
             const dlg = await modMdc.mkMDCdialog(body, eltActions);
             // function closeDialog() { dlg.mdc.close(); }
-            const res = await new Promise((resolve, reject) => {
+            const res = await new Promise((resolve) => {
                 dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async evt => {
                     const action = evt.detail.action;
                     const topic = inpTopic.value.trim();
@@ -1791,7 +1792,7 @@ export async function pageSetup() {
             }
             let notes = easyMDE.value().trimEnd();
             if (notes.length > 0) {
-                debugger;
+                debugger; // eslint-disable-line no-debugger
                 const se = { notes };
                 new_node.data.shapeEtc = se;
             }
@@ -1921,7 +1922,7 @@ export async function pageSetup() {
             const newLeft = oldLeft + dx;
             const newTop = oldTop + dy;
             if (isNaN(newLeft) || isNaN(newTop)) {
-                debugger;
+                debugger; // eslint-disable-line no-debugger
                 throw Error(`isNan: newLeft:${newLeft}, newTop:${newTop}`);
             }
             const newLeftPx = `${newLeft}px`.replace("-0px", "0px");
@@ -2012,19 +2013,6 @@ function updateCustomAndShapes(jmDisplayed) {
     }, 500);
 }
 
-// https://css-tricks.com/converting-color-spaces-in-javascript/
-// function RGBToHex(rgb) { return standardizeColorTo6Hex(rgb); }
-
-// https://stackoverflow.com/questions/1573053/javascript-function-to-convert-color-names-to-hex-codes/47355187#47355187
-export function standardizeColorTo6Hex(strColor) {
-    const ctx = document.createElement('canvas').getContext('2d');
-    if (!ctx) { throw Error("Could not get canvas 2d"); }
-    ctx.fillStyle = strColor;
-    return ctx.fillStyle;
-}
-export function to6HexColor(color) {
-    return standardizeColorTo6Hex(color);
-}
 
 
 
@@ -2068,39 +2056,6 @@ export function getMatchesInCssRules(re) {
 }
 
 
-//////////////////////
-// Accesibility color contrast
-
-// https://codepen.io/davidhalford/pen/AbKBNr
-function getCorrectTextColor(color) {
-    // @ts-ignore
-    const hex = to6HexColor(color).substring(1);
-
-    /*
-    From this W3C document: http://www.webmasterworld.com/r.cgi?f=88&d=9769&url=http://www.w3.org/TR/AERT#color-contrast
-    
-    Color brightness is determined by the following formula: 
-    ((Red value X 299) + (Green value X 587) + (Blue value X 114)) / 1000
- 
-I know this could be more compact, but I think this is easier to read/explain.
-    
-    */
-
-    const threshold = 130; /* about half of 256. Lower threshold equals more dark text on dark background  */
-
-    const hRed = hexToR(hex);
-    const hGreen = hexToG(hex);
-    const hBlue = hexToB(hex);
-
-
-    function hexToR(h) { return parseInt((cutHex(h)).substring(0, 2), 16) }
-    function hexToG(h) { return parseInt((cutHex(h)).substring(2, 4), 16) }
-    function hexToB(h) { return parseInt((cutHex(h)).substring(4, 6), 16) }
-    function cutHex(h) { return (h.charAt(0) == "#") ? h.substring(1, 7) : h }
-
-    const cBrightness = ((hRed * 299) + (hGreen * 587) + (hBlue * 114)) / 1000;
-    if (cBrightness > threshold) { return "#000000"; } else { return "#ffffff"; }
-}
 
 
 
@@ -2295,184 +2250,6 @@ export async function dialogFindInMindMaps(key, provider) {
 }
 
 
-///////////////////////////////////////
-/***************** Test cm on screen */
-///////////////////////////////////////
-
-// testCmOnScreen();
-function testCmOnScreen() {
-
-    ////////// In Google Chrome on Windows:
-
-    // Known by Google Chrome dev tools
-    // Width from https://GSMArena.com/
-    const knownDevices = {
-
-        //// Works for Pixel 7, devicePixelRatio==2.625, 1/r=0.381
-        a: {
-            name: "Pixel 7",
-            screenMmWidth: 73.2 - 2.54 * 0.17,
-            devUA: "(Linux; Android 13; Pixel 7)",
-            devicePixelRatio: 2.625,
-            corr: 0.670,
-            measuredPixelRatio: 2.875,
-            measuredCorr: 0.741
-        },
-
-        //// Works for Samsung Galaxy S8 Plus, 7.1cm, devicePixelRatio==4, 1/r=0.250
-        b: {
-            name: "Samsung Galaxy S8+",
-            screenMmWidth: 73.4 - 2.54 * 0.08,
-            devicePixelRatio: 4,
-            devUA: "(Linux; Android 13; SM-G981B)",
-            corr: 0.777
-        },
-
-        //// Works for Samsung Galaxy S20 Ultra, devicePixelRatio==3.5, 1/r=0.286
-        c: {
-            name: "Samsung Galaxy S20 Ultra",
-            screenMmWidth: 76 - 2.54 * 0.33,
-            devicePixelRatio: 3.5,
-            devUA: "(Linux; Android 13; SM-G981B)",
-            corr: 0.693
-        }
-
-    }
-
-
-    let dev = "none";
-    let corr = 1;
-
-    function promptDev(parDev) {
-        let txtPrompt = ``;
-        for (const [k, v] of Object.entries(knownDevices)) {
-            txtPrompt += `  ${k}: ${v.name}\n`;
-        }
-        return prompt(txtPrompt, parDev);
-    }
-    while (!Object.keys(knownDevices).includes(dev)) {
-        const tmp = promptDev(dev)?.trim();
-        if (!tmp) return;
-        dev = tmp;
-        console.log({ dev });
-    }
-    const devRec = knownDevices[dev];
-    console.log(devRec);
-
-    if (location.protocol == "http:") {
-        // Emulating mobile device?
-        const re = new RegExp("\\(.*?\\)");
-        // @ts-ignore
-        const devUA = re.exec(navigator.userAgent)[0];
-        console.log({ devUA });
-        if (!devRec.devUA) throw Error(`devRec.devUA is not set, should be "${devUA}"`);
-        if (devRec.devUA && devRec.devUA != devUA) {
-            throw Error(`devUA did not match: w"${devUA}"!=d"${devRec.devUA}"A`);
-        }
-    }
-    if (devRec.devicePixelRatio) {
-        const devRatio = devRec.devicePixelRatio;
-        const winRatio = window.devicePixelRatio;
-        if (devRatio != winRatio) {
-            // throw Error(`devicePixelRatio, d${devRatio} != w${winRatio}`);
-            alert(`devicePixelRatio, d${devRatio} != w${winRatio}`);
-        }
-    }
-
-
-    corr = devRec.corr || corr;
-    const devName = devRec.name;
-    const devCmW = devRec.screenMmWidth / 10;
-    const txtPromptCorr = `
-        ${devName}
-        Real Width: ${devCmW.toFixed(1)}cm
-        devicePixelRatio==${window.devicePixelRatio},
-
-        Correction:
-    `;
-    const corrTxt = prompt(txtPromptCorr, corr.toFixed(3));
-    if (!corrTxt) return;
-    corr = corrTxt ? parseFloat(corrTxt) : 0;
-
-    function cm2screenPixels(cm) {
-        const dpcm1 = estimateDpcm();
-        console.log({ dpcm1 });
-        const px = cm * dpcm1 / (window.devicePixelRatio * corr);
-        console.log({ cm, px });
-        return px;
-    }
-    function estimateDpcm() {
-        let x = 10;
-        while (x < 2000) {
-            x *= 1.01;
-            if (!window.matchMedia(`(min-resolution: ${x}dpcm)`).matches) break;
-        }
-        const dpcm = x;
-        console.log({ dpcm });
-        return dpcm;
-    }
-
-    function showCmTestGrid(cmGrid, comparePx, compareWhat) {
-        const cmPx = cm2screenPixels(cmGrid);
-        compareWhat = compareWhat || "Compare: ";
-        const eltBg = document.createElement("div");
-        // @ts-ignore
-        eltBg.style = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            opacity: 0.5;
-            background-color: red;
-            background-image:
-                linear-gradient(to right, black 1px, transparent 1px),
-                linear-gradient(to bottom, black 1px, transparent 1px);
-            background-size: ${cmPx}px ${cmPx}px;
-            z-index: 9999;
-        `;
-        document.body.appendChild(eltBg);
-
-        const dpcm2 = estimateDpcm();
-        console.log({ dpcm2 });
-        const screenPx = screen.width;
-        const screenCm = screenPx / cm2screenPixels(1);
-        const bestCorr = corr * devCmW / screenCm;
-        let info = `
-            ${devName}, Spec screen:${screenPx}px/${devCmW.toFixed(2)}cm
-            - corr:${corr}(${bestCorr.toFixed(3)})/${screenCm.toFixed(2)}cm
-            --- cm:${cmPx.toFixed(0)}px
-            - dpcm:${dpcm2.toFixed(1)}`;
-        if (comparePx) info += ` - ${compareWhat}: ${comparePx.toFixed(0)}px`;
-        const eltInfo = document.createElement("span");
-        eltInfo.textContent = info;
-        // @ts-ignore
-        eltInfo.style = `
-        position: fixed;
-        top: 0;
-        left: 0;
-        display: inline-block;
-        padding: 4px;
-        background-color: yellow;
-        color: black;
-        z-index: 9999;
-    `;
-        const btn = document.createElement("button");
-        btn.textContent = "Close";
-        btn.addEventListener("click", () => { eltBg.remove(); eltInfo.remove(); });
-        btn.style.marginLeft = "20px";
-        eltInfo.appendChild(btn);
-        document.body.appendChild(eltInfo);
-    }
-
-    if (corr) {
-        // showCmTestGrid(2);
-        setTimeout(() => {
-            showCmTestGrid(2);
-            console.log({ knownDevices });
-        }, 1000);
-    }
-}
 
 
 
@@ -2592,7 +2369,7 @@ async function updateSmallGraph() {
         height: 100%;
     `;
     const cw = eltSmallGraph.clientWidth;
-    const ch = eltSmallGraph.clientHeight;
+    // const ch = eltSmallGraph.clientHeight;
     const svgW = parseInt(svg.getAttribute("width"));
     const svgH = parseInt(svg.getAttribute("height"));
     // console.log({ svgW }, { svgH });

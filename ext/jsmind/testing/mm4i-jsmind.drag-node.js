@@ -7,11 +7,14 @@
  * 
  */
 
+// @ts-check
+
 const version = "0.1.000";
-logConsoleHereIs(`here is mm4i-jsmind.drag-node.js, module ${version}`);
+window["logConsoleHereIs"](`here is mm4i-jsmind.drag-node.js, module ${version}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
-
+const mkElt = window["mkElt"];
+const jsMind = window["jsMind"];
 
 
 
@@ -99,15 +102,28 @@ function informDragStatus(msg) {
     }
 }
 
+/** 
+ * @typedef {object} nodeAndBcr 
+ * @property {number} id
+ * @property {DOMRect} bcr
+ * @property {Element} eltNode
+*/
+
+/**
+ * 
+ * @returns {nodeAndBcr[]}
+ */
 function getAllNodesAndBcr() {
     // FIX-ME: jmnodes
     const jmns = document.querySelector("jmnodes");
-    return [...jmns.querySelectorAll("jmnode")].map(eltNode => {
-        const id = getNodeIdFromDOMelt(eltNode);
-        const bcr = eltNode.getBoundingClientRect(eltNode);
-        // console.log(id, bcr);
-        return { id, bcr, eltNode };
+    if (!jmns) throw Error("Could not find <jmnodes>");
+    const /** @type nodeAndBcr[] */ result = [...jmns.querySelectorAll("jmnode")].map(eltNode => {
+        const /** @type {number} */ id = getNodeIdFromDOMelt(eltNode);
+        const bcr = eltNode.getBoundingClientRect();
+        const nodeAndBcr = /** @type {nodeAndBcr} */ { id, bcr, eltNode };
+        return nodeAndBcr;
     });
+    return result;
 }
 function getNodesInColumn(arrBcr, clientX, nodeDragged) {
     const arrInCol = arrBcr.filter(e => {
@@ -276,7 +292,8 @@ function whenDragPauses() {
     nodeAbove = undefined;
     nodeBelow = undefined;
 
-    let entryAbove, entryBelow;
+    let /** @type {nodeAndBcr} */ entryAbove;
+    let /** @type {nodeAndBcr} */ entryBelow;
     const arrNodesBcr = getAllNodesAndBcr();
     const arrCol = getNodesInColumn(arrNodesBcr, colClientX, eltDragged);
     const getY = (entry) => (entry.bcr.top + entry.bcr.bottom) / 2;

@@ -343,8 +343,9 @@ export class CustomRenderer4jsMind {
                             if (contrast < 2.5) jmnode.style.outline = "8px dotted red";
                             if (contrast < 2.0) jmnode.style.outline = "10px dotted red";
                         }
-                        const fgHex = to6HexColor(fgColor);
-                        const fgHexCorrect = getCorrectTextColor(bgColor);
+                        // const fgHex = to6HexColor(fgColor);
+                        const fgHex = modTools.standardizeColorTo6Hex(fgColor);
+                        const fgHexCorrect = modTools.getBlackOrWhiteTextColor(bgColor);
                         if (fgHex !== fgHexCorrect) {
                             jmnode.style.outlineColor = "black";
                         }
@@ -1255,9 +1256,11 @@ export class CustomRenderer4jsMind {
             // Check if backgroundColor is our transparent default:
             const bgRgba = style.backgroundColor;
             if (bgRgba != "rgba(0, 0, 0, 0)") {
-                inpBgColor.value = modJsEditCommon.to6HexColor(style.backgroundColor);
+                // inpBgColor.value = modJsEditCommon.to6HexColor(style.backgroundColor);
+                inpBgColor.value = modTools.standardizeColorTo6Hex(style.backgroundColor);
             }
-            inpFgColor.value = modJsEditCommon.to6HexColor(style.color);
+            // inpFgColor.value = modJsEditCommon.to6HexColor(style.color);
+            inpFgColor.value = modTools.standardizeColorTo6Hex(style.color);
             checkColorContrast();
         });
         // let bgColorChanged;
@@ -1862,12 +1865,14 @@ export class CustomRenderer4jsMind {
             btnChangeBg.style.display = null;
         }
 
+        /*
         const mkTopicChoice = (id, label, divChoice) => {
             const inpRadio = mkElt("input", { type: "radio", id, name: "topic-choice" });
             const mdcRadio = modMdc.mkMDCradioElt(inpRadio);
             const lbl = mkElt("label", undefined, [mdcRadio, label]);
             return mkElt("div", { class: "mdc-card topic-choice" }, [lbl, divChoice]);
         }
+        */
         // const OLDdivTopicChoiceSimple = mkTopicChoice("topic-choice-simple", "Default node type", mkElt("div", undefined, [tafTopic, tfLink, divLinkPreview]));
         const detBasicNodeChoices =
             mkElt("div", undefined, [
@@ -2002,14 +2007,15 @@ export class CustomRenderer4jsMind {
             if (detNodeChoiceCustom.dataset.jsmindCustom) {
                 const strCustom = detNodeChoiceCustom.dataset.jsmindCustom;
                 const objCopiedCustom = JSON.parse(strCustom);
-                const eltCustomLink = mkElt("div", { class: "jsmind-ednode-custom-link" });
+                // const eltCustomLink = mkElt("div", { class: "jsmind-ednode-custom-link" });
                 const key = objCopiedCustom.key;
                 const provider = objCopiedCustom.provider;
                 const r = await getOurCustomRenderer();
-                const providerName = r.getProviderLongName(provider);
+                // const providerName = r.getProviderLongName(provider);
                 const rec = await r.getCustomRec(key, provider);
 
                 const divTitle = document.getElementById("ednode-cust-title");
+                if (!divTitle) throw Error("Could not find ednode-cust-title");
                 divTitle.style.lineHeight = "normal";
                 divTitle.textContent = rec.title;
 
@@ -2119,7 +2125,8 @@ export class CustomRenderer4jsMind {
         function mkCtrlColor(pathShEtc, defaultColor) {
             const objShEtc = getShapeEtcGrpMbr(pathShEtc);
             const initColor = getFromShapeEtc(objShEtc, initialShapeEtc) || defaultColor;
-            const initHex6 = modJsEditCommon.to6HexColor(initColor);
+            // const initHex6 = modJsEditCommon.to6HexColor(initColor);
+            const initHex6 = modTools.standardizeColorTo6Hex(initColor);
             const inpColor = mkElt("input", { type: "color", value: initHex6 });
             // const funGrp = onCtrlsGrpChg[objShEtc.grpName];
             inpColor.addEventListener("input", () => {
@@ -2144,7 +2151,7 @@ export class CustomRenderer4jsMind {
             const funChange = () => {
                 setInCurrent();
                 if (funChgThis) funChgThis();
-                const funGrp = onCtrlsGrpChg[objShEtc.grpName];
+                // const funGrp = onCtrlsGrpChg[objShEtc.grpName];
                 onAnyCtrlChangeNode(); // throttle
             }
             function setInCurrent() {
@@ -2257,10 +2264,12 @@ export class CustomRenderer4jsMind {
 
         // The workaround:
         const thumbSize = "30";
+        /*
         const style = [
             `width:${thumbSize}px`,
             `height:${thumbSize}px`,
         ].join(";");
+        */
         const icon = modMdc.mkMDCicon("resize");
         icon.style = `
             fontSize: ${thumbSize}px;
@@ -2289,7 +2298,8 @@ export class CustomRenderer4jsMind {
 
         setTimeout(async () => {
             const eltMutations = thumb.parentElement.parentElement.parentElement
-            const resMu = await wait4mutations(eltMutations, 500);
+            await wait4mutations(eltMutations, 500);
+            // const resMu = await wait4mutations(eltMutations, 500);
             // console.log({ resMu });
             bcrCd = eltCopied.getBoundingClientRect();
             bcrT = thumb.getBoundingClientRect();
@@ -2345,11 +2355,11 @@ export class CustomRenderer4jsMind {
             }
         };
 
-        let n = 0;
+        // let n = 0;
         // jsmind-ednode-parts
         console.log({ divEdnodeParts, divEdnodeCopied });
         function onThumbMove(evts) {
-            const target = evts.target;
+            // const target = evts.target;
             const evt = evts[0] || evts;
             const nowClientX = evt.clientX;
             const nowClientY = evt.clientY;
@@ -2477,13 +2487,13 @@ export class CustomRenderer4jsMind {
         if (scrollToNotes) {
             setTimeout(() => {
                 if (!body.ownerDocument) {
-                    debugger;
+                    debugger; // eslint-disable-line no-debugger
                     throw Error("body is not yet in document");
                 }
                 const divNotes = body.querySelector("div.EasyMDEContainer");
                 console.log({ divNotes });
                 if (!divNotes) {
-                    debugger;
+                    debugger; // eslint-disable-line no-debugger
                     throw Error("Could not find notes");
                 }
                 const opt = { behavior: "smooth" };

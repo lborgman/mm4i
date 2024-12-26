@@ -1,6 +1,6 @@
 // @ts-check
 const TOOLS_VER = "0.0.7";
-logConsoleHereIs(`here is tools.js, module, ${TOOLS_VER}`);
+window["logConsoleHereIs"](`here is tools.js, module, ${TOOLS_VER}`);
 if (document.currentScript) { throw "tools.js is not loaded as module"; }
 
 const mkElt = window["mkElt"];
@@ -151,7 +151,7 @@ export function wait4mutations(elt, ms, observeWhat, msMaxWait) {
                 mu.disconnect();
                 mu = undefined;
             } else {
-                mu = new MutationObserver(mutations => {
+                mu = new MutationObserver(_mutations => {
                     // console.log("mutations!");
                     restartTimer();
                 });
@@ -187,8 +187,9 @@ function mkButton(attrib, inner) {
     let isEdge = false;
     let isFirefox = false;
     if (isChromiumBased) {
-        if (navigator.vendor !== "Google Inc.") throw Error(`Vendor is ${navigator.vendor}`);
+        // if (navigator.vendor !== "Google Inc.") throw Error(`Vendor is ${navigator.vendor}`);
         isEdge = navigator.userAgent.indexOf(" Edg/") > -1;
+        console.log({ isEdge });
     } else {
         const m = navigator.userAgent.match(/ Firefox\/(\d+)/);
         isFirefox = !!m;
@@ -206,10 +207,10 @@ function mkButton(attrib, inner) {
     }
 
     try {
-        // let n = undefined;
-        // let nx = n?.x;
-        const fn = new Function('n?.x');
+        new Function('n?.x');
     } catch (err) {
+        console.log(err);
+        debugger; // eslint-disable-line no-debugger
         missingFeatures.push("Syntax n?.x not recognized");
     }
     // return;
@@ -221,12 +222,9 @@ function mkButton(attrib, inner) {
 
     console.warn("Not supported");
 
-    // const helpURL = "https://easycaped.wordpress.com";
     const pathnameHowto = "/js/msj/howto.html";
     if (location.pathname === pathnameHowto) return;
     const helpURL = `${location.protocol}//${location.host}${pathnameHowto}`;
-
-    // return;
 
     const ulMissing = mkElt("ul", undefined,
         missingFeatures.map(miss => mkElt("li", undefined, miss)));
@@ -254,15 +252,6 @@ function mkButton(attrib, inner) {
         ])
     ])
 
-    // return;
-    /*
-    const popup = new Popup(title, body);
-    popup.show();
-    btnOk.addEventListener("click", evt => {
-        evt.stopPropagation();
-        popup.close();
-    });
-    */
     popupDialog(title, body, "info");
 })();
 
@@ -321,6 +310,7 @@ function alertNetworkTrouble(msg, e) {
     console.log(`%c Network trouble: ${msg}`, "font-size:1.5rem;", msg, e);
     const title = "Network Problem";
     const body = mkElt("div");
+    body.id = id;
     if (e) {
         body.appendChild(mkElt("p", { class: "colorError", style: "padding:1rem;" }, e.message));
     }
@@ -341,7 +331,8 @@ function alertNetworkTrouble(msg, e) {
             Did you just switch your device offline?
             `));
     }
-    new Popup(title, body, undefined, true, id).show();
+    // new Popup(title, body, undefined, true, id).show();
+    popupDialog(title, body);
 }
 
 function alertRealError(msg, e) {
@@ -439,12 +430,8 @@ function alertRealError(msg, e) {
     contextStr += "\n* Browser: " + navigator.userAgent;
     contextStr += "\n* Online: " + navigator.onLine;
     // contextStr += "\n* "+location.href;
-    if (typeof theCapLoadType != "undefined") {
-        contextStr += "\n* " + theCapLoadType.toString();
-    }
-    if (typeof theEditor !== "undefined") {
-        contextStr += "\n* Captions";
-    }
+    // if (typeof theCapLoadType != "undefined") { contextStr += "\n* " + theCapLoadType.toString(); }
+    // if (typeof theEditor !== "undefined") { contextStr += "\n* Captions"; }
     try {
         if ((typeof theFirstAuthStateChangedDone == "boolean") && theFirstAuthStateChangedDone) {
             let user = theFirebaseCurrentUser;
@@ -559,10 +546,6 @@ function alertRealError(msg, e) {
             ),
         ]);
 
-    /*
-    var pop = new Popup(title, body, undefined, true, theErrorPopupId);
-    pop.show();
-    */
     popupDialog(title, body, "error");
 
 }
@@ -669,7 +652,6 @@ function mkWarningPopup(title, body) {
         ]);
     let bodyFull = mkElt("div", undefined,
         [mkElt("p", undefined, body), warningInfo]);
-    // return new Popup(title, bodyFull, undefined, true, undefined, undefined, "warning-popup");
     popupDialog(title, bodyFull, "warning");
 }
 
@@ -705,6 +687,7 @@ function removeTokensFromObject(obj) {
                 removeTokensFromObject(val);
             }
         } catch (err) {
+            console.error(err);
             debugger; // eslint-disable-line no-debugger
         }
     }
@@ -816,9 +799,9 @@ var theFirebaseCurrentUser;
 var theFirebaseCurrentUserEmail;
 
 const traceHelper = [];
-const traceStart = new Date();
+const traceStart = Date.now();
 const addTraceDoIt = function (isError, trace) {
-    const ms = new Date() - traceStart;
+    const ms = Date.now() - traceStart;
     trace.unshift(ms);
     traceHelper.push(trace);
     if (isError) {
@@ -840,11 +823,6 @@ function addTraceError(...trace) {
 // addTraceError("Testing addTraceError");
 
 function popupTrace() {
-    /*
-    new Popup("Trace",
-        mkElt("pre", undefined, JSON.stringify(traceHelper, undefined, 2)),
-        undefined, true).show();
-    */
     popupDialog("Trace",
         mkElt("pre", undefined, JSON.stringify(traceHelper, undefined, 2)),
         "info");
@@ -862,7 +840,7 @@ function mkJsonType(obj) {
 async function popupDialog(title, body, severity) {
     // const hasDialog = Object.getOwnPropertyNames(window).includes("HTMLDialogElement");
     // Use dialog as fallback
-    const useDialog = typeof Popup !== "function";
+    const useDialog = true; // typeof Popup !== "function";
     let styleDia = "max-width:90vw; max-height:80vh; overflow:auto; color:black; ";
     switch (severity) {
         case "error":
@@ -874,7 +852,7 @@ async function popupDialog(title, body, severity) {
                         const styleUpdate = "background:black; color:white; padding:10px; display: none;";
                         const divUpdate = mkElt("div", { style: styleUpdate }, ["Update available ", btnUpdate]);
                         body.insertBefore(divUpdate, body.firstElementChild)
-                        btnUpdate.addEventListener("click", errorHandlerAsyncEvent(async evt => {
+                        btnUpdate.addEventListener("click", errorHandlerAsyncEvent(async () => {
                             modPwa.updateNow();
                         }));
                         // if (modPwa.hasUpdate())
@@ -883,13 +861,14 @@ async function popupDialog(title, body, severity) {
                             window.onbeforeunload = null;
                             setTimeout(() => divUpdate.style.display = "block", 100);
                         } else {
-                            window.addEventListener("pwa-update-available", evt => {
+                            window.addEventListener("pwa-update-available", () => {
                                 console.log("?????? pwa-update-available");
                                 window.onbeforeunload = null;
                                 divUpdate.style.display = "block";
                             });
                         }
                     } catch (err) {
+                        console.error(err);
                         debugger; // eslint-disable-line no-debugger
                     }
                 })();
@@ -914,7 +893,7 @@ async function popupDialog(title, body, severity) {
     if (useDialog) {
         const closeBtn = mkElt("button", { style: styleBtn }, "CLOSE");
         // FIXME: the native dialog is broken 2020-07-15
-        closeBtn.addEventListener("click", evt => {
+        closeBtn.addEventListener("click", () => {
             dialog.close();
             document.body.removeChild(dialog);
             window.onbeforeunload = null;
@@ -931,11 +910,10 @@ async function popupDialog(title, body, severity) {
         document.body.appendChild(dialog);
         dialog.showModal();
     } else {
-        body.style = styleDia;
-        // body.style.position = undefined; // has no effect
-        // delete body.style.position; // has no effect
-        body.style.position = "static";
-        new Popup(title, body, undefined, true, undefined, "max-width: min(90vw, 800px);").show();
+        throw Error("useDialog should be true");
+        // body.style = styleDia;
+        // body.style.position = "static";
+        // new Popup(title, body, undefined, true, undefined, "max-width: min(90vw, 800px);").show();
     }
 }
 
@@ -964,6 +942,7 @@ function startDropShield() {
         if (dropAllowed(evt.target)) return;
         evt.preventDefault();
         evt.stopPropagation();
+        if (!evt.dataTransfer) return;
         evt.dataTransfer.dropEffect = "none";
     });
 }
@@ -1244,7 +1223,7 @@ function setupWait4Saved() {
     if (promHasSaved != undefined) throw Error("promHasSaved should be undefined here");
     aborter4HasSaved = new AbortController();
     promHasSaved = new Promise((resolve, reject) => {
-        aborter4HasSaved.signal.addEventListener("abort", evt => {
+        aborter4HasSaved.signal.addEventListener("abort", () => {
             const reason = aborter4HasSaved.signal.reason;
             if (reason == "has saved pos") {
                 // console.log(`promHasSaved: abort resolve: ${reason}`);
@@ -1264,7 +1243,7 @@ function setupWait4Saved() {
  */
 export function savePointerdownPos(evt) {
     if (evt.type != "pointerdown") {
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         throw Error(`Expected event type "pointerdown", got "${evt.type}`);
     }
     savePointerPos(evt);
@@ -1280,7 +1259,7 @@ function savePointerPos(evt) {
     let fail = isNaN(clientX) || isNaN(clientY);
     if (fail) {
         abortPosListeners.abort();
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         throw Error(`savePointerPos: sXY:${clientX.toFixed(1)},${clientY.toFixed(1)}`);
     }
 
@@ -1351,3 +1330,228 @@ export function removePosListeners() {
     abortPosListeners = undefined;
 }
 window["r"] = removePosListeners; // FIX-ME:
+
+
+
+// https://css-tricks.com/converting-color-spaces-in-javascript/
+// function RGBToHex(rgb) { return standardizeColorTo6Hex(rgb); }
+
+// https://stackoverflow.com/questions/1573053/javascript-function-to-convert-color-names-to-hex-codes/47355187#47355187
+export function standardizeColorTo6Hex(strColor) {
+    const ctx = document.createElement('canvas').getContext('2d');
+    if (!ctx) { throw Error("Could not get canvas 2d"); }
+    ctx.fillStyle = strColor;
+    return ctx.fillStyle;
+}
+// export function to6HexColor(color) { return standardizeColorTo6Hex(color); }
+
+
+//////////////////////
+// Accesibility color contrast
+
+// https://codepen.io/davidhalford/pen/AbKBNr
+// Named getxCorrectTextColor there
+export function getBlackOrWhiteTextColor(bgColor) {
+
+    /*
+        From this W3C document: http://www.w3.org/TR/AERT#color-contrast
+    
+        Color brightness is determined by the following formula: 
+        ((Red value X 299) + (Green value X 587) + (Blue value X 114)) / 1000
+    */
+
+    const threshold = 130; /* about half of 256. Lower threshold equals more dark text on dark background  */
+
+    const hex = standardizeColorTo6Hex(bgColor);
+    const hRed = hexToR(hex);
+    const hGreen = hexToG(hex);
+    const hBlue = hexToB(hex);
+
+    function hexToR(h) { return parseInt((cutHex(h)).substring(0, 2), 16) }
+    function hexToG(h) { return parseInt((cutHex(h)).substring(2, 4), 16) }
+    function hexToB(h) { return parseInt((cutHex(h)).substring(4, 6), 16) }
+    function cutHex(h) { return (h.charAt(0) == "#") ? h.substring(1, 7) : h }
+
+    const cBrightness = ((hRed * 299) + (hGreen * 587) + (hBlue * 114)) / 1000;
+    if (cBrightness > threshold) { return "#000000"; } else { return "#ffffff"; }
+}
+
+
+///////////////////////////////////////
+/***************** Test cm size on screen */
+///////////////////////////////////////
+
+// testCmOnScreen();
+window["testCmOnScreen"] = () => {
+
+    ////////// In Google Chrome on Windows:
+
+    // Known by Google Chrome dev tools
+    // Width from https://GSMArena.com/
+    const knownDevices = {
+
+        //// Works for Pixel 7, devicePixelRatio==2.625, 1/r=0.381
+        a: {
+            name: "Pixel 7",
+            screenMmWidth: 73.2 - 2.54 * 0.17,
+            devUA: "(Linux; Android 13; Pixel 7)",
+            devicePixelRatio: 2.625,
+            corr: 0.670,
+            measuredPixelRatio: 2.875,
+            measuredCorr: 0.741
+        },
+
+        //// Works for Samsung Galaxy S8 Plus, 7.1cm, devicePixelRatio==4, 1/r=0.250
+        b: {
+            name: "Samsung Galaxy S8+",
+            screenMmWidth: 73.4 - 2.54 * 0.08,
+            devicePixelRatio: 4,
+            devUA: "(Linux; Android 13; SM-G981B)",
+            corr: 0.777
+        },
+
+        //// Works for Samsung Galaxy S20 Ultra, devicePixelRatio==3.5, 1/r=0.286
+        c: {
+            name: "Samsung Galaxy S20 Ultra",
+            screenMmWidth: 76 - 2.54 * 0.33,
+            devicePixelRatio: 3.5,
+            devUA: "(Linux; Android 13; SM-G981B)",
+            corr: 0.693
+        }
+
+    }
+
+
+    let dev = "none";
+    let corr = 1;
+
+    function promptDev(parDev) {
+        let txtPrompt = ``;
+        for (const [k, v] of Object.entries(knownDevices)) {
+            txtPrompt += `  ${k}: ${v.name}\n`;
+        }
+        return prompt(txtPrompt, parDev);
+    }
+    while (!Object.keys(knownDevices).includes(dev)) {
+        const tmp = promptDev(dev)?.trim();
+        if (!tmp) return;
+        dev = tmp;
+        console.log({ dev });
+    }
+    const devRec = knownDevices[dev];
+    console.log(devRec);
+
+    if (location.protocol == "http:") {
+        // Emulating mobile device?
+        const re = new RegExp("\\(.*?\\)");
+        // @ts-ignore
+        const devUA = re.exec(navigator.userAgent)[0];
+        console.log({ devUA });
+        if (!devRec.devUA) throw Error(`devRec.devUA is not set, should be "${devUA}"`);
+        if (devRec.devUA && devRec.devUA != devUA) {
+            throw Error(`devUA did not match: w"${devUA}"!=d"${devRec.devUA}"A`);
+        }
+    }
+    if (devRec.devicePixelRatio) {
+        const devRatio = devRec.devicePixelRatio;
+        const winRatio = window.devicePixelRatio;
+        if (devRatio != winRatio) {
+            // throw Error(`devicePixelRatio, d${devRatio} != w${winRatio}`);
+            alert(`devicePixelRatio, d${devRatio} != w${winRatio}`);
+        }
+    }
+
+
+    corr = devRec.corr || corr;
+    const devName = devRec.name;
+    const devCmW = devRec.screenMmWidth / 10;
+    const txtPromptCorr = `
+        ${devName}
+        Real Width: ${devCmW.toFixed(1)}cm
+        devicePixelRatio==${window.devicePixelRatio},
+
+        Correction:
+    `;
+    const corrTxt = prompt(txtPromptCorr, corr.toFixed(3));
+    if (!corrTxt) return;
+    corr = corrTxt ? parseFloat(corrTxt) : 0;
+
+    function cm2screenPixels(cm) {
+        const dpcm1 = estimateDpcm();
+        console.log({ dpcm1 });
+        const px = cm * dpcm1 / (window.devicePixelRatio * corr);
+        console.log({ cm, px });
+        return px;
+    }
+    function estimateDpcm() {
+        let x = 10;
+        while (x < 2000) {
+            x *= 1.01;
+            if (!window.matchMedia(`(min-resolution: ${x}dpcm)`).matches) break;
+        }
+        const dpcm = x;
+        console.log({ dpcm });
+        return dpcm;
+    }
+
+    function showCmTestGrid(cmGrid, comparePx, compareWhat) {
+        const cmPx = cm2screenPixels(cmGrid);
+        compareWhat = compareWhat || "Compare: ";
+        const eltBg = document.createElement("div");
+        // @ts-ignore
+        eltBg.style = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            opacity: 0.5;
+            background-color: red;
+            background-image:
+                linear-gradient(to right, black 1px, transparent 1px),
+                linear-gradient(to bottom, black 1px, transparent 1px);
+            background-size: ${cmPx}px ${cmPx}px;
+            z-index: 9999;
+        `;
+        document.body.appendChild(eltBg);
+
+        const dpcm2 = estimateDpcm();
+        console.log({ dpcm2 });
+        const screenPx = screen.width;
+        const screenCm = screenPx / cm2screenPixels(1);
+        const bestCorr = corr * devCmW / screenCm;
+        let info = `
+            ${devName}, Spec screen:${screenPx}px/${devCmW.toFixed(2)}cm
+            - corr:${corr}(${bestCorr.toFixed(3)})/${screenCm.toFixed(2)}cm
+            --- cm:${cmPx.toFixed(0)}px
+            - dpcm:${dpcm2.toFixed(1)}`;
+        if (comparePx) info += ` - ${compareWhat}: ${comparePx.toFixed(0)}px`;
+        const eltInfo = document.createElement("span");
+        eltInfo.textContent = info;
+        // @ts-ignore
+        eltInfo.style = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        display: inline-block;
+        padding: 4px;
+        background-color: yellow;
+        color: black;
+        z-index: 9999;
+    `;
+        const btn = document.createElement("button");
+        btn.textContent = "Close";
+        btn.addEventListener("click", () => { eltBg.remove(); eltInfo.remove(); });
+        btn.style.marginLeft = "20px";
+        eltInfo.appendChild(btn);
+        document.body.appendChild(eltInfo);
+    }
+
+    if (corr) {
+        // showCmTestGrid(2);
+        setTimeout(() => {
+            showCmTestGrid(2);
+            console.log({ knownDevices });
+        }, 1000);
+    }
+}

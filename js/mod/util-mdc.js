@@ -365,9 +365,9 @@ export function mkMDCtextareaGrow(tf) {
         // console.log("%cReplicating", "color:red");
         textarea.parentNode.dataset.replicatedValue = textarea.value;
     };
-    textarea.addEventListener("input", evt => { replicate(); });
+    textarea.addEventListener("input", () => { replicate(); });
     // FIX-ME: This did not work. No change event?
-    textarea.addEventListener("change", evt => { errorHandlerAsyncEvent(setTimeout(replicate, 2000)); });
+    textarea.addEventListener("change", () => { errorHandlerAsyncEvent(setTimeout(replicate, 2000)); });
     if (textarea.value.length > 0) replicate();
 }
 export function mkMDCtextField(label, input, prefill) {
@@ -959,7 +959,7 @@ export async function mkMDCdialogConfirm(body, titleOk, titleCancel, funCheckSav
     const eltActions = mkMDCdialogActions(arrBtns);
     const dlg = await mkMDCdialog(body, eltActions);
     return await new Promise((resolve) => {
-        dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async evt => {
+        dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async () => {
             if (funCheckSave) {
                 if (funCheckSave(false)) {
                     const confirmed = await mkMDCdialogConfirm("You have made changes. Do you want to save them?", "save", "discard");
@@ -988,7 +988,7 @@ export async function mkMDCdialogGetValue(body, funValue, titleOk) {
     const btnOk = mkMDCdialogButton(titleOk, "getvalue", true);
     const eltActions = mkMDCdialogActions([btnOk]);
     const dlg = await mkMDCdialog(body, eltActions);
-    return await new Promise((resolve, reject) => {
+    return await new Promise((resolve) => {
         dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async evt => {
             const action = evt.detail.action;
             console.log("mkMDCdialogGetValue", { action });
@@ -1082,7 +1082,7 @@ export async function mkMDCdialog(body, eltActions, fullScreen) {
         ret.mdc = new mdc.dialog.MDCDialog(ret.dom);
         ret.mdc.open();
     }
-    return await new Promise((resolve, reject) => {
+    return await new Promise((resolve) => {
         setTimeout(() => {
             addMDCandOpen();
             resolve(ret);
@@ -2336,7 +2336,7 @@ export function mkMDCsvgIcon(iconMaterialName) {
     </div>
 </aside>
 */
-export function mkMDCsnackbar(msg, msTimeout, buttons) {
+export function mkMDCsnackbar(msg, msTimeout) {
     const btnClose =
         mkElt("button", { type: "button", class: "mdc-button mdc-snackbar__action" }, [
             // <div class="mdc-button__ripple"></div>
@@ -2378,7 +2378,7 @@ export function mkMDCsnackbar(msg, msTimeout, buttons) {
     const snackbar = new mdc.snackbar.MDCSnackbar(eltSnackbar);
     snackbar.timeoutMs = msTimeout || 4000; // min
     document.body.appendChild(eltSnackbar);
-    eltSnackbar.addEventListener("MDCSnackbar:closed", (evt) => { eltSnackbar.remove(); });
+    eltSnackbar.addEventListener("MDCSnackbar:closed", () => { eltSnackbar.remove(); });
     snackbar.open();
     return eltSnackbar;
 }

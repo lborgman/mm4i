@@ -32,8 +32,9 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     // divEasyMdeOuterWrapper = mkElt("div", undefined, divEasyMdeInert);
     divEasyMdeOuterWrapper = taOrDiv;
     divEasyMdeOuterWrapper.appendChild(divEasyMdeInert);
-    const modEasyMDE = await importFc4i("easymde");
+    // const modEasyMDE = await importFc4i("easymde");
     // console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
+    await importFc4i("easymde");
     const EasyMDE = window["EasyMDE"];
     const easyMDE = new EasyMDE({
         element: taEasyMde,
@@ -76,7 +77,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     // console.log("cud", cud, "\ncont", cont, "\ncode", code, code.isConnected);
     await modTools.wait4mutations(cont);
 
-    const code2 = cont.querySelector("div.CodeMirror-code");
+    // const code2 = cont.querySelector("div.CodeMirror-code");
     const editable = cont.querySelector("div[contenteditable]")
     const ta = cont.querySelector("textarea");
     const editor = editable || ta;
@@ -121,7 +122,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
         }
         // .isConnected is cheap, so check in short intervals
         const msStartWait = Date.now();
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const intervalId = setInterval(() => {
                 const msElapsed = Date.now() - msStartWait;
                 if (elt.isConnected) {
