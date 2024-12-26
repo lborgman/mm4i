@@ -115,31 +115,6 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     const btnEdit = addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
 
 
-    async function waitForConnected(elt, msMaxWait) {
-        if (elt.isConnected) {
-            console.log(`waitForConnected, was already connected`);
-            return;
-        }
-        // .isConnected is cheap, so check in short intervals
-        const msStartWait = Date.now();
-        return new Promise((resolve) => {
-            const intervalId = setInterval(() => {
-                const msElapsed = Date.now() - msStartWait;
-                if (elt.isConnected) {
-                    console.log(`waitForConnected, connected after ${msElapsed} ms`);
-                    clearInterval(intervalId);
-                    console.log
-                    resolve(true);
-                }
-                if (msElapsed > msMaxWait) {
-                    clearInterval(intervalId);
-                    const msg = `waitForConnected: not connected after ${msMaxWait}ms`;
-                    console.error(msg, elt);
-                    throw Error(msg);
-                }
-            }, 100);
-        });
-    }
     // To be able to click the links in the rendered document we must remove "inert".
     // However if we do that directly the virtual keyboard will popup on an Android mobile.
     // So we must first focus on an element outside of easyMDE.
@@ -147,7 +122,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     // setTimeout(async () => {
     // if (!btnEdit.isConnected) { throw Error("btnEdit is not yet connected to the document"); }
     (async function () {
-        await waitForConnected(btnEdit, 800);
+        await modTools.wait4connected(btnEdit, 800);
         btnEdit.focus();
         const eltActive = document.activeElement;
         if (btnEdit != eltActive) {

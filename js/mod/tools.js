@@ -166,6 +166,42 @@ export function wait4mutations(elt, ms, observeWhat, msMaxWait) {
     });
 }
 
+/**
+ * 
+ * @param {HTMLElement} elt 
+ * @param {number} msMaxWait 
+ * @param {number|undefined} msInterval
+ * @returns 
+ */
+export async function wait4connected(elt, msMaxWait, msInterval) {
+    if (elt.isConnected) {
+        console.log(`wait4connected, was already connected`);
+        return;
+    }
+    // .isConnected is cheap, so check in short intervals
+    msInterval = msInterval || 40;
+    const msStartWait = Date.now();
+    return new Promise((resolve) => {
+        const intervalId = setInterval(() => {
+            const msElapsed = Date.now() - msStartWait;
+            if (elt.isConnected) {
+                console.log(`wait4connected, connected after ${msElapsed} ms`);
+                clearInterval(intervalId);
+                console.log
+                resolve(true);
+            }
+            if (msElapsed > msMaxWait) {
+                clearInterval(intervalId);
+                const msg = `wait4connected: not connected after ${msMaxWait}ms`;
+                console.error(msg, elt);
+                throw Error(msg);
+            }
+        }, msInterval);
+    });
+}
+
+
+
 /*
 function mkButton(attrib, inner) {
     const btn = mkElt("button", attrib, inner);
