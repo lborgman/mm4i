@@ -216,6 +216,7 @@ async function saveOrigMarkdown() {
     origEasyMDEmarkdown = EasyMDE.prototype.markdown;
 }
 export async function addAlfa(easyMDE) {
+    return;
     await saveOrigMarkdown();
     const EasyMDE = window["EasyMDE"];
 
