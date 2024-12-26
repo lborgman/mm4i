@@ -4,6 +4,7 @@ const logConsoleHereIs = window["logConsoleHereIs"];
 const importFc4i = window["importFc4i"];
 const mkElt = window["mkElt"];
 const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
+const jsMind = window["jsMind"];
 
 const CUST_REND_VER = "0.0.3";
 logConsoleHereIs(`here is jsmind-cust-rend.js, module,${CUST_REND_VER}`);
@@ -173,6 +174,7 @@ export class CustomRenderer4jsMind {
     }
     // addJmnodeBgAndText(eltJmnode) { return addJmnodeBgAndText(eltJmnode) }
     // fixLeftRightChildren(eltJmnode) { fixLeftRightChildren(eltJmnode); }
+    /*
     async OLDupdateEltNodeLink(eltJmnode) {
         // Moved to applyShapeEtc
         debugger; // eslint-disable-line no-debugger
@@ -190,7 +192,7 @@ export class CustomRenderer4jsMind {
             eltJmnode.appendChild(eltA3);
         }
     }
-
+    */
 
     // async updateJmnodeFromCustom(eltJmnode, jmOwner) {
     async updateJmnodeFromCustom() {
@@ -730,7 +732,9 @@ export class CustomRenderer4jsMind {
             body.appendChild(divEasyMdeOuterWrapper);
         }, 100);
         let btnSave;
-        btnEdit.addEventListener("click", evt => {
+        btnEdit.addEventListener("click", (evt) => {
+            evt.preventDefault();
+            evt.stopPropagation();
             setTimeout(() => {
                 // easyMDE.codemirror.options.readOnly = false;
                 const btnSave = getBtnSave();
@@ -761,7 +765,7 @@ export class CustomRenderer4jsMind {
             // const contBtns = document.body.closest(".mdc-dialog__surface").querySelector(".mdc-dialog__actions");
             // FIX-ME: Should be the first?
             btnSave = contBtns.querySelector("button");
-            if (btnSave.textContent != "save") throw Error("Did not find the save button");
+            if (btnSave?.textContent != "save") throw Error("Did not find the save button");
             return btnSave;
         }
         function setStateBtnSaveDisabled(disable) {
@@ -1231,7 +1235,7 @@ export class CustomRenderer4jsMind {
             const scaleCopies = desiredW / origW;
             function updateSize(divSmallCopy) {
                 const clipping = divSmallCopy;
-                if (clipping.tagName != "DIV") throw Error(`clipping is not DIV: ${clpping.tagName}`);
+                if (clipping.tagName != "DIV") throw Error(`clipping is not DIV: ${clipping.tagName}`);
                 const sc = clipping.style;
                 sc.width = bcrCopied.width * scaleCopies;
                 sc.height = bcrCopied.height * scaleCopies + 30;
@@ -1425,7 +1429,7 @@ export class CustomRenderer4jsMind {
                 divImgPreview.style.backgroundColor = "yellow";
                 divImgPreview.style.backgroundImage = "none";
                 const wasValid = inpImageUrl.checkValidity();
-                modMdc.setValidityMDC(inpImageUrl, `Not a link (${getUrllNotValidMsg(isValid)})`);
+                modMdc.setValidityMDC(inpImageUrl, `Not a link (${modTools.getUrllNotValidMsg(isValid)})`);
                 badImgLinkUrl();
                 if (!wasValid) return;
                 imgPreview.src = "";
@@ -1702,6 +1706,7 @@ export class CustomRenderer4jsMind {
                         canvas.width = 1;
                         canvas.height = 1;
                         const ctx = canvas.getContext("2d");
+                        if (!ctx) throw Error("Could not get canvas 2d");
                         ctx.fillStyle = "red";
                         ctx.fillRect(0, 0, 1, 1);
                         bgValue = await new Promise(resolve => {
@@ -1861,9 +1866,11 @@ export class CustomRenderer4jsMind {
             // btnAddBg.style.display = "none";
             return true;
         }
+        /*
         function removeBg(blob) {
             btnChangeBg.style.display = null;
         }
+        /*
 
         /*
         const mkTopicChoice = (id, label, divChoice) => {
@@ -2556,6 +2563,7 @@ export class CustomRenderer4jsMind {
 
         }
     }
+    /*
     mindmapDblclick = (evt) => {
         const target = evt.target;
         let eltJmnode;
@@ -2573,6 +2581,7 @@ export class CustomRenderer4jsMind {
             this.editMindmapDialog(eltJmnode);
         }
     }
+    */
 }
 // const cr4j = new CustomRenderer4jsMind();
 // console.log({ cr4j });

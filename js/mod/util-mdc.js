@@ -297,9 +297,9 @@ export function mkMDCtextFieldInput(id, inputType) {
     return eltInp;
 }
 export function mkMDCtextareaField(label, textarea, prefill) {
-    const id = textarea.id;
     if (prefill) textarea.value = prefill;
-    const ariaId = `aria-id-${id}`;
+    // const id = textarea.id;
+    // const ariaId = `aria-id-${id}`;
     /*
     This seems to be for 6.0.0 or earlier!
     But I can see no difference to the latest????
@@ -483,8 +483,8 @@ export function mkMDCtextFieldSimpleInput(id, placeHolder) {
     });
 }
 export function mkMDCtextFieldSimple(input) {
-    const id = input.id;
-    const ariaId = `aria-id-${id}`;
+    // const id = input.id;
+    // const ariaId = `aria-id-${id}`;
     const fl = mkElt("label", {
         class: "mdc-text-field mdc-text-field--filled mdc-text-field--no-label",
     }, [
@@ -1076,7 +1076,7 @@ export async function mkMDCdialog(body, eltActions, fullScreen) {
     ]);
     if (fullScreen) dom.classList.add("mdc-dialog--fullscreen");
     document.body.appendChild(dom);
-    dom.addEventListener("MDCDialog:closed", evt => { dom.remove(); });
+    dom.addEventListener("MDCDialog:closed", () => { dom.remove(); });
     const ret = { dom };
     function addMDCandOpen() {
         ret.mdc = new mdc.dialog.MDCDialog(ret.dom);
@@ -2281,7 +2281,7 @@ export function mkMDCsvgIcon(iconMaterialName) {
     const onStatically = importMetaUrl.search("statically") != -1;
     const onOrig = !(onJsdelivr || onStatically);
     const origModPathname = '/src/js/mod/util-mdc.js';
-    const lenOrigPathname = origModPathname.length;
+    // const lenOrigPathname = origModPathname.length;
 
     let src;
     if (onOrig) {

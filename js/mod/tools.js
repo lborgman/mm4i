@@ -424,8 +424,10 @@ function alertRealError(msg, e) {
     let contextStr = "\n\nContext:";
     // contextStr += "\n* Version: " + theEasyCapEdVersion;
     contextStr += "\n* Version: " + theSWcacheVersion;
-    contextStr += "\n* Started: " + theStartTime.toISOString().substr(0, 16);
-    contextStr += "\n* Now:     " + (timeNow.toISOString().substr(0, 16));
+    // contextStr += "\n* Started: " + theStartTime.toISOString().substr(0, 16);
+    contextStr += "\n* Started: " + theStartTime.toISOString().slice(0, 16);
+    // contextStr += "\n* Now:     " + (timeNow.toISOString().substr(0, 16));
+    contextStr += "\n* Now:     " + (timeNow.toISOString().slice(0, 16));
     contextStr += "\n* Elapsed: " + ((timeNow.valueOf() - theStartTime.valueOf()) / 1000) + " sec";
     contextStr += "\n* Browser: " + navigator.userAgent;
     contextStr += "\n* Online: " + navigator.onLine;
@@ -433,6 +435,7 @@ function alertRealError(msg, e) {
     // if (typeof theCapLoadType != "undefined") { contextStr += "\n* " + theCapLoadType.toString(); }
     // if (typeof theEditor !== "undefined") { contextStr += "\n* Captions"; }
     try {
+        // @ts-ignore
         if ((typeof theFirstAuthStateChangedDone == "boolean") && theFirstAuthStateChangedDone) {
             let user = theFirebaseCurrentUser;
             if (user) {
@@ -556,11 +559,13 @@ function alertForError(e) {
 }
 window.addEventListener('NOerror', alertForError);
 
+/*
 function goSilently(url) {
     window.removeEventListener('error', alertForError);
     location.href = url;
     throw Error("");
 }
+*/
 
 // https://stackoverflow.com/questions/47926040/catching-errors-the-onerror-event/
 // https://stackoverflow.com/questions/31472439/catch-all-unhandled-javascript-promise-rejections
@@ -575,18 +580,25 @@ window.addEventListener("error", (e) => {
 })
 */
 
+/*
 window.addEventListener('NOunhandledrejection', function (e) {
     console.warn("2 entering event listener for unhandledrejection");
     alertError("unhandledrejection", e);
 });
+*/
 // console.log("-------- Added unhandledrejection");
+/*
 window.addEventListener("rejectionhandled", function (e) {
     alertError("rejectionhandled", e);
 });
+*/
 
 // FIXME: This doesn't pop up if too early. What is happening? All the listeners are set up and it is logged in the console???
 // console.log("CREATING TEST ERROR in 4 seconds"); setTimeout(function() {justAnErrorTest()}, 8000);
 
+
+
+/*
 var theLittleLogger;
 
 function addLittleLogger() {
@@ -597,6 +609,9 @@ function addLittleLogger() {
             mkElt("div"),
         ]);
 }
+*/
+
+
 
 ///////////////////////////////////////
 /// Also encode parenthesis. There seem to be a bug in Android 7 that requires this.
@@ -644,6 +659,7 @@ function submitGetURL4IssueToGitHub(title, msg) {
     return url;
 }
 
+/*
 function mkWarningPopup(title, body) {
     let warningInfo = mkElt("p", { "class": "warning-info" },
         ["We do not think this is an error. ",
@@ -654,10 +670,18 @@ function mkWarningPopup(title, body) {
         [mkElt("p", undefined, body), warningInfo]);
     popupDialog(title, bodyFull, "warning");
 }
+*/
 
-function removeTokensFromUrl(url) {
-    // console.warn("removeTokensFromUrl", typeof url, url);
-    // Remove tokens (assuming they are longer than 40 chars)
+/**
+ * Shorten long parameter values to make the url viewable.
+ * Value limit is 40 chars.
+ * The main purpose is to shorten tokens (which can be very, very long).
+ * 
+ * @param {string} url 
+ * @returns {string}
+ */
+export function makeDisplayableUrl(url) {
+    // console.warn("makeDisplayableUrl", typeof url, url);
     const parts = url.split("?");
     if (parts.length === 1) return url;
     const hostPart = parts[0];
@@ -673,7 +697,7 @@ function removeTokensFromUrl(url) {
     return hostPart + "?" + urlParams.toString();
 }
 
-function removeTokensFromObject(obj) {
+export function removeTokensFromObject(obj) {
     const keys = Object.keys(obj)
     for (const key of keys) {
         const val = obj[key];
@@ -693,7 +717,8 @@ function removeTokensFromObject(obj) {
     }
 }
 
-async function throwFetchError(url, response, result) {
+/*
+async function throwFetchError(url, response) {
     debugger; // eslint-disable-line no-debugger
 
     let errResp = "";
@@ -702,20 +727,18 @@ async function throwFetchError(url, response, result) {
     } else {
         errResp += "Response status: " + response.status + " (" + response.statusText + ")";
         errResp += "\n";
-        errResp += removeTokensFromUrl(response.url);
+        errResp += makeDisplayableUrl(response.url);
 
     }
     errResp += "\n";
-    errResp += "fetch url=(" + removeTokensFromUrl(url) + ")";
+    errResp += "fetch url=(" + makeDisplayableUrl(url) + ")";
     errResp += "\n";
     errResp += "\n";
 
-    /*
-    errResp += "Error tracing on browser side:";
-    errResp += "\n";
-    errResp += JSON.stringify(result, undefined, 2);
-    errResp += "\n";
-    */
+    // errResp += "Error tracing on browser side:";
+    // errResp += "\n";
+    // errResp += JSON.stringify(result, undefined, 2);
+    // errResp += "\n";
 
     if (response) {
         let bodyText;
@@ -752,7 +775,9 @@ async function throwFetchError(url, response, result) {
     const errFetch = new FetchError("Fetch error", errResp, response === undefined)
     throw errFetch;
 }
+*/
 
+/*
 class FetchError extends Error {
     constructor(message, errResp, thisIsNetworkTrouble) {
         debugger; // eslint-disable-line no-debugger
@@ -763,9 +788,10 @@ class FetchError extends Error {
         this.thisIsNetworkTrouble = thisIsNetworkTrouble;
     }
 }
+*/
 
 
-function getStack() { try { throw Error(); } catch (e) { return e.stack; } }
+// function getStack() { try { throw Error(); } catch (e) { return e.stack; } }
 
 // setTimeout(() => { throw Error('Hello world'); }, 1000);
 
@@ -796,7 +822,7 @@ function getStack() { try { throw Error(); } catch (e) { return e.stack; } }
 
 // throw Error("testing error...");
 var theFirebaseCurrentUser;
-var theFirebaseCurrentUserEmail;
+// var theFirebaseCurrentUserEmail;
 
 const traceHelper = [];
 const traceStart = Date.now();
@@ -828,6 +854,7 @@ function popupTrace() {
         "info");
 }
 
+/*
 function mkJsonType(obj) {
     const jObj = {}
     for (let k in obj) {
@@ -836,6 +863,7 @@ function mkJsonType(obj) {
     }
     return jObj;
 }
+*/
 
 async function popupDialog(title, body, severity) {
     // const hasDialog = Object.getOwnPropertyNames(window).includes("HTMLDialogElement");
@@ -925,7 +953,7 @@ async function popupDialog(title, body, severity) {
 ////////////////////////////////////////////
 // For PWAs, prevent drop of files etc.
 // const allowDropOnList = [];
-function allowDropOn(elt) {
+export function allowDropOn(elt) {
     elt.classList.add("allow-drop")
 }
 function dropAllowed(elt) {
@@ -957,7 +985,7 @@ function loadScriptError(oError) {
     alert(msg);
 }
 // https://developer.mozilla.org/en-US/docs/Web/API/HTMLScriptElement#dynamically_importing_scripts
-function affixScriptToHead(url, onloadFunction) {
+export function affixScriptToHead(url, onloadFunction) {
     const newScript = document.createElement("script");
     newScript.onerror = loadScriptError;
     if (onloadFunction) { newScript.onload = onloadFunction; }
@@ -1075,7 +1103,7 @@ function throttle(func, waitMS = 200) {
 ////////// URLs
 // https://www.freecodecamp.org/news/how-to-validate-urls-in-javascript/
 // isValidURL
-function getUrllNotValidMsg(id) {
+export function getUrllNotValidMsg(id) {
     switch (id) {
         case "NO-HTTPS": return "Link must begin with 'https://'";
         case "NO-DOMAIN": return "Link must have domain";
@@ -1107,6 +1135,7 @@ export function isValidUrl(strUrl, protocol) {
         const newUrl = new URL(strUrl);
         return newUrl.protocol === protocol;
     } catch (err) {
+        console.log("isValidUrl", err);
         return false;
     }
 }

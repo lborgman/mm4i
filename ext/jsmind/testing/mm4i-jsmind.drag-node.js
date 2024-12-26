@@ -292,8 +292,8 @@ function whenDragPauses() {
     nodeAbove = undefined;
     nodeBelow = undefined;
 
-    let /** @type {nodeAndBcr} */ entryAbove;
-    let /** @type {nodeAndBcr} */ entryBelow;
+    let /** @type {nodeAndBcr|undefined} */ entryAbove;
+    let /** @type {nodeAndBcr|undefined} */ entryBelow;
     const arrNodesBcr = getAllNodesAndBcr();
     const arrCol = getNodesInColumn(arrNodesBcr, colClientX, eltDragged);
     const getY = (entry) => (entry.bcr.top + entry.bcr.bottom) / 2;

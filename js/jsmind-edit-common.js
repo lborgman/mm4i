@@ -299,6 +299,7 @@ function switchDragTouchAccWay(newWay) {
 // https://www.labnol.org/embed/google/photos/?ref=hackernoon.com
 // https://hackernoon.com/how-to-embed-single-photos-from-google-photos-on-your-website-and-notion-page
 // https://jumpshare.com/blog/how-to-embed-google-drive-video/
+/*
 async function dialogMirrorWay() {
     const notWorking = ["useCanvas", "jsmind",];
     const altWays = theMirrorWays.filter(alt => !notWorking.includes(alt));
@@ -314,7 +315,6 @@ async function dialogMirrorWay() {
     // const aspectratioVideoMirror = "1048 / 1248";
     // const eltVidMirror = mkVidElt(srcVideoMirror, posterVideoMirror);
     // altsDesc.cloneNode = mkElt("div", undefined, [ eltVidMirror ]);
-    /*
     function mkVidElt(src, poster, aspectRatio) {
         aspectRatio = aspectRatio || "1 / 1";
         // https://stackoverflow.com/questions/24157940/iframe-height-auto-css
@@ -349,7 +349,6 @@ async function dialogMirrorWay() {
         // return divBoth;
         return eltVideo;
     }
-    */
 
     altsDesc.pointHandle = mkElt("div", undefined, [
         "Default when screen supports touch.",
@@ -381,6 +380,7 @@ async function dialogMirrorWay() {
     }
     return modMdc.mkMDCdialogGetValue(body, getValue, "Ok");
 }
+*/
 
 let theDragTouchAccWay = "none";
 if (hasTouchEvents()) theDragTouchAccWay = "pointHandle";
@@ -799,7 +799,7 @@ function mkMenuItem(lbl, fun, keyHint) {
     });
     return li;
 }
-let divContextMenu;
+let /** @type {HTMLElement|undefined} */ divContextMenu;
 let jmDisplayed;
 
 function hideContextMenu() {
@@ -1279,6 +1279,7 @@ export async function pageSetup() {
     instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60, eltShow);
 
     // Windows
+    /*
     eltJmnodes.addEventListener("dblclick", evt => {
         // FIX-ME: there is no .eventType - is this a bug?
         // if ((evt.eventType != "mouse") && (evt.eventType != "pen")) return;
@@ -1289,12 +1290,16 @@ export async function pageSetup() {
         evt.stopImmediatePropagation();
         render.mindmapDblclick(evt);
     });
+    */
     // Android
+    /*
     const jmnodesLastTouchend = {
         ms: 0,
         clientX: -1,
         clientY: -1,
     }
+    */
+    /*
     eltJmnodes.addEventListener("NOtouchend", (evt) => {
         // if (evt.eventType != "touch") throw Error(`"touchend", but eventType:${evt.eventType}`);
         if (evt.type != "touchend") throw Error(`"touchend", but event.type:${evt.type}`);
@@ -1338,6 +1343,7 @@ export async function pageSetup() {
         jmnodesLastTouchend.clientX = evt.clientX;
         jmnodesLastTouchend.clientY = evt.clientY;
     });
+    */
 
 
     render.applyThisMindmapGlobals();
@@ -1906,7 +1912,7 @@ export async function pageSetup() {
         console.log("startGrabMove", elt2move);
         let isMoving = true;
         // const ourElement2move = elt2move;
-        let n = 0;
+        // let n = 0;
 
         elt2move.style.cursor = "grabbing";
         elt2move.style.filter = "grayscale(0.5)";
@@ -1946,6 +1952,7 @@ export async function pageSetup() {
     // https://javascript.info/bezier-curve
 
 
+    /*
     async function convertPlainJmnode2ProviderLink(eltJmnode, jmOwner, objCustomCopied) {
         if (eltJmnode.tagName != "JMNODE") throw Error("Not <jmnode>");
 
@@ -1969,6 +1976,7 @@ export async function pageSetup() {
             (await getCustomRenderer()).updateJmnodeFromCustom(eltJmnode, jmOwner);
         }
     }
+    */
 }
 
 function hasTouchEvents() {
