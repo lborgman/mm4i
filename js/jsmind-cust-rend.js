@@ -751,7 +751,7 @@ export class CustomRenderer4jsMind {
         });
 
         function somethingToSaveNotes() {
-            return easyMDE.value().trim() != initialVal;
+            return easyMDE.value().trimEnd() != initialVal;
         }
         function getBtnSave() {
             if (btnSave) return btnSave;
@@ -782,19 +782,11 @@ export class CustomRenderer4jsMind {
 
         const funCheckSave = (save) => {
             if (!save) return somethingToSaveNotes();
-            shapeEtc.notes = easyMDE.value().trim();
+            shapeEtc.notes = easyMDE.value().trimEnd();
             setTimeout(() => { modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed); }, 2000);
         }
         // const save = await modMdc.mkMDCdialogConfirm(body, "save", "cancel");
         await modMdc.mkMDCdialogConfirm(body, "close", null, funCheckSave);
-        /*
-        console.log({ save });
-        if (save) {
-            if (!somethingToSaveNotes()) throw Error("Save button enabled but nothing to save?");
-            shapeEtc.notes = easyMDE.value().trim();
-            setTimeout(() => { modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed); }, 2000);
-        }
-        */
     }
     async editNodeDialog(eltJmnode, scrollToNotes) {
         const modJsEditCommon = await importFc4i("jsmind-edit-common");

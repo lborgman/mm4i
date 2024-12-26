@@ -3,8 +3,8 @@ const TOOLS_VER = "0.0.7";
 logConsoleHereIs(`here is tools.js, module, ${TOOLS_VER}`);
 if (document.currentScript) { throw "tools.js is not loaded as module"; }
 
-// @ts-ignore
-const mkElt = window.mkElt;
+const mkElt = window["mkElt"];
+const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 
 // https://firebase.google.com/docs/reference/js/firebase.auth.Error
 
@@ -142,7 +142,7 @@ export function wait4mutations(elt, ms, observeWhat, msMaxWait) {
             clearTimeout(tmr);
             nMu++;
             const newNow = Date.now();
-            console.log({ nMu }, mu == undefined, newNow - now);
+            // console.log({ nMu }, mu == undefined, newNow - now);
             if (msMaxWait && (newNow - now > msMaxWait)) {
                 fin("max wait");
                 return;
@@ -152,7 +152,7 @@ export function wait4mutations(elt, ms, observeWhat, msMaxWait) {
                 mu = undefined;
             } else {
                 mu = new MutationObserver(mutations => {
-                    console.log("mutations!");
+                    // console.log("mutations!");
                     restartTimer();
                 });
             }
@@ -1247,7 +1247,7 @@ function setupWait4Saved() {
         aborter4HasSaved.signal.addEventListener("abort", evt => {
             const reason = aborter4HasSaved.signal.reason;
             if (reason == "has saved pos") {
-                console.log(`promHasSaved: abort resolve: ${reason}`);
+                // console.log(`promHasSaved: abort resolve: ${reason}`);
                 resolve(reason);
             } else {
                 console.log(`promHasSaved: abort reject: ${reason}`);
@@ -1290,7 +1290,7 @@ function savePointerPos(evt) {
         case "pointermove":
             break;
         case "pointerdown":
-            console.log("savePointerPos pointerDown", clientX, clientY, evt);
+            // console.log("savePointerPos pointerDown", clientX, clientY, evt);
             // .signal AbortHandler
             savedPointerPos.startX = clientX;
             savedPointerPos.startY = clientY;

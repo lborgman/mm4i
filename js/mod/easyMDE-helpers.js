@@ -25,22 +25,15 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     let divEasyMdeOuterWrapper;
     if (taOrDiv.tagName == "TEXTAREA") {
         throw Error(`taOrDiv should be DIV: ${taOrDiv.tagName}`);
-        // taEasyMde = taOrDiv;
-        // window["MYtaNotes"] = taOrDiv;
     }
-    // else {
-    // newWay = true;
-    // debugger;
     taEasyMde = mkElt("textarea");
     if (valuePlaceholder) { taEasyMde.setAttribute("placeholder", valuePlaceholder); }
     divEasyMdeInert = mkElt("div", undefined, taEasyMde);
     // divEasyMdeOuterWrapper = mkElt("div", undefined, divEasyMdeInert);
     divEasyMdeOuterWrapper = taOrDiv;
     divEasyMdeOuterWrapper.appendChild(divEasyMdeInert);
-    // throw Error("new way is not ready");
-    // }
     const modEasyMDE = await importFc4i("easymde");
-    console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
+    // console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
     const EasyMDE = window["EasyMDE"];
     const easyMDE = new EasyMDE({
         element: taEasyMde,
@@ -79,8 +72,8 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
 
     const cud = easyMDE.codemirror.display.cursorDiv;
     const cont = cud.closest("div.EasyMDEContainer");
-    const code = cont.querySelector("div.CodeMirror-code");
-    console.log("cud", cud, "\ncont", cont, "\ncode", code, code.isConnected);
+    // const code = cont.querySelector("div.CodeMirror-code");
+    // console.log("cud", cud, "\ncont", cont, "\ncode", code, code.isConnected);
     await modTools.wait4mutations(cont);
 
     const code2 = cont.querySelector("div.CodeMirror-code");
@@ -88,16 +81,18 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     const ta = cont.querySelector("textarea");
     const editor = editable || ta;
     window["MYeditor"] = editor;
+    /*
     console.log(
         "\ncode2", code2, code2.isConnected,
         "\neditable", editable,
         "\nta", ta,
         "\neditor", editor,
         editor?.isConnected, document.activeElement);
+    */
     easyMDE.codemirror.options.readOnly = "nocursor";
-    // debugger;
 
     // FIX-ME: move
+    /*
     function setMDEpreviewColor() {
         const eltPreview = eltMDEContainer.querySelector("div.editor-preview");
         console.log({ eltPreview });
@@ -105,6 +100,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
         const styleSurface = getComputedStyle(eltDialogSurface);
         eltPreview.style.backgroundColor = styleSurface.backgroundColor;
     }
+    */
 
     // setTimeout(() => { setMDEpreviewColor(); }, 110);
 
