@@ -73,7 +73,13 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
 
     const cud = easyMDE.codemirror.display.cursorDiv;
     const cont = cud.closest("div.EasyMDEContainer");
-    // const code = cont.querySelector("div.CodeMirror-code");
+
+    // FIX-ME: the key return problem:
+    const code = cont.querySelector("div.CodeMirror-code");
+    code.addEventListener("keydown", evt => {
+        evt.stopPropagation();
+    });
+
     // console.log("cud", cud, "\ncont", cont, "\ncode", code, code.isConnected);
     await modTools.wait4mutations(cont);
 

@@ -194,7 +194,7 @@ export async function wait4connected(elt, msMaxWait, msInterval) {
                 clearInterval(intervalId);
                 const msg = `wait4connected: not connected after ${msMaxWait}ms`;
                 console.error(msg, elt);
-                throw Error(msg);
+                // throw Error(msg);
             }
         }, msInterval);
     });

@@ -924,6 +924,15 @@ export function mkMDCdialogActions(buttons) {
 }
 
 // export async function mkMDCdialogConfirm(body, titleOk, titleCancel, noCancel, funHandleResult, tellMeOkButton) {
+/**
+ * 
+ * @param {HTMLElement} body 
+ * @param {string} titleOk 
+ * @param {string|null} titleCancel 
+ * @param {function|undefined} funCheckSave 
+ * @param {function|undefined} tellMeOkButton 
+ * @returns {Promise} 
+ */
 export async function mkMDCdialogConfirm(body, titleOk, titleCancel, funCheckSave, tellMeOkButton) {
     const tofTitle = typeof titleOk;
     accectValueType(tofTitle, "string");
@@ -951,15 +960,19 @@ export async function mkMDCdialogConfirm(body, titleOk, titleCancel, funCheckSav
     titleOk = titleOk || "Ok";
     titleCancel = titleCancel || "Cancel";
     const btnOk = mkMDCdialogButton(titleOk, "confirm", true);
+    const arrBtns = [btnOk];
+    if (!noCancel) {
+        const btnCancel = mkMDCdialogButton(titleCancel, "close");
+        arrBtns.push(btnCancel);
+    }
+    // if (noCancel) arrBtns.length = 1;
     if (tellMeOkButton) { tellMeOkButton(btnOk); }
-    const btnCancel = mkMDCdialogButton(titleCancel, "close");
-    // const funResolve = funCheckSave || (() => true);
-    const arrBtns = [btnOk, btnCancel];
-    if (noCancel) arrBtns.length = 1;
     const eltActions = mkMDCdialogActions(arrBtns);
     const dlg = await mkMDCdialog(body, eltActions);
     return await new Promise((resolve) => {
-        dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async () => {
+        dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async (evt) => {
+            evt.stopPropagation();
+            if (funCheckSave) console.warn("MDCDialog:closing", evt);
             if (funCheckSave) {
                 if (funCheckSave(false)) {
                     const confirmed = await mkMDCdialogConfirm("You have made changes. Do you want to save them?", "save", "discard");
@@ -969,6 +982,7 @@ export async function mkMDCdialogConfirm(body, titleOk, titleCancel, funCheckSav
             }
         }));
         dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async evt => {
+            if (funCheckSave) console.warn("MDCDialog:closed", evt);
             const action = evt.detail.action;
             switch (action) {
                 case "confirm":
