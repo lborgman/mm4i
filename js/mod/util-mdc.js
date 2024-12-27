@@ -971,7 +971,7 @@ export async function mkMDCdialogConfirm(body, titleOk, titleCancel, funCheckSav
     const dlg = await mkMDCdialog(body, eltActions);
     return await new Promise((resolve) => {
         dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async (evt) => {
-            evt.stopPropagation();
+            // evt.stopPropagation();
             if (funCheckSave) console.warn("MDCDialog:closing", evt);
             if (funCheckSave) {
                 if (funCheckSave(false)) {
