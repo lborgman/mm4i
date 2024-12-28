@@ -980,13 +980,13 @@ export async function pageSetup() {
     let btnJsmindSearch;
 
     const inpSearch = mkElt("input", { type: "search", placeholder: "Search nodes", id: "jsmind-inp-node-search" });
-    // const inpSearch = modMdc.mkMDCtextFieldInput( "jsmind-inp-node-search", "search");
-    // const tfSearch = modMdc.mkMDCtextFieldOutlined("Search nodes", inpSearch);
-    // const tfSearch = modMdc.mkMDCtextField("Search nodes", inpSearch);
     const tfSearch = inpSearch;
 
-    const eltProvHits = mkElt("div", { id: "provider-hits" });
-    const divSearchInputs = mkElt("div", { id: "jsmind-search-inputs" }, [tfSearch, eltProvHits]);
+    // FIX-ME: I don't think we can have providers here?
+    // const eltProvHits = mkElt("div", { id: "provider-hits" });
+    const divSearchInputs = mkElt("div", { id: "jsmind-search-inputs" }, [
+        tfSearch // , eltProvHits
+    ]);
     divSearchInputs.classList.add("jsmind-actions");
     divSearchInputs.classList.add("mdc-card");
 
@@ -1070,6 +1070,7 @@ export async function pageSetup() {
             inpSearch.focus();
         });
         const eltTellProvider = mkElt("span");
+        eltTellProvider.id = "elt-tell-provider";
         if (nodeProvider) {
             const render = await modCustRend.getOurCustomRenderer();
             const src = render.getLinkRendererImage(nodeProvider);
@@ -1077,15 +1078,12 @@ export async function pageSetup() {
             eltImg.style.height = "30px";
             const span = mkElt("span", undefined, [eltImg, " link"]);
             eltTellProvider.appendChild(span);
-            // Links to Links to 
         } else {
             eltTellProvider.appendChild(mkElt("span", undefined, "dummy (no provider)"));
         }
-        // const eltProvHits = mkElt("div", { id: "provider-hits" }, [
-        eltProvHits.textContent = "";
-        eltProvHits.appendChild(eltTellProvider);
-        eltProvHits.appendChild(btnCloseProvHits);
-        // ]);
+        // eltProvHits.textContent = "";
+        // eltProvHits.appendChild(eltTellProvider);
+        // eltProvHits.appendChild(btnCloseProvHits);
 
         inpSearch.addEventListener("input", () => {
             restartJsmindSearch();
