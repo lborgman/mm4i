@@ -11,6 +11,12 @@ const EASYMDE_HELPERS_VER = "0.0.1";
 logConsoleHereIs(`here is easyMDE-helpers.js, module,${EASYMDE_HELPERS_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
+let searchNodeParams;
+export function setupSearchNodes(searchPar) {
+    searchNodeParams = searchPar;
+    console.log({ searchNodeParams });
+}
+
 /**
  * 
  * @param {HTMLDivElement} taOrDiv 
@@ -52,6 +58,11 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
         const eltStyle = document.createElement("style");
         eltStyle.id = idStyle;
         eltStyle.textContent = `
+            .cm-alfa-before {
+                color: red;
+                text-decoration: underline;
+                cursor: pointer;
+            }
             .cm-alfa-link {
                 color: green;
                 text-decoration: underline;
@@ -79,6 +90,15 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     code.addEventListener("keydown", evt => {
         evt.stopPropagation();
     });
+    /*
+    const eltPreview = eltMDEContainer.querySelector("div.editor-preview");
+    eltPreview.addEventListener("click", evt => {
+        const target = evt.target;
+        if (target.tagName != "SPAN") return;
+        if (!target.classList.contains("cm-alfa-link-before")) return;
+        console.log("clicked alfa-link", target);
+    });
+    */
 
     // console.log("cud", cud, "\ncont", cont, "\ncode", code, code.isConnected);
     await modTools.wait4mutations(cont);
@@ -116,6 +136,30 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
 
     const eltToolbar = eltMDEContainer.querySelector("div.editor-toolbar");
     eltToolbar.style.display = "none";
+
+    const eltPreview = eltMDEContainer.querySelector("div.editor-preview");
+    eltPreview.addEventListener("click", async evt => {
+        const target = evt.target;
+        if (target.tagName != "SPAN") return;
+        if (!target.classList.contains("cm-alfa-before")) return;
+        const valAlfa = target.dataset.alfaLink;
+        console.log("clicked alfa-link:", { valAlfa }, target);
+        searchNodeParams.eltJsMindContainer.classList.add("display-jsmind-search");
+
+        searchNodeParams.inpSearch.value = valAlfa;
+        const resSearch = searchNodeParams.searchNodeFun(valAlfa);
+        console.log({ resSearch });
+        const nHits = resSearch.length;
+        const msg = `matches: ${nHits}, see mindmap`;
+
+        const divSearch = searchNodeParams.inpSearch.parentElement;
+        const st = getComputedStyle(divSearch);
+
+        const eltSnackbar = modMdc.mkMDCsnackbar(msg, 10 * 1000);
+        const surfaceSnackbar = eltSnackbar.firstElementChild;
+        surfaceSnackbar.style.backgroundColor = st.backgroundColor;
+        surfaceSnackbar.style.color = st.color;
+    });
 
     // if (!newWay) { return { easyMDE }; }
     const btnEdit = addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
@@ -194,32 +238,51 @@ async function saveOrigMarkdown() {
     origEasyMDEmarkdown = EasyMDE.prototype.markdown;
 }
 export async function addAlfa(easyMDE) {
-    return;
+    // return;
     await saveOrigMarkdown();
     const EasyMDE = window["EasyMDE"];
 
+    function markHejGreen(txt) {
+        const newTxt = txt.replaceAll(/hej/g, `<span style="color:green;">HEJ</span>`);
+        return newTxt;
+    }
     function markHejRed(txt) {
         const newTxt = txt.replaceAll(/hej/g, `<span style="color:red;">HEJ</span>`);
         return newTxt;
     }
-    const reAlfa = /<a href="(.*?)"(.*?)>@(.*?)<\/a>/g;
-    function markAlfa(txt) {
-        const newTxt = txt.replaceAll(reAlfa, `<a href="$1" class="cm-alfa-link" $2>$3</a>`);
+    const reAlfaBefore = /\[(@.+)\]\((.+)\)/g;
+    function markAlfaBefore(txt) {
+        // const newTxt = txt.replaceAll(reAlfaBefore, `<a href="$2" class="cm-alfa-before">$1</a>`);
+        const newTxt = txt.replaceAll(reAlfaBefore, `<span data-alfa-link="$2" class="cm-alfa-before" title="Lookup '$2'">$1</a>`);
         return newTxt;
     }
-    function markMore(txt) {
-        let newTxt = markHejRed(txt);
-        newTxt = markAlfa(newTxt);
+    const reAlfaAfter = /<a href="(.*?)"(.*?)>@(.*?)<\/a>/g;
+    function markAlfaAfter(txt) {
+        // return txt;
+        // const newTxt = txt.replaceAll(reAlfaAfter, `<a href="$1" class="cm-alfa-link" $2>$3</a>`);
+        const newTxt = txt.replaceAll(reAlfaAfter, `<span data-alfa-link="$1" class="cm-alfa-link" $2>$3</span>`);
         return newTxt;
     }
-    // modifyEasyMDEmarkdown(markHejRed);
-    modifyEasyMDEmarkdown(markMore);
-    console.log("++++ added HEJ");
-    function modifyEasyMDEmarkdown(funMore) {
+    function markMoreBefore(txt) {
+        let newTxt = txt;
+        newTxt = markHejGreen(txt);
+        newTxt = markAlfaBefore(newTxt);
+        return newTxt;
+    }
+    function markMoreAfter(txt) {
+        let newTxt = txt;
+        newTxt = markHejRed(txt);
+        newTxt = markAlfaAfter(newTxt);
+        return newTxt;
+    }
+    modifyEasyMDEmarkdown(markMoreBefore, markMoreAfter);
+    // console.log("++++ added HEJ");
+    function modifyEasyMDEmarkdown(funMoreBefore, funMoreAfter) {
         EasyMDE.prototype.markdown = function (txt) {
-            // txt = origEasyMDEmarkdown(txt);
+            if (funMoreBefore) txt = funMoreBefore(txt);
             txt = origEasyMDEmarkdown.call(easyMDE, txt);
-            return funMore(txt);
+            if (funMoreAfter) txt = funMoreAfter(txt);
+            return txt;
         }
     }
 }

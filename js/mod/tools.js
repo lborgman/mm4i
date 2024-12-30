@@ -5,6 +5,7 @@ if (document.currentScript) { throw "tools.js is not loaded as module"; }
 
 const mkElt = window["mkElt"];
 const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
+const importFc4i = window["importFc4i"];
 
 // https://firebase.google.com/docs/reference/js/firebase.auth.Error
 
@@ -1619,4 +1620,121 @@ window["testCmOnScreen"] = () => {
             console.log({ knownDevices });
         }, 1000);
     }
+}
+
+
+/** 
+ * @typedef {Object} searchTree
+ * @param {string=} operator
+ * @param {string[]} words
+*/
+
+/**
+ * Parse a string to a "search tree".
+ * 
+ * @param {string} str 
+ * @returns {Promise<searchTree>}
+ */
+export async function string2searchTree(str) {
+    const modJssm = await importFc4i("jssm");
+    const fsmDeclaration = `
+machine_name     : "mm4i <user@example.com>";
+machine_license  : MIT;
+machine_comment  : "mm4i pointer events";
+
+start_states     : [Between];
+end_states       : [End];
+
+Between 'chCite' => InCite;
+InCite 'chCite' => Between;
+// InCite 'space' => InCite;
+InCite 'ch' => InCite;
+InCite 'end' => End;
+
+Between 'ch' => InWord;
+InWord 'ch' => InWord;
+InWord 'space' => Between;
+InWord 'chCite' => InCite;
+InWord 'end' => End;
+`;
+    const fsm = modJssm.sm(fsmDeclaration.split("\\n"));
+
+    let word = "";
+    const words = [];
+    let pos = 0;
+
+    // fsm.hook_entry("InWord")
+    fsm.hook_entry("Between", () => { words.push(word); word = ""; });
+    fsm.hook_entry("End", () => { words.push(word); });
+
+    str = str.trim();
+    str = str.replaceAll(/\W+/g, " ");
+    // let chCite;
+    let ch;
+    let action;
+    let state = fsm.state();
+    while (pos <= str.length - 1) {
+        ch = str.slice(pos, ++pos);
+        action = "ch";
+        switch (ch) {
+            case '"':
+                action = "chCite";
+                break;
+            case ' ':
+                action = "space";
+                break;
+            default:
+                word = word + ch;
+        }
+        const res = fsm.action(action);
+        state = fsm.state();
+        console.log(`(${ch})`, action, res, state);
+    }
+    const res = fsm.action("end");
+    state = fsm.state();
+    console.log(`(${ch})`, action, res, state);
+    return { words };
+}
+
+window["s2t"] = string2searchTree;
+const tmpTree = await window["s2t"]("aa bbb");
+console.log({ tmpTree });
+debugger;
+
+
+
+/** 
+ * @callback funSearchWord
+ * @param {string} word
+ * @returns {Set}
+ * 
+ */
+
+/**
+ * 
+ * @param {searchTree} searchTree 
+ * @param {funSearchWord} funSearchWord 
+ */
+export function searchBySearchTree(searchTree, funSearchWord) {
+    // https://web.dev/blog/set-methods
+    const operator = searchTree.operator || "&";
+    const ourOperators = "&|";
+    const words = searchTree.words;
+    if (ourOperators.includes(operator)) throw Error(`Unknown operator: ${operator}, should be one of "${ourOperators}"`);
+    let setResult;
+    words.forEach(w => {
+        const res = typeof w == "string" ? funSearchWord(w) : searchBySearchTree(w, funSearchWord);
+        if (!(res instanceof Set)) {
+            const toRes = typeof res;
+            throw Error(`Expected Set, but typeof res == ${toRes}`);
+        }
+        if (!setResult) { setResult = res; return; }
+        switch (operator) {
+            case "&":
+                setResult = res.intersection(setResult);
+            default:
+                throw Error(`Handling of operator ${operator} not implemented yet`);
+        }
+    });
+    return setResult;
 }

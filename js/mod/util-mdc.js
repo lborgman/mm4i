@@ -2392,6 +2392,7 @@ export function mkMDCsnackbar(msg, msTimeout) {
     const snackbar = new mdc.snackbar.MDCSnackbar(eltSnackbar);
     snackbar.timeoutMs = msTimeout || 4000; // min
     document.body.appendChild(eltSnackbar);
+    eltSnackbar.style.zIndex = 9999; // set to 8 by MDC, why??
     eltSnackbar.addEventListener("MDCSnackbar:closed", () => { eltSnackbar.remove(); });
     snackbar.open();
     return eltSnackbar;

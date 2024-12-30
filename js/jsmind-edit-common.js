@@ -1870,6 +1870,13 @@ export async function pageSetup() {
 
     // addScrollIntoViewOnSelect(jmDisplayed);
     addScrollIntoViewOnSelect();
+    // easyMDE-h
+    const modEasyMDEhelpers = await importFc4i("easyMDE-helpers");
+    modEasyMDEhelpers.setupSearchNodes({
+        searchNodeFun: jsmindSearchNodes,
+        inpSearch,
+        eltJsMindContainer: jsMindContainer
+    });
     function jsmindSearchNodes(strSearch) {
         // @ts-ignore
         const jmnodeEltArray = [...jsMindContainer.querySelectorAll("jmnode[nodeid]")];
@@ -1896,6 +1903,7 @@ export async function pageSetup() {
         const arrIdHits = matchingNodes.map(n => jsMind.my_get_nodeID_from_DOM_element(n));
         setNodeHitsFromArray(arrIdHits, "search");
         console.log({ matchingNodes });
+        return matchingNodes;
     }
 
 
