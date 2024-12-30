@@ -1877,7 +1877,14 @@ export async function pageSetup() {
         inpSearch,
         eltJsMindContainer: jsMindContainer
     });
-    function jsmindSearchNodes(strSearch) {
+    async function jsmindSearchNodes(strSearch) {
+        const searchTree = await modTools.string2searchTree(strSearch);
+        const setNodes = modTools.searchBySearchTree(searchTree, jsmindSearchWordNodes);
+        // const arrIdHits = matchingNodes.map(n => jsMind.my_get_nodeID_from_DOM_element(n));
+        const arrIdHits = [...setNodes].map(n => jsMind.my_get_nodeID_from_DOM_element(n));
+        setNodeHitsFromArray(arrIdHits, "search");
+    }
+    function jsmindSearchWordNodes(strSearch) {
         // @ts-ignore
         const jmnodeEltArray = [...jsMindContainer.querySelectorAll("jmnode[nodeid]")];
         jmnodeEltArray.forEach(n => n.classList.remove("jsmind-hit"));
@@ -1900,6 +1907,7 @@ export async function pageSetup() {
             }
             return false;
         });
+        return new Set(matchingNodes);
         const arrIdHits = matchingNodes.map(n => jsMind.my_get_nodeID_from_DOM_element(n));
         setNodeHitsFromArray(arrIdHits, "search");
         console.log({ matchingNodes });

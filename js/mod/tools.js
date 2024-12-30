@@ -1699,7 +1699,7 @@ InWord 'end' => End;
 window["s2t"] = string2searchTree;
 const tmpTree = await window["s2t"]("aa bbb");
 console.log({ tmpTree });
-debugger;
+// debugger;
 
 
 
@@ -1720,7 +1720,7 @@ export function searchBySearchTree(searchTree, funSearchWord) {
     const operator = searchTree.operator || "&";
     const ourOperators = "&|";
     const words = searchTree.words;
-    if (ourOperators.includes(operator)) throw Error(`Unknown operator: ${operator}, should be one of "${ourOperators}"`);
+    if (!ourOperators.includes(operator)) throw Error(`Unknown operator: ${operator}, should be one of "${ourOperators}"`);
     let setResult;
     words.forEach(w => {
         const res = typeof w == "string" ? funSearchWord(w) : searchBySearchTree(w, funSearchWord);
@@ -1732,6 +1732,7 @@ export function searchBySearchTree(searchTree, funSearchWord) {
         switch (operator) {
             case "&":
                 setResult = res.intersection(setResult);
+                break;
             default:
                 throw Error(`Handling of operator ${operator} not implemented yet`);
         }
