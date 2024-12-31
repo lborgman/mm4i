@@ -642,6 +642,15 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
     const oldBtn = eltJmnode.querySelector(`.${clsIconButton}`);
     oldBtn?.remove();
 
+    // Add span for hit
+    const iconHit = "search_check_2";
+    const eltSpanHit = mkElt("span", undefined, iconHit);
+    eltSpanHit.classList.add("material-symbols-outlined");
+    // eltSpanHit.classList.add("material-icons");
+    eltSpanHit.classList.add("hit-mark");
+    eltJmnode.appendChild(eltSpanHit);
+
+
     const notes = shapeEtc.notes;
     if (notes) {
         const reHttps = /(?:^|\W)(https:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()\[\]@:%_\+.~#?&\/=]*))(?:$|\s)/g;
@@ -649,22 +658,16 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
         // m.forEach(m2 => { const url = m2[1]; console.log(`In notes: ${url}`); });
         const hasLinks = m.length > 0;
 
-        const icon = hasLinks ? "link" : "edit";
-        const iconBtn = modMdc.mkMDCiconButton(icon, "Show notes");
-        iconBtn.classList.add(clsIconButton);
-        // const eltA3 = mkElt("a", { href: "https://svt.se" }, iconBtn);
-        // eltA3.classList.add("jsmind-plain-link");
-        // eltJmnode.appendChild(eltA3);
+        const iconNotes = hasLinks ? "link" : "edit";
+        const iconNotesBtn = modMdc.mkMDCiconButton(iconNotes, "Show notes");
+        iconNotesBtn.classList.add(clsIconButton);
 
-        // iconBtn.classList.add("jsmind-plain-link");
-        // eltJmnode.appendChild(iconBtn);
-
-        const eltSpan = mkElt("span", undefined, iconBtn);
+        const eltSpanNotes = mkElt("span", undefined, iconNotesBtn);
         // eltSpan.classList.add("jsmind-plain-link");
-        eltSpan.classList.add("has-notes-mark");
-        eltJmnode.appendChild(eltSpan);
+        eltSpanNotes.classList.add("has-notes-mark");
+        eltJmnode.appendChild(eltSpanNotes);
 
-        eltSpan.addEventListener("click", errorHandlerAsyncEvent(async evt => {
+        eltSpanNotes.addEventListener("click", errorHandlerAsyncEvent(async evt => {
             evt.preventDefault();
             evt.stopPropagation();
             evt.stopImmediatePropagation();

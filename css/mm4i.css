@@ -1760,11 +1760,11 @@ jmnodes.showing-hits jmnode:not(.jsmind-hit) {
     filter: grayscale(1) contrast(0.5);
 }
 
+/*
 jmnode.jsmind-hit::after {
+    display: none;
     content: "Hit!";
     filter: none !important;
-    /* background-color: red !important; */
-    /* background-color: blueviolet !important; */
     background-color: var(--search-color) !important;
     color: yellow !important;
     font-size: 18px !important;
@@ -1781,7 +1781,7 @@ jmnode.jsmind-hit::after {
     right: 40%;
     left: -10px;
 }
-
+*/
 
 
 
