@@ -1629,72 +1629,118 @@ window["testCmOnScreen"] = () => {
  * @param {string[]} words
 */
 
+// https://www.freecodecamp.org/news/how-to-match-parentheses-in-javascript-without-using-regex/
+
+const ourSymbols = {};
+export const symAdd = Symbol("&");
+ourSymbols["&"] = symAdd;
+export const symOr = Symbol("|");
+ourSymbols["|"] = symOr;
+export const symLpar = Symbol("(");
+ourSymbols["("] = symLpar;
+export const symRpar = Symbol(")");
+ourSymbols[")"] = symRpar;
+
+const modJssm = await importFc4i("jssm");
+
 /**
  * Parse a string to a "search tree".
  * 
  * @param {string} str 
  * @returns {Promise<searchTree>}
  */
-export async function string2searchTree(str) {
-    const modJssm = await importFc4i("jssm");
+export function string2searchTree(str) {
     const fsmDeclaration = `
 machine_name     : "mm4i <user@example.com>";
 machine_license  : MIT;
-machine_comment  : "mm4i pointer events";
+machine_comment  : "search string input";
 
-start_states     : [Between];
+start_states     : [BeforeWord];
 end_states       : [End];
 
-Between 'chCite' => InCite;
-InCite 'chCite' => Between;
-// InCite 'space' => InCite;
-InCite 'ch' => InCite;
+needWord 'chCite' => InCite;
+BeforeWord 'chCite' => InCite;
+InCite 'chCite' => AfterWord;
 InCite 'end' => End;
 
-Between 'ch' => InWord;
-InWord 'ch' => InWord;
-InWord 'space' => Between;
-InWord 'chCite' => InCite;
+AfterWord '&|!' => needWord;
+AfterWord 'ch' => InWord;
+
+needWord 'ch' => InWord;
+BeforeWord 'ch' => InWord;
+InWord 'space' => AfterWord;
 InWord 'end' => End;
+
+NeedWord 'space' => NeedWord;
 `;
     const fsm = modJssm.sm(fsmDeclaration.split("\\n"));
 
     let word = "";
     const words = [];
     let pos = 0;
+    let ch;
 
-    // fsm.hook_entry("InWord")
-    fsm.hook_entry("Between", () => { words.push(word); word = ""; });
+    fsm.hook_entry("AfterWord", () => { words.push(word); word = ""; });
     fsm.hook_entry("End", () => { words.push(word); });
+    fsm.hook("AfterWord", "InWord", () => { words.push(symAdd); });
+    fsm.hook_any_action((args) => {
+        const action = args.action;
+        console.log("hook_any_action", action, args);
+        switch (action) {
+            case "&|!":
+                const sym = ourSymbols[ch];
+                if (sym == undefined) debugger;
+                words.push(sym);
+                break;
+        }
+        // words.push(symAdd);
+    });
 
     str = str.trim();
-    str = str.replaceAll(/\W+/g, " ");
-    // let chCite;
-    let ch;
     let action;
     let state = fsm.state();
     while (pos <= str.length - 1) {
         ch = str.slice(pos, ++pos);
         action = "ch";
         switch (ch) {
+            case "&":
+            case "|":
+            case "(":
+            case ")":
+                // action = ch;
+                action = "&|!";
+                break;
             case '"':
                 action = "chCite";
                 break;
             case ' ':
                 action = "space";
+                if (state == "InCite") { action = "ch"; }
                 break;
             default:
-                word = word + ch;
+            // word = word + ch;
         }
+        const oldState = state;
         const res = fsm.action(action);
         state = fsm.state();
-        console.log(`(${ch})`, action, res, state);
+        console.log(`(${ch}): ${oldState} '${action}' => ${state}`, res);
+        if (res) {
+            // FIX-ME: I belive this means a state change...
+            if (state == oldState) throw Error(`res==${res} but state == oldState (${state})`);
+        }
+        if (action == "ch") word = word + ch;
     }
-    const res = fsm.action("end");
+    ch = "";
+    action = "end";
+    const res = fsm.action(action);
+    const oldState = state;
     state = fsm.state();
-    console.log(`(${ch})`, action, res, state);
+    console.log(`(${ch}): ${oldState} '${action}' => ${state}`, res);
     return { words };
 }
+
+// const modGrammarSearch = await importFc4i("grammar-search");
+// console.log({modGrammarSearch});
 
 window["s2t"] = string2searchTree;
 const tmpTree = await window["s2t"]("aa bbb");
@@ -1718,7 +1764,7 @@ console.log({ tmpTree });
 export function searchBySearchTree(searchTree, funSearchWord) {
     // https://web.dev/blog/set-methods
     const operator = searchTree.operator || "&";
-    const ourOperators = "&|";
+    const ourOperators = "&|!";
     const words = searchTree.words;
     if (!ourOperators.includes(operator)) throw Error(`Unknown operator: ${operator}, should be one of "${ourOperators}"`);
     let setResult;

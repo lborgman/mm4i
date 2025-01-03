@@ -69,6 +69,8 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
         "viz-js": "./ext/viz-js/viz-standalone.mjs",
         // "zoom": "https://cdn.jsdelivr.net/npm/pinch-zoom-js@latest/dist/jssm.es6.mjs",
         "zoom": "./js/mod/zoom.js",
+        "rd-parser": "./js/mod/rd-parser.js",
+        "grammar-search": "./js/mod/grammar-search.js",
     };
     /*
         It looks like you can't reliable use importmap this way:
