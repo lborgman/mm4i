@@ -1643,6 +1643,16 @@ ourSymbols[")"] = symRpar;
 
 const modJssm = await importFc4i("jssm");
 
+function checkFsmAction(fsm, action) {
+    const state = fsm.state();
+    const allowedActions = fsm.actions(state);
+    if (!allowedActions.includes(action)) {
+        console.error(`No action "${action}" in "${state}", allowed:`, allowedActions, "fsm:", fsm);
+        throw Error(`No action "${action}" in "${state}"`);
+    }
+}
+
+
 /**
  * Parse a string to a "search tree".
  * 
@@ -1652,29 +1662,37 @@ const modJssm = await importFc4i("jssm");
 export function string2searchTree(str) {
     const fsmDeclaration = `
 machine_name     : "mm4i <user@example.com>";
-machine_license  : MIT;
-machine_comment  : "search string input";
+        machine_license: MIT;
+        machine_comment: "search string input";
 
-start_states     : [BeforeWord];
-end_states       : [End];
+        start_states: [BeforeWord];
+        end_states: [End];
 
-needWord 'chCite' => InCite;
+NeedWord 'chCite' => InCite;
+NeedWord 'space' => NeedWord;
+
 BeforeWord 'chCite' => InCite;
+BeforeWord '&|!' => NeedWord;
+
+InCite 'ch' => InCite;
+InCite 'space' => BeforeInCite after 0 => InCite;
 InCite 'chCite' => AfterWord;
-InCite 'end' => End;
+// InCite 'end' => End;
 
 // https://github.com/StoneCypher/fsl/issues/325
-AfterWord '&|!' => needWord;
+AfterWord '&|!' => NeedWord;
 AfterWord 'ch' => InWord;
+AfterWord 'chCite' => InCite;
+AfterWord 'end' => End;
 
-needWord 'ch' => InWord;
+NeedWord 'ch' => InWord;
 BeforeWord 'ch' => InWord;
+
 InWord 'space' => AfterWord;
+InWord 'ch' => InWord;
 // InWord 'tab' => AfterWord;
 InWord 'end' => End;
-
-NeedWord 'space' => NeedWord;
-`;
+        `;
     const fsmSearch = modJssm.sm(fsmDeclaration.split("\\n"));
     window["fsmSearch"] = fsmSearch;
 
@@ -1688,9 +1706,11 @@ NeedWord 'space' => NeedWord;
     fsmSearch.hook("AfterWord", "InWord", () => { words.push(symAdd); });
     fsmSearch.hook_any_action((args) => {
         const action = args.action;
+        const next_data = args.next_data;
         // console.log("hook_any_action", action, args);
         switch (action) {
             case "&|!":
+                const ch = next_data.ch;
                 const sym = ourSymbols[ch];
                 console.log("got sym", action, ch, sym);
                 if (sym == undefined) debugger;
@@ -1724,26 +1744,16 @@ NeedWord 'space' => NeedWord;
             default:
             // word = word + ch;
         }
-        const possibleAbleActions = fsmSearch.actions(state);
-        if (!possibleAbleActions.includes(action)) {
-            console.error(`Can't apply action "${action}", possible:`, possibleAbleActions)
-        }
+        checkFsmAction(fsmSearch, action);
         const oldState = state;
         const res = fsmSearch.action(action, { ch });
         state = fsmSearch.state();
         console.log(`(${ch}): ${oldState} '${action}' => ${state}`, res);
-        if (res) {
-            // FIX-ME: I belive this means a state change...
-            if (state == oldState) throw Error(`res==${res} but state == oldState (${state})`);
-        }
         if (action == "ch") word = word + ch;
     }
     ch = "";
     action = "end";
-    const possibleAbleActions = fsmSearch.actions(state);
-    if (!possibleAbleActions.includes(action)) {
-        console.error(`Can't apply action "${action}", possible:`, possibleAbleActions);
-    }
+    checkFsmAction(fsmSearch, action);
     const res = fsmSearch.action(action);
     const oldState = state;
     state = fsmSearch.state();

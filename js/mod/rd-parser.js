@@ -1,4 +1,5 @@
 // This is from https://github.com/dmaevsky/rd-parse/blob/master/src/index.js
+// https://bmsdave.github.io/blog/y-combinator-eng/
 // @ts-check
 
 function locAt(text, newPos, { pos, line, column }) {
