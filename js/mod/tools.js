@@ -1663,32 +1663,36 @@ BeforeWord 'chCite' => InCite;
 InCite 'chCite' => AfterWord;
 InCite 'end' => End;
 
+// https://github.com/StoneCypher/fsl/issues/325
 AfterWord '&|!' => needWord;
 AfterWord 'ch' => InWord;
 
 needWord 'ch' => InWord;
 BeforeWord 'ch' => InWord;
 InWord 'space' => AfterWord;
+// InWord 'tab' => AfterWord;
 InWord 'end' => End;
 
 NeedWord 'space' => NeedWord;
 `;
-    const fsm = modJssm.sm(fsmDeclaration.split("\\n"));
+    const fsmSearch = modJssm.sm(fsmDeclaration.split("\\n"));
+    window["fsmSearch"] = fsmSearch;
 
     let word = "";
     const words = [];
     let pos = 0;
     let ch;
 
-    fsm.hook_entry("AfterWord", () => { words.push(word); word = ""; });
-    fsm.hook_entry("End", () => { words.push(word); });
-    fsm.hook("AfterWord", "InWord", () => { words.push(symAdd); });
-    fsm.hook_any_action((args) => {
+    fsmSearch.hook_entry("AfterWord", () => { words.push(word); word = ""; });
+    fsmSearch.hook_entry("End", () => { words.push(word); });
+    fsmSearch.hook("AfterWord", "InWord", () => { words.push(symAdd); });
+    fsmSearch.hook_any_action((args) => {
         const action = args.action;
-        console.log("hook_any_action", action, args);
+        // console.log("hook_any_action", action, args);
         switch (action) {
             case "&|!":
                 const sym = ourSymbols[ch];
+                console.log("got sym", action, ch, sym);
                 if (sym == undefined) debugger;
                 words.push(sym);
                 break;
@@ -1698,7 +1702,7 @@ NeedWord 'space' => NeedWord;
 
     str = str.trim();
     let action;
-    let state = fsm.state();
+    let state = fsmSearch.state();
     while (pos <= str.length - 1) {
         ch = str.slice(pos, ++pos);
         action = "ch";
@@ -1720,9 +1724,13 @@ NeedWord 'space' => NeedWord;
             default:
             // word = word + ch;
         }
+        const possibleAbleActions = fsmSearch.actions(state);
+        if (!possibleAbleActions.includes(action)) {
+            console.error(`Can't apply action "${action}", possible:`, possibleAbleActions)
+        }
         const oldState = state;
-        const res = fsm.action(action);
-        state = fsm.state();
+        const res = fsmSearch.action(action, { ch });
+        state = fsmSearch.state();
         console.log(`(${ch}): ${oldState} '${action}' => ${state}`, res);
         if (res) {
             // FIX-ME: I belive this means a state change...
@@ -1732,9 +1740,13 @@ NeedWord 'space' => NeedWord;
     }
     ch = "";
     action = "end";
-    const res = fsm.action(action);
+    const possibleAbleActions = fsmSearch.actions(state);
+    if (!possibleAbleActions.includes(action)) {
+        console.error(`Can't apply action "${action}", possible:`, possibleAbleActions);
+    }
+    const res = fsmSearch.action(action);
     const oldState = state;
-    state = fsm.state();
+    state = fsmSearch.state();
     console.log(`(${ch}): ${oldState} '${action}' => ${state}`, res);
     return { words };
 }
