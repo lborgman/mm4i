@@ -1881,7 +1881,9 @@ export async function pageSetup() {
         eltJsMindContainer: jsMindContainer
     });
     async function jsmindSearchNodes(strSearch) {
-        const searchTree = await modTools.string2searchTree(strSearch);
+        // const searchTree = await modTools.string2searchTree(strSearch);
+        const resultSearch = modTools.string2searchTree(strSearch);
+        const searchTree = resultSearch.tree;
         const setNodes = modTools.searchBySearchTree(searchTree, jsmindSearchWordNodes);
         // const arrIdHits = matchingNodes.map(n => jsMind.my_get_nodeID_from_DOM_element(n));
         const arrIdHits = [...setNodes].map(n => jsMind.my_get_nodeID_from_DOM_element(n));

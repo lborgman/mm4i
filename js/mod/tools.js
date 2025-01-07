@@ -1631,42 +1631,71 @@ window["testCmOnScreen"] = () => {
 
 // https://www.freecodecamp.org/news/how-to-match-parentheses-in-javascript-without-using-regex/
 
-const ourSymbols = {};
+const string2SearchSym = {};
 export const symAdd = Symbol("&");
-ourSymbols["&"] = symAdd;
+string2SearchSym["&"] = symAdd;
 export const symOr = Symbol("|");
-ourSymbols["|"] = symOr;
+string2SearchSym["|"] = symOr;
+export const symNot = Symbol("!");
+string2SearchSym["!"] = symNot;
 export const symLpar = Symbol("(");
-ourSymbols["("] = symLpar;
+string2SearchSym["("] = symLpar;
 export const symRpar = Symbol(")");
-ourSymbols[")"] = symRpar;
+string2SearchSym[")"] = symRpar;
+
+const ourSearchOperators = new Set([symAdd, symOr, symNot]);
+
 
 const modJssm = await importFc4i("jssm");
 
-function checkFsmAction(fsm, action) {
-    const state = fsm.state();
-    const allowedActions = fsm.actions(state);
+export function checkFsmActionAndApply(fsm, action, newData, errHandler) {
+    const oldState = fsm.state();
+    const allowedActions = fsm.actions(oldState);
     if (!allowedActions.includes(action)) {
-        console.error(`No action "${action}" in "${state}", allowed:`, allowedActions, "fsm:", fsm);
-        throw Error(`No action "${action}" in "${state}"`);
+        const msgErr = `No action "${action}" in "${oldState}"`;
+        console.error(msgErr, "allowed: ", allowedActions, "fsm:", fsm);
+        if (!errHandler) {
+            // throw Error(`No action "${action}" in "${oldState}"`);
+            throw Error(msgErr);
+        }
+        debugger;
+        // FIX-ME: How to implement error handling???
+        return errHandler(msgErr);
+        return false;
     }
+    const res = fsm.action(action, newData);
+    const newState = fsm.state();
+    console.log(`newData==${JSON.stringify(newData)}: ${oldState} '${action}' => ${newState}`, res);
+    return true;
 }
 
 
 /**
+ * @typedef {Object} str2searchTree
+ * @param {boolean} ok
+ * @param {searchTree|undefined} tree
+ * @param {string|undefined} errMsg
+*/
+
+let look4tokenProblems = false;
+/**
  * Parse a string to a "search tree".
  * 
  * @param {string} str 
- * @returns {Promise<searchTree>}
+ * @returns {str2searchTree}
  */
-export function string2searchTree(str) {
+export function string2searchTokens(str) {
     const fsmDeclaration = `
 machine_name     : "mm4i <user@example.com>";
         machine_license: MIT;
         machine_comment: "search string input";
 
-        start_states: [BeforeWord];
+        start_states: [Start];
         end_states: [End];
+
+Start 'space' => Start;
+Start 'chCite' => InCite;
+Start 'ch' => InWord;
 
 NeedWord 'chCite' => InCite;
 NeedWord 'space' => NeedWord;
@@ -1680,6 +1709,7 @@ InCite 'chCite' => AfterWord;
 // InCite 'end' => End;
 
 // https://github.com/StoneCypher/fsl/issues/325
+AfterWord 'space' => AfterWord;
 AfterWord '&|!' => NeedWord;
 AfterWord 'ch' => InWord;
 AfterWord 'chCite' => InCite;
@@ -1697,24 +1727,35 @@ InWord 'end' => End;
     window["fsmSearch"] = fsmSearch;
 
     let word = "";
-    const words = [];
+    const tokens = [];
     let pos = 0;
     let ch;
 
-    fsmSearch.hook_entry("AfterWord", () => { words.push(word); word = ""; });
-    fsmSearch.hook_entry("End", () => { words.push(word); });
-    fsmSearch.hook("AfterWord", "InWord", () => { words.push(symAdd); });
+    const tokensPush = (token) => {
+        if (typeof token === "string") {
+            if (token.length === 0) {
+                console.warn('token is ""');
+                return;
+            }
+        }
+        tokens.push(token);
+    }
+
+    fsmSearch.hook_entry("AfterWord", () => { tokensPush(word); word = ""; });
+    fsmSearch.hook_entry("End", () => { tokensPush(word); });
+    fsmSearch.hook("AfterWord", "InWord", () => { tokensPush(symAdd); });
     fsmSearch.hook_any_action((args) => {
         const action = args.action;
         const next_data = args.next_data;
-        // console.log("hook_any_action", action, args);
+        console.log("hook_any_action", action, args);
+        if (look4tokenProblems) debugger;
         switch (action) {
             case "&|!":
                 const ch = next_data.ch;
-                const sym = ourSymbols[ch];
+                const sym = string2SearchSym[ch];
                 console.log("got sym", action, ch, sym);
                 if (sym == undefined) debugger;
-                words.push(sym);
+                tokens.push(sym);
                 break;
         }
         // words.push(symAdd);
@@ -1722,13 +1763,13 @@ InWord 'end' => End;
 
     str = str.trim();
     let action;
-    let state = fsmSearch.state();
     while (pos <= str.length - 1) {
         ch = str.slice(pos, ++pos);
         action = "ch";
         switch (ch) {
             case "&":
             case "|":
+            case "!":
             case "(":
             case ")":
                 // action = ch;
@@ -1739,34 +1780,105 @@ InWord 'end' => End;
                 break;
             case ' ':
                 action = "space";
+                const state = fsmSearch.state();
                 if (state == "InCite") { action = "ch"; }
                 break;
             default:
             // word = word + ch;
         }
-        checkFsmAction(fsmSearch, action);
-        const oldState = state;
-        const res = fsmSearch.action(action, { ch });
-        state = fsmSearch.state();
-        console.log(`(${ch}): ${oldState} '${action}' => ${state}`, res);
+        const res = checkFsmActionAndApply(fsmSearch, action, { ch });
+        if (!res) return { ok: false, tokens: tokens }
         if (action == "ch") word = word + ch;
     }
-    ch = "";
-    action = "end";
-    checkFsmAction(fsmSearch, action);
-    const res = fsmSearch.action(action);
-    const oldState = state;
-    state = fsmSearch.state();
-    console.log(`(${ch}): ${oldState} '${action}' => ${state}`, res);
-    return { words };
+    // ch = "";
+    // action = "end";
+    const res = checkFsmActionAndApply(fsmSearch, "end");
+    return { ok: res, tokens: tokens };
+
 }
+
+/**
+ * @param {token[]} tokens
+ */
+// Originally from Microsoft Copilot
+function parseSearchTokens2AST(tokens) {
+    let current = 0;
+    function walk() {
+        let token = tokens[current];
+        if (typeof token === "string") {
+            current++;
+            return {
+                type: "string",
+                value: token
+            }
+        }
+        if (ourSearchOperators.has(token)) {
+            current++;
+            return {
+                type: "operator",
+                value: token
+            }
+        }
+        if (token === symLpar) {
+            current++;
+            let node = {
+                type: "expression",
+                body: []
+            }
+            while (tokens[current] != symRpar) {
+                node.body.push(walk());
+            }
+            current++;
+            return node;
+        }
+        throw new TypeError(`Unexpected token: ${token.toString()}`);
+    }
+
+    let ast = {
+        type: "program",
+        body: []
+    }
+    while (current < tokens.length) {
+        ast.body.push(walk());
+    }
+    return ast;
+}
+window["t2a"] = parseSearchTokens2AST;
 
 // const modGrammarSearch = await importFc4i("grammar-search");
 // console.log({modGrammarSearch});
 
-window["s2t"] = string2searchTree;
-const tmpTree = await window["s2t"]("aa bbb");
-console.log({ tmpTree });
+window["s2t"] = string2searchTokens;
+function ArraysAreEqual(arrA, arrB) {
+    return (arrA.length === arrB.length) &&
+        arrA.every((a, idx) => a === arrB[idx]);
+}
+async function testString2searchTokens() {
+    function test(arrWanted, strTested) {
+        console.log("%ctesting", "color:red;", `(${strTested})`);
+        const resTest = string2searchTokens(strTested)
+        const arrTest = resTest.tokens;
+        if (!ArraysAreEqual(arrWanted, arrTest)) {
+            console.error("bad tokens", arrWanted, `(${strTested})`, arrTest);
+            // throw Error(`bad tokens for "${strTested}"`);
+            alert(`bad tokens for "${strTested}"`);
+            debugger;
+            look4tokenProblems = true;
+            string2searchTokens(strTested);
+        }
+    }
+    test(["aa"], "aa");
+    test(["aa"], " aa ");
+    test(["aa b"], '"aa b"');
+    test(["aa b"], ' "aa b" ');
+    test(["aa", symAdd, "b"], ' "aa" b ');
+    test(["aa", symAdd, "b"], "aa b");
+    test(["aa", symAdd, "b"], "aa & b");
+    test(["aa", symOr, "b"], "aa | b");
+    test(["aa", symAdd, symNot, "b"], "aa !b");
+    test(["aa", symNot, "b"], "aa ! b");
+}
+testString2searchTokens();
 // debugger;
 
 
