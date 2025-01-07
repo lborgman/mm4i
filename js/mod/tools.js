@@ -1699,9 +1699,15 @@ Start 'ch' => InWord;
 
 NeedWord 'chCite' => InCite;
 NeedWord 'space' => NeedWord;
+NeedWord '!' => JustNeedWord;
+
+JustNeedWord 'chCite' => InCite;
+JustNeedWord 'space' => NeedWord;
 
 BeforeWord 'chCite' => InCite;
-BeforeWord '&|!' => NeedWord;
+BeforeWord '&' => BeforeWord_add after 0 => NeedWord;
+BeforeWord '|' => BeforeWord_or after 0 => NeedWord;
+BeforeWord '!' => BeforeWord_not after 0 => NeedWord;
 
 InCite 'ch' => InCite;
 InCite 'space' => BeforeInCite after 0 => InCite;
@@ -1710,10 +1716,20 @@ InCite 'chCite' => AfterWord;
 
 // https://github.com/StoneCypher/fsl/issues/325
 AfterWord 'space' => AfterWord;
-AfterWord '&|!' => NeedWord;
+AfterWord '&' => AfterWord_add after 0 => AddSpaceNeedWord;
+AfterWord '|' => AfterWord_or after 0 => SpaceNeedWord;
+AfterWord '!' => AfterWord_not after 0 => NeedWord;
+AfterWord_add 'space' => NeedWord;
+AfterWord_or 'space' => NeedWord;
+AfterWord_not 'space' => AfterWord_not;
+AfterWord_not 'ch' => InWord;
+AfterWord_not 'cite' => InCite;
+
 AfterWord 'ch' => InWord;
 AfterWord 'chCite' => InCite;
 AfterWord 'end' => End;
+
+SpaceNeedWord 'space' => SpaceNeedWord;
 
 NeedWord 'ch' => InWord;
 BeforeWord 'ch' => InWord;
@@ -1747,13 +1763,19 @@ InWord 'end' => End;
     fsmSearch.hook_any_action((args) => {
         const action = args.action;
         const next_data = args.next_data;
-        console.log("hook_any_action", action, args);
+        // console.log("hook_any_action", action, args);
         if (look4tokenProblems) debugger;
         switch (action) {
-            case "&|!":
+            // case "&|!":
+            case "!":
+                const state = fsmSearch.state();
+                console.log("got !, state:", state);
+                if (state == "AfterWord") { tokens.push(symAdd); }
+            case "&":
+            case "|":
                 const ch = next_data.ch;
                 const sym = string2SearchSym[ch];
-                console.log("got sym", action, ch, sym);
+                // console.log("got sym", action, ch, sym);
                 if (sym == undefined) debugger;
                 tokens.push(sym);
                 break;
@@ -1772,8 +1794,8 @@ InWord 'end' => End;
             case "!":
             case "(":
             case ")":
-                // action = ch;
-                action = "&|!";
+                // action = "&|!";
+                action = ch;
                 break;
             case '"':
                 action = "chCite";
@@ -1854,29 +1876,32 @@ function ArraysAreEqual(arrA, arrB) {
         arrA.every((a, idx) => a === arrB[idx]);
 }
 async function testString2searchTokens() {
-    function test(arrWanted, strTested) {
-        console.log("%ctesting", "color:red;", `(${strTested})`);
+    function testSearchString(strTested, arrWanted) {
+        if (typeof strTested !== "string") throw Error("first param should be string");
+        console.log("%ctestSearchString", "color:red;", `(${strTested})`);
         const resTest = string2searchTokens(strTested)
         const arrTest = resTest.tokens;
         if (!ArraysAreEqual(arrWanted, arrTest)) {
-            console.error("bad tokens", arrWanted, `(${strTested})`, arrTest);
-            // throw Error(`bad tokens for "${strTested}"`);
-            alert(`bad tokens for "${strTested}"`);
+            const msg = `bad tokens (${strTested}): `;
+            console.error(msg, arrTest, "---wanted:", arrWanted);
+            // throw Error(`bad search tokens for string (${strTested})`);
+            alert(`bad search tokens for string (${strTested})`);
             debugger;
             look4tokenProblems = true;
             string2searchTokens(strTested);
         }
     }
-    test(["aa"], "aa");
-    test(["aa"], " aa ");
-    test(["aa b"], '"aa b"');
-    test(["aa b"], ' "aa b" ');
-    test(["aa", symAdd, "b"], ' "aa" b ');
-    test(["aa", symAdd, "b"], "aa b");
-    test(["aa", symAdd, "b"], "aa & b");
-    test(["aa", symOr, "b"], "aa | b");
-    test(["aa", symAdd, symNot, "b"], "aa !b");
-    test(["aa", symNot, "b"], "aa ! b");
+    testSearchString("aa", ["aa"]);
+    testSearchString(" aa ", ["aa"]);
+    testSearchString('"aa b"', ["aa b"]);
+    testSearchString(' "aa b" ', ["aa b"]);
+    testSearchString(' "aa" b ', ["aa", symAdd, "b"]);
+    testSearchString("aa b", ["aa", symAdd, "b"]);
+    testSearchString("aa & b", ["aa", symAdd, "b"]);
+    testSearchString("aa | b", ["aa", symOr, "b"]);
+    testSearchString("aa & ! b", ["aa", symAdd, symNot, "b"]);
+    testSearchString("aa !b", ["aa", symAdd, symNot, "b"]);
+    testSearchString("aa ! b", ["aa", symAdd, symNot, "b"]);
 }
 testString2searchTokens();
 // debugger;
