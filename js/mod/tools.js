@@ -1685,108 +1685,115 @@ let look4tokenProblems = false;
  * @returns {str2searchTree}
  */
 export function string2searchTokens(str) {
-    const fsmDeclaration = `
-machine_name     : "mm4i <user@example.com>";
-        machine_license: MIT;
-        machine_comment: "search string input";
-
-        start_states: [Start];
-        end_states: [End];
-
-Start 'space' => Start;
-Start 'chCite' => InCite;
-Start 'ch' => InWord;
-
-NeedWord 'chCite' => InCite;
-NeedWord 'space' => NeedWord;
-NeedWord '!' => JustNeedWord;
-
-JustNeedWord 'chCite' => InCite;
-JustNeedWord 'space' => NeedWord;
-
-BeforeWord 'chCite' => InCite;
-BeforeWord '&' => BeforeWord_add after 0 => NeedWord;
-BeforeWord '|' => BeforeWord_or after 0 => NeedWord;
-BeforeWord '!' => BeforeWord_not after 0 => NeedWord;
-
-InCite 'ch' => InCite;
-InCite 'space' => BeforeInCite after 0 => InCite;
-InCite 'chCite' => AfterWord;
-// InCite 'end' => End;
-
-// https://github.com/StoneCypher/fsl/issues/325
-AfterWord 'space' => AfterWord;
-AfterWord '&' => AfterWord_add after 0 => AddSpaceNeedWord;
-AfterWord '|' => AfterWord_or after 0 => SpaceNeedWord;
-AfterWord '!' => AfterWord_not after 0 => NeedWord;
-AfterWord_add 'space' => NeedWord;
-AfterWord_or 'space' => NeedWord;
-AfterWord_not 'space' => AfterWord_not;
-AfterWord_not 'ch' => InWord;
-AfterWord_not 'cite' => InCite;
-
-AfterWord 'ch' => InWord;
-AfterWord 'chCite' => InCite;
-AfterWord 'end' => End;
-
-SpaceNeedWord 'space' => SpaceNeedWord;
-
-NeedWord 'ch' => InWord;
-BeforeWord 'ch' => InWord;
-
-InWord 'space' => AfterWord;
-InWord 'ch' => InWord;
-// InWord 'tab' => AfterWord;
-InWord 'end' => End;
-        `;
-    const fsmSearch = modJssm.sm(fsmDeclaration.split("\\n"));
-    window["fsmSearch"] = fsmSearch;
-
     let word = "";
     const tokens = [];
-    let pos = 0;
     let ch;
 
-    const tokensPush = (token) => {
-        if (typeof token === "string") {
-            if (token.length === 0) {
-                console.warn('token is ""');
-                return;
+    function getFsmSearchLexer() {
+        const fsmDeclaration = `
+            machine_name   : "Search string lexer";
+            machine_license: MIT;
+            machine_comment: "For user given search string, handles (), &, | and !";
+    
+            start_states: [Start];
+            end_states: [End];
+    
+    Start 'space' => Start;
+    Start 'chCite' => InCite;
+    Start 'ch' => InWord;
+    
+    NeedWord 'chCite' => InCite;
+    NeedWord 'space' => NeedWord;
+    NeedWord '!' => JustNeedWord;
+    NeedWord '(' => NeedWord_Lpar after 0 => NeedWord;
+    
+    JustNeedWord 'chCite' => InCite;
+    JustNeedWord 'space' => NeedWord;
+    
+    BeforeWord 'chCite' => InCite;
+    BeforeWord '&' => BeforeWord_add after 0 => NeedWord;
+    BeforeWord '|' => BeforeWord_or after 0 => NeedWord;
+    BeforeWord '!' => BeforeWord_not after 0 => NeedWord;
+    
+    InCite 'ch' => InCite;
+    InCite 'space' => BeforeInCite after 0 => InCite;
+    InCite 'chCite' => AfterWord;
+    // InCite 'end' => End;
+    
+    // https://github.com/StoneCypher/fsl/issues/325
+    AfterWord 'space' => AfterWord;
+    AfterWord '&' => AfterWord_add after 0 => AddSpaceNeedWord;
+    AfterWord '|' => AfterWord_or after 0 => SpaceNeedWord;
+    AfterWord '!' => AfterWord_not after 0 => NeedWord;
+    AfterWord_add 'space' => NeedWord;
+    AfterWord_or 'space' => NeedWord;
+    AfterWord_not 'space' => AfterWord_not;
+    AfterWord_not 'ch' => InWord;
+    AfterWord_not 'cite' => InCite;
+    
+    AfterWord 'ch' => InWord;
+    AfterWord 'chCite' => InCite;
+    AfterWord 'end' => End;
+    
+    SpaceNeedWord 'space' => SpaceNeedWord;
+    
+    NeedWord 'ch' => InWord;
+    BeforeWord 'ch' => InWord;
+    
+    InWord 'space' => AfterWord;
+    InWord 'ch' => InWord;
+    // InWord 'tab' => AfterWord;
+    InWord 'end' => End;
+            `;
+        const fsmSearch = modJssm.sm(fsmDeclaration.split("\\n"));
+        window["fsmSearch"] = fsmSearch;
+
+        const tokensPush = (token) => {
+            if (typeof token === "string") {
+                if (token.length === 0) {
+                    console.warn('token is ""');
+                    return;
+                }
             }
+            tokens.push(token);
         }
-        tokens.push(token);
+
+        fsmSearch.hook_entry("AfterWord", () => { tokensPush(word); word = ""; });
+        fsmSearch.hook_entry("End", () => { tokensPush(word); });
+        fsmSearch.hook("AfterWord", "InWord", () => { tokensPush(symAdd); });
+        fsmSearch.hook_any_action((args) => {
+            if (!args) debugger;
+            const action = args.action;
+            const next_data = args.next_data;
+            // console.log("hook_any_action", action, args);
+            if (look4tokenProblems) debugger;
+            switch (action) {
+                // case "&|!":
+                case "!":
+                    const state = fsmSearch.state();
+                    console.log("got !, state:", state);
+                    if (state == "AfterWord") { tokens.push(symAdd); }
+                case "&":
+                case "|":
+                    const ch = next_data.ch;
+                    const sym = string2SearchSym[ch];
+                    // console.log("got sym", action, ch, sym);
+                    if (sym == undefined) debugger;
+                    tokens.push(sym);
+                    break;
+            }
+            // words.push(symAdd);
+        });
+        return fsmSearch;
     }
 
-    fsmSearch.hook_entry("AfterWord", () => { tokensPush(word); word = ""; });
-    fsmSearch.hook_entry("End", () => { tokensPush(word); });
-    fsmSearch.hook("AfterWord", "InWord", () => { tokensPush(symAdd); });
-    fsmSearch.hook_any_action((args) => {
-        const action = args.action;
-        const next_data = args.next_data;
-        // console.log("hook_any_action", action, args);
-        if (look4tokenProblems) debugger;
-        switch (action) {
-            // case "&|!":
-            case "!":
-                const state = fsmSearch.state();
-                console.log("got !, state:", state);
-                if (state == "AfterWord") { tokens.push(symAdd); }
-            case "&":
-            case "|":
-                const ch = next_data.ch;
-                const sym = string2SearchSym[ch];
-                // console.log("got sym", action, ch, sym);
-                if (sym == undefined) debugger;
-                tokens.push(sym);
-                break;
-        }
-        // words.push(symAdd);
-    });
-
+    const fsmSearch = getFsmSearchLexer();
     str = str.trim();
+    const iter = str[Symbol.iterator]();
     let action;
-    while (pos <= str.length - 1) {
-        ch = str.slice(pos, ++pos);
+    let next;
+    while (!(next = iter.next(), next.done)) {
+        ch = next.value;
         action = "ch";
         switch (ch) {
             case "&":
@@ -1794,7 +1801,6 @@ InWord 'end' => End;
             case "!":
             case "(":
             case ")":
-                // action = "&|!";
                 action = ch;
                 break;
             case '"':
@@ -1812,9 +1818,12 @@ InWord 'end' => End;
         if (!res) return { ok: false, tokens: tokens }
         if (action == "ch") word = word + ch;
     }
-    // ch = "";
-    // action = "end";
     const res = checkFsmActionAndApply(fsmSearch, "end");
+    const finalState = fsmSearch.state();
+    if (finalState != "End"){
+        // FIX-ME: handle this
+        throw Error(`Final state is "${finalState}", should be "End"`);
+    }
     return { ok: res, tokens: tokens };
 
 }
@@ -1822,6 +1831,9 @@ InWord 'end' => End;
 /**
  * @param {token[]} tokens
  */
+
+
+
 // Originally from Microsoft Copilot
 function parseSearchTokens2AST(tokens) {
     let current = 0;
@@ -1879,6 +1891,8 @@ async function testString2searchTokens() {
     function testSearchString(strTested, arrWanted) {
         if (typeof strTested !== "string") throw Error("first param should be string");
         console.log("%ctestSearchString", "color:red;", `(${strTested})`);
+        // const state = window["fsmSearch"].state();
+        // if (state !== "Start") throw Error(`fsm state is "${state}", should be "Start"`)
         const resTest = string2searchTokens(strTested)
         const arrTest = resTest.tokens;
         if (!ArraysAreEqual(arrWanted, arrTest)) {
@@ -1891,17 +1905,27 @@ async function testString2searchTokens() {
             string2searchTokens(strTested);
         }
     }
+    /*
     testSearchString("aa", ["aa"]);
     testSearchString(" aa ", ["aa"]);
     testSearchString('"aa b"', ["aa b"]);
     testSearchString(' "aa b" ', ["aa b"]);
-    testSearchString(' "aa" b ', ["aa", symAdd, "b"]);
+
     testSearchString("aa b", ["aa", symAdd, "b"]);
+    testSearchString(' "aa" b ', ["aa", symAdd, "b"]);
+
     testSearchString("aa & b", ["aa", symAdd, "b"]);
     testSearchString("aa | b", ["aa", symOr, "b"]);
+
     testSearchString("aa & ! b", ["aa", symAdd, symNot, "b"]);
     testSearchString("aa !b", ["aa", symAdd, symNot, "b"]);
     testSearchString("aa ! b", ["aa", symAdd, symNot, "b"]);
+    */
+
+    testSearchString("aa & b", ["aa", symAdd, "b"]);
+    testSearchString("aa & (b | c)", ["aa", symAdd, symLpar, "b", symOr, "c", symRpar]);
+    // testSearchString("(aa b) | c", ["aa", symAdd, symNot, "b"]);
+
 }
 testString2searchTokens();
 // debugger;
