@@ -1646,7 +1646,7 @@ string2SearchSym[")"] = symRpar;
 const ourSearchOperators = new Set([symAdd, symOr, symNot]);
 
 
-const modJssm = await importFc4i("jssm");
+// const modJssm = await importFc4i("jssm");
 
 export function checkFsmActionAndApply(fsm, action, newData, errHandler) {
     const oldState = fsm.state();
@@ -1679,6 +1679,78 @@ export function checkFsmActionAndApply(fsm, action, newData, errHandler) {
 */
 
 let look4tokenProblems = false;
+const strFsmSearch = `
+machine_name   : "Search string lexer";
+machine_license: MIT;
+machine_comment: "For user given search string, handles (), &, | and !";
+
+start_states: [Start];
+end_states: [End];
+
+Start 'space' -> Start;
+Start 'chCite' -> InCite;
+Start 'ch' -> InWord;
+
+NeedWord 'chCite' -> InCite;
+
+// NeedWord 'space' -> NeedWord;
+// NeedWord '(' -> NeedWord;
+NeedWord '[space lpar]' -> NeedWord;
+
+// NeedWord '!' -> JustNeedWord;
+
+NeedWord 'not' -> JustNeedWord;
+
+JustNeedWord 'chCite' -> InCite;
+JustNeedWord 'space' -> NeedWord;
+
+BeforeWord 'chCite' -> InCite;
+BeforeWord 'and' -> BeforeWord_add after 0 => NeedWord;
+BeforeWord 'or' -> BeforeWord_or after 0 => NeedWord;
+BeforeWord 'not' -> BeforeWord_not after 0 => NeedWord;
+
+InCite 'ch' -> InCite;
+InCite 'space' -> BeforeInCite after 0 => InCite;
+InCite 'chCite' -> AfterWord;
+// InCite 'end' -> End;
+
+AfterWord 'space' -> AfterWord;
+AfterWord '[and or not]' -> NeedWord;
+
+AfterWord 'ch' -> InWord;
+AfterWord 'chCite' -> InCite;
+AfterWord 'end' -> End;
+
+SpaceNeedWord 'space' -> SpaceNeedWord;
+
+NeedWord 'ch' -> InWord;
+BeforeWord 'ch' -> InWord;
+
+InWord 'space' -> AfterWord;
+InWord 'ch' -> InWord;
+// InWord 'tab' -> AfterWord;
+InWord 'end' -> End;
+`;
+
+
+
+
+
+
+
+/** @type {fsmMultiDeclaration} */
+const objFsmSearchMulti = {
+    strFsmMulti: strFsmSearch,
+    strFsm: undefined
+}
+const modJssmTools = await importFc4i("jssm-tools")
+function getFsmSearchLexer() {
+    const fsm = modJssmTools.getFsmMulti(objFsmSearchMulti);
+    // window["fsmSearch"] = fsm; // For my testing
+    return fsm;
+}
+
+
 /**
  * Parse a string to a "search tree".
  * 
@@ -1686,162 +1758,50 @@ let look4tokenProblems = false;
  * @returns {str2searchTree}
  */
 export async function string2searchTokens(str) {
+    const fsmSearch = getFsmSearchLexer();
+
     let word = "";
     const tokens = [];
     let ch;
-
-    function getFsmSearchLexer() {
-        const fsmDeclaration = `
-            machine_name   : "Search string lexer";
-            machine_license: MIT;
-            machine_comment: "For user given search string, handles (), &, | and !";
-    
-            start_states: [Start];
-            end_states: [End];
-    
-    Start 'space' -> Start;
-    Start 'chCite' -> InCite;
-    Start 'ch' -> InWord;
-    
-    NeedWord 'chCite' -> InCite;
-
-    NeedWord 'space' -> NeedWord;
-    // NeedWord '(' -> NeedWord_Lpar after 0 => NeedWord;
-    // NeedWord '!' -> JustNeedWord;
-
-    NeedWord 'not' -> JustNeedWord;
-    
-    JustNeedWord 'chCite' -> InCite;
-    JustNeedWord 'space' -> NeedWord;
-    
-    BeforeWord 'chCite' -> InCite;
-    BeforeWord 'and' -> BeforeWord_add after 0 => NeedWord;
-    BeforeWord 'or' -> BeforeWord_or after 0 => NeedWord;
-    BeforeWord 'not' -> BeforeWord_not after 0 => NeedWord;
-    
-    InCite 'ch' -> InCite;
-    InCite 'space' -> BeforeInCite after 0 => InCite;
-    InCite 'chCite' -> AfterWord;
-    // InCite 'end' -> End;
-    
-    // https://github.com/StoneCypher/fsl/issues/325
-    AfterWord 'space' -> AfterWord;
-    AfterWord '[and or not]' -> NeedWord;
-    
-    AfterWord 'ch' -> InWord;
-    AfterWord 'chCite' -> InCite;
-    AfterWord 'end' -> End;
-    
-    SpaceNeedWord 'space' -> SpaceNeedWord;
-    
-    NeedWord 'ch' -> InWord;
-    BeforeWord 'ch' -> InWord;
-    
-    InWord 'space' -> AfterWord;
-    InWord 'ch' -> InWord;
-    // InWord 'tab' -> AfterWord;
-    InWord 'end' -> End;
-            `;
-        const fsm0 = modJssm.sm([fsmDeclaration]);
-        let fsmMulti;
-        const reMultiActionLine = new RegExp("^\\s*([a-z0-9_]+)\\s+'\\[(.*?)\\]'\\s+[=-]>\\s+([a-z0-9_]+)\\s*;\\s*$", "im");
-        if (reMultiActionLine.test(fsmDeclaration)) {
-            // debugger;
-
-            const arrDecl = fsmDeclaration.split("\n");
-            const arrNoEmpty = arrDecl.filter(l => {
-                const lt = l.trim();
-                if (lt.length == 0) return false;
-                if (lt.startsWith("//")) return false;
-                return true;
-            });
-            // const sNoEmpty = arrNoEmpty.join("\n");
-            // console.log(sNoEmpty);
-            const arrMulti = [];
-            arrNoEmpty.forEach(line => {
-
-                // const tmp = "AfterWord '[and or not]' -> NeedWord;";
-                // const resTmp = reMultiActionLine.exec(tmp);
-                const resLine = reMultiActionLine.exec(line);
-                if (!resLine) {
-                    arrMulti.push(line);
-                } else {
-                    const resFromState = resLine[1];
-                    const resActions = resLine[2].trim().split(/\s+/);
-                    const resToState = resLine[3];
-                    const resToActions = fsm0.actions(resToState);
-
-                    const edges = fsm0.list_edges();
-                    const ourEdges = edges
-                        .filter(e => e.from == resToState)
-                        .map(e => { const to = e.to, action = e.action; return { to, action } })
-                    // console.log({ resActions, resToState, toActions, resTmp: resLine });
-                    resActions.forEach(resAction => {
-                        const lineFrom = `  ${resFromState} '${resAction}' => ${resToState}_${resAction};`;
-                        // console.log(lineFrom);
-                        arrMulti.push(lineFrom);
-                        // resToActions.forEach(toAction => {
-                        // resToActions.forEach(toAction => {
-                        ourEdges.forEach(edge => {
-                            const edgeAction = edge.action;
-                            const edgeToState = edge.to;
-                            // const lineTo = `      ${resToState}_${resAction} '${toAction}' => ${resToState};`;
-                            const lineTo = `      ${resToState}_${resAction} '${edgeAction}' => ${edgeToState};`;
-                            // console.log(lineTo);
-                            arrMulti.push(lineTo);
-                        });
-                    });
-                    // debugger;
-                }
-            });
-            const sMulti = arrMulti.join("\n");
-            console.log(sMulti);
-            fsmMulti = modJssm.sm([sMulti]);
-        }
-
-
-        const fsmSearch = fsmMulti || fsm0;
-        window["fsmSearch"] = fsmSearch;
-
-        const tokensPush = (token) => {
-            if (typeof token === "string") {
-                if (token.length === 0) {
-                    console.warn('token is ""');
-                    return;
-                }
+    const tokensPush = (token) => {
+        if (typeof token === "string") {
+            if (token.length === 0) {
+                console.warn('token is ""');
+                return;
             }
-            tokens.push(token);
         }
-
-        fsmSearch.hook_entry("AfterWord", () => { tokensPush(word); word = ""; });
-        fsmSearch.hook_entry("End", () => { tokensPush(word); });
-        fsmSearch.hook("AfterWord", "InWord", () => { tokensPush(symAdd); });
-        fsmSearch.hook_any_action((args) => {
-            if (!args) debugger;
-            const action = args.action;
-            const next_data = args.next_data;
-            // console.log("hook_any_action", action, args);
-            if (look4tokenProblems) debugger;
-            switch (action) {
-                case "not":
-                    const state = fsmSearch.state();
-                    console.log("got !, state:", state);
-                    if (state == "AfterWord") { tokens.push(symAdd); }
-                    break;
-                case "and":
-                case "or":
-                    const ch = next_data.ch;
-                    const sym = string2SearchSym[ch];
-                    // console.log("got sym", action, ch, sym);
-                    if (sym == undefined) debugger;
-                    tokens.push(sym);
-                    break;
-            }
-        });
-        return fsmSearch;
+        tokens.push(token);
     }
 
-    const fsmSearch = getFsmSearchLexer();
+    fsmSearch.hook_entry("AfterWord", () => { tokensPush(word); word = ""; });
+    fsmSearch.hook_entry("End", () => { tokensPush(word); });
+    fsmSearch.hook("AfterWord", "InWord", () => { tokensPush(symAdd); });
+    fsmSearch.hook_any_action((args) => {
+        if (!args) debugger;
+        const action = args.action;
+        const next_data = args.next_data;
+        // console.log("hook_any_action", action, args);
+        if (look4tokenProblems) debugger;
+        switch (action) {
+            case "not":
+                const state = fsmSearch.state();
+                console.log("got !, state:", state);
+                if (state == "AfterWord") { tokens.push(symAdd); }
+                tokens.push(symNot);
+                break;
+            case "and":
+            case "or":
+                const ch = next_data.ch;
+                const sym = string2SearchSym[ch];
+                // console.log("got sym", action, ch, sym);
+                if (sym == undefined) debugger;
+                tokens.push(sym);
+                break;
+        }
+    });
+
+
+
     str = str.trim();
     const iter = str[Symbol.iterator]();
     let action;
@@ -1891,7 +1851,7 @@ export async function string2searchTokens(str) {
         // FIX-ME: handle this
         throw Error(`Final state is "${finalState}", should be "End"`);
     }
-    console.log(`%cstring2searchTokens (${str}): ${res}`, "background:yellow; color:black;", tokens)
+    console.log(`%cstring2searchTokens result (${str}): ${res}`, "background:green; color:black;", tokens)
     return { ok: res, tokens: tokens };
 }
 
@@ -1970,35 +1930,37 @@ async function testString2searchTokens() {
         const resTest = await string2searchTokens(strTested)
         if (!resTest.ok) {
             console.log("%cCould not get tokens", "background:red; color:yellow;");
+            debugger; // eslint-disable-line no-debugger
             return;
         }
         const arrTest = resTest.tokens;
         if (!ArraysAreEqual(arrWanted, arrTest)) {
             const msg = `%cbad tokens (${strTested}): `;
             console.log(msg, "background:red; color: yellow;", arrTest, "---wanted:", arrWanted);
+            debugger; // eslint-disable-line no-debugger
             return;
         }
         console.log(`%cOK (${strTested})`, "background:green;color:black;");
     }
+    /*
     await testSearchString("aa", ["aa"]);
     await testSearchString(" aa ", ["aa"]);
     await testSearchString('"aa b"', ["aa b"]);
     await testSearchString(' "aa b" ', ["aa b"]);
     await testSearchString("aa b", ["aa", symAdd, "b"]);
-    /*
 
     await testSearchString(' "aa" b ', ["aa", symAdd, "b"]);
+    */
 
+    await testSearchString("aa  b", ["aa", symAdd, "b"]);
     await testSearchString("aa & b", ["aa", symAdd, "b"]);
     await testSearchString("aa | b", ["aa", symOr, "b"]);
 
     await testSearchString("aa & ! b", ["aa", symAdd, symNot, "b"]);
     await testSearchString("aa !b", ["aa", symAdd, symNot, "b"]);
     await testSearchString("aa ! b", ["aa", symAdd, symNot, "b"]);
-    */
 
-    await testSearchString("aa & b", ["aa", symAdd, "b"]);
-    // await testSearchString("aa & (b | c)", ["aa", symAdd, symLpar, "b", symOr, "c", symRpar]);
+    await testSearchString("aa & (b | c)", ["aa", symAdd, symLpar, "b", symOr, "c", symRpar]);
     // testSearchString("(aa b) | c", ["aa", symAdd, symNot, "b"]);
 
 }
