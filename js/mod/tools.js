@@ -1757,8 +1757,14 @@ function getFsmSearchLexer() {
  * @param {string} str 
  * @returns {str2searchTree}
  */
-export async function string2searchTokens(str) {
+export function string2searchTokens(str) {
     const fsmSearch = getFsmSearchLexer();
+    console.log({ objFsmSearchMulti });
+    const arrMultiSame = objFsmSearchMulti.arrMultiSame;
+    if (arrMultiSame) {
+        console.log("%cWARNING: arrMultiSame handling not implemented yet", "color:black;background:red;font-size:16px;");
+        // debugger;
+    }
 
     let word = "";
     const tokens = [];
@@ -1811,7 +1817,7 @@ export async function string2searchTokens(str) {
         // await waitSeconds(0.1);
         return iter.next();
     }
-    while (!(next = await asyncNext(), next.done)) {
+    while (!(next = iter.next(), next.done)) {
         ch = next.value;
         action = "ch";
         switch (ch) {
@@ -1922,12 +1928,12 @@ function ArraysAreEqual(arrA, arrB) {
         arrA.every((a, idx) => a === arrB[idx]);
 }
 async function testString2searchTokens() {
-    async function testSearchString(strTested, arrWanted) {
+    function testSearchString(strTested, arrWanted) {
         if (typeof strTested !== "string") throw Error("first param should be string");
-        console.log("%ctestSearchString", "background:yellow;color:black;", `(${strTested})`);
+        console.log("%ctestSearchString", "background:yellow;color:black;font-size:20px;", `(${strTested})`);
         // const state = window["fsmSearch"].state();
         // if (state !== "Start") throw Error(`fsm state is "${state}", should be "Start"`)
-        const resTest = await string2searchTokens(strTested)
+        const resTest = string2searchTokens(strTested)
         if (!resTest.ok) {
             console.log("%cCould not get tokens", "background:red; color:yellow;");
             debugger; // eslint-disable-line no-debugger
@@ -1943,24 +1949,24 @@ async function testString2searchTokens() {
         console.log(`%cOK (${strTested})`, "background:green;color:black;");
     }
     /*
-    await testSearchString("aa", ["aa"]);
-    await testSearchString(" aa ", ["aa"]);
-    await testSearchString('"aa b"', ["aa b"]);
-    await testSearchString(' "aa b" ', ["aa b"]);
-    await testSearchString("aa b", ["aa", symAdd, "b"]);
+    testSearchString("aa", ["aa"]);
+    testSearchString(" aa ", ["aa"]);
+    testSearchString('"aa b"', ["aa b"]);
+    testSearchString(' "aa b" ', ["aa b"]);
+    testSearchString("aa b", ["aa", symAdd, "b"]);
 
-    await testSearchString(' "aa" b ', ["aa", symAdd, "b"]);
+    testSearchString(' "aa" b ', ["aa", symAdd, "b"]);
     */
 
-    await testSearchString("aa  b", ["aa", symAdd, "b"]);
-    await testSearchString("aa & b", ["aa", symAdd, "b"]);
-    await testSearchString("aa | b", ["aa", symOr, "b"]);
+    testSearchString("aa  b", ["aa", symAdd, "b"]);
+    testSearchString("aa & b", ["aa", symAdd, "b"]);
+    testSearchString("aa | b", ["aa", symOr, "b"]);
 
-    await testSearchString("aa & ! b", ["aa", symAdd, symNot, "b"]);
-    await testSearchString("aa !b", ["aa", symAdd, symNot, "b"]);
-    await testSearchString("aa ! b", ["aa", symAdd, symNot, "b"]);
+    testSearchString("aa & ! b", ["aa", symAdd, symNot, "b"]);
+    testSearchString("aa !b", ["aa", symAdd, symNot, "b"]);
+    testSearchString("aa ! b", ["aa", symAdd, symNot, "b"]);
 
-    await testSearchString("aa & (b | c)", ["aa", symAdd, symLpar, "b", symOr, "c", symRpar]);
+    testSearchString("aa & (b | c)", ["aa", symAdd, symLpar, "b", symOr, "c", symRpar]);
     // testSearchString("(aa b) | c", ["aa", symAdd, symNot, "b"]);
 
 }
