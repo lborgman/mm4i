@@ -1,24 +1,25 @@
 // @ts-check
 
 const logConsoleHereIs = window["logConsoleHereIs"];
-// const importFc4i = window["importFc4i"];
+const importFc4i = window["importFc4i"];
 // const mkElt = window["mkElt"];
 // const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
-// const jsMind = window["jsMind"];
 
 const CUST_REND_VER = "0.0.1";
 if (logConsoleHereIs) logConsoleHereIs(`here is jssm-tools.js, module,${CUST_REND_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 
-const modJssm = await importFc4i("jssm");
+const modJssm = importFc4i ? await importFc4i("jssm") : await import("jssm");
 
 /**
  * @typedef {Object} fsmMultiDeclaration
  * @property {string} strFsmMulti -- Your declaration.
  *     In addition to FSL syntax you may use multi syntax here: A '[a b c]' => B
  * @property {string|undefined} strFsm -- Automatically created from strFsmMulti, FSL syntax
- * @property {Object} arrMultiSame
+ * @property {Object[]|undefined} arrMultiSame
+ * @property {Object|undefined} objMultiSame
+ * @property {Object|undefined} fsm
  */
 
 /**
@@ -30,16 +31,16 @@ const modJssm = await importFc4i("jssm");
  *
  * This syntax is not recognized by FSL, but is translated to FSL. 
  * 
- * @param {fsmMultiDeclaration} objDecl 
+ * @param {fsmMultiDeclaration} objFsmDecl 
  * @returns {*}
  */
-export function getFsmMulti(objDecl) {
-    const strFsmMulti = objDecl.strFsm;
+export function getFsmMulti(objFsmDecl) {
+    const strFsmMulti = objFsmDecl.strFsm;
     if (strFsmMulti) {
         console.log("%cUsing objDecl.strFsm", "background:gray; color:black;");
         return modJssm.sm([strFsmMulti]);
     }
-    const strFsm = objDecl.strFsmMulti;
+    const strFsm = objFsmDecl.strFsmMulti;
     const fsmOrig = modJssm.sm([strFsm]);
     let fsmMulti;
     const reMultiActionLine = new RegExp("^\\s*([a-z0-9_]+)\\s+'\\[(.*?)\\]'\\s+[=-]>\\s+([a-z0-9_]+)\\s*;\\s*$", "im");
@@ -148,6 +149,7 @@ export function getFsmMulti(objDecl) {
             arrFsmMultiLines.push(`// Those lines can't be expanded, and must be handled separately.`);
             arrFsmMultiLines.push(`// They are left as is in FSL.`);
             arrFsmMultiLines.push(`// *** NOTE *** Handling of them is not implemented here!!!`);
+            const objMultiSame = {};
             const arrMultiSame = arrMultiSameLines.map(line => {
                 arrFsmMultiLines.push(`  // ${line}`);
                 const resLine = reMultiActionLine.exec(line);
@@ -157,21 +159,141 @@ export function getFsmMulti(objDecl) {
                 const to = resLine[3];
                 if (to != from) throw Error(`from != to, "${from}" != "${to}"`);
                 const toFrom = to;
+                actions.forEach(action => {
+                    const key = multiSameKey(from, to);
+                    objMultiSame[key] = line;
+                })
                 return { line, toFrom, actions };
             });
             arrFsmMultiLines.push("");
             arrFsmMultiLines.push("");
             console.log({ arrMultiSame });
-            objDecl.arrMultiSame = arrMultiSame;
+            objFsmDecl.arrMultiSame = arrMultiSame;
+            objFsmDecl.objMultiSame = objMultiSame;
         }
         // const sMulti = arrMulti.join("\n");
-        objDecl.strFsm = arrFsmMultiLines.join("\n");
-        console.log(objDecl.strFsm);
-        window["strFsm"] = objDecl.strFsm;
-        fsmMulti = modJssm.sm([objDecl.strFsm]);
+        objFsmDecl.strFsm = arrFsmMultiLines.join("\n");
+        console.log(objFsmDecl.strFsm);
+        window["strFsm"] = objFsmDecl.strFsm;
+        fsmMulti = modJssm.sm([objFsmDecl.strFsm]);
     }
 
 
     const fsm = fsmMulti || fsmOrig;
+    objFsmDecl.fsm = fsm;
     return fsm;
 }
+
+/**
+ * @param {string} from 
+ * @param {string} action 
+ * @returns {string}
+ */
+function multiSameKey(from, action) { return `"${from}" "${action}"`; }
+
+/**
+ * 
+ * @param {fsmMultiDeclaration} objFsmDecl 
+ * @param {string} action 
+ * @param {function|undefined} hookAnyActionHandler 
+ */
+export function fsmActionMulti(objFsmDecl, action, hookAnyActionHandler) {
+    const fsm = objFsmDecl.fsm;
+    const from = fsm.state();
+    const objMultiSame = objFsmDecl.objMultiSame;
+    const possMultiKey = multiSameKey(from, action);
+    if (objMultiSame[possMultiKey]) {
+        const args = {
+            action
+        };
+        if (hookAnyActionHandler) hookAnyActionHandler(args)
+    } else {
+        fsm.action(action);
+    }
+}
+
+
+export function testFsmMulti() {
+    function testEasyCase() {
+        console.log("%cTesting easy case:", "background:yellow;color:black;font-size:18px;")
+        const declMulti = `
+        start_states: [A];
+        A '[a b]' -> B;
+        B 'x' -> Bx;
+        B 'y' -> By;
+        Bx 'z' -> A;
+    `;
+        /** @type {fsmMultiDeclaration} */
+        const objDeclMulti = {
+            strFsmMulti: declMulti
+        }
+        const fsm = getFsmMulti(objDeclMulti);
+        let badStates = 0;
+        const expectState = (expState) => {
+            const state = fsm.state();
+            const ok = state === expState;
+            const style = ok ? "background:green" : "background:red";
+            if (!ok) badStates++
+            console.log(`%cstate: "${state}", expected "${expState}"`, style);
+        }
+        const applyAction = (action) => {
+            console.log(`apply action: ${action}`);
+            fsm.action(action);
+        }
+        console.log({ res: fsm });
+        expectState("A");
+        applyAction("a");
+        expectState("B_a");
+        applyAction("x");
+        expectState("Bx");
+        applyAction("z");
+        expectState("A");
+        if (badStates == 0) {
+            console.log("%cEasy case: All tests passed", "background:green;font-size:16px;");
+        } else {
+            console.log(`%cEasy case: Tests failed: ${badStates}`, "background:red;font-size:16px;");
+        }
+    }
+    testEasyCase();
+    function testDifficultCase() {
+        console.log("%cTesting difficult case:", "background:yellow;color:black;font-size:18px;")
+        const declMulti = `
+        start_states: [A];
+        A '[a b]' -> A;
+        `;
+        /** @type {fsmMultiDeclaration} */
+        const objFsmDeclMulti = {
+            strFsmMulti: declMulti
+        }
+        const fsm = getFsmMulti(objFsmDeclMulti);
+        console.log({ objDeclMulti: objFsmDeclMulti });
+        let badStates = 0;
+        const expectState = (expState) => {
+            const state = fsm.state();
+            const ok = state === expState;
+            const style = ok ? "background:green" : "background:red";
+            if (!ok) badStates++
+            console.log(`%cstate: "${state}", expected "${expState}"`, style);
+        }
+        const applyAction = (action) => {
+            // const res = fsm.action(action);
+            console.log(`apply action: ${action}`);
+            fsmActionMulti(objFsmDeclMulti, action);
+        }
+
+        expectState("A");
+        applyAction("a");
+        expectState("A");
+        applyAction("b");
+        expectState("A");
+
+        if (badStates == 0) {
+            console.log("%cDifficult case: All tests passed", "background:green;font-size:16px;");
+        } else {
+            console.log(`%cDifficult case: Tests failed: ${badStates}`, "background:red;font-size:16px;");
+        }
+    }
+    testDifficultCase();
+
+}
+testFsmMulti();

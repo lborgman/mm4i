@@ -1782,7 +1782,8 @@ export function string2searchTokens(str) {
     fsmSearch.hook_entry("AfterWord", () => { tokensPush(word); word = ""; });
     fsmSearch.hook_entry("End", () => { tokensPush(word); });
     fsmSearch.hook("AfterWord", "InWord", () => { tokensPush(symAdd); });
-    fsmSearch.hook_any_action((args) => {
+    fsmSearch.hook_any_action(hook_any_action_handler);
+    function hook_any_action_handler(args) {
         if (!args) debugger;
         const action = args.action;
         const next_data = args.next_data;
@@ -1804,7 +1805,7 @@ export function string2searchTokens(str) {
                 tokens.push(sym);
                 break;
         }
-    });
+    }
 
 
 
@@ -1931,8 +1932,6 @@ async function testString2searchTokens() {
     function testSearchString(strTested, arrWanted) {
         if (typeof strTested !== "string") throw Error("first param should be string");
         console.log("%ctestSearchString", "background:yellow;color:black;font-size:20px;", `(${strTested})`);
-        // const state = window["fsmSearch"].state();
-        // if (state !== "Start") throw Error(`fsm state is "${state}", should be "Start"`)
         const resTest = string2searchTokens(strTested)
         if (!resTest.ok) {
             console.log("%cCould not get tokens", "background:red; color:yellow;");
@@ -1970,7 +1969,7 @@ async function testString2searchTokens() {
     // testSearchString("(aa b) | c", ["aa", symAdd, symNot, "b"]);
 
 }
-testString2searchTokens();
+// testString2searchTokens();
 // debugger;
 
 
