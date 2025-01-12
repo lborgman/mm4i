@@ -9,18 +9,29 @@ const CUST_REND_VER = "0.0.1";
 if (logConsoleHereIs) logConsoleHereIs(`here is jssm-tools.js, module,${CUST_REND_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
-
+// @ts-ignore
 const modJssm = importFc4i ? await importFc4i("jssm") : await import("jssm");
 
 /**
  * @typedef {Object} fsmMultiDeclaration
+ *  In addition to FSL syntax you may use multi syntax here: A '[a b c]' => B
  * @property {string} strFsmMulti -- Your declaration.
- *     In addition to FSL syntax you may use multi syntax here: A '[a b c]' => B
- * @property {string|undefined} strFsm -- Automatically created from strFsmMulti, FSL syntax
- * @property {Object[]|undefined} arrMultiSame
- * @property {Object|undefined} objMultiSame
- * @property {Object|undefined} fsm
+ * @property {string} [strFsm] -- Automatically created from strFsmMulti, FSL syntax
+ * @property {Object[]} [arrMultiSame]
+ * @property {Object} [objMultiSame]
+ * @property {Object} [fsm]
  */
+
+
+/**
+ * See https://stackoverflow.com/questions/78436085/how-can-i-make-jsdoc-typescript-understand-javascript-imports
+ *  
+ * @param {string} strFsmMulti 
+ * @returns {fsmMultiDeclaration}
+ */
+export function makeFmsMultiDeclaration(strFsmMulti) {
+    return { strFsmMulti };
+}
 
 /**
  * FSL does not allow multiple edges with same origin/destination.
@@ -30,27 +41,36 @@ const modJssm = importFc4i ? await importFc4i("jssm") : await import("jssm");
  *    A '[a b c]' => B
  *
  * This syntax is not recognized by FSL, but is translated to FSL. 
- * 
- * @param {fsmMultiDeclaration} objFsmDecl 
- * @returns {*}
+ *
+ * @param {fsmMultiDeclaration} objFsmDecl
  */
 export function getFsmMulti(objFsmDecl) {
-    const strFsmMulti = objFsmDecl.strFsm;
+    const strFsmMulti = objFsmDecl.strFsmMulti;
+    if (!strFsmMulti) {
+        debugger; // eslint-disable-line no-debugger
+        throw Error("getFsmMulti: Parameter should be of type {fsmMultiDeclaration}")
+    }
+    const strFsm = objFsmDecl.strFsm;
+    if (strFsm) {
+        console.log("%cUsing objDecl.strFsm", "background:gray; color:black;");
+        return modJssm.sm([strFsm]);
+    }
+    /*
     if (strFsmMulti) {
         console.log("%cUsing objDecl.strFsm", "background:gray; color:black;");
         return modJssm.sm([strFsmMulti]);
     }
-    const strFsm = objFsmDecl.strFsmMulti;
-    const fsmOrig = modJssm.sm([strFsm]);
+    */
+    const fsmOrig = modJssm.sm([strFsmMulti]);
     let fsmMulti;
     const reMultiActionLine = new RegExp("^\\s*([a-z0-9_]+)\\s+'\\[(.*?)\\]'\\s+[=-]>\\s+([a-z0-9_]+)\\s*;\\s*$", "im");
     const arrMultiLines = [];
     const arrMultiSameLines = [];
 
-    if (reMultiActionLine.test(strFsm)) {
+    if (reMultiActionLine.test(strFsmMulti)) {
         console.log("%cCreating objDecl.strFsm from .strFsmMulti", "background:blue; color:white;");
-        const arrDecl = strFsm.split("\n");
-        const arrNoEmpty = arrDecl.filter(l => {
+        const arrDeclMulti = strFsmMulti.split("\n");
+        const arrNoEmpty = arrDeclMulti.filter(l => {
             const lt = l.trim();
             if (lt.length == 0) return false;
             if (lt.startsWith("//")) return false;
@@ -103,7 +123,7 @@ export function getFsmMulti(objFsmDecl) {
                     */
                     // ourEdges = resActions.map(action => { const to = resToState; return { to, action } });
                     // FIX-ME: 
-                    debugger;
+                    debugger; // eslint-disable-line no-debugger
                     /*
                     resActions.forEach(resAction => {
                         const line = `  ${resFromState} '${resAction}' => ${resFromState};`;
@@ -160,7 +180,7 @@ export function getFsmMulti(objFsmDecl) {
                 if (to != from) throw Error(`from != to, "${from}" != "${to}"`);
                 const toFrom = to;
                 actions.forEach(action => {
-                    const key = multiSameKey(from, to);
+                    const key = multiSameKey(toFrom, action);
                     objMultiSame[key] = line;
                 })
                 return { line, toFrom, actions };
@@ -181,7 +201,8 @@ export function getFsmMulti(objFsmDecl) {
 
     const fsm = fsmMulti || fsmOrig;
     objFsmDecl.fsm = fsm;
-    return fsm;
+    // return fsm;
+    // return objFsmDecl;
 }
 
 /**
@@ -195,18 +216,18 @@ function multiSameKey(from, action) { return `"${from}" "${action}"`; }
  * 
  * @param {fsmMultiDeclaration} objFsmDecl 
  * @param {string} action 
- * @param {function|undefined} hookAnyActionHandler 
+ * @param {function} hookAnyActionHandler
  */
 export function fsmActionMulti(objFsmDecl, action, hookAnyActionHandler) {
     const fsm = objFsmDecl.fsm;
-    const from = fsm.state();
+    const fromTo = fsm.state();
     const objMultiSame = objFsmDecl.objMultiSame;
-    const possMultiKey = multiSameKey(from, action);
+    const possMultiKey = multiSameKey(fromTo, action);
     if (objMultiSame[possMultiKey]) {
         const args = {
-            action
+            action, fromTo, fsm
         };
-        if (hookAnyActionHandler) hookAnyActionHandler(args)
+        hookAnyActionHandler(args)
     } else {
         fsm.action(action);
     }
@@ -227,7 +248,8 @@ export function testFsmMulti() {
         const objDeclMulti = {
             strFsmMulti: declMulti
         }
-        const fsm = getFsmMulti(objDeclMulti);
+        getFsmMulti(objDeclMulti);
+        const fsm = objDeclMulti.fsm;
         let badStates = 0;
         const expectState = (expState) => {
             const state = fsm.state();
@@ -265,8 +287,9 @@ export function testFsmMulti() {
         const objFsmDeclMulti = {
             strFsmMulti: declMulti
         }
-        const fsm = getFsmMulti(objFsmDeclMulti);
+        getFsmMulti(objFsmDeclMulti);
         console.log({ objDeclMulti: objFsmDeclMulti });
+        const fsm = objFsmDeclMulti.fsm;
         let badStates = 0;
         const expectState = (expState) => {
             const state = fsm.state();
@@ -278,7 +301,8 @@ export function testFsmMulti() {
         const applyAction = (action) => {
             // const res = fsm.action(action);
             console.log(`apply action: ${action}`);
-            fsmActionMulti(objFsmDeclMulti, action);
+            const handler = (args) => console.log("handler", args);
+            fsmActionMulti(objFsmDeclMulti, action, handler);
         }
 
         expectState("A");

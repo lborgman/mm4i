@@ -861,6 +861,8 @@ class FetchError extends Error {
 var theFirebaseCurrentUser;
 // var theFirebaseCurrentUserEmail;
 
+/*
+*/
 const traceHelper = [];
 const traceStart = Date.now();
 const addTraceDoIt = function (isError, trace) {
@@ -873,15 +875,17 @@ const addTraceDoIt = function (isError, trace) {
         // console.log("addTrace", trace);
         console.warn("addTrace", trace);
     }
-
 }
+/*
 function addTrace(...trace) {
-    addTraceDoIt(false, trace);
+addTraceDoIt(false, trace);
 }
+*/
 function addTraceError(...trace) {
     const errTrace = ["** ERROR **"].concat(trace);
     addTraceDoIt(true, errTrace);
 }
+/*
 // addTrace("Starting");
 // addTraceError("Testing addTraceError");
 
@@ -890,6 +894,7 @@ function popupTrace() {
         mkElt("pre", undefined, JSON.stringify(traceHelper, undefined, 2)),
         "info");
 }
+*/
 
 /*
 function mkJsonType(obj) {
@@ -1092,6 +1097,7 @@ export function throttleTO(fn, msDelay) {
         }, msDelay);
     }
 }
+/*
 function throttleRA(fn) {
     let requestId;
     return function (...args) {
@@ -1104,6 +1110,7 @@ function throttleRA(fn) {
         });
     }
 }
+*/
 
 // From https://garden.bradwoods.io/notes/javascript/performance/debounce-throttle
 export function debounce(callback, waitMS = 200) {
@@ -1120,6 +1127,7 @@ export function debounce(callback, waitMS = 200) {
     };
 };
 
+/*
 function throttle(func, waitMS = 200) {
     let isWait = false;
 
@@ -1134,6 +1142,7 @@ function throttle(func, waitMS = 200) {
         }
     }
 }
+*/
 
 
 
@@ -1164,6 +1173,8 @@ export function isValidUrl(strUrl, protocol) {
                 const re = getReTLD();
                 if (re) {
                     if (!re.test(strUrl)) return "UNKNOWN-TLD";
+                } else {
+                    console.log("%cfetchReTLD has not been called before getReTLD", "color:red;");
                 }
                 break;
             default:
@@ -1192,8 +1203,13 @@ async function isReachableUrl(url) {
 */
 
 let reTLD;
-function getReTLD() { return reTLD; }
-async function fetchReTLD() {
+/**
+ * Get RegExp mathing top level domains.
+ * 
+ * @returns {RegExp|undefined}
+ */
+export function getReTLD() { return reTLD; }
+export async function fetchReTLD() {
     if (reTLD == undefined) {
         const urlTLDlist = "https://publicsuffix.org/list/public_suffix_list.dat";
         const resp = await fetch(urlTLDlist);
@@ -1659,7 +1675,7 @@ export function checkFsmActionAndApply(fsm, action, newData, errHandler) {
             // throw Error(msgErr);
             return false;
         }
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         // FIX-ME: How to implement error handling???
         return errHandler(msgErr);
         return false;
@@ -1737,15 +1753,21 @@ InWord 'end' -> End;
 
 
 
+const modJssmTools = await importFc4i("jssm-tools")
 
-/** @type {fsmMultiDeclaration} */
+/* @type {import("jssm-tools").fsmMultiDeclaration} */
+/* @type {import("./js/mod/jssm-tools.js").fsmMultiDeclaration} */
+/*
 const objFsmSearchMulti = {
     strFsmMulti: strFsmSearch,
     strFsm: undefined
 }
-const modJssmTools = await importFc4i("jssm-tools")
+*/
+
+const objFsmSearchMulti = modJssmTools.makeFmsMultiDeclaration(strFsmSearch);
 function getFsmSearchLexer() {
-    const fsm = modJssmTools.getFsmMulti(objFsmSearchMulti);
+    modJssmTools.getFsmMulti(objFsmSearchMulti);
+    const fsm = objFsmSearchMulti.fsm;
     // window["fsmSearch"] = fsm; // For my testing
     return fsm;
 }
@@ -1784,11 +1806,11 @@ export function string2searchTokens(str) {
     fsmSearch.hook("AfterWord", "InWord", () => { tokensPush(symAdd); });
     fsmSearch.hook_any_action(hook_any_action_handler);
     function hook_any_action_handler(args) {
-        if (!args) debugger;
+        if (!args) debugger; // eslint-disable-line no-debugger
         const action = args.action;
         const next_data = args.next_data;
         // console.log("hook_any_action", action, args);
-        if (look4tokenProblems) debugger;
+        if (look4tokenProblems) debugger; // eslint-disable-line no-debugger
         switch (action) {
             case "not":
                 const state = fsmSearch.state();
@@ -1801,7 +1823,7 @@ export function string2searchTokens(str) {
                 const ch = next_data.ch;
                 const sym = string2SearchSym[ch];
                 // console.log("got sym", action, ch, sym);
-                if (sym == undefined) debugger;
+                if (sym == undefined) debugger; // eslint-disable-line no-debugger
                 tokens.push(sym);
                 break;
         }
@@ -1810,14 +1832,16 @@ export function string2searchTokens(str) {
 
 
     str = str.trim();
-    const iter = str[Symbol.iterator]();
     let action;
-    let next;
-    // FIX-ME: This is a test for fsl "after 0". It did not work.
+    // FIX-ME: This was a test for fsl "after 0". It did not work.
+    /*
     const asyncNext = async () => {
         // await waitSeconds(0.1);
         return iter.next();
     }
+    */
+    const iter = str[Symbol.iterator]();
+    let next;
     while (!(next = iter.next(), next.done)) {
         ch = next.value;
         action = "ch";
@@ -1863,7 +1887,11 @@ export function string2searchTokens(str) {
 }
 
 /**
- * @param {token[]} tokens
+ * @typedef {string|symbol} searchToken
+ */
+
+/**
+ * @param {searchToken[]} tokens
  */
 
 
@@ -1969,8 +1997,8 @@ async function testString2searchTokens() {
     // testSearchString("(aa b) | c", ["aa", symAdd, symNot, "b"]);
 
 }
-// testString2searchTokens();
-// debugger;
+testString2searchTokens();
+debugger; // eslint-disable-line no-debugger
 
 
 
