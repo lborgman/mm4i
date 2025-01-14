@@ -88,6 +88,7 @@ export function getFsmMulti(objFsmDecl) {
     const arrMultiSameLines = [];
 
     if (reMultiActionLine.test(strFsmMulti)) {
+        console.groupCollapsed("Creating objDecl.strFsm");
         console.log("%cCreating objDecl.strFsm from .strFsmMulti", "background:blue; color:white;");
         const arrDeclMulti = strFsmMulti.split("\n");
         const arrNoEmpty = arrDeclMulti.filter(l => {
@@ -228,6 +229,7 @@ export function getFsmMulti(objFsmDecl) {
         // const sMulti = arrMulti.join("\n");
         objFsmDecl.strFsm = arrFsmMultiLines.join("\n");
         console.log(objFsmDecl.strFsm);
+        console.groupEnd();
         window["strFsm"] = objFsmDecl.strFsm;
         fsmMulti = modJssm.sm([objFsmDecl.strFsm]);
     }
@@ -270,7 +272,10 @@ export function fsmActionMulti(objFsmDecl, action, hookAnyActionHandler) {
 
 export function testFsmMulti() {
     function testEasyCase() {
+        const show = true;
+        // const consoleLog = (...args) => { if (show) console.log(...args); }
         console.log("%cTesting easy case:", "background:yellow;color:black;font-size:18px;")
+        console.groupCollapsed("test details");
         const declMulti = `
         start_states: [A];
         A '[a b]' -> B;
@@ -295,7 +300,7 @@ export function testFsmMulti() {
             console.log(`apply action: ${action}`);
             fsm.action(action);
         }
-        console.log({ res: fsm });
+        // console.log({ res: fsm });
         expectState("A");
         applyAction("a");
         expectState("B_a");
@@ -303,15 +308,20 @@ export function testFsmMulti() {
         expectState("Bx");
         applyAction("z");
         expectState("A");
+        console.groupEnd();
         if (badStates == 0) {
             console.log("%cEasy case: All tests passed", "background:green;font-size:16px;");
         } else {
             console.log(`%cEasy case: Tests failed: ${badStates}`, "background:red;font-size:16px;");
+            // if (!show) testEasyCase(true);
         }
     }
-    // testEasyCase();
+    testEasyCase();
     function testDifficultCase() {
+        // const show = true;
+        // const console.log = (...args) => { if (show) console.log(...args); }
         console.log("%cTesting difficult case:", "background:yellow;color:black;font-size:18px;")
+        console.groupCollapsed("test details");
         const declMulti = `
         start_states: [A];
         A '[a b]' -> A;
@@ -319,7 +329,7 @@ export function testFsmMulti() {
         const funDummy = (args) => console.log("funDummy", args);
         const objFsmDeclMulti = makeFsmMultiDeclaration(declMulti, funDummy);
         getFsmMulti(objFsmDeclMulti);
-        console.log({ objDeclMulti: objFsmDeclMulti });
+        // console.log({ objDeclMulti: objFsmDeclMulti });
         const fsm = objFsmDeclMulti.fsm;
         let badStates = 0;
         const expectState = (expState) => {
@@ -332,7 +342,6 @@ export function testFsmMulti() {
         const applyAction = (action) => {
             // const res = fsm.action(action);
             console.log(`apply action: ${action}`);
-            // const handler = (args) => console.log("handler", args);
             const handler = objFsmDeclMulti._funActionMultiSame;
             if (!handler) {
                 throw Error("applyAction: handler is undefined");
@@ -346,10 +355,12 @@ export function testFsmMulti() {
         applyAction("b");
         expectState("A");
 
+        console.groupEnd();
         if (badStates == 0) {
             console.log("%cDifficult case: All tests passed", "background:green;font-size:16px;");
         } else {
             console.log(`%cDifficult case: Tests failed: ${badStates}`, "background:red;font-size:16px;");
+            // if (!show) testDifficultCase(true);
         }
     }
     testDifficultCase();
