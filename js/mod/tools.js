@@ -1764,7 +1764,8 @@ const objFsmSearchMulti = {
 }
 */
 
-const objFsmSearchMulti = modJssmTools.makeFmsMultiDeclaration(strFsmSearch);
+const funDummy = (args) => console.log("funDummy", args);
+const objFsmSearchMulti = modJssmTools.makeFsmMultiDeclaration(strFsmSearch, funDummy);
 function getFsmSearchLexer() {
     modJssmTools.getFsmMulti(objFsmSearchMulti);
     const fsm = objFsmSearchMulti.fsm;
@@ -1782,11 +1783,12 @@ function getFsmSearchLexer() {
 export function string2searchTokens(str) {
     const fsmSearch = getFsmSearchLexer();
     console.log({ objFsmSearchMulti });
-    const arrMultiSame = objFsmSearchMulti.arrMultiSame;
-    if (arrMultiSame) {
-        console.log("%cWARNING: arrMultiSame handling not implemented yet", "color:black;background:red;font-size:16px;");
+    const objMultiSame = objFsmSearchMulti.objMultiSame;
+    if (objMultiSame) {
+        console.log("%cWARNING: objMultiSame handling not implemented yet", "color:black;background:red;font-size:16px;");
         // debugger;
     }
+    fsmSearch.hook_any_action
 
     let word = "";
     const tokens = [];
@@ -1963,7 +1965,7 @@ async function testString2searchTokens() {
         const resTest = string2searchTokens(strTested)
         if (!resTest.ok) {
             console.log("%cCould not get tokens", "background:red; color:yellow;");
-            debugger; // eslint-disable-line no-debugger
+            // debugger; // eslint-disable-line no-debugger
             return;
         }
         const arrTest = resTest.tokens;
@@ -1997,8 +1999,8 @@ async function testString2searchTokens() {
     // testSearchString("(aa b) | c", ["aa", symAdd, symNot, "b"]);
 
 }
-testString2searchTokens();
-debugger; // eslint-disable-line no-debugger
+// testString2searchTokens();
+// debugger; // eslint-disable-line no-debugger
 
 
 
