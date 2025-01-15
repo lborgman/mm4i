@@ -33,21 +33,64 @@ const modJssm = importFc4i ? await importFc4i("jssm") : await import("jssm");
 
 const setObjDecl = new Set();
 
-/**
- * See https://stackoverflow.com/questions/78436085/how-can-i-make-jsdoc-typescript-understand-javascript-imports
- *  
- * @param {string} strFsmMulti - Declaration of FSM in FSL language, may include "A '[a b]' -> B;"
- * @param {callbackActionMulti|undefined} funActionMultiSame 
- *     - Similar purpose to jssm .hook_any_action
- * @returns {fsmMultiDeclaration}
- */
-export function makeFsmMultiDeclaration(strFsmMulti, funActionMultiSame = undefined) {
-    const _id = Date.now();
-    const obj = { strFsmMulti, _id };
-    if (funActionMultiSame) obj._funActionMultiSame = funActionMultiSame;
-    setObjDecl.add(obj._id);
-    return obj;
+export class FslWithArrActions {
+    #objMultiDeclaration;
+    #funActionMultiSame;
+
+    /**
+     * See https://stackoverflow.com/questions/78436085/how-can-i-make-jsdoc-typescript-understand-javascript-imports
+     * 
+     *  @param {string} strFsmMulti - Declaration of FSM in FSL language, may include "A '[a b]' -> B;" 
+     *  @param {callbackActionMulti|undefined} funActionMultiSame 
+     *      - Similar purpose to jssm .hook_any_action 
+     *  @returns {fsmMultiDeclaration}
+     */
+    static makeFslMultiDeclaration(strFsmMulti, funActionMultiSame = undefined) {
+        const _id = Date.now();
+        const obj = { strFsmMulti, _id };
+        if (funActionMultiSame) obj._funActionMultiSame = funActionMultiSame;
+        setObjDecl.add(obj._id);
+        return obj;
+    }
+
+    /** 
+     *  
+     * @param {fsmMultiDeclaration} objFsmDecl 
+     * @param {string} action 
+     * @param {Function} hookAnyActionHandler
+     */
+    // fsmActionMulti(action, hookAnyActionHandler) {
+    fsmActionMulti(action) {
+        if (!this.#funActionMultiSame) {
+            debugger;
+        }
+        const fsm = this.#objMultiDeclaration.fsm;
+        const fromTo = fsm.state();
+        // const objMultiSame = objFsmDecl._objMultiSame;
+        const objMultiSame = this.#objMultiDeclaration._objMultiSame;
+        const possMultiKey = multiSameKey(fromTo, action);
+        if (objMultiSame[possMultiKey]) {
+            const args = {
+                action, fromTo, fsm
+            };
+            // hookAnyActionHandler(args)
+            this.#funActionMultiSame(args);
+        } else {
+            fsm.action(action);
+        }
+    }
+
+    constructor(strFslMulti, funActionMultiSame = undefined) {
+        this.#funActionMultiSame = funActionMultiSame;
+        this.#objMultiDeclaration = FslWithArrActions.makeFslMultiDeclaration(strFslMulti, funActionMultiSame);
+        getFsmMulti(this.#objMultiDeclaration);
+    }
+    get fsm() { return this.#objMultiDeclaration.fsm; }
 }
+
+
+
+
 
 /**
  * FSL does not allow multiple edges with same origin/destination.
@@ -83,7 +126,8 @@ export function getFsmMulti(objFsmDecl) {
     */
     const fsmOrig = modJssm.sm([strFsmMulti]);
     let fsmMulti;
-    const reMultiActionLine = new RegExp("^\\s*([a-z0-9_]+)\\s+'\\[(.*?)\\]'\\s+[=-]>\\s+([a-z0-9_]+)\\s*;\\s*$", "im");
+    const reMultiActionLine = new RegExp(
+        "^\\s*([a-z0-9_]+)\\s+'\\[(.*?)\\]'\\s+[=-]>\\s+([a-z0-9_]+)\\s*;\\s*(?://.*?)?$", "im");
     const arrMultiLines = [];
     const arrMultiSameLines = [];
 
@@ -108,9 +152,10 @@ export function getFsmMulti(objFsmDecl) {
                 if (stateFrom != stateTo) {
                     arrMultiLines.push(line)
                 } else {
-                    arrFsmMultiLines.push("// MultiSame line:");
-                    arrFsmMultiLines.push(`    ${line}`);
-                    arrMultiSameLines.push(line)
+                    // arrFsmMultiLines.push("// MultiSame line:");
+                    // arrFsmMultiLines.push(`    ${line}`);
+                    arrFsmMultiLines.push(`    ${line} // MultiSame line `);
+                    arrMultiSameLines.push(line);
                 }
             }
         });
@@ -187,16 +232,23 @@ export function getFsmMulti(objFsmDecl) {
             if (!objFsmDecl._funActionMultiSame) {
                 let msg = `
                     The FSL code contains statement of the form
-                        A '[a b]' -> A
+
+                    %c    A '[a b]' -> A;%c
+
+                    This can currently not be translated
+                    to standard FSL.
+
                     Because of this you must add a function to handle
                     side effects of actions a and b.
-
+ 
                     This function should be the second argument to
                     makeFsmMultiDeclaration.
                     `;
-                msg = msg.replaceAll(/^\s*/gm, "    ")
-                console.error(msg);
-                debugger; // eslint-disable-line no-debugger
+                // console.log(msg);
+                msg = msg.replaceAll(/^\s?$/gm, "!");
+                msg = msg.replaceAll(/^\s+/gm, "!   ")
+                console.error(msg, "font-size:18px;", "font-size:unset;");
+                // debugger; // eslint-disable-line no-debugger
             }
             arrFsmMultiLines.push("");
             arrFsmMultiLines.push("");
@@ -248,46 +300,26 @@ export function getFsmMulti(objFsmDecl) {
  */
 function multiSameKey(from, action) { return `"${from}" "${action}"`; }
 
-/**
- * 
- * @param {fsmMultiDeclaration} objFsmDecl 
- * @param {string} action 
- * @param {Function} hookAnyActionHandler
- */
-export function fsmActionMulti(objFsmDecl, action, hookAnyActionHandler) {
-    const fsm = objFsmDecl.fsm;
-    const fromTo = fsm.state();
-    const objMultiSame = objFsmDecl._objMultiSame;
-    const possMultiKey = multiSameKey(fromTo, action);
-    if (objMultiSame[possMultiKey]) {
-        const args = {
-            action, fromTo, fsm
-        };
-        hookAnyActionHandler(args)
-    } else {
-        fsm.action(action);
-    }
-}
 
 
 export function testFsmMulti() {
     function testEasyCase() {
-        const show = true;
-        // const consoleLog = (...args) => { if (show) console.log(...args); }
-        console.log("%cTesting easy case:", "background:yellow;color:black;font-size:18px;")
+        // return;
+        console.log("%cTesting A '[x y]' -> B", "background:yellow;color:black;font-size:18px;")
         console.groupCollapsed("test details");
         const declMulti = `
-        start_states: [A];
-        A '[a b]' -> B;
-        B 'x' -> Bx;
-        B 'y' -> By;
-        Bx 'z' -> A;
-    `;
-        /* @type {fsmMultiDeclaration} */
-        // const objDeclMulti = { strFsmMulti: declMulti }
-        const objDeclMulti = makeFsmMultiDeclaration(declMulti);
-        getFsmMulti(objDeclMulti);
-        const fsm = objDeclMulti.fsm;
+            start_states: [A];
+            A '[a b]' -> B;
+            B 'x' -> Bx;
+            B 'y' -> By;
+            Bx 'z' -> A;
+        `;
+        // const objDeclMulti = makeFslMultiDeclaration(declMulti);
+        // getFsmMulti(objDeclMulti);
+        // const fsm = objDeclMulti.fsm;
+        const fslEasyCase = new FslWithArrActions(declMulti);
+        const fsm = fslEasyCase.fsm;
+
         let badStates = 0;
         const expectState = (expState) => {
             const state = fsm.state();
@@ -310,27 +342,30 @@ export function testFsmMulti() {
         expectState("A");
         console.groupEnd();
         if (badStates == 0) {
-            console.log("%cEasy case: All tests passed", "background:green;font-size:16px;");
+            console.log("%cA '[x y]' -> B: All tests passed", "background:green;font-size:16px;");
         } else {
-            console.log(`%cEasy case: Tests failed: ${badStates}`, "background:red;font-size:16px;");
-            // if (!show) testEasyCase(true);
+            console.log(`%cA '[x y]' -> B: Tests failed: ${badStates}`, "background:red;font-size:16px;");
         }
     }
     testEasyCase();
+    // debugger;
     function testDifficultCase() {
-        // const show = true;
-        // const console.log = (...args) => { if (show) console.log(...args); }
-        console.log("%cTesting difficult case:", "background:yellow;color:black;font-size:18px;")
+        console.log("%cTesting A '[x y]' -> A", "background:yellow;color:black;font-size:18px;")
         console.groupCollapsed("test details");
         const declMulti = `
         start_states: [A];
         A '[a b]' -> A;
         `;
         const funDummy = (args) => console.log("funDummy", args);
-        const objFsmDeclMulti = makeFsmMultiDeclaration(declMulti, funDummy);
-        getFsmMulti(objFsmDeclMulti);
-        // console.log({ objDeclMulti: objFsmDeclMulti });
-        const fsm = objFsmDeclMulti.fsm;
+        // const objFsmDeclMulti = makeFsmMultiDeclaration(declMulti, funDummy);
+        // const objFsmDeclMulti = makeFslMultiDeclaration(declMulti);
+        // getFsmMulti(objFsmDeclMulti);
+        // const fsm = objFsmDeclMulti.fsm;
+
+        // const fslDifficultCase = new FslWithArrActions(declMulti);
+        const fslDifficultCase = new FslWithArrActions(declMulti, funDummy);
+        const fsm = fslDifficultCase.fsm;
+
         let badStates = 0;
         const expectState = (expState) => {
             const state = fsm.state();
@@ -342,11 +377,11 @@ export function testFsmMulti() {
         const applyAction = (action) => {
             // const res = fsm.action(action);
             console.log(`apply action: ${action}`);
-            const handler = objFsmDeclMulti._funActionMultiSame;
-            if (!handler) {
-                throw Error("applyAction: handler is undefined");
-            }
-            fsmActionMulti(objFsmDeclMulti, action, handler);
+            // const handler = objFsmDeclMulti._funActionMultiSame;
+            // if (!handler) { throw Error("applyAction: handler is undefined"); }
+            // fsmActionMulti(objFsmDeclMulti, action, handler);
+            // fslDifficultCase.fsmActionMulti(action, handler);
+            fslDifficultCase.fsmActionMulti(action);
         }
 
         expectState("A");
@@ -357,13 +392,13 @@ export function testFsmMulti() {
 
         console.groupEnd();
         if (badStates == 0) {
-            console.log("%cDifficult case: All tests passed", "background:green;font-size:16px;");
+            console.log("%cA '[x y]' -> A: All tests passed", "background:green;font-size:16px;");
         } else {
-            console.log(`%cDifficult case: Tests failed: ${badStates}`, "background:red;font-size:16px;");
-            // if (!show) testDifficultCase(true);
+            console.log(`%cA '[x y]' -> A: Tests failed: ${badStates}`, "background:red;font-size:16px;");
         }
     }
     testDifficultCase();
-
 }
 testFsmMulti();
+debugger;
+
