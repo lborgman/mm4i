@@ -37,6 +37,12 @@ export class FslWithArrActions {
     #objMultiDeclaration;
     #funActionMultiSame;
 
+    constructor(strFslMulti, funActionMultiSame = undefined) {
+        this.#funActionMultiSame = funActionMultiSame;
+        this.#objMultiDeclaration = FslWithArrActions.makeFslMultiDeclaration(strFslMulti, funActionMultiSame);
+        this.getFsmMulti();
+    }
+
     /**
      * See https://stackoverflow.com/questions/78436085/how-can-i-make-jsdoc-typescript-understand-javascript-imports
      * 
@@ -65,172 +71,167 @@ export class FslWithArrActions {
             debugger;
         }
         const fsm = this.#objMultiDeclaration.fsm;
-        const fromTo = fsm.state();
-        // const objMultiSame = objFsmDecl._objMultiSame;
+        const from = fsm.state();
+        // const isMultiAction = action.startsWith("[");
+        const fromMultiActions = fsm.actions(from);
+        const fromActions = {};
+        let hasMulti = false;
+        // FIX-ME: add check before assigning to fromActions!
+        fromMultiActions.forEach(ma => {
+            if (ma.startsWith("[")) {
+                hasMulti = true;
+                const arrMa = ma.slice(1, -1).split(/\s+/);
+                arrMa.forEach(a => fromActions[a] = ma);
+            } else {
+                fromActions[ma] = ma;
+            }
+        });
+        if (hasMulti) debugger;
+
+        /*
+        // Try use [a b] as action instead!
         const objMultiSame = this.#objMultiDeclaration._objMultiSame;
-        const possMultiKey = multiSameKey(fromTo, action);
-        if (objMultiSame[possMultiKey]) {
+        const possMultiKey = multiSameKey(from, action);
+        const lineSame = objMultiSame[possMultiKey];
+        */
+        const lineSame = false;
+        if (lineSame) {
+            const fromTo = from;
             const args = {
                 action, fromTo, fsm
             };
             // hookAnyActionHandler(args)
             this.#funActionMultiSame(args);
         } else {
-            fsm.action(action);
+            const resFsm = fsm.action(action);
+            console.log("resFsm", resFsm);
         }
     }
+    /** 
+     *  FSL does not allow multiple edges with same origin/destination. 
+     *  See https://github.com/StoneCypher/fsl/issues/325
+     *  
+     *  This function makes it possible to allow this by using the syntax 
+     *     A '[a b c]' => B;
+     * 
+     *  This syntax is not recognized by FSL, but is translated to FSL.
+     * 
+     */
+    getFsmMulti() {
+        const objFsmDecl = this.#objMultiDeclaration;
+        const strFsmMulti = objFsmDecl.strFsmMulti;
+        const strFsm = objFsmDecl.strFsm;
+        if (strFsm) {
+            console.log("%cUsing objDecl.strFsm", "background:gray; color:black;");
+            return modJssm.sm([strFsm]);
+        }
+        const fsmOrig = modJssm.sm([strFsmMulti]);
+        let fsmMulti;
+        const reMultiActionLine = new RegExp(
+            "^\\s*([a-z0-9_]+)\\s+'\\[(.*?)\\]'\\s+[=-]>\\s+([a-z0-9_]+)\\s*;\\s*(?://.*?)?$", "im");
+        const arrMultiLines = [];
+        const arrMultiSameLines = [];
 
-    constructor(strFslMulti, funActionMultiSame = undefined) {
-        this.#funActionMultiSame = funActionMultiSame;
-        this.#objMultiDeclaration = FslWithArrActions.makeFslMultiDeclaration(strFslMulti, funActionMultiSame);
-        getFsmMulti(this.#objMultiDeclaration);
-    }
-    get fsm() { return this.#objMultiDeclaration.fsm; }
-}
-
-
-
-
-
-/**
- * FSL does not allow multiple edges with same origin/destination.
- * See https://github.com/StoneCypher/fsl/issues/325
- * 
- * This function makes it possible to allow this by using the syntax
- *    A '[a b c]' => B
- *
- * This syntax is not recognized by FSL, but is translated to FSL. 
- *
- * @param {fsmMultiDeclaration} objFsmDecl
- */
-export function getFsmMulti(objFsmDecl) {
-    if (!setObjDecl.has(objFsmDecl._id)) {
-        console.error("getFsmMutli, parameter objFsmDecl should be created by makeFsmMultiDeclaration");
-        debugger; // eslint-disable-line no-debugger
-    }
-    const strFsmMulti = objFsmDecl.strFsmMulti;
-    if (!strFsmMulti) {
-        debugger; // eslint-disable-line no-debugger
-        throw Error("getFsmMulti: Parameter should be of type {fsmMultiDeclaration}")
-    }
-    const strFsm = objFsmDecl.strFsm;
-    if (strFsm) {
-        console.log("%cUsing objDecl.strFsm", "background:gray; color:black;");
-        return modJssm.sm([strFsm]);
-    }
-    /*
-    if (strFsmMulti) {
-        console.log("%cUsing objDecl.strFsm", "background:gray; color:black;");
-        return modJssm.sm([strFsmMulti]);
-    }
-    */
-    const fsmOrig = modJssm.sm([strFsmMulti]);
-    let fsmMulti;
-    const reMultiActionLine = new RegExp(
-        "^\\s*([a-z0-9_]+)\\s+'\\[(.*?)\\]'\\s+[=-]>\\s+([a-z0-9_]+)\\s*;\\s*(?://.*?)?$", "im");
-    const arrMultiLines = [];
-    const arrMultiSameLines = [];
-
-    if (reMultiActionLine.test(strFsmMulti)) {
-        console.groupCollapsed("Creating objDecl.strFsm");
-        console.log("%cCreating objDecl.strFsm from .strFsmMulti", "background:blue; color:white;");
-        const arrDeclMulti = strFsmMulti.split("\n");
-        const arrNoEmpty = arrDeclMulti.filter(l => {
-            const lt = l.trim();
-            if (lt.length == 0) return false;
-            if (lt.startsWith("//")) return false;
-            return true;
-        });
-        const arrFsmMultiLines = [];
-        arrNoEmpty.forEach(line => {
-            const resLine = reMultiActionLine.exec(line);
-            if (!resLine) {
-                arrFsmMultiLines.push(line);
-            } else {
-                const stateFrom = resLine[1];
-                const stateTo = resLine[3];
-                if (stateFrom != stateTo) {
-                    arrMultiLines.push(line)
-                } else {
-                    // arrFsmMultiLines.push("// MultiSame line:");
-                    // arrFsmMultiLines.push(`    ${line}`);
-                    arrFsmMultiLines.push(`    ${line} // MultiSame line `);
-                    arrMultiSameLines.push(line);
-                }
-            }
-        });
-        if (arrMultiLines.length > 0) {
-            arrFsmMultiLines.push("");
-            arrFsmMultiLines.push("");
-            arrFsmMultiLines.push(`////// Found ${arrMultiLines.length} line(s) with multi syntax, expanding them below`);
-            arrFsmMultiLines.push("");
-            arrMultiLines.forEach(line => {
-                arrFsmMultiLines.push(`////// expanding ${line}`);
-                const resLine = reMultiActionLine.exec(line);
-                if (resLine == null) throw Error(`Did not match multi line: ${line}`);
-                const resFromState = resLine[1];
-                const resActions = resLine[2].trim().split(/\s+/);
-                const resToState = resLine[3];
-                let ourEdges;
-                if (resFromState === resToState) {
-                    throw Error(`Can't handle to==from here: ${line}`);
-                    // We have no other declarations for this
-                    /*
-                        A '[x y]' => A;
-    
-                        We can't do as for the case A '[x y]' B
-                        since this would give:
-                          A 'x' => A_x;
-                            A_x 'x' => A;
-                            A_x 'y' => A;
-                          A 'y' => A_y;
-                            A_y 'x' => A;
-                            A_y 'y' => A;
-                    */
-                    // ourEdges = resActions.map(action => { const to = resToState; return { to, action } });
-                    // FIX-ME: 
-                    debugger; // eslint-disable-line no-debugger
-                    /*
-                    resActions.forEach(resAction => {
-                        const line = `  ${resFromState} '${resAction}' => ${resFromState};`;
-                        arrFsmMulti.push(line);
-                    });
-                    */
-                } else {
-                    /*
-                        A '[x y]' => B;
-    
-                        This expands like below (where a, b are possible actions for state B):
-    
-                          A 'x' => B_x;
-                            B_x 'a' => Ba;
-                            B_x 'b' => Bb;
-                          A 'y' => B_y;
-                            B_y 'a' => Ba;
-                            B_y 'b' => Bb;
-    
-                    */
-                    const edges = fsmOrig.list_edges();
-                    ourEdges = edges
-                        .filter(e => e.from == resToState)
-                        .map(e => { const to = e.to, action = e.action; return { to, action } })
-                    resActions.forEach(resAction => {
-                        const lineFrom = `  ${resFromState} '${resAction}' => ${resToState}_${resAction};`;
-                        arrFsmMultiLines.push(lineFrom);
-                        ourEdges.forEach(edge => {
-                            const edgeAction = edge.action;
-                            const edgeToState = edge.to;
-                            const lineTo = `      ${resToState}_${resAction} '${edgeAction}' => ${edgeToState};`;
-                            arrFsmMultiLines.push(lineTo);
-                        });
-                    });
-                }
-
+        if (reMultiActionLine.test(strFsmMulti)) {
+            console.groupCollapsed("Creating objDecl.strFsm");
+            console.log("%cCreating objDecl.strFsm from .strFsmMulti", "background:blue; color:white;");
+            const arrDeclMulti = strFsmMulti.split("\n");
+            const arrNoEmpty = arrDeclMulti.filter(l => {
+                const lt = l.trim();
+                if (lt.length == 0) return false;
+                if (lt.startsWith("//")) return false;
+                return true;
             });
-        }
-        if (arrMultiSameLines.length > 0) {
-            if (!objFsmDecl._funActionMultiSame) {
-                let msg = `
+            const arrFsmMultiLines = [];
+            arrNoEmpty.forEach(line => {
+                const resLine = reMultiActionLine.exec(line);
+                if (!resLine) {
+                    arrFsmMultiLines.push(line);
+                } else {
+                    const stateFrom = resLine[1];
+                    const stateTo = resLine[3];
+                    if (stateFrom != stateTo) {
+                        arrMultiLines.push(line)
+                    } else {
+                        // arrFsmMultiLines.push("// MultiSame line:");
+                        // arrFsmMultiLines.push(`    ${line}`);
+                        arrFsmMultiLines.push(`    ${line} // MultiSame line `);
+                        arrMultiSameLines.push(line);
+                    }
+                }
+            });
+            if (arrMultiLines.length > 0) {
+                arrFsmMultiLines.push("");
+                arrFsmMultiLines.push("");
+                arrFsmMultiLines.push(`////// Found ${arrMultiLines.length} line(s) with multi syntax, expanding them below`);
+                arrFsmMultiLines.push("");
+                arrMultiLines.forEach(line => {
+                    arrFsmMultiLines.push(`////// expanding ${line}`);
+                    const resLine = reMultiActionLine.exec(line);
+                    if (resLine == null) throw Error(`Did not match multi line: ${line}`);
+                    const resFromState = resLine[1];
+                    const resActions = resLine[2].trim().split(/\s+/);
+                    const resToState = resLine[3];
+                    let ourEdges;
+                    if (resFromState === resToState) {
+                        throw Error(`Can't handle to==from here: ${line}`);
+                        // We have no other declarations for this
+                        /*
+                            A '[x y]' => A;
+        
+                            We can't do as for the case A '[x y]' B
+                            since this would give:
+                              A 'x' => A_x;
+                                A_x 'x' => A;
+                                A_x 'y' => A;
+                              A 'y' => A_y;
+                                A_y 'x' => A;
+                                A_y 'y' => A;
+                        */
+                        // ourEdges = resActions.map(action => { const to = resToState; return { to, action } });
+                        // FIX-ME: 
+                        debugger; // eslint-disable-line no-debugger
+                        /*
+                        resActions.forEach(resAction => {
+                            const line = `  ${resFromState} '${resAction}' => ${resFromState};`;
+                            arrFsmMulti.push(line);
+                        });
+                        */
+                    } else {
+                        /*
+                            A '[x y]' => B;
+        
+                            This expands like below (where a, b are possible actions for state B):
+        
+                              A 'x' => B_x;
+                                B_x 'a' => Ba;
+                                B_x 'b' => Bb;
+                              A 'y' => B_y;
+                                B_y 'a' => Ba;
+                                B_y 'b' => Bb;
+        
+                        */
+                        const edges = fsmOrig.list_edges();
+                        ourEdges = edges
+                            .filter(e => e.from == resToState)
+                            .map(e => { const to = e.to, action = e.action; return { to, action } })
+                        resActions.forEach(resAction => {
+                            const lineFrom = `  ${resFromState} '${resAction}' => ${resToState}_${resAction};`;
+                            arrFsmMultiLines.push(lineFrom);
+                            ourEdges.forEach(edge => {
+                                const edgeAction = edge.action;
+                                const edgeToState = edge.to;
+                                const lineTo = `      ${resToState}_${resAction} '${edgeAction}' => ${edgeToState};`;
+                                arrFsmMultiLines.push(lineTo);
+                            });
+                        });
+                    }
+
+                });
+            }
+            if (arrMultiSameLines.length > 0) {
+                if (!objFsmDecl._funActionMultiSame) {
+                    let msg = `
                     The FSL code contains statement of the form
 
                     %c    A '[a b]' -> A;%c
@@ -244,54 +245,63 @@ export function getFsmMulti(objFsmDecl) {
                     This function should be the second argument to
                     makeFsmMultiDeclaration.
                     `;
-                // console.log(msg);
-                msg = msg.replaceAll(/^\s?$/gm, "!");
-                msg = msg.replaceAll(/^\s+/gm, "!   ")
-                console.error(msg, "font-size:18px;", "font-size:unset;");
-                // debugger; // eslint-disable-line no-debugger
+                    // console.log(msg);
+                    msg = msg.replaceAll(/^\s?$/gm, "!");
+                    msg = msg.replaceAll(/^\s+/gm, "!   ")
+                    console.error(msg, "font-size:18px;", "font-size:unset;");
+                    // debugger; // eslint-disable-line no-debugger
+                }
+                arrFsmMultiLines.push("");
+                arrFsmMultiLines.push("");
+                arrFsmMultiLines.push(`////// Found ${arrMultiSameLines.length} line(s) with multi syntax and to==from`);
+                arrFsmMultiLines.push(`// Those lines can't be expanded, and must be handled separately.`);
+                arrFsmMultiLines.push(`// They are left as is in FSL.`);
+                arrFsmMultiLines.push(`// *** NOTE *** Handling of them is not implemented here!!!`);
+                const objMultiSame = {};
+                const arrMultiSame = arrMultiSameLines.map(line => {
+                    arrFsmMultiLines.push(`  // ${line}`);
+                    const resLine = reMultiActionLine.exec(line);
+                    if (resLine == null) throw Error(`Did not match multi line: ${line}`);
+                    const from = resLine[1];
+                    const actions = resLine[2].trim().split(/\s+/);
+                    const to = resLine[3];
+                    if (to != from) throw Error(`from != to, "${from}" != "${to}"`);
+                    const toFrom = to;
+                    actions.forEach(action => {
+                        const key = multiSameKey(toFrom, action);
+                        objMultiSame[key] = line;
+                    })
+                    return { line, toFrom, actions };
+                });
+                arrFsmMultiLines.push("");
+                arrFsmMultiLines.push("");
+                console.log({ arrMultiSame });
+                objFsmDecl._arrMultiSame = arrMultiSame;
+                objFsmDecl._objMultiSame = objMultiSame;
             }
-            arrFsmMultiLines.push("");
-            arrFsmMultiLines.push("");
-            arrFsmMultiLines.push(`////// Found ${arrMultiSameLines.length} line(s) with multi syntax and to==from`);
-            arrFsmMultiLines.push(`// Those lines can't be expanded, and must be handled separately.`);
-            arrFsmMultiLines.push(`// They are left as is in FSL.`);
-            arrFsmMultiLines.push(`// *** NOTE *** Handling of them is not implemented here!!!`);
-            const objMultiSame = {};
-            const arrMultiSame = arrMultiSameLines.map(line => {
-                arrFsmMultiLines.push(`  // ${line}`);
-                const resLine = reMultiActionLine.exec(line);
-                if (resLine == null) throw Error(`Did not match multi line: ${line}`);
-                const from = resLine[1];
-                const actions = resLine[2].trim().split(/\s+/);
-                const to = resLine[3];
-                if (to != from) throw Error(`from != to, "${from}" != "${to}"`);
-                const toFrom = to;
-                actions.forEach(action => {
-                    const key = multiSameKey(toFrom, action);
-                    objMultiSame[key] = line;
-                })
-                return { line, toFrom, actions };
-            });
-            arrFsmMultiLines.push("");
-            arrFsmMultiLines.push("");
-            console.log({ arrMultiSame });
-            objFsmDecl._arrMultiSame = arrMultiSame;
-            objFsmDecl._objMultiSame = objMultiSame;
+            // const sMulti = arrMulti.join("\n");
+            objFsmDecl.strFsm = arrFsmMultiLines.join("\n");
+            console.log(objFsmDecl.strFsm);
+            console.groupEnd();
+            window["strFsm"] = objFsmDecl.strFsm;
+            fsmMulti = modJssm.sm([objFsmDecl.strFsm]);
         }
-        // const sMulti = arrMulti.join("\n");
-        objFsmDecl.strFsm = arrFsmMultiLines.join("\n");
-        console.log(objFsmDecl.strFsm);
-        console.groupEnd();
-        window["strFsm"] = objFsmDecl.strFsm;
-        fsmMulti = modJssm.sm([objFsmDecl.strFsm]);
+
+
+        const fsm = fsmMulti || fsmOrig;
+        objFsmDecl.fsm = fsm;
+        // return fsm;
+        // return objFsmDecl;
     }
 
 
-    const fsm = fsmMulti || fsmOrig;
-    objFsmDecl.fsm = fsm;
-    // return fsm;
-    // return objFsmDecl;
+    get _fsm() { return this.#objMultiDeclaration.fsm; }
 }
+
+
+
+
+
 
 /**
  * @param {string} from 
@@ -309,16 +319,13 @@ export function testFsmMulti() {
         console.groupCollapsed("test details");
         const declMulti = `
             start_states: [A];
-            A '[a b]' -> B;
+            A '[a b c]' -> B;
             B 'x' -> Bx;
             B 'y' -> By;
             Bx 'z' -> A;
         `;
-        // const objDeclMulti = makeFslMultiDeclaration(declMulti);
-        // getFsmMulti(objDeclMulti);
-        // const fsm = objDeclMulti.fsm;
         const fslEasyCase = new FslWithArrActions(declMulti);
-        const fsm = fslEasyCase.fsm;
+        const fsm = fslEasyCase._fsm;
 
         let badStates = 0;
         const expectState = (expState) => {
@@ -348,7 +355,7 @@ export function testFsmMulti() {
         }
     }
     testEasyCase();
-    // debugger;
+    debugger;
     function testDifficultCase() {
         console.log("%cTesting A '[x y]' -> A", "background:yellow;color:black;font-size:18px;")
         console.groupCollapsed("test details");
@@ -357,14 +364,9 @@ export function testFsmMulti() {
         A '[a b]' -> A;
         `;
         const funDummy = (args) => console.log("funDummy", args);
-        // const objFsmDeclMulti = makeFsmMultiDeclaration(declMulti, funDummy);
-        // const objFsmDeclMulti = makeFslMultiDeclaration(declMulti);
-        // getFsmMulti(objFsmDeclMulti);
-        // const fsm = objFsmDeclMulti.fsm;
-
         // const fslDifficultCase = new FslWithArrActions(declMulti);
         const fslDifficultCase = new FslWithArrActions(declMulti, funDummy);
-        const fsm = fslDifficultCase.fsm;
+        const fsm = fslDifficultCase._fsm;
 
         let badStates = 0;
         const expectState = (expState) => {
@@ -399,6 +401,5 @@ export function testFsmMulti() {
     }
     testDifficultCase();
 }
-testFsmMulti();
-debugger;
+testFsmMulti(); debugger;
 

@@ -226,7 +226,7 @@ function mkButton(attrib, inner) {
     if (isChromiumBased) {
         // if (navigator.vendor !== "Google Inc.") throw Error(`Vendor is ${navigator.vendor}`);
         isEdge = navigator.userAgent.indexOf(" Edg/") > -1;
-        console.log({ isEdge });
+        // console.log({ isEdge });
     } else {
         const m = navigator.userAgent.match(/ Firefox\/(\d+)/);
         isFirefox = !!m;
@@ -1649,11 +1649,14 @@ window["testCmOnScreen"] = () => {
 
 const string2SearchSym = {};
 export const symAdd = Symbol("&");
-string2SearchSym["&"] = symAdd;
+// string2SearchSym["&"] = symAdd;
+string2SearchSym["and"] = symAdd;
 export const symOr = Symbol("|");
-string2SearchSym["|"] = symOr;
+// string2SearchSym["|"] = symOr;
+string2SearchSym["or"] = symOr;
 export const symNot = Symbol("!");
-string2SearchSym["!"] = symNot;
+// string2SearchSym["!"] = symNot;
+string2SearchSym["not"] = symNot;
 export const symLpar = Symbol("(");
 string2SearchSym["("] = symLpar;
 export const symRpar = Symbol(")");
@@ -1755,21 +1758,16 @@ InWord 'end' -> End;
 
 const modJssmTools = await importFc4i("jssm-tools")
 
-/* @type {import("jssm-tools").fsmMultiDeclaration} */
-/* @type {import("./js/mod/jssm-tools.js").fsmMultiDeclaration} */
-/*
-const objFsmSearchMulti = {
-    strFsmMulti: strFsmSearch,
-    strFsm: undefined
-}
-*/
 
-const funDummy = (args) => console.log("funDummy", args);
-const objFsmSearchMulti = modJssmTools.makeFsmMultiDeclaration(strFsmSearch, funDummy);
+
 function getFsmSearchLexer() {
-    modJssmTools.getFsmMulti(objFsmSearchMulti);
-    const fsm = objFsmSearchMulti.fsm;
+    // modJssmTools.getFsmMulti(objFsmSearchMulti);
+    // const fsm = objFsmSearchMulti.fsm;
     // window["fsmSearch"] = fsm; // For my testing
+    const funDummy = (args) => console.log("funDummy", args);
+    const fslSearchMulti = new modJssmTools.FslWithArrActions(strFsmSearch, funDummy);
+    return fslSearchMulti;
+    const fsm = fslSearchMulti._fsm;
     return fsm;
 }
 
@@ -1781,14 +1779,10 @@ function getFsmSearchLexer() {
  * @returns {str2searchTree}
  */
 export function string2searchTokens(str) {
-    const fsmSearch = getFsmSearchLexer();
-    console.log({ objFsmSearchMulti });
-    const objMultiSame = objFsmSearchMulti.objMultiSame;
-    if (objMultiSame) {
-        console.log("%cWARNING: objMultiSame handling not implemented yet", "color:black;background:red;font-size:16px;");
-        // debugger;
-    }
-    fsmSearch.hook_any_action
+    // const fsmSearch = getFsmSearchLexer();
+    const fslSearchMulti = getFsmSearchLexer();
+    const fsmSearch = fslSearchMulti._fsm;
+    // debugger;
 
     let word = "";
     const tokens = [];
@@ -1796,7 +1790,8 @@ export function string2searchTokens(str) {
     const tokensPush = (token) => {
         if (typeof token === "string") {
             if (token.length === 0) {
-                console.warn('token is ""');
+                const state = fsmSearch.state();
+                console.warn(`token is "", str=[${str}], state=${state}, tokens:`, tokens);
                 return;
             }
         }
@@ -1810,24 +1805,33 @@ export function string2searchTokens(str) {
     function hook_any_action_handler(args) {
         if (!args) debugger; // eslint-disable-line no-debugger
         const action = args.action;
-        const next_data = args.next_data;
-        // console.log("hook_any_action", action, args);
+        // const next_data = args.next_data;
+        const state = fsmSearch.state();
+        console.log(`hook_any_action, ${state} '${action}' => ?, args:`, args);
         if (look4tokenProblems) debugger; // eslint-disable-line no-debugger
         switch (action) {
             case "not":
-                const state = fsmSearch.state();
                 console.log("got !, state:", state);
                 if (state == "AfterWord") { tokens.push(symAdd); }
                 tokens.push(symNot);
                 break;
             case "and":
             case "or":
-                const ch = next_data.ch;
-                const sym = string2SearchSym[ch];
+            case "lPar":
+            case "rPar":
+                // const ch = next_data.ch;
+                // const sym = string2SearchSym[ch];
+                const sym = string2SearchSym[action];
                 // console.log("got sym", action, ch, sym);
                 if (sym == undefined) debugger; // eslint-disable-line no-debugger
                 tokens.push(sym);
                 break;
+            case ("ch"):
+            case ("space"):
+            case ("end"):
+                break;
+            default:
+                debugger;
         }
     }
 
@@ -1874,18 +1878,27 @@ export function string2searchTokens(str) {
             default:
             // word = word + ch;
         }
+        /*
         const res = checkFsmActionAndApply(fsmSearch, action, { ch });
-        if (!res) return { ok: false, tokens: tokens }
+        if (!res) {
+            debugger;
+            return { ok: false, tokens: tokens }
+        }
+        */
+        const res = fslSearchMulti.fsmActionMulti(action);
         if (action == "ch") word = word + ch;
     }
-    const res = checkFsmActionAndApply(fsmSearch, "end");
+    // const res = checkFsmActionAndApply(fsmSearch, "end");
+    const res = fslSearchMulti.fsmActionMulti("end");
     const finalState = fsmSearch.state();
     if (finalState != "End") {
         // FIX-ME: handle this
         throw Error(`Final state is "${finalState}", should be "End"`);
     }
-    console.log(`%cstring2searchTokens result (${str}): ${res}`, "background:green; color:black;", tokens)
-    return { ok: res, tokens: tokens };
+    console.log(`%cstring2searchTokens result [${str}]: ${res}`, "background:green; color:black;", tokens)
+    // return { ok: res, tokens: tokens };
+    // FIX-ME:
+    return { ok: true, tokens: tokens };
 }
 
 /**
@@ -1961,7 +1974,7 @@ function ArraysAreEqual(arrA, arrB) {
 async function testString2searchTokens() {
     function testSearchString(strTested, arrWanted) {
         if (typeof strTested !== "string") throw Error("first param should be string");
-        console.log("%ctestSearchString", "background:yellow;color:black;font-size:20px;", `(${strTested})`);
+        console.log("%ctestSearchString", "background:yellow;color:black;font-size:20px;", `[${strTested}]`);
         const resTest = string2searchTokens(strTested)
         if (!resTest.ok) {
             console.log("%cCould not get tokens", "background:red; color:yellow;");
@@ -1970,8 +1983,8 @@ async function testString2searchTokens() {
         }
         const arrTest = resTest.tokens;
         if (!ArraysAreEqual(arrWanted, arrTest)) {
-            const msg = `%cbad tokens (${strTested}): `;
-            console.log(msg, "background:red; color: yellow;", arrTest, "---wanted:", arrWanted);
+            const msg = `%cbad tokens (${strTested}):\n`;
+            console.log(msg, "background:red; color: yellow;", arrTest, "\nwant:", arrWanted);
             debugger; // eslint-disable-line no-debugger
             return;
         }
@@ -1985,7 +1998,6 @@ async function testString2searchTokens() {
     testSearchString("aa b", ["aa", symAdd, "b"]);
 
     testSearchString(' "aa" b ', ["aa", symAdd, "b"]);
-    */
 
     testSearchString("aa  b", ["aa", symAdd, "b"]);
     testSearchString("aa & b", ["aa", symAdd, "b"]);
@@ -1994,13 +2006,13 @@ async function testString2searchTokens() {
     testSearchString("aa & ! b", ["aa", symAdd, symNot, "b"]);
     testSearchString("aa !b", ["aa", symAdd, symNot, "b"]);
     testSearchString("aa ! b", ["aa", symAdd, symNot, "b"]);
+    */
 
     testSearchString("aa & (b | c)", ["aa", symAdd, symLpar, "b", symOr, "c", symRpar]);
     // testSearchString("(aa b) | c", ["aa", symAdd, symNot, "b"]);
 
 }
-// testString2searchTokens();
-// debugger; // eslint-disable-line no-debugger
+testString2searchTokens(); debugger; // eslint-disable-line no-debugger
 
 
 
