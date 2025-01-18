@@ -74,6 +74,7 @@ export class FslWithArrActions {
      * @param {boolean} useMultiAction
      */
     constructor(strFslMulti, fun4Action, useMultiAction = true) {
+        if (!useMultiAction) { debugger; throw Error(`Only useMultiAction == true supported`); }
         this.#funActionMultiSame = fun4Action;
         this.#objMultiDeclaration = FslWithArrActions.#makeFslMultiDeclaration(strFslMulti, fun4Action);
         this.#useMultiAction = useMultiAction;
@@ -131,6 +132,33 @@ export class FslWithArrActions {
         throw Error(`No action "${action}" for state "${state}"`);
         debugger;
     }
+
+    /** 
+     *  Get real action from arguments to .hook_any_actions 
+     *   
+     *  @param {any} hookArgs 
+     *  @param {boolean|undefined} checkArgs 
+     *  @returns
+     */
+    static getRealAction(hookArgs, checkArgs = true) {
+        if (checkArgs) {
+            const jsonKeys = JSON.stringify(Object.keys(hookArgs).sort())
+            const jsonKeysWanted = "[\"action\",\"data\",\"forced\",\"from\",\"next_data\",\"to\",\"trans_type\"]";
+            if (jsonKeys != jsonKeysWanted) {
+                debugger;
+                throw Error(`hookArgs keys does not seem to be from .hook_any_action: ${jsonKeys}`);
+            }
+        }
+        const rawAction = hookArgs.action;
+        const nextData = hookArgs.next_data;
+        let realAction = rawAction;
+        if (isMulti(rawAction)) {
+            realAction = nextData.action;
+        }
+        console.log(`getRealAction: ${realAction}, args:`, hookArgs);
+        return realAction;
+    }
+
     #makeFsmMulti() {
         const objFsmDecl = this.#objMultiDeclaration;
         const strFsmMulti = objFsmDecl.strFsmMulti;
@@ -307,10 +335,10 @@ export class FslWithArrActions {
                 // const sMulti = arrMulti.join("\n");
                 objFsmDecl.strFsm = arrFsmMultiLines.join("\n");
                 console.log(objFsmDecl.strFsm);
-                console.groupEnd();
                 window["strFsm"] = objFsmDecl.strFsm;
                 fsmMulti = modJssm.sm([objFsmDecl.strFsm]);
             }
+            console.groupEnd();
         }
 
 
@@ -376,6 +404,13 @@ export function testFsmMulti() {
             applyAction("z");
             expectState("A");
         } else {
+            /** @param {Object} hookArgs */
+            const hookHandler = hookArgs => {
+                const ourAction = FslWithArrActions.getRealAction(hookArgs);
+                console.log({ ourAction });
+                // debugger;
+            };
+            fsm.hook_any_action(hookHandler);
             applyAction("a");
             expectState("B");
             applyAction("x");
