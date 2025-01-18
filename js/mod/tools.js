@@ -1885,11 +1885,11 @@ export function string2searchTokens(str) {
             return { ok: false, tokens: tokens }
         }
         */
-        const res = fslSearchMulti.fsmActionMulti(action);
+        const res = fslSearchMulti.applyMultiAction(action);
         if (action == "ch") word = word + ch;
     }
     // const res = checkFsmActionAndApply(fsmSearch, "end");
-    const res = fslSearchMulti.fsmActionMulti("end");
+    const res = fslSearchMulti.applyMultiAction("end");
     const finalState = fsmSearch.state();
     if (finalState != "End") {
         // FIX-ME: handle this
