@@ -226,7 +226,7 @@ function mkButton(attrib, inner) {
     if (isChromiumBased) {
         // if (navigator.vendor !== "Google Inc.") throw Error(`Vendor is ${navigator.vendor}`);
         isEdge = navigator.userAgent.indexOf(" Edg/") > -1;
-        // console.log({ isEdge });
+        console.log({ isEdge });
     } else {
         const m = navigator.userAgent.match(/ Firefox\/(\d+)/);
         isFirefox = !!m;
@@ -1658,11 +1658,13 @@ export const symNot = Symbol("!");
 // string2SearchSym["!"] = symNot;
 string2SearchSym["not"] = symNot;
 export const symLpar = Symbol("(");
-string2SearchSym["("] = symLpar;
+// string2SearchSym["("] = symLpar;
+string2SearchSym["lPar"] = symLpar;
 export const symRpar = Symbol(")");
-string2SearchSym[")"] = symRpar;
+// string2SearchSym[")"] = symRpar;
+string2SearchSym["rPar"] = symRpar;
 
-const ourSearchOperators = new Set([symAdd, symOr, symNot]);
+// const ourSearchOperators = new Set([symAdd, symOr, symNot]);
 
 
 // const modJssm = await importFc4i("jssm");
@@ -1714,7 +1716,7 @@ NeedWord 'chCite' -> InCite;
 
 // NeedWord 'space' -> NeedWord;
 // NeedWord '(' -> NeedWord;
-NeedWord '[space lpar]' -> NeedWord;
+NeedWord '[space lPar]' -> NeedWord;
 
 // NeedWord '!' -> JustNeedWord;
 
@@ -1745,8 +1747,10 @@ SpaceNeedWord 'space' -> SpaceNeedWord;
 NeedWord 'ch' -> InWord;
 BeforeWord 'ch' -> InWord;
 
-InWord 'space' -> AfterWord;
 InWord 'ch' -> InWord;
+// InWord 'space' -> AfterWord;
+// InWord 'rPar' -> AfterWord;
+InWord '[space rPar]' -> AfterWord;
 // InWord 'tab' -> AfterWord;
 InWord 'end' -> End;
 `;
@@ -1779,6 +1783,7 @@ function getFsmSearchLexer() {
  * @returns {str2searchTree}
  */
 export function string2searchTokens(str) {
+    console.groupCollapsed("string2searchToken");
     // const fsmSearch = getFsmSearchLexer();
     const fslSearchMulti = getFsmSearchLexer();
     const fsmSearch = fslSearchMulti._fsm;
@@ -1787,7 +1792,7 @@ export function string2searchTokens(str) {
     let word = "";
     const tokens = [];
     let ch;
-    const tokensPush = (token) => {
+    const tokensPush = (token, where) => {
         if (typeof token === "string") {
             if (token.length === 0) {
                 const state = fsmSearch.state();
@@ -1796,45 +1801,80 @@ export function string2searchTokens(str) {
             }
         }
         tokens.push(token);
+        console.log(`%ctokensPush ${where}: `, "background-color:blue;color:white;padding:4px", token, tokens);
     }
 
-    fsmSearch.hook_entry("AfterWord", () => { tokensPush(word); word = ""; });
-    fsmSearch.hook_entry("End", () => { tokensPush(word); });
-    fsmSearch.hook("AfterWord", "InWord", () => { tokensPush(symAdd); });
+    // fsmSearch.hook_entry("AfterWord", () => { tokensPush(word, "hook_e AfterWord"); word = ""; });
+    // fsmSearch.hook_entry("End", () => { tokensPush(word, "hook_e End"); });
+    // fsmSearch.hook("AfterWord", "InWord", () => { tokensPush(symAdd, "hook AfterWord InWord"); });
     fsmSearch.hook_any_action(hook_any_action_handler);
-    function hook_any_action_handler(args) {
-        if (!args) debugger; // eslint-disable-line no-debugger
-        const action = args.action;
-        // const next_data = args.next_data;
+    function hook_any_action_handler(hookArgs) {
+        const next_data = hookArgs.next_data;
+        const next_data_action = hookArgs.next_data?.action;
+        const action = hookArgs.action;
+        const from = hookArgs.from;
+        const to = hookArgs.to;
+        // console.log("%chook_any_action", "background:red;color:black", hookArgs);
+        console.log(`%chook_any_action: ${from} ${action},${next_data_action} => ${to};`, "background:red;color:black");
+        if (!hookArgs) debugger; // eslint-disable-line no-debugger
+        const isTransition = from !== to;
+        const actionIsAfterTransition = isTransition && action == "lPar";
+        const ourAction = modJssmTools.FslWithArrActions.getRealAction(hookArgs);
         const state = fsmSearch.state();
-        console.log(`hook_any_action, ${state} '${action}' => ?, args:`, args);
+        // console.log(`hook_any_action, ${state} '${ourAction}' => ?, args:`, hookArgs);
         if (look4tokenProblems) debugger; // eslint-disable-line no-debugger
-        switch (action) {
+        switch (ourAction) {
             case "not":
                 console.log("got !, state:", state);
-                if (state == "AfterWord") { tokens.push(symAdd); }
-                tokens.push(symNot);
+                if (state == "AfterWord") { tokensPush(symAdd, "hook_aah AfterWord"); }
+                tokensPush(symNot, "hook_aah AfterWord");
                 break;
             case "and":
             case "or":
             case "lPar":
-            case "rPar":
-                // const ch = next_data.ch;
-                // const sym = string2SearchSym[ch];
-                const sym = string2SearchSym[action];
-                // console.log("got sym", action, ch, sym);
+            // case "rPar":
+                const sym = string2SearchSym[ourAction];
                 if (sym == undefined) debugger; // eslint-disable-line no-debugger
-                tokens.push(sym);
+                tokensPush(sym, "hook_aah");
                 break;
             case ("ch"):
             case ("space"):
             case ("end"):
                 break;
+            case "rPar":
+                // debugger;
+                break;
             default:
-                debugger;
+                debugger; // eslint-disable-line no-debugger
+        }
+        if (isTransition) {
+            /*
+                I can't understand the order of execution of the different hooks.
+                So put everyting here. I believe all info needed is here!
+            */
+
+            ////////// hook_entry()
+
+            // fsmSearch.hook_entry("AfterWord", () => { tokensPush(word, "hook_e AfterWord"); word = ""; });
+            if (to == "AfterWord") { tokensPush(word, "hook_entry AfterWord"); word = ""; };
+
+            // fsmSearch.hook_entry("End", () => { tokensPush(word, "hook_e End"); });
+            if (to == "End") { tokensPush(word, "hook_entry End"); };
+
+
+            ////////// hook_exit()
+
+
+            ////////// hook()
+            // fsmSearch.hook("AfterWord", "InWord", () => { tokensPush(symAdd, "hook AfterWord InWord"); });
+            if (to == "InWord" && from == "AfterWord") { tokensPush(symAdd, "hook AfterWord InWord"); };
+        }
+        switch(ourAction) {
+            case "rPar":
+                const sym = string2SearchSym[ourAction];
+                tokensPush(sym, "hook_aah after transition");
         }
     }
-
 
 
     str = str.trim();
@@ -1878,26 +1918,19 @@ export function string2searchTokens(str) {
             default:
             // word = word + ch;
         }
-        /*
-        const res = checkFsmActionAndApply(fsmSearch, action, { ch });
-        if (!res) {
-            debugger;
-            return { ok: false, tokens: tokens }
-        }
-        */
         const res = fslSearchMulti.applyMultiAction(action);
+        // console.log("fslSearchMulti", res);
         if (action == "ch") word = word + ch;
     }
-    // const res = checkFsmActionAndApply(fsmSearch, "end");
     const res = fslSearchMulti.applyMultiAction("end");
     const finalState = fsmSearch.state();
     if (finalState != "End") {
         // FIX-ME: handle this
         throw Error(`Final state is "${finalState}", should be "End"`);
     }
-    console.log(`%cstring2searchTokens result [${str}]: ${res}`, "background:green; color:black;", tokens)
-    // return { ok: res, tokens: tokens };
+    // console.log(`%cstring2searchTokens result [${str}]: ${res}`, "background:green; color:black;", tokens)
     // FIX-ME:
+    console.groupEnd();
     return { ok: true, tokens: tokens };
 }
 
@@ -1911,50 +1944,6 @@ export function string2searchTokens(str) {
 
 
 
-// Originally from Microsoft Copilot
-function parseSearchTokens2AST(tokens) {
-    let current = 0;
-    function walk() {
-        let token = tokens[current];
-        if (typeof token === "string") {
-            current++;
-            return {
-                type: "string",
-                value: token
-            }
-        }
-        if (ourSearchOperators.has(token)) {
-            current++;
-            return {
-                type: "operator",
-                value: token
-            }
-        }
-        if (token === symLpar) {
-            current++;
-            let node = {
-                type: "expression",
-                body: []
-            }
-            while (tokens[current] != symRpar) {
-                node.body.push(walk());
-            }
-            current++;
-            return node;
-        }
-        throw new TypeError(`Unexpected token: ${token.toString()}`);
-    }
-
-    let ast = {
-        type: "program",
-        body: []
-    }
-    while (current < tokens.length) {
-        ast.body.push(walk());
-    }
-    return ast;
-}
-window["t2a"] = parseSearchTokens2AST;
 
 // const modGrammarSearch = await importFc4i("grammar-search");
 // console.log({modGrammarSearch});
@@ -1984,11 +1973,11 @@ async function testString2searchTokens() {
         const arrTest = resTest.tokens;
         if (!ArraysAreEqual(arrWanted, arrTest)) {
             const msg = `%cbad tokens (${strTested}):\n`;
-            console.log(msg, "background:red; color: yellow;", arrTest, "\nwant:", arrWanted);
+            console.log(msg, "background:red; color:yellow; font-size:18px;", arrTest, "\nwant:", arrWanted);
             debugger; // eslint-disable-line no-debugger
             return;
         }
-        console.log(`%cOK (${strTested})`, "background:green;color:black;");
+        console.log(`%cOK [${strTested}]`, "background:green; color:black; font-size:18px;");
     }
     /*
     testSearchString("aa", ["aa"]);
@@ -2044,6 +2033,9 @@ export function searchBySearchTree(searchTree, funSearchWord) {
         if (!setResult) { setResult = res; return; }
         switch (operator) {
             case "&":
+                // FIX-ME: do I need to update something so intersection is recognized???
+                // https://github.com/vitejs/vite/discussions/17750
+                // I solved this by updating my Typescript version from 4 to 5.
                 setResult = res.intersection(setResult);
                 break;
             default:

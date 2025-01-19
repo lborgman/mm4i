@@ -41,8 +41,10 @@ const reMultiActionLine = new RegExp(
     "^\\s*([a-z0-9_]+)\\s+'\\[(.*?)\\]'\\s+[=-]>\\s+([a-z0-9_]+)\\s*;\\s*(?://.*?)?$", "im");
 
 function isMultiLine(multiLine) { return reMultiActionLine.test(multiLine) };
-if (!isMultiLine("A '[a b]' -> B;")) debugger;
-if (isMultiLine("A 'ab' -> B;")) debugger;
+if (!isMultiLine("A '[a b]' -> B;"))
+    debugger; // eslint-disable-line no-debugger
+if (isMultiLine("A 'ab' -> B;"))
+    debugger; // eslint-disable-line no-debugger
 // debugger;
 
 
@@ -74,10 +76,16 @@ export class FslWithArrActions {
      * @param {boolean} useMultiAction
      */
     constructor(strFslMulti, fun4Action, useMultiAction = true) {
-        if (!useMultiAction) { debugger; throw Error(`Only useMultiAction == true supported`); }
+        if (!useMultiAction) {
+            debugger; // eslint-disable-line no-debugger
+            throw Error(`Only useMultiAction == true supported`);
+        }
         this.#funActionMultiSame = fun4Action;
         this.#objMultiDeclaration = FslWithArrActions.#makeFslMultiDeclaration(strFslMulti, fun4Action);
+
         this.#useMultiAction = useMultiAction;
+        // this.#useMultiAction = false;
+
         this.#makeFsmMulti();
     }
 
@@ -102,13 +110,14 @@ export class FslWithArrActions {
     applyMultiAction(action) {
         const fsm = this.#objMultiDeclaration.fsm;
         if (!this.#useMultiAction) {
+            // debugger;
             return fsm.action(action);
         }
         if (!this.#funActionMultiSame) {
-            debugger;
+            debugger; // eslint-disable-line no-debugger
         }
-        const from = fsm.state();
-        const arrFromActions = fsm.actions(from);
+        const fromState = fsm.state();
+        const arrFromActions = fsm.actions(fromState);
         if (arrFromActions.includes(action)) {
             return fsm.action(action);
         }
@@ -127,10 +136,10 @@ export class FslWithArrActions {
         console.log({ bad });
         // We don't get any error, but bad should be false
         if (bad) {
-            throw Error(`Internal error, action "${action}" should not work in state "${state}"`)
+            throw Error(`Internal error, action "${action}" should not work in state "${fromState}"`)
         }
-        throw Error(`No action "${action}" for state "${state}"`);
-        debugger;
+        throw Error(`No action "${action}" for state "${fromState}"`);
+        debugger; // eslint-disable-line no-debugger
     }
 
     /** 
@@ -145,7 +154,7 @@ export class FslWithArrActions {
             const jsonKeys = JSON.stringify(Object.keys(hookArgs).sort())
             const jsonKeysWanted = "[\"action\",\"data\",\"forced\",\"from\",\"next_data\",\"to\",\"trans_type\"]";
             if (jsonKeys != jsonKeysWanted) {
-                debugger;
+                debugger; // eslint-disable-line no-debugger
                 throw Error(`hookArgs keys does not seem to be from .hook_any_action: ${jsonKeys}`);
             }
         }
@@ -155,7 +164,7 @@ export class FslWithArrActions {
         if (isMulti(rawAction)) {
             realAction = nextData.action;
         }
-        console.log(`getRealAction: ${realAction}, args:`, hookArgs);
+        // console.log(`getRealAction: ${realAction}, args:`, hookArgs);
         return realAction;
     }
 
@@ -175,8 +184,8 @@ export class FslWithArrActions {
         if (reMultiActionLine.test(strFsmMulti)) {
             if (this.#useMultiAction) {
                 console.groupCollapsed("Using multi actions");
-                // console.log("%cCreating objDecl.strFsm from .strFsmMulti", "background:blue; color:white;");
             } else {
+                debugger; // eslint-disable-line no-debugger
                 console.groupCollapsed("Creating objDecl.strFsm");
                 console.log("%cCreating objDecl.strFsm from .strFsmMulti", "background:blue; color:white;");
             }
@@ -212,6 +221,7 @@ export class FslWithArrActions {
                 });
                 // debugger;
             } else {
+                debugger; // eslint-disable-line no-debugger
                 if (arrMultiLines.length > 0) {
                     arrFsmMultiLines.push("");
                     arrFsmMultiLines.push("");
@@ -408,7 +418,7 @@ export function testFsmMulti() {
             const hookHandler = hookArgs => {
                 const ourAction = FslWithArrActions.getRealAction(hookArgs);
                 console.log({ ourAction });
-                // debugger;
+                // debugger; // eslint-disable-line no-debugger
             };
             fsm.hook_any_action(hookHandler);
             applyAction("a");
@@ -426,7 +436,7 @@ export function testFsmMulti() {
         }
     }
     testEasyCase();
-    debugger;
+    // debugger; // eslint-disable-line no-debugger
     function testDifficultCase() {
         console.log("%cTesting A '[x y]' -> A", "background:yellow;color:black;font-size:18px;")
         console.groupCollapsed("test details");
@@ -467,7 +477,7 @@ export function testFsmMulti() {
     }
     testDifficultCase();
 }
-testFsmMulti(); debugger;
+// testFsmMulti(); // debugger; // eslint-disable-line no-debugger
 
 /**
  * 
@@ -479,26 +489,31 @@ function isMulti(multiAction) {
     if (!multiAction.endsWith("]")) return false;
     return true;
 }
-// debugger;
-if (!isMulti("[a b c]")) debugger;
-if (isMulti("a b c")) debugger;
+// debugger; // eslint-disable-line no-debugger
+if (!isMulti("[a b c]"))
+    debugger; // eslint-disable-line no-debugger
+if (isMulti("a b c"))
+    debugger; // eslint-disable-line no-debugger
 
 function multi2array(multiAction) {
     if (!isMulti(multiAction)) {
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         throw Error(`multiAction "${multiAction}" does not have the format "[...]"`);
     }
     const arr = multiAction.slice(1, -1).split(/\s+/);
     return arr;
 }
-if (JSON.stringify(multi2array("[a  b c]")) != JSON.stringify(["a", "b", "c"])) debugger;
+if (JSON.stringify(multi2array("[a  b c]")) != JSON.stringify(["a", "b", "c"]))
+    debugger; // eslint-disable-line no-debugger
 
 function multiHas(multiAction, action) {
     const arr = multi2array(multiAction)
     return arr.includes(action);
 }
-if (!multiHas("[a b c]", "c")) debugger;
-if (multiHas("[a b c]", "x")) debugger;
+if (!multiHas("[a b c]", "c"))
+    debugger; // eslint-disable-line no-debugger
+if (multiHas("[a b c]", "x"))
+    debugger; // eslint-disable-line no-debugger
 
 // FIX-ME: move into class:
 // const setCheckedDoubleState = new Set();
@@ -508,7 +523,7 @@ function lookForDoubles(fsm, state, multiLine) {
     const setActions = new Set();
     const addToActionSet = (action) => {
         if (setActions.has(action)) {
-            debugger;
+            debugger; // eslint-disable-line no-debugger
             throw Error(`Double declaration for action "${action}" in state ${state}`);
         }
         setActions.add(action);
@@ -526,18 +541,18 @@ function lookForDoubles(fsm, state, multiLine) {
         if (isMulti(act)) {
             const arrAct = multi2array(act);
             arrAct.forEach(a => addToActionSet(a));
-            // debugger;
+            // debugger; // eslint-disable-line no-debugger
         } else {
             addToActionSet(act);
-            // debugger;
+            // debugger; // eslint-disable-line no-debugger
         }
     })
-    // debugger;
+    // debugger; // eslint-disable-line no-debugger
 }
 function desctructureMultiLine(multiLine) {
     const resLine = reMultiActionLine.exec(multiLine);
     if (!resLine) {
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         throw Error(`Not multiline: "${multiLine}"`);
     } else {
         const stateFrom = resLine[1];
@@ -553,4 +568,4 @@ function desctructureMultiLine(multiLine) {
     }
 
 }
-debugger;
+// debugger; // eslint-disable-line no-debugger
