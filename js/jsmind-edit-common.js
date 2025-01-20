@@ -642,17 +642,6 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
     const oldBtn = eltJmnode.querySelector(`.${clsIconButton}`);
     oldBtn?.remove();
 
-    // Add span for hit
-    addSpanHitMark(eltJmnode); // FIX-ME: move
-    function addSpanHitMark(eltJmnode) {
-        const iconHit = "search_check_2";
-        const eltSpanHit = mkElt("span", undefined, iconHit);
-        eltSpanHit.classList.add("material-symbols-outlined");
-        // eltSpanHit.classList.add("material-icons");
-        eltSpanHit.classList.add("hit-mark");
-        eltJmnode.appendChild(eltSpanHit);
-    }
-
 
     const notes = shapeEtc.notes;
     if (notes) {
@@ -1377,10 +1366,21 @@ export async function pageSetup() {
             divInputs.classList.add("showing-provider-hits");
         }
         console.log({ arrHits: arrIdHits });
+        function addSpanHitMark(eltJmnode) {
+            if (eltJmnode.querySelector("span.hit-mark")) return;
+            const iconHit = "search_check_2";
+            const eltSpanHit = mkElt("span", undefined, iconHit);
+            eltSpanHit.classList.add("material-symbols-outlined");
+            // eltSpanHit.classList.add("material-icons");
+            eltSpanHit.classList.add("hit-mark"); // .jsmind-hit
+            eltJmnode.appendChild(eltSpanHit);
+        }
         arrIdHits.forEach(id => {
             const node = jmDisplayed.get_node(id);
-            const eltNode = jsMind.my_get_DOM_element_from_node(node);
-            eltNode.classList.add("jsmind-hit");
+            const eltJmnode = jsMind.my_get_DOM_element_from_node(node);
+            // Add span for hit
+            addSpanHitMark(eltJmnode); // FIX-ME: move
+            eltJmnode.classList.add("jsmind-hit");
         });
 
         if (arrIdHits.length == 0) {
