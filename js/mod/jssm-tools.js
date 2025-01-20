@@ -138,8 +138,10 @@ export class FslWithArrActions {
         if (bad) {
             throw Error(`Internal error, action "${action}" should not work in state "${fromState}"`)
         }
-        throw Error(`No action "${action}" for state "${fromState}"`);
-        debugger; // eslint-disable-line no-debugger
+        if (action != "end") {
+            throw Error(`No action "${action}" for state "${fromState}"`);
+            debugger; // eslint-disable-line no-debugger
+        }
     }
 
     /** 

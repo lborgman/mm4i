@@ -643,12 +643,15 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
     oldBtn?.remove();
 
     // Add span for hit
-    const iconHit = "search_check_2";
-    const eltSpanHit = mkElt("span", undefined, iconHit);
-    eltSpanHit.classList.add("material-symbols-outlined");
-    // eltSpanHit.classList.add("material-icons");
-    eltSpanHit.classList.add("hit-mark");
-    eltJmnode.appendChild(eltSpanHit);
+    addSpanHitMark(eltJmnode); // FIX-ME: move
+    function addSpanHitMark(eltJmnode) {
+        const iconHit = "search_check_2";
+        const eltSpanHit = mkElt("span", undefined, iconHit);
+        eltSpanHit.classList.add("material-symbols-outlined");
+        // eltSpanHit.classList.add("material-icons");
+        eltSpanHit.classList.add("hit-mark");
+        eltJmnode.appendChild(eltSpanHit);
+    }
 
 
     const notes = shapeEtc.notes;
@@ -939,6 +942,7 @@ export async function pageSetup() {
     let btnJsmindDebug;
     const idBtnJsmindDebug = "jsmind-ednode-debug-button";
 
+    /*
     async function mkNetGraphFAB4mindmap() {
         // eltJmnode
         function mkNetwGraphURL() {
@@ -977,6 +981,7 @@ export async function pageSetup() {
         const fabNetwG = await mkFabNetwG();
         return fabNetwG;
     }
+    */
 
 
     let btnJsmindMenu;
@@ -1881,13 +1886,24 @@ export async function pageSetup() {
         eltJsMindContainer: jsMindContainer
     });
     async function jsmindSearchNodes(strSearch) {
-        // const searchTree = await modTools.string2searchTree(strSearch);
-        const resultSearch = modTools.string2searchTree(strSearch);
-        const searchTree = resultSearch.tree;
-        const setNodes = modTools.searchBySearchTree(searchTree, jsmindSearchWordNodes);
-        // const arrIdHits = matchingNodes.map(n => jsMind.my_get_nodeID_from_DOM_element(n));
+        // const res = modTools.searchByComplicatedString(strSearch, jsmindSearchNodes);
+        const setNodes = modTools.searchByComplicatedString(strSearch, jsmindSearchWordNodes);
+        console.warn(setNodes);
+        if (!(setNodes instanceof Set)) {
+            debugger;
+            throw Error(`Expected Set`);
+        }
+        // debugger;
         const arrIdHits = [...setNodes].map(n => jsMind.my_get_nodeID_from_DOM_element(n));
         setNodeHitsFromArray(arrIdHits, "search");
+        return;
+        // const searchTree = await modTools.string2searchTree(strSearch);
+        // const resultSearch = modTools.string2searchTree(strSearch);
+        // const searchTree = resultSearch.tree;
+        // const setNodes = modTools.searchBySearchTree(searchTree, jsmindSearchWordNodes);
+        // const arrIdHits = matchingNodes.map(n => jsMind.my_get_nodeID_from_DOM_element(n));
+        // const arrIdHits = [...setNodes].map(n => jsMind.my_get_nodeID_from_DOM_element(n));
+        // setNodeHitsFromArray(arrIdHits, "search");
     }
     function jsmindSearchWordNodes(strSearch) {
         // @ts-ignore
