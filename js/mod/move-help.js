@@ -1,7 +1,9 @@
 // @ts-check
 const MOVE_HELP_VER = "0.0.7";
-logConsoleHereIs(`here is move-help.js, module, ${MOVE_HELP_VER}`);
+window["logConsoleHereIs"](`here is move-help.js, module, ${MOVE_HELP_VER}`);
 if (document.currentScript) { throw "move-help.js is not loaded as module"; }
+
+const mkElt = window["mkElt"];
 
 const modTools = await importFc4i("toolsJs");
 

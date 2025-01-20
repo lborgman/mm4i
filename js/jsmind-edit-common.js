@@ -1889,8 +1889,15 @@ export async function pageSetup() {
         // const res = modTools.searchByComplicatedString(strSearch, jsmindSearchNodes);
         const setNodes = modTools.searchByComplicatedString(strSearch, jsmindSearchWordNodes);
         console.warn(setNodes);
+        // divHits
+        if (typeof setNodes == "string") {
+            const divHits = document.getElementById(idDivHits);
+            if (!divHits) throw Error(`Could not find ${idDivHits}`);
+            divHits.textContent = setNodes;
+            return;
+        }
         if (!(setNodes instanceof Set)) {
-            debugger;
+            debugger; // eslint-disable-line no-debugger
             throw Error(`Expected Set`);
         }
         // debugger;

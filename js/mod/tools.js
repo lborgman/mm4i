@@ -1787,7 +1787,7 @@ function getFsmSearchLexer() {
  * Parse a string to a "search tree".
  * 
  * @param {string} str 
- * @returns {searchToken[]}
+ * @returns {searchToken[]|string}
  */
 export function string2searchTokens(str) {
     console.groupCollapsed("string2searchToken");
@@ -1927,14 +1927,11 @@ export function string2searchTokens(str) {
     fslSearchMulti.applyMultiAction("end");
     const finalState = fsmSearch.state();
     if (finalState != "End") {
-        // FIX-ME: handle this
-        // throw Error(`Final state is "${finalState}", should be "End"`);
-        return [];
+        console.log("Unfinished search question");
+        console.groupEnd();
+        return "Unfinished search question";
     }
-    // console.log(`%cstring2searchTokens result [${str}]: ${res}`, "background:green; color:black;", tokens)
-    // FIX-ME:
     console.groupEnd();
-    // return { ok: true, tokens: tokens };
     return tokens;
 }
 // window["s2t"] = string2searchTokens;
@@ -1981,14 +1978,11 @@ export function doSearch(tokens, funStringSearch) {
 }
 
 
-// const modGrammarSearch = await importFc4i("grammar-search");
-// console.log({modGrammarSearch});
-
 /**
  * Test if two arrays are equal
  *  
  * @param {*[]} arrA 
- * @param {*[]} arrB 
+ * @param {*[]|string} arrB 
  * @returns {boolean}
  */
 function ArraysAreEqual(arrA, arrB) {
@@ -2050,11 +2044,6 @@ async function testString2searchTokens() {
 
 /** @typedef {string|Symbol} token */
 
-/**
- * 
- * @param {token[]} tokens 
- * @param {funSearchString} funSearch1String
- */
 
 
 /*
@@ -2069,163 +2058,26 @@ This parser directly calls the `search` function based on the operator prioritie
 This should provide a more simplified approach while respecting the operator priorities.Let me know if you need any further adjustments!
 */
 
+/**
+ * 
+ * @param {string} str 
+ * @param {funSearchString} funSearch1String
+ */
 
 export function searchByComplicatedString(str, funSearch1String) {
     console.log("searchByComplicatedString", str, funSearch1String);
     const tokens = string2searchTokens(str);
+    if (typeof tokens == "string") return tokens;
     return searchByTokensStringsAndSymbols(tokens, funSearch1String);
 }
 
-// https://docs.google.com/document/d/1rFTbro7mbiXisI5SLSzIunlazjq2SxcxUyH_4FWhsjA/edit?tab=t.0
-// Recursive descent, return Set
-// From Microsoft Copilot
-function NOsearchByTokensIteratorSetJsdoc(tokens, funSearchString) {
-    const search = funSearchString;
-    return parse(tokens, search);
-
-    /**
-     * Parses an array of tokens and evaluates them using the search function.
-     *  @param {Array} tokens - An array of token objects.
-     *  @returns {Set} - The resulting set after parsing and evaluating.
-     */
-    function parse(tokens, search) {
-        let iterator = tokens[Symbol.iterator]();
-        let current = iterator.next().value;
-
-        /**
-         * Advances the iterator to the next token.
-         */
-        function next() {
-            current = iterator.next().value;
-        }
-
-        /**
-         * Parses the highest-level expression.
-         * @returns {Set} - The result of the expression.
-         */
-        function parseExpression() {
-            return parseOr();
-        }
-
-        /**
-         * Parses OR expressions.
-         * @returns {Set} - The result of the OR expression.
-         */
-        function parseOr() {
-            let left = parseAdd();
-
-            while (match('operator', 'OR')) {
-                next();
-                let right = parseAdd();
-                left = new Set([...left, ...right]);
-            }
-
-            return left;
-        }
-
-        /**
-         * Parses ADD expressions.
-         * @returns {Set} - The result of the ADD expression.
-         */
-        function parseAdd() {
-            let left = parseNot();
-
-            while (match('operator', 'ADD')) {
-                next();
-                let right = parseNot();
-                left = new Set([...left].filter(x => right.has(x)));
-            }
-
-            return left;
-        }
-
-        /**
-         * Parses NOT expressions.
-         * @returns {Set} - The result of the NOT expression.
-         */
-        function parseNot() {
-            if (match('operator', 'NOT')) {
-                next();
-                let operand = parsePrimary();
-                let allItems = new Set(search(''));
-                return new Set([...allItems].filter(x => !operand.has(x)));
-            }
-
-            return parsePrimary();
-        }
-
-        /**
-         * Parses primary expressions (string literals and parentheses).
-         * @returns {Set} - The result of the primary expression.
-         */
-        function parsePrimary() {
-            if (match('string')) {
-                let value = current.value;
-                next();
-                return search(value);
-            }
-
-            if (match('paren', '(')) {
-                next();
-                let expression = parseExpression();
-                if (match('paren', ')')) {
-                    next();
-                } else {
-                    throw new Error('Expected closing parenthesis');
-                }
-                return expression;
-            }
-
-            throw new Error(`Unexpected token: ${JSON.stringify(current)}`);
-        }
-
-        /**
-         * Checks if the current token matches the specified type and value.
-         * @param {string} type - The expected type of the token.
-         * @param {string|null} [value=null] - The expected value of the token (optional).
-         * @returns {boolean} - True if the current token matches, false otherwise.
-         */
-        function match(type, value = null) {
-            return current && current.type === type && (value === null || current.value === value);
-        }
-
-        return parseExpression();
-    }
-
-    function test() {
-        // Example usage:
-        const tokensExample = [
-            { type: 'string', value: 'a' },
-            { type: 'operator', value: 'ADD' },
-            { type: 'string', value: 'b' },
-            { type: 'operator', value: 'OR' },
-            { type: 'string', value: 'c' },
-            { type: 'operator', value: 'NOT' },
-            { type: 'string', value: 'd' },
-        ];
-
-        const result = parse(tokensExample, search);
-        console.log(result);
-
-        /**
-         * Searches for a string and returns the search result as a Set.
-         * @param {string} string - The string to search for.
-         * @returns {Set} - The search result as a Set.
-         */
-        function search(string) {
-            // Implement search logic and return a Set
-            return new Set([string]); // Example implementation
-        }
-    }
-    test();
-
-}
 
 
 // https://docs.google.com/document/d/1x1gJ2gQUdKLhclVt9irn7By5_OLx4Tc9tAT5Ms0b_U0/edit?tab=t.0
 // From Microsoft Copilot
 function searchByTokensStringsAndSymbols(tokens, funSearch1String) {
     console.warn("searchByTokensStringsAndSymbols", tokens);
+    // if (typeof tokens == "string") { mark }
     // const search = funSearch1String;
     return parse(tokens, funSearch1String);
 
@@ -2343,7 +2195,7 @@ function searchByTokensStringsAndSymbols(tokens, funSearch1String) {
         // Example usage:
         const tokens = ['a', ADD, 'b', OR, 'c', NOT, 'd'];
 
-        const result = parse(tokens);
+        const result = parse(tokens, search);
         console.log(result);
 
         /**
