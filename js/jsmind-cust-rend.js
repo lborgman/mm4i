@@ -1197,10 +1197,16 @@ export class CustomRenderer4jsMind {
             const ss = eltCopy4shape.style;
             ss.transformOrigin = "top left";
             ss.scale = scaleCopies;
+            const eltScaleWrapper = mkElt("div", undefined, eltCopy4shape);
+            const w = parseFloat(eltCopied.style.width);
+            const h = parseFloat(eltCopied.style.height);
+            eltScaleWrapper.style.width = `${w * scaleCopies}px`;
+            eltScaleWrapper.style.height = `${h * scaleCopies}px`;
             const radioVal = shapeClass || "default";
             const inpRadio = mkElt("input", { type: "radio", name: "shape", value: radioVal });
             if (shapeClass) { inpRadio.dataset.shape = shapeClass; }
-            const eltLabel = mkElt("label", undefined, [inpRadio, eltCopy4shape]);
+            // const eltLabel = mkElt("label", undefined, [inpRadio, eltCopy4shape]);
+            const eltLabel = mkElt("label", undefined, [inpRadio, eltScaleWrapper]);
             eltLabel.style.display = "block";
             return eltLabel;
         }

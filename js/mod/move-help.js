@@ -143,7 +143,7 @@ export class MoveAtDragBorder {
         // styleR.left = `${bcr.left + bcr.width - this.bw - scrollbarW}px`
         styleR.left = `${this.limits.right}px`
     }
-    checkPointerPos(clientX, clientY) {
+    checkPointerPos(clientX, _clientY) {
         if (!this.limits) throw Error("this.limits is not set");
         const outsideRight = clientX > this.limits.right;
         const outsideLeft = clientX < this.limits.left;
