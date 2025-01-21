@@ -42,9 +42,66 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     // console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
     await importFc4i("easymde");
     const EasyMDE = window["EasyMDE"];
+    const dialogInsertSearch = async () => {
+        console.log("dialogInsertSearch");
+        const body = mkElt("div", undefined,[
+            mkElt("h2", undefined, "Insert search link"),
+        ]);
+        const funCheckSave = (dummy) => {};
+        await modMdc.mkMDCdialogConfirm(body, "close", null, funCheckSave);
+    }
+    const defineToolbar = [
+        "preview",
+        "fullscreen",
+        "|",
+        /*
+        {
+            name: "letters",
+            // className: "fa fa-circle-h",
+            className: "fa fa-a",
+        },
+        */
+        "bold",
+        "italic",
+        "heading",
+        "strikethrough",
+        "|",
+        {
+            name: "grouping",
+            className: "fa fa-object-group",
+            title: "Lists and dividers",
+            children: [
+                "horizontal-rule",
+                "quote",
+                "unordered-list",
+                "ordered-list",
+            ],
+        },
+        "|",
+        "link",
+        {
+            name: "custom",
+            action: (editor) => {
+                console.log("clicked search button");
+                dialogInsertSearch();
+            },
+            className: "fa fa-search",
+            title: "Insert search",
+            attributes: { // for custom attributes
+                id: "custom-id",
+                "data-value": "custom value" // HTML5 data-* attributes need to be enclosed in quotation marks ("") because of the dash (-) in its name.
+            }
+        },
+        "|",
+        "undo",
+        "redo",
+        "|",
+        "guide",
+    ];
     const easyMDE = new EasyMDE({
         element: taEasyMde,
         status: false,
+        toolbar: defineToolbar,
     });
     window["MYeasyMDE"] = easyMDE;
     const modEasyMDEhelpers = await importFc4i("easyMDE-helpers");
