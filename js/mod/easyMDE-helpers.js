@@ -42,14 +42,6 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     // console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
     await importFc4i("easymde");
     const EasyMDE = window["EasyMDE"];
-    const dialogInsertSearch = async () => {
-        console.log("dialogInsertSearch");
-        const body = mkElt("div", undefined,[
-            mkElt("h2", undefined, "Insert search link"),
-        ]);
-        const funCheckSave = (dummy) => {};
-        await modMdc.mkMDCdialogConfirm(body, "close", null, funCheckSave);
-    }
     const defineToolbar = [
         "preview",
         "fullscreen",
@@ -104,6 +96,38 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
         toolbar: defineToolbar,
     });
     window["MYeasyMDE"] = easyMDE;
+    async function dialogInsertSearch() {
+        console.log("dialogInsertSearch");
+        const inpTitle = modMdc.mkMDCtextFieldInput();
+        const taTitle = modMdc.mkMDCtextField("Title", inpTitle);
+        const inpSearch = modMdc.mkMDCtextFieldInput();
+        const taSearch = modMdc.mkMDCtextField("Search", inpSearch);
+        const body = mkElt("div", undefined, [
+            mkElt("h2", undefined, "Insert search link"),
+            taTitle,
+            taSearch,
+        ]);
+        const funCheckSave = (wantSave) => {
+            console.log({ wantSave });
+            const tofWantSave = typeof wantSave;
+            if (tofWantSave != "boolean") throw Error(`Expected type "boolean", got "${tofWantSave}"`);
+
+            const title = inpTitle.value.trim();
+            const search = inpSearch.value.trim();
+            if (wantSave == false) {
+                return title.length > 0 && search.length > 0;
+            }
+            debugger;
+            const cm = easyMDE.codemirror;
+            const doc = cm.getDoc();
+            const cursor = doc.getCursor();
+            const txtInsert = `[@${title}](${search})`;
+            // doc.replaceRange("🔍INSERTED", cursor);
+            doc.replaceRange(txtInsert, cursor);
+        };
+        await modMdc.mkMDCdialogConfirm(body, "insert", "cancel", funCheckSave);
+    }
+
     const modEasyMDEhelpers = await importFc4i("easyMDE-helpers");
     await modEasyMDEhelpers.addAlfa(easyMDE);
 
@@ -120,7 +144,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
                 text-decoration: underline;
                 cursor: pointer;
             }
-            .cm-alfa-link {
+            .cm-alfa-after {
                 color: green;
                 text-decoration: underline;
             }
@@ -165,28 +189,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     const ta = cont.querySelector("textarea");
     const editor = editable || ta;
     window["MYeditor"] = editor;
-    /*
-    console.log(
-        "\ncode2", code2, code2.isConnected,
-        "\neditable", editable,
-        "\nta", ta,
-        "\neditor", editor,
-        editor?.isConnected, document.activeElement);
-    */
     easyMDE.codemirror.options.readOnly = "nocursor";
-
-    // FIX-ME: move
-    /*
-    function setMDEpreviewColor() {
-        const eltPreview = eltMDEContainer.querySelector("div.editor-preview");
-        console.log({ eltPreview });
-        const eltDialogSurface = taOrDiv.closest("div.mdc-dialog__surface");
-        const styleSurface = getComputedStyle(eltDialogSurface);
-        eltPreview.style.backgroundColor = styleSurface.backgroundColor;
-    }
-    */
-
-    // setTimeout(() => { setMDEpreviewColor(); }, 110);
 
     const eltCursorDiv = easyMDE.codemirror.display.cursorDiv;
     const eltMDEContainer = eltCursorDiv.closest("div.EasyMDEContainer");
@@ -196,19 +199,78 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
 
     const eltPreview = eltMDEContainer.querySelector("div.editor-preview");
     eltPreview.addEventListener("click", async evt => {
+        console.log({ eltPreview });
         const target = evt.target;
         if (target.tagName != "SPAN") return;
-        if (!target.classList.contains("cm-alfa-before")) return;
+
+        const dialogContainer = eltPreview.closest(".mdc-dialog__container");
+        const dcs = dialogContainer.style;
+
+        const spanPreviewCounter = mkElt("span");
+        const eltPreviewNotice = mkElt("span", undefined, ["Preview ", spanPreviewCounter]);
+        eltPreviewNotice.style = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: yellow;
+            padding: 4px;
+            color: black;
+            border: 1px solid black;
+            border-radius: 4px;
+            box-shadow: 3px 2px 8px 2px #000000;
+        `;
+        const eltPreviewShield = mkElt("div", undefined, eltPreviewNotice);
+        eltPreviewShield.style = `
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            bottom: 0px;
+            right: 0px;
+            z-index: 9999;
+            background-color: rgba(0,0,0,0.1);
+        `;
+        const secPreview = 8;
+        let countPreview = secPreview;
+        let intervalPreview;
+        const updatePreviewCounter = () => { spanPreviewCounter.textContent = `${countPreview} sec`; }
+        const startPreview = () => {
+            dcs.transitionProperty = "opacity";
+            dcs.transitionDuration = "1s";
+            dcs.opacity = 0;
+            updatePreviewCounter();
+            document.body.appendChild(eltPreviewShield);
+            intervalPreview = setInterval(() => {
+                countPreview--;
+                updatePreviewCounter();
+            }, 1000);
+            setTimeout(() => { stopPreview(); }, secPreview * 1000);
+        }
+        const stopPreview = () => {
+            dcs.opacity = 1;
+            eltPreviewShield.remove();
+            clearInterval(intervalPreview);
+        }
+        eltPreviewShield.addEventListener("click", evt => {
+            console.log("clicked preview");
+            stopPreview();
+        });
+
+        const isAlfaLink =
+            target.classList.contains("cm-alfa-before")
+            ||
+            target.classList.contains("cm-alfa-after");
+        if (!isAlfaLink) return;
         const valAlfa = target.dataset.alfaLink;
         console.log("clicked alfa-link:", { valAlfa }, target);
         searchNodeParams.eltJsMindContainer.classList.add("display-jsmind-search");
 
         searchNodeParams.inpSearch.value = valAlfa;
         const resSearch = searchNodeParams.searchNodeFun(valAlfa);
-        console.log({ resSearch });
         const nHits = resSearch.length;
-        const msg = `matches: ${nHits}, see mindmap`;
+        console.log({ resSearch, nHits });
 
+        /*
+        const msg = `matches: ${nHits}, see mindmap`;
         const divSearch = searchNodeParams.inpSearch.parentElement;
         const st = getComputedStyle(divSearch);
 
@@ -216,6 +278,9 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
         const surfaceSnackbar = eltSnackbar.firstElementChild;
         surfaceSnackbar.style.backgroundColor = st.backgroundColor;
         surfaceSnackbar.style.color = st.color;
+        */
+
+        startPreview();
     });
 
     // if (!newWay) { return { easyMDE }; }
@@ -307,17 +372,14 @@ export async function addAlfa(easyMDE) {
         const newTxt = txt.replaceAll(/hej/g, `<span style="color:red;">HEJ</span>`);
         return newTxt;
     }
-    const reAlfaBefore = /\[(@.+)\]\((.+)\)/g;
+    const reAlfaBefore = /\[@(.+?)\]\((.+?)\)/g;
     function markAlfaBefore(txt) {
-        // const newTxt = txt.replaceAll(reAlfaBefore, `<a href="$2" class="cm-alfa-before">$1</a>`);
-        const newTxt = txt.replaceAll(reAlfaBefore, `<span data-alfa-link="$2" class="cm-alfa-before" title="Lookup '$2'">$1</a>`);
+        const newTxt = txt.replaceAll(reAlfaBefore, `<span data-alfa-link="$2" class="cm-alfa-before" title="Lookup '$2'">🔍$1</a>`);
         return newTxt;
     }
     const reAlfaAfter = /<a href="(.*?)"(.*?)>@(.*?)<\/a>/g;
     function markAlfaAfter(txt) {
-        // return txt;
-        // const newTxt = txt.replaceAll(reAlfaAfter, `<a href="$1" class="cm-alfa-link" $2>$3</a>`);
-        const newTxt = txt.replaceAll(reAlfaAfter, `<span data-alfa-link="$1" class="cm-alfa-link" $2>$3</span>`);
+        const newTxt = txt.replaceAll(reAlfaAfter, `<span data-alfa-link="$1" class="cm-alfa-after" $2>🔍$3</span>`);
         return newTxt;
     }
     function markMoreBefore(txt) {
