@@ -22,9 +22,10 @@ export function setupSearchNodes(searchPar) {
  * @param {HTMLDivElement} taOrDiv 
  * @param {string} valueInitial 
  * @param {string} valuePlaceholder 
+ * @param {Function|undefined} funInit;
  * @returns 
  */
-export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) {
+export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, funInit) {
     // let newWay = false;
     let taEasyMde;
     let divEasyMdeInert;
@@ -128,8 +129,14 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
         await modMdc.mkMDCdialogConfirm(body, "insert", "cancel", funCheckSave);
     }
 
-    const modEasyMDEhelpers = await importFc4i("easyMDE-helpers");
-    await modEasyMDEhelpers.addAlfa(easyMDE);
+    // const modEasyMDEhelpers = await importFc4i("easyMDE-helpers");
+    // await modEasyMDEhelpers.addAlfa(easyMDE);
+    // await addAlfa(easyMDE);
+    if (funInit) {
+        const len = funInit.length;
+        if (len != 1) throw Error(`funInit should take 1 parameter, but this function takes ${len}`);
+        await funInit(easyMDE);
+    }
 
 
 
@@ -171,20 +178,9 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     code.addEventListener("keydown", evt => {
         evt.stopPropagation();
     });
-    /*
-    const eltPreview = eltMDEContainer.querySelector("div.editor-preview");
-    eltPreview.addEventListener("click", evt => {
-        const target = evt.target;
-        if (target.tagName != "SPAN") return;
-        if (!target.classList.contains("cm-alfa-link-before")) return;
-        console.log("clicked alfa-link", target);
-    });
-    */
 
-    // console.log("cud", cud, "\ncont", cont, "\ncode", code, code.isConnected);
     await modTools.wait4mutations(cont);
 
-    // const code2 = cont.querySelector("div.CodeMirror-code");
     const editable = cont.querySelector("div[contenteditable]")
     const ta = cont.querySelector("textarea");
     const editor = editable || ta;
@@ -207,7 +203,9 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
         const dcs = dialogContainer.style;
 
         const spanPreviewCounter = mkElt("span");
-        const eltPreviewNotice = mkElt("span", undefined, ["Preview ", spanPreviewCounter]);
+        const eltPreviewNotice = mkElt("span", undefined, ["Close preview ", spanPreviewCounter]);
+        eltPreviewNotice.title = "Close preview";
+        // @ts-ignore
         eltPreviewNotice.style = `
             position: fixed;
             top: 10px;
@@ -218,6 +216,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
             border: 1px solid black;
             border-radius: 4px;
             box-shadow: 3px 2px 8px 2px #000000;
+            cursor: pointer;
         `;
         const eltPreviewShield = mkElt("div", undefined, eltPreviewNotice);
         eltPreviewShield.style = `
@@ -233,7 +232,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
         let countPreview = secPreview;
         let intervalPreview;
         const updatePreviewCounter = () => { spanPreviewCounter.textContent = `${countPreview} sec`; }
-        const startPreview = () => {
+        const startAlfaPreview = () => {
             dcs.transitionProperty = "opacity";
             dcs.transitionDuration = "1s";
             dcs.opacity = 0;
@@ -243,16 +242,16 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
                 countPreview--;
                 updatePreviewCounter();
             }, 1000);
-            setTimeout(() => { stopPreview(); }, secPreview * 1000);
+            setTimeout(() => { stopAlfaPreview(); }, secPreview * 1000);
         }
-        const stopPreview = () => {
+        const stopAlfaPreview = () => {
             dcs.opacity = 1;
             eltPreviewShield.remove();
             clearInterval(intervalPreview);
         }
         eltPreviewShield.addEventListener("click", evt => {
             console.log("clicked preview");
-            stopPreview();
+            stopAlfaPreview();
         });
 
         const isAlfaLink =
@@ -280,11 +279,11 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
         surfaceSnackbar.style.color = st.color;
         */
 
-        startPreview();
+        startAlfaPreview();
     });
 
     // if (!newWay) { return { easyMDE }; }
-    const btnEdit = addEditMyNotesButton(divEasyMdeOuterWrapper, easyMDE);
+    const btnEdit = addEditMDEbutton(divEasyMdeOuterWrapper, easyMDE);
 
 
     // To be able to click the links in the rendered document we must remove "inert".
@@ -308,7 +307,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder) 
     return { easyMDE, btnEdit };
 }
 
-function addEditMyNotesButton(container, easyMDE) {
+function addEditMDEbutton(container, easyMDE) {
     container.style.position = "relative";
     const btnEditMyNotes = modMdc.mkMDCiconButton("edit", "Edit my notes");
     container.appendChild(btnEditMyNotes);
@@ -359,7 +358,15 @@ async function saveOrigMarkdown() {
     const EasyMDE = window["EasyMDE"];
     origEasyMDEmarkdown = EasyMDE.prototype.markdown;
 }
-export async function addAlfa(easyMDE) {
+
+export async function setupEasyMDE4Notes(taOrDiv, valueInitial, valuePlaceholder) {
+    const funInit = async (easyMDE) => addAlfa(easyMDE);
+    const { easyMDE, btnEdit } = await setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, funInit);
+    // await addAlfa(easyMDE);
+    return { easyMDE, btnEdit };
+}
+
+async function addAlfa(easyMDE) {
     // return;
     await saveOrigMarkdown();
     const EasyMDE = window["EasyMDE"];

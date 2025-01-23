@@ -725,7 +725,7 @@ export class CustomRenderer4jsMind {
         ]);
 
         const placeholder = mkNodeNotesPlaceholder(node);
-        const { easyMDE, btnEdit } = await modEasyMDEhelpers.setupEasyMDEview(divEasyMdeOuterWrapper, initialVal, placeholder);
+        const { easyMDE, btnEdit } = await modEasyMDEhelpers.setupEasyMDE4Notes(divEasyMdeOuterWrapper, initialVal, placeholder);
 
         setTimeout(async () => {
             // body.appendChild(eltMDEwrapper);
