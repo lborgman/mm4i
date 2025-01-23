@@ -22,11 +22,10 @@ export function setupSearchNodes(searchPar) {
  * @param {HTMLDivElement} taOrDiv 
  * @param {string} valueInitial 
  * @param {string} valuePlaceholder 
- * @param {Function|undefined} funInit;
+ * @param {Object|undefined} objInit;
  * @returns 
  */
-export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, funInit) {
-    // let newWay = false;
+export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, objInit) {
     let taEasyMde;
     let divEasyMdeInert;
     let divEasyMdeOuterWrapper;
@@ -129,13 +128,32 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
         await modMdc.mkMDCdialogConfirm(body, "insert", "cancel", funCheckSave);
     }
 
-    // const modEasyMDEhelpers = await importFc4i("easyMDE-helpers");
-    // await modEasyMDEhelpers.addAlfa(easyMDE);
-    // await addAlfa(easyMDE);
-    if (funInit) {
-        const len = funInit.length;
-        if (len != 1) throw Error(`funInit should take 1 parameter, but this function takes ${len}`);
-        await funInit(easyMDE);
+    if (objInit) {
+        const tofObjInit = typeof objInit;
+        if (tofObjInit != "object") throw Error(`objInit is "${tofObjInit}", should be "object"`);
+        const keysObj = Object.keys(objInit);
+        const lenObj = keysObj.length;
+        const funInit = objInit.funInit;
+        let dataObj;
+        if (!funInit) { throw Error(`objInit is missing key "funInit"`); }
+        const tofFunInit = typeof funInit;
+        if (tofFunInit != "function") { throw Error(`.funInit is "${tofFunInit}", should be "function"`); }
+        if (lenObj > 2) {
+            throw Error(`objInit should have key "funInit" and optional key "data", but number of keys is ${lenObj}`);
+        }
+        if (lenObj == 2) {
+            if (!keysObj.includes("data")) {
+                throw Error(`objInit is missing optional key "data"`);
+            }
+            dataObj = objInit.data;
+        }
+        const lenFun = funInit.length;
+        // if (lenFun != lenObj) { throw Error(`.funInit takes ${lenFun} parameters, should take ${lenObj}`); }
+        if (dataObj) {
+            await objInit.funInit(easyMDE, dataObj);
+        } else {
+            await objInit.funInit(easyMDE);
+        }
     }
 
 
@@ -204,6 +222,10 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
 
         const spanPreviewCounter = mkElt("span");
         const eltPreviewNotice = mkElt("span", undefined, ["Close preview ", spanPreviewCounter]);
+        eltPreviewNotice.addEventListener("click", evt => {
+            evt.stopImmediatePropagation();
+            stopAlfaPreview();
+        });
         eltPreviewNotice.title = "Close preview";
         // @ts-ignore
         eltPreviewNotice.style = `
@@ -219,6 +241,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
             cursor: pointer;
         `;
         const eltPreviewShield = mkElt("div", undefined, eltPreviewNotice);
+        // @ts-ignore
         eltPreviewShield.style = `
             position: fixed;
             top: 0px;
@@ -226,7 +249,8 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
             bottom: 0px;
             right: 0px;
             z-index: 9999;
-            background-color: rgba(0,0,0,0.1);
+            background-color: rgba(255,255,0,0.2);
+            pointer-events: auto;
         `;
         const secPreview = 8;
         let countPreview = secPreview;
@@ -250,7 +274,21 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
             clearInterval(intervalPreview);
         }
         eltPreviewShield.addEventListener("click", evt => {
-            console.log("clicked preview");
+            // evt.stopPropagation();
+            // objInit.data?.retMkDialog.mdc.close();
+            const funClose = objInit.data.funClose;
+            console.log("funClose", funClose);
+            if (funClose) funClose();
+            const target = evt.target;
+            console.log("shield target", target);
+            if (!target) debugger;
+            target.style.pointerEvents = 'none'; // Temporarily disable pointer events
+            const eltFromPoint = document.elementFromPoint(evt.clientX, evt.clientY);
+            console.log("eltFromPoint", eltFromPoint);
+            eltFromPoint.click(); // Trigger click on the background element
+            target.style.pointerEvents = 'auto'; // Re-enable pointer events
+
+            console.log("clicked preview, objInit", objInit);
             stopAlfaPreview();
         });
 
@@ -359,9 +397,13 @@ async function saveOrigMarkdown() {
     origEasyMDEmarkdown = EasyMDE.prototype.markdown;
 }
 
-export async function setupEasyMDE4Notes(taOrDiv, valueInitial, valuePlaceholder) {
+export async function setupEasyMDE4Notes(taOrDiv, valueInitial, valuePlaceholder, objClose) {
     const funInit = async (easyMDE) => addAlfa(easyMDE);
-    const { easyMDE, btnEdit } = await setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, funInit);
+    const objInit4Notes = {
+        funInit
+    }
+    if (objClose) objInit4Notes.data = objClose;
+    const { easyMDE, btnEdit } = await setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, objInit4Notes);
     // await addAlfa(easyMDE);
     return { easyMDE, btnEdit };
 }

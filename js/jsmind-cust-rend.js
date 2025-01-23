@@ -725,7 +725,10 @@ export class CustomRenderer4jsMind {
         ]);
 
         const placeholder = mkNodeNotesPlaceholder(node);
-        const { easyMDE, btnEdit } = await modEasyMDEhelpers.setupEasyMDE4Notes(divEasyMdeOuterWrapper, initialVal, placeholder);
+        // let retMkDialog;
+        const objClose = {};
+        const { easyMDE, btnEdit } =
+            await modEasyMDEhelpers.setupEasyMDE4Notes(divEasyMdeOuterWrapper, initialVal, placeholder, objClose);
 
         setTimeout(async () => {
             // body.appendChild(eltMDEwrapper);
@@ -790,8 +793,23 @@ export class CustomRenderer4jsMind {
             shapeEtc.notes = easyMDE.value().trimEnd();
             setTimeout(() => { modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed); }, 2000);
         }
-        // const save = await modMdc.mkMDCdialogConfirm(body, "save", "cancel");
-        await modMdc.mkMDCdialogConfirm(body, "close", null, funCheckSave);
+        // const useConfirm = true;
+        const useConfirm = false;
+        if (useConfirm) {
+            await modMdc.mkMDCdialogConfirm(body, "close", null, funCheckSave);
+        } else {
+            const btnClose = modMdc.mkMDCbutton("Close");
+            const eltActions = modMdc.mkMDCdialogActions([btnClose]);
+            const retMkDialog = await modMdc.mkMDCdialog(body, eltActions);
+            ///// retMkDialog.mdc.close(); <- this is the original call
+            // const funClose = function() { retMkDialog.mdc.close(); } // btn: ok
+            // const funClose = function() { this.mdc.close(); }.bind(retMkDialog); // works, but why
+            const funClose = function () { this.close(); }.bind(retMkDialog.mdc); // works
+            objClose.funClose = funClose;
+            btnClose.addEventListener("click", () => {
+                funClose();
+            });
+        }
     }
     async editNodeDialog(eltJmnode, scrollToNotes) {
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
