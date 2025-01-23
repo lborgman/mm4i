@@ -255,6 +255,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
         const secPreview = 8;
         let countPreview = secPreview;
         let intervalPreview;
+        let timeoutPreview;
         const updatePreviewCounter = () => { spanPreviewCounter.textContent = `${countPreview} sec`; }
         const startAlfaPreview = () => {
             dcs.transitionProperty = "opacity";
@@ -265,31 +266,47 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
             intervalPreview = setInterval(() => {
                 countPreview--;
                 updatePreviewCounter();
-            }, 1000);
-            setTimeout(() => { stopAlfaPreview(); }, secPreview * 1000);
+            }, 100);
+            timeoutPreview = setTimeout(() => { stopAlfaPreview(); }, secPreview * 1000);
         }
         const stopAlfaPreview = () => {
             dcs.opacity = 1;
             eltPreviewShield.remove();
             clearInterval(intervalPreview);
+            clearTimeout(timeoutPreview);
         }
         eltPreviewShield.addEventListener("click", evt => {
-            // evt.stopPropagation();
-            // objInit.data?.retMkDialog.mdc.close();
+            console.log("clicked preview, objInit", objInit);
+            stopAlfaPreview();
+
             const funClose = objInit.data.funClose;
             console.log("funClose", funClose);
             if (funClose) funClose();
             const target = evt.target;
             console.log("shield target", target);
-            if (!target) debugger;
+            if (!target) throw Error("target is null");
             target.style.pointerEvents = 'none'; // Temporarily disable pointer events
-            const eltFromPoint = document.elementFromPoint(evt.clientX, evt.clientY);
-            console.log("eltFromPoint", eltFromPoint);
-            eltFromPoint.click(); // Trigger click on the background element
-            target.style.pointerEvents = 'auto'; // Re-enable pointer events
+            let eltFromPoint = document.elementFromPoint(evt.clientX, evt.clientY);
+            if (!eltFromPoint) throw Error(`eltFromPoint is null`);
+            // console.log("eltFromPoint", eltFromPoint, eltFromPoint.click);
+            if (eltFromPoint.classList.contains("mdc-dialog__scrim")) {
+                eltFromPoint.style.display = "none";
+                eltFromPoint = document.elementFromPoint(evt.clientX, evt.clientY);
+                if (!eltFromPoint) throw Error(`eltFromPoint is null`);
+                // console.log("eltFromPoint 2", eltFromPoint);
+            }
+            if (eltFromPoint.classList.contains("mdc-dialog")) {
+                eltFromPoint.style.display = "none";
+                eltFromPoint = document.elementFromPoint(evt.clientX, evt.clientY);
+                if (!eltFromPoint) throw Error(`eltFromPoint is null`);
+                // console.log("eltFromPoint 3", eltFromPoint);
+            }
 
-            console.log("clicked preview, objInit", objInit);
-            stopAlfaPreview();
+            setTimeout(() => {
+                eltFromPoint.click(); // Trigger click on the background element
+                target.style.pointerEvents = 'auto'; // Re-enable pointer events
+            }, 1000);
+
         });
 
         const isAlfaLink =
