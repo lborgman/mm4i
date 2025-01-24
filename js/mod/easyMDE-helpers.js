@@ -73,9 +73,9 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
         "link",
         {
             name: "custom",
-            action: (editor) => {
-                console.log("clicked search button");
-                dialogInsertSearch();
+            action: (editorMDE) => {
+                console.log("clicked search button", editorMDE);
+                dialogInsertSearch(editorMDE);
             },
             className: "fa fa-search",
             title: "Insert search",
@@ -96,16 +96,36 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
         toolbar: defineToolbar,
     });
     window["MYeasyMDE"] = easyMDE;
-    async function dialogInsertSearch() {
-        console.log("dialogInsertSearch");
+    async function dialogInsertSearch(easyMDE) {
+        const alfaAtCursor = getAlfaAtCursor(easyMDE.codemirror);
+        console.log("dialogInsertSearch", alfaAtCursor);
         const inpTitle = modMdc.mkMDCtextFieldInput();
         const taTitle = modMdc.mkMDCtextField("Title", inpTitle);
         const inpSearch = modMdc.mkMDCtextFieldInput();
         const taSearch = modMdc.mkMDCtextField("Search", inpSearch);
-        const body = mkElt("div", undefined, [
-            mkElt("h2", undefined, "Insert search link"),
+        const spanSearched = mkElt("span", undefined, searchNodeParams.inpSearch.value);
+        const divInputs = mkElt("div", undefined, [
             taTitle,
             taSearch,
+            spanSearched,
+        ]);
+        if (alfaAtCursor) {
+            const { title, search, posAlfa, lenAlfa } = alfaAtCursor;
+            inpTitle.value = title;
+            inpSearch.value = search;
+        }
+        // @ts-ignore
+        divInputs.style = `
+            display: grid;
+            gap: 10px;
+            grid-template-columns: 80px 1fr 1fr;
+        `;
+        const titleH2 = alfaAtCursor ? "Update search link" : "Insert search link";
+        const titleSave = alfaAtCursor ? "Update" : "Insert";
+        const body = mkElt("div", undefined, [
+            mkElt("h2", undefined, titleH2),
+            // taTitle, taSearch,
+            divInputs
         ]);
         const funCheckSave = (wantSave) => {
             console.log({ wantSave });
@@ -117,15 +137,22 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
             if (wantSave == false) {
                 return title.length > 0 && search.length > 0;
             }
-            debugger;
             const cm = easyMDE.codemirror;
             const doc = cm.getDoc();
             const cursor = doc.getCursor();
             const txtInsert = `[@${title}](${search})`;
-            // doc.replaceRange("🔍INSERTED", cursor);
-            doc.replaceRange(txtInsert, cursor);
+            if (!alfaAtCursor) {
+                doc.replaceRange(txtInsert, cursor);
+            } else {
+                debugger;
+                const { title, search, posAlfa, lenAlfa } = alfaAtCursor;
+                const lineNo = cursor.line;
+                const from = { line: lineNo, ch: posAlfa };
+                const to = { line: lineNo, ch: posAlfa + lenAlfa };
+                doc.replaceRange(txtInsert, from, to);
+            }
         };
-        await modMdc.mkMDCdialogConfirm(body, "insert", "cancel", funCheckSave);
+        await modMdc.mkMDCdialogConfirm(body, titleSave, "cancel", funCheckSave);
     }
 
     if (objInit) {
@@ -266,7 +293,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
             intervalPreview = setInterval(() => {
                 countPreview--;
                 updatePreviewCounter();
-            }, 100);
+            }, 1000);
             timeoutPreview = setTimeout(() => { stopAlfaPreview(); }, secPreview * 1000);
         }
         const stopAlfaPreview = () => {
@@ -322,17 +349,6 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
         const resSearch = searchNodeParams.searchNodeFun(valAlfa);
         const nHits = resSearch.length;
         console.log({ resSearch, nHits });
-
-        /*
-        const msg = `matches: ${nHits}, see mindmap`;
-        const divSearch = searchNodeParams.inpSearch.parentElement;
-        const st = getComputedStyle(divSearch);
-
-        const eltSnackbar = modMdc.mkMDCsnackbar(msg, 10 * 1000);
-        const surfaceSnackbar = eltSnackbar.firstElementChild;
-        surfaceSnackbar.style.backgroundColor = st.backgroundColor;
-        surfaceSnackbar.style.color = st.color;
-        */
 
         startAlfaPreview();
     });
@@ -470,4 +486,56 @@ async function addAlfa(easyMDE) {
             return txt;
         }
     }
+}
+
+export function getWhitespaceWordAtCursor(cm) {
+    const cursor = cm.getCursor();
+    const line = cm.getLine(cursor.line);
+    let start = cursor.ch;
+    let end = cursor.ch;
+
+    // Find the start of the word
+    while (start > 0 && /\w/.test(line.charAt(start - 1))) {
+        start--;
+    }
+
+    // Find the end of the word
+    while (end < line.length && /\w/.test(line.charAt(end))) {
+        end++;
+    }
+
+    return line.slice(start, end);
+}
+
+/*
+// Usage example
+const cm = CodeMirror.fromTextArea(document.getElementById('code'), {
+    lineNumbers: true,
+    mode: 'javascript'
+});
+
+cm.on('cursorActivity', function() {
+    const word = getWordAtCursor(cm);
+    console.log('Word at cursor:', word);
+});
+*/
+
+// insert search link
+function getAlfaAtCursor(cm) {
+    const reAlfaBefore = /\[@(.+?)\]\((.+?)\)/g;
+    const cursor = cm.getCursor();
+    const lineCursor = cm.getLine(cursor.line);
+    const posCursor = cursor.ch;
+    const m = reAlfaBefore.exec(lineCursor);
+    if (!m) return;
+    const posAlfa = lineCursor.search(reAlfaBefore);
+    const lenAlfa = m[0].length;
+    console.log(m, posCursor, posAlfa, lenAlfa);
+    const endAlfa = posAlfa + lenAlfa
+    const isInAlfa = posCursor >= posAlfa && posCursor <= endAlfa;
+    // FIX-ME: check all alfa on line
+    if (!isInAlfa) return;
+    const title = m[1];
+    const search = m[2];
+    return { title, search, posAlfa, lenAlfa }
 }
