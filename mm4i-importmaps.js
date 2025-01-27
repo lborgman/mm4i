@@ -26,7 +26,16 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
         "d3": "./ext/d3/d3.v7.js",
         "db-mindmaps": "./js/db-mindmaps.js",
         "db-fc4i": "./js/db-fc4i.js",
-        "easyMDE-helpers": "./js/mod/easyMDE-helpers.js",
+
+        // "easyMDE-helpers": "./js/mod/easyMDE-helpers.js",
+        "easyMDE-helpers": "./js/mod/toast-ui-helpers.js",
+        // "toast-ui": "https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js",
+        // "toast-ui": "/ext/toast-ui/toastui-editor-all.min.js",
+        // "toast-ui": "https://cdn.jsdelivr.net/npm/@toast-ui/editor@latest/dist/esm/index.js",
+        "toast-ui": "https://cdn.jsdelivr.net/npm/@toast-ui/editor@latest/+esm",
+        // "easymde": "https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js",
+        // "jsmind": "https://cdn.jsdelivr.net/npm/jsmind@0.8.5/es6/jsmind.js",
+
         "fc4i-items": "./src/js/share.js",
         "flashcards": "./src/js/mod/flashcards.js",
         "idb-common": "./js/mod/idb-common.js",

@@ -9,10 +9,41 @@
     <meta name="author" content="Lennart Borgman">
     <meta name="description" content="Mindmaps web page that you can manipulate on your phone">
 
-
     <!-- See index.html -->
     <base href=".">
     <!-- <script>console.log("baseURI", document.baseURI);</script> -->
+    <script>
+        function addMut(element) {
+            const stAdding = "background:yellow; color:black; font-size:20px;";
+            console.log("%cAdding script mutation observer", stAdding, element);
+            const observer = new MutationObserver(
+                (mutations) => {
+                    for (let mutation of mutations) {
+                        for (let node of mutation.addedNodes) {
+                            const tn = node.tagName;
+                            if (tn == "SCRIPT" || tn == "LINK") {
+                                if (tn == "LINK") {
+                                    const stAdded = "background:green; color:black; font-size:16px;";
+                                    console.log("%cscript/link added", stAdded, node,);
+                                }
+                                /*
+                                */
+                                const stErr = "background:red;font-size:20px;";
+                                node.addEventListener("error", evt => {
+                                    console.log("%cERROR", stErr, node, evt);
+                                });
+                                // debugger;
+                            }
+
+                        }
+                    }
+                });
+            observer.observe(element, { childList: true });
+        }
+        addMut(document.head);
+    </script>
+    <script src="none.js"></script>
+    <link rel="icon" type="image/svg+xml" href="./img/NOmm4i.svg">
 
     <script src="./init-error.js"></script>
     <!-- <script type="module" src="./pwa.js"></script> -->
@@ -502,6 +533,28 @@
 <body class="NOno-test-items">
     <div id="PWA-version">(temp ver 1.63)</div>
 
+    <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" />
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@toast-ui/editor/dist/toastui-editor.min.css"> -->
+    <style>
+        /*
+        .toastui-editor-defaultUI-toolbar .toastui-editor-defaultUI-mode-switch {
+            display: none;
+        }
+        .toastui-editor-md-tab-container {
+            display: none;
+        }
+
+        .toastui-editor-defaultUI-toolbar .toastui-editor-defaultUI-mode-switch {
+            display: none;
+        }
+        */
+        .toastui-editor-tabs {
+            display: none;
+        }
+    </style>
+
+    <!-- <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script> -->
+
     <script src="./ext/mdc/material-components-web.js"></script>
     <!-- <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script> -->
 
@@ -562,6 +615,7 @@
         modJsEditCommon.addToPageMenu("About", aboutLink);
         // })();
     </script>
+
 </body>
 
 </html>
