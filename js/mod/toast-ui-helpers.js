@@ -23,7 +23,8 @@ export function setupSearchNodes(searchPar) {
 }
 
 const useEasyMDE = false;
-const modToastUI = await importFc4i("toast-ui");
+// const modToastUI = await importFc4i("toast-ui");
+const modToastUI = window["toastui"] || await importFc4i("toast-ui");
 
 /**
  * 
@@ -453,22 +454,32 @@ function addEditMDEbutton(container, easyMDE) {
             ourElt.innerHTML = "";
 
             const objToolbarItems = [
-                // { name: "bold", groupIndex: 1 }
-                "bold",
-                "italic",
+                ["bold", "italic", "strike"],
+                ["heading", "hr", "quote"],
+                [
+                    "link",
+                    {
+                        name: 'searchButton',
+                        tooltip: 'Insert search',
+                        className: 'toastui-editor-toolbar-icons search-button',
+                        command: "searchCommand"
+                    }
+                ],
             ];
+            function insertSearchCommand(editor) {
+                console.log("searchCommand clicked");
+            }
             easyMDE = new modToastUI.Editor({
-                // viewer: true,
                 el: ourElt,
                 toolbarItems: objToolbarItems,
                 initialValue: valueInitial,
-                // hideModeSwitch: true,
                 // previewStyle: "vertical",
                 previewStyle: "tab",
-                // initialEditType: "WYSIWYG",
                 initialEditType: "markdown",
                 usageStatistics: false,
             });
+            easyMDE.addCommand("markdown", "searchCommand", insertSearchCommand);
+            easyMDE.addCommand("wysiwyg", "searchCommand", insertSearchCommand);
             easyMDE.changeMode("wysiwyg");
 
         }

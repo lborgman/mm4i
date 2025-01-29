@@ -32,7 +32,9 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
         // "toast-ui": "https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js",
         // "toast-ui": "/ext/toast-ui/toastui-editor-all.min.js",
         // "toast-ui": "https://cdn.jsdelivr.net/npm/@toast-ui/editor@latest/dist/esm/index.js",
-        "toast-ui": "https://cdn.jsdelivr.net/npm/@toast-ui/editor@latest/+esm",
+        // The es6 from jsdelivr is flawed:
+        // "toast-ui": "https://cdn.jsdelivr.net/npm/@toast-ui/editor@latest/+esm",
+
         // "easymde": "https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js",
         // "jsmind": "https://cdn.jsdelivr.net/npm/jsmind@0.8.5/es6/jsmind.js",
 
