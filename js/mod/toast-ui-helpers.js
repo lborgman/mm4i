@@ -26,6 +26,84 @@ const useEasyMDE = false;
 // const modToastUI = await importFc4i("toast-ui");
 const modToastUI = window["toastui"] || await importFc4i("toast-ui");
 
+const reAlfaBefore = /\[@(.+?)\]\((.+?)\)/gm;
+async function dialogInsertSearch(editor) {
+    const selection = editor.getSelection();
+    const start = selection[0];
+    const contentMarkdown = editor.getMarkdown();
+    const lines = contentMarkdown.split("\n");
+    let charCount = 0;
+    let lineNumber = 0;
+    let charPosition = 0;
+    for (let i = 0; i < lines.length; i++) {
+        if (charCount + lines[i].length >= start) {
+            lineNumber = i + 1;
+            charPosition = start - charCount + 1;
+            break;
+        }
+        charCount += lines[i].length + 1; // +1 for the newline character
+    }
+    const line = lines[lineNumber]
+    console.log(`Line: ${lineNumber}, Character: ${charPosition}`, line);
+    // debugger;
+    const alfaAtCursor = getAlfaAtCursor(editor);
+    console.log("dialogInsertSearch", alfaAtCursor);
+    const inpTitle = modMdc.mkMDCtextFieldInput();
+    const taTitle = modMdc.mkMDCtextField("Title", inpTitle);
+    const inpSearch = modMdc.mkMDCtextFieldInput();
+    const taSearch = modMdc.mkMDCtextField("Search", inpSearch);
+    const spanSearched = mkElt("span", undefined, searchNodeParams.inpSearch.value);
+    const divInputs = mkElt("div", undefined, [
+        taTitle,
+        taSearch,
+        spanSearched,
+    ]);
+    if (alfaAtCursor) {
+        const { title, search, startAlfa, endAlfa } = alfaAtCursor;
+        inpTitle.value = title;
+        inpSearch.value = search;
+    }
+    // @ts-ignore
+    divInputs.style = `
+            display: grid;
+            gap: 10px;
+            grid-template-columns: 80px 1fr 1fr;
+        `;
+    const titleH2 = alfaAtCursor ? "Update search link" : "Insert search link";
+    const titleSave = alfaAtCursor ? "Update" : "Insert";
+    const body = mkElt("div", undefined, [
+        mkElt("h2", undefined, titleH2),
+        // taTitle, taSearch,
+        divInputs
+    ]);
+    const funCheckSave = (wantSave) => {
+        console.log({ wantSave });
+        const tofWantSave = typeof wantSave;
+        if (tofWantSave != "boolean") throw Error(`Expected type "boolean", got "${tofWantSave}"`);
+
+        const title = inpTitle.value.trim();
+        const search = inpSearch.value.trim();
+        if (wantSave == false) {
+            return title.length > 0 && search.length > 0;
+        }
+        const cm = editor.codemirror;
+        const doc = cm.getDoc();
+        const cursor = doc.getCursor();
+        const txtInsert = `[@${title}](${search})`;
+        if (!alfaAtCursor) {
+            doc.replaceRange(txtInsert, cursor);
+        } else {
+            debugger;
+            const { title, search, posAlfa, lenAlfa } = alfaAtCursor;
+            const lineNo = cursor.line;
+            const from = { line: lineNo, ch: posAlfa };
+            const to = { line: lineNo, ch: posAlfa + lenAlfa };
+            doc.replaceRange(txtInsert, from, to);
+        }
+    };
+    await modMdc.mkMDCdialogConfirm(body, titleSave, "cancel", funCheckSave);
+}
+
 /**
  * 
  * @param {HTMLDivElement} taOrDiv 
@@ -44,14 +122,11 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
     taEasyMde = mkElt("textarea");
     if (valuePlaceholder) { taEasyMde.setAttribute("placeholder", valuePlaceholder); }
     divEasyMdeInert = mkElt("div", undefined, taEasyMde);
-    // divEasyMdeOuterWrapper = mkElt("div", undefined, divEasyMdeInert);
     divEasyMdeOuterWrapper = taOrDiv;
     divEasyMdeOuterWrapper.appendChild(divEasyMdeInert);
-    // const modEasyMDE = await importFc4i("easymde");
-    // console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
     await importFc4i("easymde");
     const EasyMDE = window["EasyMDE"];
-    const defineToolbar = [
+    const defineEasyMdeToolbar = [
         "preview",
         "fullscreen",
         "|",
@@ -102,86 +177,24 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
 
     // https://github.com/nhn/tui.editor/issues/3293
 
-    let easyMDE;
+    // let toastEditor;
     if (useEasyMDE) {
-        easyMDE = new EasyMDE({
-            element: taEasyMde,
-            status: false,
-            toolbar: defineToolbar,
-        });
-    } else {
-        const ourElt = divEasyMdeOuterWrapper;
-        ourElt.innerHTML = "";
-
-        easyMDE = new modToastUI.Editor.factory({
-            viewer: true,
-            el: ourElt,
-            initialValue: valueInitial,
-            previewStyle: "none",
-            initialEditType: "WYSIWYG",
-            usageStatistics: false,
-        });
-        // easyMDE.getMarkdown();
+        throw Error("don't use EasyMDE");
     }
-    window["MYeasyMDE"] = easyMDE;
-    async function dialogInsertSearch(easyMDE) {
-        const alfaAtCursor = getAlfaAtCursor(easyMDE.codemirror);
-        console.log("dialogInsertSearch", alfaAtCursor);
-        const inpTitle = modMdc.mkMDCtextFieldInput();
-        const taTitle = modMdc.mkMDCtextField("Title", inpTitle);
-        const inpSearch = modMdc.mkMDCtextFieldInput();
-        const taSearch = modMdc.mkMDCtextField("Search", inpSearch);
-        const spanSearched = mkElt("span", undefined, searchNodeParams.inpSearch.value);
-        const divInputs = mkElt("div", undefined, [
-            taTitle,
-            taSearch,
-            spanSearched,
-        ]);
-        if (alfaAtCursor) {
-            const { title, search, posAlfa, lenAlfa } = alfaAtCursor;
-            inpTitle.value = title;
-            inpSearch.value = search;
-        }
-        // @ts-ignore
-        divInputs.style = `
-            display: grid;
-            gap: 10px;
-            grid-template-columns: 80px 1fr 1fr;
-        `;
-        const titleH2 = alfaAtCursor ? "Update search link" : "Insert search link";
-        const titleSave = alfaAtCursor ? "Update" : "Insert";
-        const body = mkElt("div", undefined, [
-            mkElt("h2", undefined, titleH2),
-            // taTitle, taSearch,
-            divInputs
-        ]);
-        const funCheckSave = (wantSave) => {
-            console.log({ wantSave });
-            const tofWantSave = typeof wantSave;
-            if (tofWantSave != "boolean") throw Error(`Expected type "boolean", got "${tofWantSave}"`);
+    const ourElt = divEasyMdeOuterWrapper;
+    ourElt.innerHTML = "";
 
-            const title = inpTitle.value.trim();
-            const search = inpSearch.value.trim();
-            if (wantSave == false) {
-                return title.length > 0 && search.length > 0;
-            }
-            const cm = easyMDE.codemirror;
-            const doc = cm.getDoc();
-            const cursor = doc.getCursor();
-            const txtInsert = `[@${title}](${search})`;
-            if (!alfaAtCursor) {
-                doc.replaceRange(txtInsert, cursor);
-            } else {
-                debugger;
-                const { title, search, posAlfa, lenAlfa } = alfaAtCursor;
-                const lineNo = cursor.line;
-                const from = { line: lineNo, ch: posAlfa };
-                const to = { line: lineNo, ch: posAlfa + lenAlfa };
-                doc.replaceRange(txtInsert, from, to);
-            }
-        };
-        await modMdc.mkMDCdialogConfirm(body, titleSave, "cancel", funCheckSave);
-    }
+    const toastEditor = new modToastUI.Editor.factory({
+        viewer: true,
+        el: ourElt,
+        initialValue: valueInitial,
+        previewStyle: "none",
+        initialEditType: "WYSIWYG",
+        usageStatistics: false,
+    });
+    // toastEditor.getInstance();
+    // easyMDE.getMarkdown();
+    window["MYtoastEditor"] = toastEditor;
 
     if (objInit) {
         const tofObjInit = typeof objInit;
@@ -205,9 +218,9 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
         const lenFun = funInit.length;
         // if (lenFun != lenObj) { throw Error(`.funInit takes ${lenFun} parameters, should take ${lenObj}`); }
         if (dataObj) {
-            await objInit.funInit(easyMDE, dataObj);
+            await objInit.funInit(toastEditor, dataObj);
         } else {
-            await objInit.funInit(easyMDE);
+            await objInit.funInit(toastEditor);
         }
     }
 
@@ -234,15 +247,15 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
 
 
 
-    if (easyMDE.codemirror) {
-        easyMDE.codemirror.options.readOnly = "nocursor";
-        easyMDE.value(valueInitial);
-        if (easyMDE.isPreviewActive()) throw Error("easyMDE.isPreviewActive()");
-        easyMDE.togglePreview();
+    if (toastEditor.codemirror) {
+        toastEditor.codemirror.options.readOnly = "nocursor";
+        toastEditor.value(valueInitial);
+        if (toastEditor.isPreviewActive()) throw Error("easyMDE.isPreviewActive()");
+        toastEditor.togglePreview();
 
         divEasyMdeInert.setAttribute("inert", "");
 
-        const cud = easyMDE.codemirror.display.cursorDiv;
+        const cud = toastEditor.codemirror.display.cursorDiv;
         const cont = cud.closest("div.EasyMDEContainer");
 
         // FIX-ME: the key return problem:
@@ -257,9 +270,9 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
         const ta = cont.querySelector("textarea");
         const editor = editable || ta;
         window["MYeditor"] = editor;
-        easyMDE.codemirror.options.readOnly = "nocursor";
+        toastEditor.codemirror.options.readOnly = "nocursor";
 
-        const eltCursorDiv = easyMDE.codemirror.display.cursorDiv;
+        const eltCursorDiv = toastEditor.codemirror.display.cursorDiv;
         const eltMDEContainer = eltCursorDiv.closest("div.EasyMDEContainer");
 
         const eltToolbar = eltMDEContainer.querySelector("div.editor-toolbar");
@@ -382,7 +395,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
     }
 
     // if (!newWay) { return { easyMDE }; }
-    const btnEdit = addEditMDEbutton(divEasyMdeOuterWrapper, easyMDE);
+    const btnEdit = addEditMDEbutton(divEasyMdeOuterWrapper, toastEditor);
 
 
     // To be able to click the links in the rendered document we must remove "inert".
@@ -403,10 +416,10 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
         // }, 600);
     })();
 
-    return { easyMDE, btnEdit };
+    return { easyMDE: toastEditor, btnEdit };
 }
 
-function addEditMDEbutton(container, easyMDE) {
+function addEditMDEbutton(container, toastViewer) {
     container.style.position = "relative";
     const btnEditMyNotes = modMdc.mkMDCiconButton("edit", "Edit my notes");
     container.appendChild(btnEditMyNotes);
@@ -430,27 +443,27 @@ function addEditMDEbutton(container, easyMDE) {
             const eltToolbar = container.querySelector("div.editor-toolbar");
             eltToolbar.style.display = "";
             eltToolbar.scrollIntoView();
-            easyMDE.codemirror.options.readOnly = false;
+            toastViewer.codemirror.options.readOnly = false;
             const divInert = container.querySelector("div[inert]");
             // Might already be removed
             divInert?.removeAttribute("inert");
-            easyMDE.togglePreview();
+            toastViewer.togglePreview();
             // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
-            easyMDE.codemirror.refresh();
-            const cud = easyMDE.codemirror.display.cursorDiv;
+            toastViewer.codemirror.refresh();
+            const cud = toastViewer.codemirror.display.cursorDiv;
             const cont = cud.closest("div.EasyMDEContainer");
             // contenteditable on mobile, textarea on desktop
             const editable = cont.querySelector("div[contenteditable]")
             const ta = cont.querySelector("textarea");
             const eltFocus = editable || ta;
             window["MYeltFocusNotes"] = eltFocus;
-            easyMDE.codemirror.options.readOnly = false;
+            toastViewer.codemirror.options.readOnly = false;
             setTimeout(() => { eltFocus.focus(); }, 1000);
         } else {
-            const ourElt = easyMDE.options.el;
-            const valueInitial = easyMDE.options.initialValue;
+            const ourElt = toastViewer.options.el;
+            const valueInitial = toastViewer.options.initialValue;
             console.log({ ourElt });
-            easyMDE.destroy();
+            toastViewer.destroy();
             ourElt.innerHTML = "";
 
             const objToolbarItems = [
@@ -467,9 +480,12 @@ function addEditMDEbutton(container, easyMDE) {
                 ],
             ];
             function insertSearchCommand(editor) {
+                // dialog
+                // FIX-ME: what is editor here???
                 console.log("searchCommand clicked");
+                dialogInsertSearch(toastEditor);
             }
-            easyMDE = new modToastUI.Editor({
+            const toastEditor = new modToastUI.Editor({
                 el: ourElt,
                 toolbarItems: objToolbarItems,
                 initialValue: valueInitial,
@@ -478,9 +494,11 @@ function addEditMDEbutton(container, easyMDE) {
                 initialEditType: "markdown",
                 usageStatistics: false,
             });
-            easyMDE.addCommand("markdown", "searchCommand", insertSearchCommand);
-            easyMDE.addCommand("wysiwyg", "searchCommand", insertSearchCommand);
-            easyMDE.changeMode("wysiwyg");
+            // toastEditor.getInstance();
+            const sel = toastEditor.getSelection();
+            toastEditor.addCommand("markdown", "searchCommand", insertSearchCommand);
+            toastEditor.addCommand("wysiwyg", "searchCommand", insertSearchCommand);
+            toastEditor.changeMode("wysiwyg");
 
         }
     });
@@ -587,14 +605,36 @@ cm.on('cursorActivity', function() {
 */
 
 // insert search link
-function getAlfaAtCursor(cm) {
-    const reAlfaBefore = /\[@(.+?)\]\((.+?)\)/g;
-    const cursor = cm.getCursor();
-    const lineCursor = cm.getLine(cursor.line);
-    const posCursor = cursor.ch;
-    const m = reAlfaBefore.exec(lineCursor);
+function getAlfaAtCursor(editor) {
+    // const cursorPosition = editor.getCursorPosition();
+    // debugger;
+    const selection = editor.getSelection();
+    const posSel = selection[0];
+    const contentMarkdown = editor.getMarkdown();
+
+    // FIX-ME: Looks like a JavaScript bug here with iterators.
+    //   Taking a closer look later!
+    const m = reAlfaBefore.exec(contentMarkdown);
     if (!m) return;
-    const posAlfa = lineCursor.search(reAlfaBefore);
+    debugger;
+    const matches = contentMarkdown.matchAll(reAlfaBefore);
+    const temp = [...matches];
+
+    // for (let match of matches) {
+    for (let match of temp) {
+        const lenAlfa = match[0].length;
+        const startAlfa = match.index;
+        const endAlfa = startAlfa + lenAlfa;
+        if (startAlfa < posSel && posSel < endAlfa) {
+            const title = match[1];
+            const search = match[2];
+            return { title, search, startAlfa, endAlfa }
+        }
+    }
+    return;
+
+
+    const posAlfa = contentMarkdown.search(reAlfaBefore);
     const lenAlfa = m[0].length;
     console.log(m, posCursor, posAlfa, lenAlfa);
     const endAlfa = posAlfa + lenAlfa
