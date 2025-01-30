@@ -29,40 +29,41 @@ const modToastUI = window["toastui"] || await importFc4i("toast-ui");
 const reAlfaBefore = /\[@(.+?)\]\((.+?)\)/gm;
 async function dialogInsertSearch(editor) {
     const selection = editor.getSelection();
-    const start = selection[0];
+    const startSel = selection[0];
+    const endSel = selection[1];
     const contentMarkdown = editor.getMarkdown();
-    const lines = contentMarkdown.split("\n");
-    let charCount = 0;
-    let lineNumber = 0;
-    let charPosition = 0;
-    for (let i = 0; i < lines.length; i++) {
-        if (charCount + lines[i].length >= start) {
-            lineNumber = i + 1;
-            charPosition = start - charCount + 1;
-            break;
-        }
-        charCount += lines[i].length + 1; // +1 for the newline character
-    }
-    const line = lines[lineNumber]
-    console.log(`Line: ${lineNumber}, Character: ${charPosition}`, line);
-    // debugger;
-    const alfaAtCursor = getAlfaAtCursor(editor);
+
+    let initialTitle = contentMarkdown.slice(startSel, endSel);
+    let initialSearch = "";
+
+    const alfaAtCursor = getAlfaAtCursor(contentMarkdown, startSel, endSel);
     console.log("dialogInsertSearch", alfaAtCursor);
+    if (alfaAtCursor) {
+        initialTitle = alfaAtCursor.title;
+        initialSearch = alfaAtCursor.search;
+    }
+
     const inpTitle = modMdc.mkMDCtextFieldInput();
+    inpTitle.value = initialTitle;
     const taTitle = modMdc.mkMDCtextField("Title", inpTitle);
+
     const inpSearch = modMdc.mkMDCtextFieldInput();
+    inpSearch.value = initialSearch;
     const taSearch = modMdc.mkMDCtextField("Search", inpSearch);
+
     const spanSearched = mkElt("span", undefined, searchNodeParams.inpSearch.value);
     const divInputs = mkElt("div", undefined, [
         taTitle,
         taSearch,
         spanSearched,
     ]);
+    /*
     if (alfaAtCursor) {
         const { title, search, startAlfa, endAlfa } = alfaAtCursor;
         inpTitle.value = title;
         inpSearch.value = search;
     }
+    */
     // @ts-ignore
     divInputs.style = `
             display: grid;
@@ -84,11 +85,12 @@ async function dialogInsertSearch(editor) {
         const title = inpTitle.value.trim();
         const search = inpSearch.value.trim();
         if (wantSave == false) {
-            return title.length > 0 && search.length > 0;
+            // return title.length > 0 && search.length > 0;
+            return title != initialTitle || search != initialSearch;
         }
-        const cm = editor.codemirror;
-        const doc = cm.getDoc();
-        const cursor = doc.getCursor();
+        // const cm = editor.codemirror;
+        // const doc = cm.getDoc();
+        // const cursor = doc.getCursor();
         const txtInsert = `[@${title}](${search})`;
         if (!alfaAtCursor) {
             doc.replaceRange(txtInsert, cursor);
@@ -605,13 +607,9 @@ cm.on('cursorActivity', function() {
 */
 
 // insert search link
-function getAlfaAtCursor(editor) {
-    // const cursorPosition = editor.getCursorPosition();
-    // debugger;
-    const selection = editor.getSelection();
-    const posSel = selection[0];
-    const contentMarkdown = editor.getMarkdown();
+function getAlfaAtCursor(contentMarkdown, startSel, endSel) {
 
+    /*
     // FIX-ME: Looks like a JavaScript bug here with iterators.
     //   Taking a closer look later!
     const m = reAlfaBefore.exec(contentMarkdown);
@@ -619,29 +617,25 @@ function getAlfaAtCursor(editor) {
     debugger;
     const matches = contentMarkdown.matchAll(reAlfaBefore);
     const temp = [...matches];
+    */
 
-    // for (let match of matches) {
-    for (let match of temp) {
+    const matches = contentMarkdown.matchAll(reAlfaBefore);
+    const arrMatches = [...matches];
+    if (arrMatches.length == 0) return;
+
+    for (let match of arrMatches) {
         const lenAlfa = match[0].length;
         const startAlfa = match.index;
         const endAlfa = startAlfa + lenAlfa;
-        if (startAlfa < posSel && posSel < endAlfa) {
-            const title = match[1];
-            const search = match[2];
-            return { title, search, startAlfa, endAlfa }
+        if (startSel == endSel) {
+            if (startAlfa < startSel && startSel < endAlfa) {
+                const title = match[1];
+                const search = match[2];
+                return { title, search, startAlfa, endAlfa }
+            }
+        } else {
+            debugger;
         }
     }
     return;
-
-
-    const posAlfa = contentMarkdown.search(reAlfaBefore);
-    const lenAlfa = m[0].length;
-    console.log(m, posCursor, posAlfa, lenAlfa);
-    const endAlfa = posAlfa + lenAlfa
-    const isInAlfa = posCursor >= posAlfa && posCursor <= endAlfa;
-    // FIX-ME: check all alfa on line
-    if (!isInAlfa) return;
-    const title = m[1];
-    const search = m[2];
-    return { title, search, posAlfa, lenAlfa }
 }
