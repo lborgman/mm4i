@@ -1117,7 +1117,7 @@ export async function pageSetup() {
         if (sp.size == 0) return true;
         const arrParNames = [...sp.keys()].sort();
         const strParNames = JSON.stringify(arrParNames);
-        console.log({ strParNames });
+        // console.log({ strParNames });
         if (strParNames == '["mindmap"]') return true;
         // if (strParNames == '["maxConf","requiredTags","searchFor"]') return true;
         if (strParNames == '["mindmap","nodehits","provider"]') return true;
@@ -1346,7 +1346,10 @@ export async function pageSetup() {
     switchDragTouchAccWay(theDragTouchAccWay);
 
     const nowAfter = Date.now();
-    console.log(`*** displayMindMap, custom rendering: ${nowAfter - nowBefore} ms`);
+    const msDisplay = nowAfter - nowBefore;
+    if (msDisplay > 100) {
+        console.log(`*** displayMindMap, custom rendering: ${msDisplay} ms`);
+    }
 
 
     // let jmMirrored;

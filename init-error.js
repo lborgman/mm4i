@@ -1,7 +1,8 @@
 // @ts-check
 const INIT_ERROR_VER = "0.1.7";
-function logConsoleHereIs(msg) {
-    // console.log(`%c${msg}`, "color:white; background-color:blue; padding: 0px 5px;");
+// @ts-ignore
+function logConsoleHereIs(_msg) {
+    // console.log(`%c${_msg}`, "color:white; background-color:blue; padding: 0px 5px;");
 }
 logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
 
@@ -22,6 +23,7 @@ logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
         } else {
             console.log("Unknown event class", evt);
         }
+        // @ts-ignore
         if (evt.reason) {
             console.log("had reason");
         } else {
@@ -95,7 +97,7 @@ logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
             font-size: 1rem;
             max-width: 90vw;
         `;
-        btn.addEventListener("click", evt => dlg.close());
+        btn.addEventListener("click", _evt => dlg.close());
         document.body.appendChild(dlg);
         dlg.showModal();
     };
@@ -113,7 +115,7 @@ logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
         displayError(evt);
     });
     window.addEventListener("unhandledrejection", evt => {
-        console.log("in unhandledrejection", window.useRejection, evt);
+        console.log("in unhandledrejection", window["useRejection"], evt);
         // displayError(evt);
         // https://stackoverflow.com/questions/76230924/get-location-information-for-promiserejectionevent
         reportError(evt.reason);

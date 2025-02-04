@@ -88,6 +88,7 @@ async function dialogInsertSearch(editor) {
             // return title.length > 0 && search.length > 0;
             return title != initialTitle || search != initialSearch;
         }
+        /*
         // const cm = editor.codemirror;
         // const doc = cm.getDoc();
         // const cursor = doc.getCursor();
@@ -102,6 +103,7 @@ async function dialogInsertSearch(editor) {
             const to = { line: lineNo, ch: posAlfa + lenAlfa };
             doc.replaceRange(txtInsert, from, to);
         }
+        */
     };
     await modMdc.mkMDCdialogConfirm(body, titleSave, "cancel", funCheckSave);
 }
@@ -153,7 +155,7 @@ async function setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit
             }
             dataObj = objInit.data;
         }
-        const lenFun = funInit.length;
+        // const lenFun = funInit.length;
         // if (lenFun != lenObj) { throw Error(`.funInit takes ${lenFun} parameters, should take ${lenObj}`); }
         if (dataObj) {
             await objInit.funInit(toastViewer, dataObj);
@@ -185,13 +187,14 @@ async function setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit
 
 
 
+    /*
     if (toastViewer.codemirror) {
         toastViewer.codemirror.options.readOnly = "nocursor";
         toastViewer.value(valueInitial);
         if (toastViewer.isPreviewActive()) throw Error("easyMDE.isPreviewActive()");
         toastViewer.togglePreview();
 
-        divEasyMdeInert.setAttribute("inert", "");
+        // divEasyMdeInert.setAttribute("inert", "");
 
         const cud = toastViewer.codemirror.display.cursorDiv;
         const cont = cud.closest("div.EasyMDEContainer");
@@ -331,6 +334,7 @@ async function setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit
             startAlfaPreview();
         });
     }
+    */
 
     // if (!newWay) { return { easyMDE }; }
     const btnEdit = addEditMDEbutton(divEasyMdeOuterWrapper, toastViewer);
@@ -420,7 +424,7 @@ function addEditMDEbutton(container, toastViewer) {
             function insertSearchCommand(editor) {
                 // dialog
                 // FIX-ME: what is editor here???
-                console.log("searchCommand clicked");
+                console.log("searchCommand clicked", editor);
                 dialogInsertSearch(toastEditor);
             }
             const toastEditor = new modToastUI.Editor({
@@ -566,19 +570,31 @@ async function saveOrigMarkdown() {
     origEasyMDEmarkdown = EasyMDE.prototype.markdown;
 }
 
+/**
+ * 
+ * @param {HTMLElement} taOrDiv 
+ * @param {string} valueInitial 
+ * @param {string} valuePlaceholder 
+ * @param {Object} objClose 
+ * @returns {Promise<HTMLButtonElement>}
+ */
 export async function setupToastUI4Notes(taOrDiv, valueInitial, valuePlaceholder, objClose) {
     // debugger;
+    /*
     const funInit = async (easyMDE) => addAlfa(easyMDE);
+    */
+    const funInit = async (editor) => console.log("funInit", editor);
     const objInit4Notes = {
         funInit
     }
     if (objClose) objInit4Notes.data = objClose;
-    const { easyMDE, btnEdit } = await setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit4Notes);
+    // const { easyMDE, btnEdit } = await setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit4Notes);
+    const { btnEdit } = await setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit4Notes);
     // await addAlfa(easyMDE);
-    // return { easyMDE, btnEdit };
     return { btnEdit };
 }
 
+/*
 async function addAlfa(easyMDE) {
     console.error("This addAlfa is for easyMDE");
     debugger;
@@ -627,6 +643,7 @@ async function addAlfa(easyMDE) {
         }
     }
 }
+*/
 
 
 // insert search link

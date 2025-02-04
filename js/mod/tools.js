@@ -186,9 +186,9 @@ export async function wait4connected(elt, msMaxWait, msInterval) {
         const intervalId = setInterval(() => {
             const msElapsed = Date.now() - msStartWait;
             if (elt.isConnected) {
-                console.log(`wait4connected, connected after ${msElapsed} ms`);
+                // console.log(`wait4connected, connected after ${msElapsed} ms`);
                 clearInterval(intervalId);
-                console.log
+                // console.log
                 resolve(true);
             }
             if (msElapsed > msMaxWait) {
@@ -228,7 +228,7 @@ function mkButton(attrib, inner) {
         // Tested ok in Chrome and Edge on desktop
         // @ts-ignore
         isEdge = navigator.userAgent.indexOf(" Edg/") > -1;
-        // console.log({ isEdge });
+        if (isEdge) console.log({ isEdge });
     } else {
         const m = navigator.userAgent.match(/ Firefox\/(\d+)/);
         isFirefox = !!m;
@@ -1049,10 +1049,10 @@ export function affixScriptToHead(url, onloadFunction) {
  * @returns 
  */
 export function waitSeconds(sec) {
-    console.log("start wait", sec)
+    // console.log("start wait", sec)
     return new Promise(resolve => {
         function ready() {
-            console.log("ready wait", sec)
+            // console.log("ready wait", sec)
             resolve(sec);
         }
         setTimeout(ready, sec * 1000);

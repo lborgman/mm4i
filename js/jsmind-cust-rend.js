@@ -157,7 +157,7 @@ export class CustomRenderer4jsMind {
         // const eltCustom = doc.body.firstElementChild;
         const divParse = mkElt("div");
         divParse.innerHTML = strEltCustom;
-        const eltCustom = divParse.firstElementChild;
+        const eltCustom = /** @type {HTMLElement} */ (divParse.firstElementChild);
 
         const strCustom = eltCustom.dataset.jsmindCustom;
         if (typeof strCustom == "undefined") throw Error("strCustom is undefined");
@@ -275,10 +275,12 @@ export class CustomRenderer4jsMind {
 
         const idThemeChoices = "theme-choices";
         const divThemeChoices = mkElt("div", { id: idThemeChoices });
+        /*
         const divColorThemes = mkElt("div", undefined, [
             "Themes are for all nodes",
             divThemeChoices,
         ]);
+        */
         const oldGlobals = rend.getMindmapGlobals();
         let tempGlobals;
         if (oldGlobals) tempGlobals = JSON.parse(JSON.stringify(oldGlobals));
@@ -292,7 +294,7 @@ export class CustomRenderer4jsMind {
             function mkThemeAlt(cls) {
                 const themeName = cls.substring(6);
                 // console.log("mkThemeAlt", { cls, themeName });
-                const inpRadio = mkElt("input", { type: "radio", name: "theme", value: cls });
+                const inpRadio = /** @type {HTMLInputElement} */ (mkElt("input", { type: "radio", name: "theme", value: cls }));
                 if (cls == oldThemeCls) inpRadio.checked = true;
                 const eltLbl = mkElt("label", undefined, [inpRadio, themeName]);
                 return mkElt("jmnodes", { class: cls },
@@ -311,7 +313,7 @@ export class CustomRenderer4jsMind {
             divThemeChoices.addEventListener("input", evt => {
                 evt.stopPropagation();
                 console.log("theme input", evt.target);
-                selectedThemeCls = evt.target.value;
+                selectedThemeCls = evt.target?.value;
                 // setJsmindTheme(jmnodesCopied, theme);
                 funDebounceSomethingToSaveMm();
             });
@@ -380,7 +382,7 @@ export class CustomRenderer4jsMind {
         const chkUseBgMm = await modMdc.mkMDCcheckboxElt(inpUseBgMm, "Set background color");
         console.log({ oldGlobals });
 
-        const inpBgMmColor = mkElt("input", { type: "color" });
+        const inpBgMmColor = /** @type {HTMLInputElement} */ (mkElt("input", { type: "color" }));
         let sliBgMmOpacity;
         const divBgCtrls = mkElt("div", { class: "mdc-card" }, [
             inpBgMmColor,
@@ -394,13 +396,17 @@ export class CustomRenderer4jsMind {
             mkElt("p", undefined, chkUseBgMm),
             divBgCtrls
         ]);
+        /**
+         * 
+         * @param {boolean} disabled 
+         */
         function setBgMmDisabled(disabled) {
             modMdc.setMDCSliderDisabled(sliBgMmOpacity, disabled);
             inpBgMmColor.disabled = disabled;
             if (disabled) {
-                divBgCtrls.style.opacity = 0.3;
+                divBgCtrls.style.opacity = "0.3";
             } else {
-                divBgCtrls.style.opacity = 1;
+                divBgCtrls.style.opacity = "1";
             }
         }
         inpUseBgMm.addEventListener("change", () => {
@@ -459,7 +465,8 @@ export class CustomRenderer4jsMind {
         const root_node = this.THEjmDisplayed.get_root();
         const valDescription = "dummy";
         const placeholder = mkNodeNotesPlaceholder(root_node);
-        const { easyMDE, btnEdit } = await modToastUIhelpers.setupEasyMDEview(divMDE, valDescription, placeholder);
+        // const { easyMDE, btnEdit } = await modToastUIhelpers.setupEasyMDEview(divMDE, valDescription, placeholder);
+        const { btnEdit } = await modToastUIhelpers.setupToastUI4Notes(divMDE, valDescription, placeholder);
         btnEdit.style.right = "-4px";
         btnEdit.style.top = "-30px";
         // easyMDE.codemirror.on("changes", () => { saveEmdChanges(); });
@@ -481,7 +488,7 @@ export class CustomRenderer4jsMind {
         // divPreviewLine.style.backgroundColor = defaultLineC;
         const divLinePreview = mkElt("div", { id: "div-line-preview", class: "mdc-card" }, divPreviewLine);
         divLinePreview.style.padding = "20px";
-        const inpLineColor = mkElt("input", { type: "color" });
+        const inpLineColor = /** @type {HTMLInputElement} */ (mkElt("input", { type: "color" }));
         // inpLineColor.value = modColorConverter.toHex6(defaultLineC);
         const lblLineColor = mkElt("label", undefined, ["Line color: ", inpLineColor]);
         const divLineWidth = mkElt("div");
@@ -513,9 +520,9 @@ export class CustomRenderer4jsMind {
             modMdc.setMDCSliderDisabled(sliLineWidth, disabled);
             inpLineColor.disabled = disabled;
             if (disabled) {
-                cardLine.style.opacity = 0.3;
+                cardLine.style.opacity = "0.3";
             } else {
-                cardLine.style.opacity = 1;
+                cardLine.style.opacity = "1";
             }
         }
         // .mindmapGlobals
@@ -831,7 +838,8 @@ export class CustomRenderer4jsMind {
             modJsEditCommon.applyShapeEtc(currentShapeEtc, eltCopied);
         }
         function saveEmdChanges() {
-            currentShapeEtc.notes = easyMDE.value().trimEnd();
+            // currentShapeEtc.notes = easyMDE.value().trimEnd();
+            currentShapeEtc.notes = toastEditor.getMarkdown().trimEnd();
             const changed = somethingToSaveNode();
             console.warn("saveEmdChanges", changed);
             requestSetStateBtnSave();
@@ -1011,7 +1019,8 @@ export class CustomRenderer4jsMind {
             inpBorderColor.value = initialShapeEtc.border?.color || "black";
             const borderStyle = initialShapeEtc.border?.style;
             divBorder.querySelectorAll("input[name=borderstyle]")
-                .forEach(inp => { if (inp.value == borderStyle) inp.checked = true });
+                // @ts-ignore
+                .forEach((inp) => { if (inp.value == borderStyle) inp.checked = true });
         }
         function activateBorderTab() {
             // FIX-ME:
@@ -1035,7 +1044,8 @@ export class CustomRenderer4jsMind {
             const bgName = initBgObj ? initBgObj.bgName : "bg-choice-none";
             const bgVal = initBgObj ? initBgObj.bgValue : undefined;
             console.log({ bgName, bgVal });
-            const rad = divBgChoices.querySelector(`#${bgName}`);
+            const rad = /** @type {HTMLInputElement} */ divBgChoices.querySelector(`#${bgName}`);
+            if (!rad) throw Error(`Could not find #${bgName}`);
             rad.checked = true;
             switch (bgName) {
                 case "bg-choice-none":

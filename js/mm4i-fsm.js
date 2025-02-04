@@ -307,7 +307,7 @@ outline: 4px groove ${F};
         evt.stopImmediatePropagation();
         evt.stopPropagation();
         modTools.savePointerdownPos(evt); // pos listener needs this
-        console.log("eltFsm, pointerdown", evt);
+        // console.log("eltFsm, pointerdown", evt);
         const target = evt.target;
         if (!eltFsm.contains(target)) return;
         let actionWhere = "c";
@@ -324,7 +324,7 @@ outline: 4px groove ${F};
         actionWithErrorCheck(action, { eltJmnode, pointerType });
     }, { passive: false });
     eltFsm.addEventListener("pointerup", evt => {
-        console.log("eltFsm, pointerup", evt);
+        // console.log("eltFsm, pointerup", evt);
         const target = evt.target;
         if (!eltFsm.contains(target)) return;
         const action = "up";
