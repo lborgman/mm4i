@@ -28,7 +28,9 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
         "db-fc4i": "./js/db-fc4i.js",
 
         // "easyMDE-helpers": "./js/mod/easyMDE-helpers.js",
-        "easyMDE-helpers": "./js/mod/toast-ui-helpers.js",
+        // "easyMDE-helpers": "./js/mod/toast-ui-helpers.js",
+        "toast-ui-helpers": "./js/mod/toast-ui-helpers.js",
+
         // "toast-ui": "https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js",
         // "toast-ui": "/ext/toast-ui/toastui-editor-all.min.js",
         // "toast-ui": "https://cdn.jsdelivr.net/npm/@toast-ui/editor@latest/dist/esm/index.js",

@@ -221,12 +221,14 @@ function mkButton(attrib, inner) {
     const missingFeatures = [];
     const isChromiumBased = navigator.webdriver || typeof window["chrome"] === "object";
     // const isChromiumBased = true;
+    // @ts-ignore
     let isEdge = false;
     let isFirefox = false;
     if (isChromiumBased) {
-        // if (navigator.vendor !== "Google Inc.") throw Error(`Vendor is ${navigator.vendor}`);
+        // Tested ok in Chrome and Edge on desktop
+        // @ts-ignore
         isEdge = navigator.userAgent.indexOf(" Edg/") > -1;
-        console.log({ isEdge });
+        // console.log({ isEdge });
     } else {
         const m = navigator.userAgent.match(/ Firefox\/(\d+)/);
         isFirefox = !!m;

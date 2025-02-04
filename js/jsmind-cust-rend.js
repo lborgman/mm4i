@@ -19,7 +19,8 @@ const wait4mutations = modTools.wait4mutations;
 const modMMhelpers = await importFc4i("mindmap-helpers");
 const modMdc = await importFc4i("util-mdc");
 const modColorConverter = await importFc4i("color-converter");
-const modEasyMDEhelpers = await importFc4i("easyMDE-helpers");
+// const modEasyMDEhelpers = await importFc4i("easyMDE-helpers");
+const modToastUIhelpers = await importFc4i("toast-ui-helpers");
 
 // This creates a loop:
 // const modJsEditCommon = await import( "jsmind-edit-common");
@@ -458,7 +459,7 @@ export class CustomRenderer4jsMind {
         const root_node = this.THEjmDisplayed.get_root();
         const valDescription = "dummy";
         const placeholder = mkNodeNotesPlaceholder(root_node);
-        const { easyMDE, btnEdit } = await modEasyMDEhelpers.setupEasyMDEview(divMDE, valDescription, placeholder);
+        const { easyMDE, btnEdit } = await modToastUIhelpers.setupEasyMDEview(divMDE, valDescription, placeholder);
         btnEdit.style.right = "-4px";
         btnEdit.style.top = "-30px";
         // easyMDE.codemirror.on("changes", () => { saveEmdChanges(); });
@@ -728,7 +729,8 @@ export class CustomRenderer4jsMind {
         // let retMkDialog;
         const objClose = {};
         const { easyMDE, btnEdit } =
-            await modEasyMDEhelpers.setupEasyMDE4Notes(divEasyMdeOuterWrapper, initialVal, placeholder, objClose);
+            // await modToastUIhelpers.setupEasyMDE4Notes(divEasyMdeOuterWrapper, initialVal, placeholder, objClose);
+            await modToastUIhelpers.setupToastUI4Notes(divEasyMdeOuterWrapper, initialVal, placeholder, objClose);
 
         setTimeout(async () => {
             // body.appendChild(eltMDEwrapper);
@@ -1135,7 +1137,7 @@ export class CustomRenderer4jsMind {
         async function activateNotesTab() {
             const valNotes = initNotes;
             const placeholder = mkNodeNotesPlaceholder(node_copied);
-            const { easyMDE, btnEdit } = await modEasyMDEhelpers.setupEasyMDEview(divEasyMdeOuterWrapper, valNotes, placeholder);
+            const { easyMDE, btnEdit } = await modToastUIhelpers.setupEasyMDEview(divEasyMdeOuterWrapper, valNotes, placeholder);
             btnEdit.style.right = "0px";
             btnEdit.style.top = "-20px";
             easyMDE.codemirror.on("changes", () => { saveEmdChanges(); })

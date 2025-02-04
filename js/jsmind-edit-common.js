@@ -1879,8 +1879,9 @@ export async function pageSetup() {
     // addScrollIntoViewOnSelect(jmDisplayed);
     addScrollIntoViewOnSelect();
     // easyMDE-h
-    const modEasyMDEhelpers = await importFc4i("easyMDE-helpers");
-    modEasyMDEhelpers.setupSearchNodes({
+    // const modEasyMDEhelpers = await importFc4i("easyMDE-helpers");
+    const modToastUIhelpers = await importFc4i("toast-ui-helpers");
+    modToastUIhelpers.setupSearchNodes({
         searchNodeFun: jsmindSearchNodes,
         inpSearch,
         eltJsMindContainer: jsMindContainer

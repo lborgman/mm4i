@@ -95,7 +95,7 @@ async function dialogInsertSearch(editor) {
         if (!alfaAtCursor) {
             doc.replaceRange(txtInsert, cursor);
         } else {
-            debugger;
+            debugger; // eslint-disable-line no-debugger
             const { title, search, posAlfa, lenAlfa } = alfaAtCursor;
             const lineNo = cursor.line;
             const from = { line: lineNo, ch: posAlfa };
@@ -114,79 +114,16 @@ async function dialogInsertSearch(editor) {
  * @param {Object|undefined} objInit;
  * @returns 
  */
-export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, objInit) {
-    let taEasyMde;
-    let divEasyMdeInert;
-    let divEasyMdeOuterWrapper;
-    if (taOrDiv.tagName == "TEXTAREA") {
-        throw Error(`taOrDiv should be DIV: ${taOrDiv.tagName}`);
-    }
-    taEasyMde = mkElt("textarea");
-    if (valuePlaceholder) { taEasyMde.setAttribute("placeholder", valuePlaceholder); }
-    divEasyMdeInert = mkElt("div", undefined, taEasyMde);
-    divEasyMdeOuterWrapper = taOrDiv;
-    divEasyMdeOuterWrapper.appendChild(divEasyMdeInert);
-    await importFc4i("easymde");
-    const EasyMDE = window["EasyMDE"];
-    const defineEasyMdeToolbar = [
-        "preview",
-        "fullscreen",
-        "|",
-        /*
-        {
-            name: "letters",
-            // className: "fa fa-circle-h",
-            className: "fa fa-a",
-        },
-        */
-        "bold",
-        "italic",
-        "heading",
-        "strikethrough",
-        "|",
-        {
-            name: "grouping",
-            className: "fa fa-object-group",
-            title: "Lists and dividers",
-            children: [
-                "horizontal-rule",
-                "quote",
-                "unordered-list",
-                "ordered-list",
-            ],
-        },
-        "|",
-        "link",
-        {
-            name: "custom",
-            action: (editorMDE) => {
-                console.log("clicked search button", editorMDE);
-                dialogInsertSearch(editorMDE);
-            },
-            className: "fa fa-search",
-            title: "Insert search",
-            attributes: { // for custom attributes
-                id: "custom-id",
-                "data-value": "custom value" // HTML5 data-* attributes need to be enclosed in quotation marks ("") because of the dash (-) in its name.
-            }
-        },
-        "|",
-        "undo",
-        "redo",
-        "|",
-        "guide",
-    ];
-
-    // https://github.com/nhn/tui.editor/issues/3293
-
-    // let toastEditor;
+async function setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit) {
+    let divEasyMdeOuterWrapper = taOrDiv;
     if (useEasyMDE) {
+        // https://github.com/nhn/tui.editor/issues/3293
         throw Error("don't use EasyMDE");
     }
     const ourElt = divEasyMdeOuterWrapper;
     ourElt.innerHTML = "";
 
-    const toastEditor = new modToastUI.Editor.factory({
+    const toastViewer = new modToastUI.Editor.factory({
         viewer: true,
         el: ourElt,
         initialValue: valueInitial,
@@ -196,7 +133,6 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
     });
     // toastEditor.getInstance();
     // easyMDE.getMarkdown();
-    window["MYtoastEditor"] = toastEditor;
 
     if (objInit) {
         const tofObjInit = typeof objInit;
@@ -220,9 +156,9 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
         const lenFun = funInit.length;
         // if (lenFun != lenObj) { throw Error(`.funInit takes ${lenFun} parameters, should take ${lenObj}`); }
         if (dataObj) {
-            await objInit.funInit(toastEditor, dataObj);
+            await objInit.funInit(toastViewer, dataObj);
         } else {
-            await objInit.funInit(toastEditor);
+            await objInit.funInit(toastViewer);
         }
     }
 
@@ -249,15 +185,15 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
 
 
 
-    if (toastEditor.codemirror) {
-        toastEditor.codemirror.options.readOnly = "nocursor";
-        toastEditor.value(valueInitial);
-        if (toastEditor.isPreviewActive()) throw Error("easyMDE.isPreviewActive()");
-        toastEditor.togglePreview();
+    if (toastViewer.codemirror) {
+        toastViewer.codemirror.options.readOnly = "nocursor";
+        toastViewer.value(valueInitial);
+        if (toastViewer.isPreviewActive()) throw Error("easyMDE.isPreviewActive()");
+        toastViewer.togglePreview();
 
         divEasyMdeInert.setAttribute("inert", "");
 
-        const cud = toastEditor.codemirror.display.cursorDiv;
+        const cud = toastViewer.codemirror.display.cursorDiv;
         const cont = cud.closest("div.EasyMDEContainer");
 
         // FIX-ME: the key return problem:
@@ -272,9 +208,9 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
         const ta = cont.querySelector("textarea");
         const editor = editable || ta;
         window["MYeditor"] = editor;
-        toastEditor.codemirror.options.readOnly = "nocursor";
+        toastViewer.codemirror.options.readOnly = "nocursor";
 
-        const eltCursorDiv = toastEditor.codemirror.display.cursorDiv;
+        const eltCursorDiv = toastViewer.codemirror.display.cursorDiv;
         const eltMDEContainer = eltCursorDiv.closest("div.EasyMDEContainer");
 
         const eltToolbar = eltMDEContainer.querySelector("div.editor-toolbar");
@@ -397,7 +333,7 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
     }
 
     // if (!newWay) { return { easyMDE }; }
-    const btnEdit = addEditMDEbutton(divEasyMdeOuterWrapper, toastEditor);
+    const btnEdit = addEditMDEbutton(divEasyMdeOuterWrapper, toastViewer);
 
 
     // To be able to click the links in the rendered document we must remove "inert".
@@ -414,11 +350,11 @@ export async function setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, 
             console.error("active element is not btnEdit", eltActive);
             throw Error(`document.activeElement is not btnEdit`);
         }
-        divEasyMdeInert.removeAttribute("inert");
+        // divEasyMdeInert.removeAttribute("inert");
         // }, 600);
     })();
 
-    return { easyMDE: toastEditor, btnEdit };
+    return { easyMDE: toastViewer, btnEdit };
 }
 
 function addEditMDEbutton(container, toastViewer) {
@@ -495,9 +431,123 @@ function addEditMDEbutton(container, toastViewer) {
                 previewStyle: "tab",
                 initialEditType: "markdown",
                 usageStatistics: false,
+                /*
+                events: {
+                    stateChange: () => {
+                        console.log("-------------------- stateChange");
+                    },
+                },
+                */
             });
-            // toastEditor.getInstance();
-            const sel = toastEditor.getSelection();
+            async function handleCursorChangeWW(evt) {
+                console.log('WW handleCursorChange', evt);
+                modTools.waitSeconds(1);
+                const pos = getCursorPosition();
+                console.log("WW", { pos });
+            }
+            async function handleCursorChangeMD(evt) {
+                console.log('MD handleCursorChange', evt);
+                modTools.waitSeconds(1);
+                const pos = getCursorPosition();
+                console.log("MD", { pos });
+            }
+            const elts = toastEditor.getEditorElements();
+            const eltMD = elts.mdEditor;
+            eltMD.addEventListener("keyup", handleCursorChangeMD);
+            eltMD.addEventListener("pointerup", handleCursorChangeMD);
+            const eltWW = elts.wwEditor;
+            eltWW.addEventListener("keyup", handleCursorChangeWW);
+            eltWW.addEventListener("pointerup", handleCursorChangeWW);
+
+            window["MYtoastEditor"] = toastEditor;
+
+
+            /**** Looking for workaround for the cursor move bug in Toast UI.  */
+
+            /***
+             * Suggested by Deep Seek.
+            */
+
+            let savedCursorPosition = 0;
+
+            function saveCursorPosition(currentEditor, oldMode) {
+                savedCursorPosition = getCursorPosition();
+            }
+            function getCursorPosition() {
+                const st = "background:green;";
+                const sel = toastEditor.getSelection(); // Get the selection from the WYSIWYG editor
+                console.log("%cgetCursorPosition", st, { sel });
+                if (!Array.isArray(sel)) throw Error("Expected array");
+                const lenSel = sel.length;
+                if (lenSel != 2) throw Error(`Expected length == 2, got ${lenSel}`);
+                const sel0 = sel[0];
+                let cursorPosition;
+                if (Array.isArray(sel0)) {
+                    const startLine = sel0[0];
+                    const startCh = sel0[1];
+                    const markdown = toastEditor.getMarkdown();
+                    const lines = markdown.split("\n");
+                    let pos = startCh;
+                    for (let i = 0; i < startLine - 1; i++) {
+                        pos += lines[i].length + 1;
+                    }
+                    cursorPosition = pos;
+                } else {
+                    cursorPosition = sel0;
+                }
+                console.log("%cGCP", st, { cursorPosition });
+                if (isNaN(cursorPosition)) throw "savedCursorPosition is not number";
+                return cursorPosition;
+            }
+
+            async function restoreCursorPosition() {
+                const st = "background:red;";
+                console.log("%crestoreCursorPosition", st, { savedCursorPosition });
+                if (!savedCursorPosition) return;
+                if (isNaN(savedCursorPosition)) throw "savedCursorPosition is not number";
+                modTools.waitSeconds(1);
+                ourSetSelection(savedCursorPosition);
+                /**
+                 * 
+                 * @param {number} posStart 
+                 */
+                function ourSetSelection(posStart) {
+                    if (toastEditor.mode != "markdown") {
+                        toastEditor.setSelection(posStart, posStart);
+                    } else {
+                        const markdown = toastEditor.getMarkdown();
+                        const lines = markdown.split("\n");
+                        let linesLength = 0;
+                        let lineNo = 1;
+                        for (let i = 0, len = lines.length; i < len; i++) {
+                            const line = lines[i];
+                            if (line.length + linesLength > posStart) {
+                                lineNo = i - 1;
+                                break;
+                            }
+                            linesLength += line.length;
+                        }
+                        const chNo = posStart - linesLength;
+                        const pos = [lineNo, chNo];
+                        toastEditor.setSelection(pos, pos);
+                    }
+                }
+            }
+
+            toastEditor.on('changeMode', (newMode) => {
+                console.log("changeMode", newMode);
+                const oldMode = newMode == "markdown" ? "wysiwyg" : "markdown";
+                const currentEditor = newMode == "markdown" ? toastEditor.wwEditor : toastEditor.mdEditor;
+                saveCursorPosition(currentEditor, oldMode);
+
+                console.log("changeMode", { savedCursorPosition });
+                setTimeout(() => {
+                    restoreCursorPosition();
+                }, 1000);
+            });
+
+
+            // const sel = toastEditor.getSelection();
             toastEditor.addCommand("markdown", "searchCommand", insertSearchCommand);
             toastEditor.addCommand("wysiwyg", "searchCommand", insertSearchCommand);
             toastEditor.changeMode("wysiwyg");
@@ -516,21 +566,25 @@ async function saveOrigMarkdown() {
     origEasyMDEmarkdown = EasyMDE.prototype.markdown;
 }
 
-export async function setupEasyMDE4Notes(taOrDiv, valueInitial, valuePlaceholder, objClose) {
+export async function setupToastUI4Notes(taOrDiv, valueInitial, valuePlaceholder, objClose) {
+    // debugger;
     const funInit = async (easyMDE) => addAlfa(easyMDE);
     const objInit4Notes = {
         funInit
     }
     if (objClose) objInit4Notes.data = objClose;
-    const { easyMDE, btnEdit } = await setupEasyMDEview(taOrDiv, valueInitial, valuePlaceholder, objInit4Notes);
+    const { easyMDE, btnEdit } = await setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit4Notes);
     // await addAlfa(easyMDE);
-    return { easyMDE, btnEdit };
+    // return { easyMDE, btnEdit };
+    return { btnEdit };
 }
 
 async function addAlfa(easyMDE) {
-    // return;
+    console.error("This addAlfa is for easyMDE");
+    debugger;
+    return;
     await saveOrigMarkdown();
-    const EasyMDE = window["EasyMDE"];
+    // const EasyMDE = window["EasyMDE"];
 
     function markHejGreen(txt) {
         const newTxt = txt.replaceAll(/hej/g, `<span style="color:green;">HEJ</span>`);
@@ -574,37 +628,6 @@ async function addAlfa(easyMDE) {
     }
 }
 
-export function getWhitespaceWordAtCursor(cm) {
-    const cursor = cm.getCursor();
-    const line = cm.getLine(cursor.line);
-    let start = cursor.ch;
-    let end = cursor.ch;
-
-    // Find the start of the word
-    while (start > 0 && /\w/.test(line.charAt(start - 1))) {
-        start--;
-    }
-
-    // Find the end of the word
-    while (end < line.length && /\w/.test(line.charAt(end))) {
-        end++;
-    }
-
-    return line.slice(start, end);
-}
-
-/*
-// Usage example
-const cm = CodeMirror.fromTextArea(document.getElementById('code'), {
-    lineNumbers: true,
-    mode: 'javascript'
-});
-
-cm.on('cursorActivity', function() {
-    const word = getWordAtCursor(cm);
-    console.log('Word at cursor:', word);
-});
-*/
 
 // insert search link
 function getAlfaAtCursor(contentMarkdown, startSel, endSel) {
@@ -634,7 +657,7 @@ function getAlfaAtCursor(contentMarkdown, startSel, endSel) {
                 return { title, search, startAlfa, endAlfa }
             }
         } else {
-            debugger;
+            debugger; // eslint-disable-line no-debugger
         }
     }
     return;
