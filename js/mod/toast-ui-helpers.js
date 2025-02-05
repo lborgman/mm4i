@@ -117,12 +117,12 @@ async function dialogInsertSearch(editor) {
  * @returns 
  */
 async function setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit) {
-    let divEasyMdeOuterWrapper = taOrDiv;
+    let divEditorOuterWrapper = taOrDiv;
     if (useEasyMDE) {
         // https://github.com/nhn/tui.editor/issues/3293
         throw Error("don't use EasyMDE");
     }
-    const ourElt = divEasyMdeOuterWrapper;
+    const ourElt = divEditorOuterWrapper;
     ourElt.innerHTML = "";
 
     const toastViewer = new modToastUI.Editor.factory({
@@ -187,165 +187,10 @@ async function setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit
 
 
 
-    /*
-    if (toastViewer.codemirror) {
-        toastViewer.codemirror.options.readOnly = "nocursor";
-        toastViewer.value(valueInitial);
-        if (toastViewer.isPreviewActive()) throw Error("easyMDE.isPreviewActive()");
-        toastViewer.togglePreview();
 
-        // divEasyMdeInert.setAttribute("inert", "");
+    const btnEdit = addEditMDEbutton();
+    // const objReturn = {};
 
-        const cud = toastViewer.codemirror.display.cursorDiv;
-        const cont = cud.closest("div.EasyMDEContainer");
-
-        // FIX-ME: the key return problem:
-        const code = cont.querySelector("div.CodeMirror-code");
-        code.addEventListener("keydown", evt => {
-            evt.stopPropagation();
-        });
-
-        await modTools.wait4mutations(cont);
-
-        const editable = cont.querySelector("div[contenteditable]")
-        const ta = cont.querySelector("textarea");
-        const editor = editable || ta;
-        window["MYeditor"] = editor;
-        toastViewer.codemirror.options.readOnly = "nocursor";
-
-        const eltCursorDiv = toastViewer.codemirror.display.cursorDiv;
-        const eltMDEContainer = eltCursorDiv.closest("div.EasyMDEContainer");
-
-        const eltToolbar = eltMDEContainer.querySelector("div.editor-toolbar");
-        eltToolbar.style.display = "none";
-
-        const eltPreview = eltMDEContainer.querySelector("div.editor-preview");
-        eltPreview.addEventListener("click", async evt => {
-            console.log({ eltPreview });
-            const target = evt.target;
-            if (target.tagName != "SPAN") return;
-
-            const dialogContainer = eltPreview.closest(".mdc-dialog__container");
-            const dcs = dialogContainer.style;
-
-            const spanPreviewCounter = mkElt("span");
-            const eltPreviewNotice = mkElt("span", undefined, ["Close preview ", spanPreviewCounter]);
-            eltPreviewNotice.addEventListener("click", evt => {
-                evt.stopImmediatePropagation();
-                stopAlfaPreview();
-            });
-            eltPreviewNotice.title = "Close preview";
-            // @ts-ignore
-            eltPreviewNotice.style = `
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background-color: yellow;
-            padding: 4px;
-            color: black;
-            border: 1px solid black;
-            border-radius: 4px;
-            box-shadow: 3px 2px 8px 2px #000000;
-            cursor: pointer;
-        `;
-            const eltPreviewShield = mkElt("div", undefined, eltPreviewNotice);
-            // @ts-ignore
-            eltPreviewShield.style = `
-            position: fixed;
-            top: 0px;
-            left: 0px;
-            bottom: 0px;
-            right: 0px;
-            z-index: 9999;
-            background-color: rgba(255,255,0,0.2);
-            pointer-events: auto;
-        `;
-            const secPreview = 8;
-            let countPreview = secPreview;
-            let intervalPreview;
-            let timeoutPreview;
-            const updatePreviewCounter = () => { spanPreviewCounter.textContent = `${countPreview} sec`; }
-            const startAlfaPreview = () => {
-                dcs.transitionProperty = "opacity";
-                dcs.transitionDuration = "1s";
-                dcs.opacity = 0;
-                updatePreviewCounter();
-                document.body.appendChild(eltPreviewShield);
-                intervalPreview = setInterval(() => {
-                    countPreview--;
-                    updatePreviewCounter();
-                }, 1000);
-                timeoutPreview = setTimeout(() => { stopAlfaPreview(); }, secPreview * 1000);
-            }
-            const stopAlfaPreview = () => {
-                dcs.opacity = 1;
-                eltPreviewShield.remove();
-                clearInterval(intervalPreview);
-                clearTimeout(timeoutPreview);
-            }
-            eltPreviewShield.addEventListener("click", evt => {
-                console.log("clicked preview, objInit", objInit);
-                stopAlfaPreview();
-
-                const funClose = objInit.data.funClose;
-                console.log("funClose", funClose);
-                if (funClose) funClose();
-                const target = evt.target;
-                console.log("shield target", target);
-                if (!target) throw Error("target is null");
-                target.style.pointerEvents = 'none'; // Temporarily disable pointer events
-                let eltFromPoint = document.elementFromPoint(evt.clientX, evt.clientY);
-                if (!eltFromPoint) throw Error(`eltFromPoint is null`);
-                // console.log("eltFromPoint", eltFromPoint, eltFromPoint.click);
-                if (eltFromPoint.classList.contains("mdc-dialog__scrim")) {
-                    eltFromPoint.style.display = "none";
-                    eltFromPoint = document.elementFromPoint(evt.clientX, evt.clientY);
-                    if (!eltFromPoint) throw Error(`eltFromPoint is null`);
-                    // console.log("eltFromPoint 2", eltFromPoint);
-                }
-                if (eltFromPoint.classList.contains("mdc-dialog")) {
-                    eltFromPoint.style.display = "none";
-                    eltFromPoint = document.elementFromPoint(evt.clientX, evt.clientY);
-                    if (!eltFromPoint) throw Error(`eltFromPoint is null`);
-                    // console.log("eltFromPoint 3", eltFromPoint);
-                }
-
-                setTimeout(() => {
-                    eltFromPoint.click(); // Trigger click on the background element
-                    target.style.pointerEvents = 'auto'; // Re-enable pointer events
-                }, 1000);
-
-            });
-
-            const isAlfaLink =
-                target.classList.contains("cm-alfa-before")
-                ||
-                target.classList.contains("cm-alfa-after");
-            if (!isAlfaLink) return;
-            const valAlfa = target.dataset.alfaLink;
-            console.log("clicked alfa-link:", { valAlfa }, target);
-            searchNodeParams.eltJsMindContainer.classList.add("display-jsmind-search");
-
-            searchNodeParams.inpSearch.value = valAlfa;
-            const resSearch = searchNodeParams.searchNodeFun(valAlfa);
-            const nHits = resSearch.length;
-            console.log({ resSearch, nHits });
-
-            startAlfaPreview();
-        });
-    }
-    */
-
-    // if (!newWay) { return { easyMDE }; }
-    const btnEdit = addEditMDEbutton(divEasyMdeOuterWrapper, toastViewer);
-
-
-    // To be able to click the links in the rendered document we must remove "inert".
-    // However if we do that directly the virtual keyboard will popup on an Android mobile.
-    // So we must first focus on an element outside of easyMDE.
-
-    // setTimeout(async () => {
-    // if (!btnEdit.isConnected) { throw Error("btnEdit is not yet connected to the document"); }
     (async function () {
         await modTools.wait4connected(btnEdit, 800);
         btnEdit.focus();
@@ -358,17 +203,18 @@ async function setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit
         // }, 600);
     })();
 
-    return { easyMDE: toastViewer, btnEdit };
-}
+    return { toastViewer, btnEdit };
+    // objReturn.btnEdit = btnEdit;
+    // return objReturn;
 
-function addEditMDEbutton(container, toastViewer) {
-    container.style.position = "relative";
-    const btnEditMyNotes = modMdc.mkMDCiconButton("edit", "Edit my notes");
-    container.appendChild(btnEditMyNotes);
-    // eltMDEContainer.parentElement.parentElement.appendChild(btnEditMyNotes);
+    function addEditMDEbutton() {
+        divEditorOuterWrapper.style.position = "relative";
+        const btnEditMyNotes = modMdc.mkMDCiconButton("edit", "Edit my notes");
+        divEditorOuterWrapper.appendChild(btnEditMyNotes);
+        // eltMDEContainer.parentElement.parentElement.appendChild(btnEditMyNotes);
 
-    btnEditMyNotes.id = "edit-my-notes";
-    btnEditMyNotes.style = `
+        btnEditMyNotes.id = "edit-my-notes";
+        btnEditMyNotes.style = `
         position: absolute;
         right: -20px;
         top: -15px;
@@ -376,189 +222,190 @@ function addEditMDEbutton(container, toastViewer) {
         color: green;
         background: color-mix(in srgb, var(--mdc-theme-primary) 30%, transparent);
         `;
-    btnEditMyNotes.addEventListener("click", evt => {
-        evt.preventDefault();
-        evt.stopImmediatePropagation();
-        evt.stopPropagation();
-        btnEditMyNotes.remove();
-        if (useEasyMDE) {
-            const eltToolbar = container.querySelector("div.editor-toolbar");
-            eltToolbar.style.display = "";
-            eltToolbar.scrollIntoView();
-            toastViewer.codemirror.options.readOnly = false;
-            const divInert = container.querySelector("div[inert]");
-            // Might already be removed
-            divInert?.removeAttribute("inert");
-            toastViewer.togglePreview();
-            // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
-            toastViewer.codemirror.refresh();
-            const cud = toastViewer.codemirror.display.cursorDiv;
-            const cont = cud.closest("div.EasyMDEContainer");
-            // contenteditable on mobile, textarea on desktop
-            const editable = cont.querySelector("div[contenteditable]")
-            const ta = cont.querySelector("textarea");
-            const eltFocus = editable || ta;
-            window["MYeltFocusNotes"] = eltFocus;
-            toastViewer.codemirror.options.readOnly = false;
-            setTimeout(() => { eltFocus.focus(); }, 1000);
-        } else {
-            const ourElt = toastViewer.options.el;
-            const valueInitial = toastViewer.options.initialValue;
-            console.log({ ourElt });
-            toastViewer.destroy();
-            ourElt.innerHTML = "";
+        btnEditMyNotes.addEventListener("click", evt => {
+            evt.preventDefault();
+            evt.stopImmediatePropagation();
+            evt.stopPropagation();
+            btnEditMyNotes.remove();
+            if (useEasyMDE) {
+                const eltToolbar = divEditorOuterWrapper.querySelector("div.editor-toolbar");
+                eltToolbar.style.display = "";
+                eltToolbar.scrollIntoView();
+                toastViewer.codemirror.options.readOnly = false;
+                const divInert = divEditorOuterWrapper.querySelector("div[inert]");
+                // Might already be removed
+                divInert?.removeAttribute("inert");
+                toastViewer.togglePreview();
+                // https://stackoverflow.com/questions/8349571/codemirror-editor-is-not-loading-content-until-clicked
+                toastViewer.codemirror.refresh();
+                const cud = toastViewer.codemirror.display.cursorDiv;
+                const cont = cud.closest("div.EasyMDEContainer");
+                // contenteditable on mobile, textarea on desktop
+                const editable = cont.querySelector("div[contenteditable]")
+                const ta = cont.querySelector("textarea");
+                const eltFocus = editable || ta;
+                window["MYeltFocusNotes"] = eltFocus;
+                toastViewer.codemirror.options.readOnly = false;
+                setTimeout(() => { eltFocus.focus(); }, 1000);
+            } else {
+                const ourElt = toastViewer.options.el;
+                const valueInitial = toastViewer.options.initialValue;
+                console.log({ ourElt });
+                toastViewer.destroy();
+                ourElt.innerHTML = "";
 
-            const objToolbarItems = [
-                ["bold", "italic", "strike"],
-                ["heading", "hr", "quote"],
-                [
-                    "link",
-                    {
-                        name: 'searchButton',
-                        tooltip: 'Insert search',
-                        className: 'toastui-editor-toolbar-icons search-button',
-                        command: "searchCommand"
-                    }
-                ],
-            ];
-            function insertSearchCommand(editor) {
-                // dialog
-                // FIX-ME: what is editor here???
-                console.log("searchCommand clicked", editor);
-                dialogInsertSearch(toastEditor);
-            }
-            const toastEditor = new modToastUI.Editor({
-                el: ourElt,
-                toolbarItems: objToolbarItems,
-                initialValue: valueInitial,
-                // previewStyle: "vertical",
-                previewStyle: "tab",
-                initialEditType: "markdown",
-                usageStatistics: false,
-                /*
-                events: {
-                    stateChange: () => {
-                        console.log("-------------------- stateChange");
-                    },
-                },
-                */
-            });
-            async function handleCursorChangeWW(evt) {
-                console.log('WW handleCursorChange', evt);
-                modTools.waitSeconds(1);
-                const pos = getCursorPosition();
-                console.log("WW", { pos });
-            }
-            async function handleCursorChangeMD(evt) {
-                console.log('MD handleCursorChange', evt);
-                modTools.waitSeconds(1);
-                const pos = getCursorPosition();
-                console.log("MD", { pos });
-            }
-            const elts = toastEditor.getEditorElements();
-            const eltMD = elts.mdEditor;
-            eltMD.addEventListener("keyup", handleCursorChangeMD);
-            eltMD.addEventListener("pointerup", handleCursorChangeMD);
-            const eltWW = elts.wwEditor;
-            eltWW.addEventListener("keyup", handleCursorChangeWW);
-            eltWW.addEventListener("pointerup", handleCursorChangeWW);
-
-            window["MYtoastEditor"] = toastEditor;
-
-
-            /**** Looking for workaround for the cursor move bug in Toast UI.  */
-
-            /***
-             * Suggested by Deep Seek.
-            */
-
-            let savedCursorPosition = 0;
-
-            function saveCursorPosition(currentEditor, oldMode) {
-                savedCursorPosition = getCursorPosition();
-            }
-            function getCursorPosition() {
-                const st = "background:green;";
-                const sel = toastEditor.getSelection(); // Get the selection from the WYSIWYG editor
-                console.log("%cgetCursorPosition", st, { sel });
-                if (!Array.isArray(sel)) throw Error("Expected array");
-                const lenSel = sel.length;
-                if (lenSel != 2) throw Error(`Expected length == 2, got ${lenSel}`);
-                const sel0 = sel[0];
-                let cursorPosition;
-                if (Array.isArray(sel0)) {
-                    const startLine = sel0[0];
-                    const startCh = sel0[1];
-                    const markdown = toastEditor.getMarkdown();
-                    const lines = markdown.split("\n");
-                    let pos = startCh;
-                    for (let i = 0; i < startLine - 1; i++) {
-                        pos += lines[i].length + 1;
-                    }
-                    cursorPosition = pos;
-                } else {
-                    cursorPosition = sel0;
+                const objToolbarItems = [
+                    ["bold", "italic", "strike"],
+                    ["heading", "hr", "quote"],
+                    [
+                        "link",
+                        {
+                            name: 'searchButton',
+                            tooltip: 'Insert search',
+                            className: 'toastui-editor-toolbar-icons search-button',
+                            command: "searchCommand"
+                        }
+                    ],
+                ];
+                function insertSearchCommand(editor) {
+                    // dialog
+                    // FIX-ME: what is editor here???
+                    console.log("searchCommand clicked", editor);
+                    dialogInsertSearch(toastEditor);
                 }
-                console.log("%cGCP", st, { cursorPosition });
-                if (isNaN(cursorPosition)) throw "savedCursorPosition is not number";
-                return cursorPosition;
-            }
+                const toastEditor = new modToastUI.Editor({
+                    el: ourElt,
+                    toolbarItems: objToolbarItems,
+                    initialValue: valueInitial,
+                    // previewStyle: "vertical",
+                    previewStyle: "tab",
+                    initialEditType: "markdown",
+                    usageStatistics: false,
+                    /*
+                    events: {
+                        stateChange: () => {
+                            console.log("-------------------- stateChange");
+                        },
+                    },
+                    */
+                });
+                async function handleCursorChangeWW(evt) {
+                    console.log('WW handleCursorChange', evt);
+                    modTools.waitSeconds(1);
+                    const pos = getCursorPosition();
+                    console.log("WW", { pos });
+                }
+                async function handleCursorChangeMD(evt) {
+                    console.log('MD handleCursorChange', evt);
+                    modTools.waitSeconds(1);
+                    const pos = getCursorPosition();
+                    console.log("MD", { pos });
+                }
+                const elts = toastEditor.getEditorElements();
+                const eltMD = elts.mdEditor;
+                eltMD.addEventListener("keyup", handleCursorChangeMD);
+                eltMD.addEventListener("pointerup", handleCursorChangeMD);
+                const eltWW = elts.wwEditor;
+                eltWW.addEventListener("keyup", handleCursorChangeWW);
+                eltWW.addEventListener("pointerup", handleCursorChangeWW);
 
-            async function restoreCursorPosition() {
-                const st = "background:red;";
-                console.log("%crestoreCursorPosition", st, { savedCursorPosition });
-                if (!savedCursorPosition) return;
-                if (isNaN(savedCursorPosition)) throw "savedCursorPosition is not number";
-                modTools.waitSeconds(1);
-                ourSetSelection(savedCursorPosition);
-                /**
-                 * 
-                 * @param {number} posStart 
-                 */
-                function ourSetSelection(posStart) {
-                    if (toastEditor.mode != "markdown") {
-                        toastEditor.setSelection(posStart, posStart);
-                    } else {
+                window["MYtoastEditor"] = toastEditor;
+
+
+                /**** Looking for workaround for the cursor move bug in Toast UI.  */
+
+                /***
+                 * Suggested by Deep Seek.
+                */
+
+                let savedCursorPosition = 0;
+
+                function saveCursorPosition(currentEditor, oldMode) {
+                    savedCursorPosition = getCursorPosition();
+                }
+                function getCursorPosition() {
+                    const st = "background:green;";
+                    const sel = toastEditor.getSelection(); // Get the selection from the WYSIWYG editor
+                    console.log("%cgetCursorPosition", st, { sel });
+                    if (!Array.isArray(sel)) throw Error("Expected array");
+                    const lenSel = sel.length;
+                    if (lenSel != 2) throw Error(`Expected length == 2, got ${lenSel}`);
+                    const sel0 = sel[0];
+                    let cursorPosition;
+                    if (Array.isArray(sel0)) {
+                        const startLine = sel0[0];
+                        const startCh = sel0[1];
                         const markdown = toastEditor.getMarkdown();
                         const lines = markdown.split("\n");
-                        let linesLength = 0;
-                        let lineNo = 1;
-                        for (let i = 0, len = lines.length; i < len; i++) {
-                            const line = lines[i];
-                            if (line.length + linesLength > posStart) {
-                                lineNo = i - 1;
-                                break;
-                            }
-                            linesLength += line.length;
+                        let pos = startCh;
+                        for (let i = 0; i < startLine - 1; i++) {
+                            pos += lines[i].length + 1;
                         }
-                        const chNo = posStart - linesLength;
-                        const pos = [lineNo, chNo];
-                        toastEditor.setSelection(pos, pos);
+                        cursorPosition = pos;
+                    } else {
+                        cursorPosition = sel0;
+                    }
+                    console.log("%cGCP", st, { cursorPosition });
+                    if (isNaN(cursorPosition)) throw "savedCursorPosition is not number";
+                    return cursorPosition;
+                }
+
+                async function restoreCursorPosition() {
+                    const st = "background:red;";
+                    console.log("%crestoreCursorPosition", st, { savedCursorPosition });
+                    if (!savedCursorPosition) return;
+                    if (isNaN(savedCursorPosition)) throw "savedCursorPosition is not number";
+                    modTools.waitSeconds(1);
+                    ourSetSelection(savedCursorPosition);
+                    /**
+                     * 
+                     * @param {number} posStart 
+                     */
+                    function ourSetSelection(posStart) {
+                        if (toastEditor.mode != "markdown") {
+                            toastEditor.setSelection(posStart, posStart);
+                        } else {
+                            const markdown = toastEditor.getMarkdown();
+                            const lines = markdown.split("\n");
+                            let linesLength = 0;
+                            let lineNo = 1;
+                            for (let i = 0, len = lines.length; i < len; i++) {
+                                const line = lines[i];
+                                if (line.length + linesLength > posStart) {
+                                    lineNo = i - 1;
+                                    break;
+                                }
+                                linesLength += line.length;
+                            }
+                            const chNo = posStart - linesLength;
+                            const pos = [lineNo, chNo];
+                            toastEditor.setSelection(pos, pos);
+                        }
                     }
                 }
+
+                toastEditor.on('changeMode', (newMode) => {
+                    console.log("changeMode", newMode);
+                    const oldMode = newMode == "markdown" ? "wysiwyg" : "markdown";
+                    const currentEditor = newMode == "markdown" ? toastEditor.wwEditor : toastEditor.mdEditor;
+                    saveCursorPosition(currentEditor, oldMode);
+
+                    console.log("changeMode", { savedCursorPosition });
+                    setTimeout(() => {
+                        restoreCursorPosition();
+                    }, 1000);
+                });
+
+
+                // const sel = toastEditor.getSelection();
+                toastEditor.addCommand("markdown", "searchCommand", insertSearchCommand);
+                toastEditor.addCommand("wysiwyg", "searchCommand", insertSearchCommand);
+                toastEditor.changeMode("wysiwyg");
+
             }
-
-            toastEditor.on('changeMode', (newMode) => {
-                console.log("changeMode", newMode);
-                const oldMode = newMode == "markdown" ? "wysiwyg" : "markdown";
-                const currentEditor = newMode == "markdown" ? toastEditor.wwEditor : toastEditor.mdEditor;
-                saveCursorPosition(currentEditor, oldMode);
-
-                console.log("changeMode", { savedCursorPosition });
-                setTimeout(() => {
-                    restoreCursorPosition();
-                }, 1000);
-            });
-
-
-            // const sel = toastEditor.getSelection();
-            toastEditor.addCommand("markdown", "searchCommand", insertSearchCommand);
-            toastEditor.addCommand("wysiwyg", "searchCommand", insertSearchCommand);
-            toastEditor.changeMode("wysiwyg");
-
-        }
-    });
-    return btnEditMyNotes;
+        });
+        return btnEditMyNotes;
+    }
 }
 
 
@@ -572,11 +419,11 @@ async function saveOrigMarkdown() {
 
 /**
  * 
- * @param {HTMLElement} taOrDiv 
+ * @param {HTMLDivElement} taOrDiv 
  * @param {string} valueInitial 
  * @param {string} valuePlaceholder 
  * @param {Object} objClose 
- * @returns {Promise<HTMLButtonElement>}
+ * @returns {Promise<{btnEdit:HTMLButtonElement}>}
  */
 export async function setupToastUI4Notes(taOrDiv, valueInitial, valuePlaceholder, objClose) {
     // debugger;
@@ -588,10 +435,12 @@ export async function setupToastUI4Notes(taOrDiv, valueInitial, valuePlaceholder
         funInit
     }
     if (objClose) objInit4Notes.data = objClose;
-    // const { easyMDE, btnEdit } = await setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit4Notes);
-    const { btnEdit } = await setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit4Notes);
+    // const { btnEdit } = await setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit4Notes);
+    return await setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit4Notes);
     // await addAlfa(easyMDE);
-    return { btnEdit };
+
+    // return { btnEdit };
+    // objReturn.btnEdit = btnEdit;
 }
 
 /*
