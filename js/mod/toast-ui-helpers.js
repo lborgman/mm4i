@@ -116,7 +116,7 @@ async function dialogInsertSearch(editor) {
  * @param {Object|undefined} objInit;
  * @returns 
  */
-async function setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit) {
+async function setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, onEdit, objInit) {
     let divEditorOuterWrapper = taOrDiv;
     if (useEasyMDE) {
         // https://github.com/nhn/tui.editor/issues/3293
@@ -319,6 +319,7 @@ async function setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit
                 */
 
                 let savedCursorPosition = 0;
+                onEdit(toastEditor);
 
                 function saveCursorPosition(currentEditor, oldMode) {
                     savedCursorPosition = getCursorPosition();
@@ -421,11 +422,17 @@ async function saveOrigMarkdown() {
  * 
  * @param {HTMLDivElement} taOrDiv 
  * @param {string} valueInitial 
- * @param {string} valuePlaceholder 
+ * @param {string} valuePlaceholder
+ * @param {function} onEdit
  * @param {Object} objClose 
  * @returns {Promise<{btnEdit:HTMLButtonElement}>}
  */
-export async function setupToastUI4Notes(taOrDiv, valueInitial, valuePlaceholder, objClose) {
+export async function setupToastUIpreview(taOrDiv, valueInitial, valuePlaceholder, onEdit, objClose) {
+    const tofOnEdit = typeof onEdit;
+    if (tofOnEdit != "function") throw Error(`onEdit should be function, is ${tofOnEdit}`);
+    const lenOnEdit = onEdit.length;
+    if (lenOnEdit != 1) throw Error(`Function param onEdit should take 1 param, not ${lenOnEdit}`);
+
     // debugger;
     /*
     const funInit = async (easyMDE) => addAlfa(easyMDE);
@@ -436,7 +443,7 @@ export async function setupToastUI4Notes(taOrDiv, valueInitial, valuePlaceholder
     }
     if (objClose) objInit4Notes.data = objClose;
     // const { btnEdit } = await setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit4Notes);
-    return await setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, objInit4Notes);
+    return await setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, onEdit, objInit4Notes);
     // await addAlfa(easyMDE);
 
     // return { btnEdit };

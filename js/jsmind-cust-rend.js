@@ -466,7 +466,7 @@ export class CustomRenderer4jsMind {
         const valDescription = "dummy";
         const placeholder = mkNodeNotesPlaceholder(root_node);
         // const { easyMDE, btnEdit } = await modToastUIhelpers.setupEasyMDEview(divMDE, valDescription, placeholder);
-        const { btnEdit } = await modToastUIhelpers.setupToastUI4Notes(divMDE, valDescription, placeholder);
+        const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divMDE, valDescription, placeholder);
         btnEdit.style.right = "-4px";
         btnEdit.style.top = "-30px";
         // easyMDE.codemirror.on("changes", () => { saveEmdChanges(); });
@@ -714,8 +714,10 @@ export class CustomRenderer4jsMind {
     }
 
     async editNotesDialog(eltJmnode) {
+        const jmDisplayed = this.THEjmDisplayed;
         const node_ID = jsMind.my_get_nodeID_from_DOM_element(eltJmnode);
-        const node = this.THEjmDisplayed.get_node(node_ID)
+        // const node = this.THEjmDisplayed.get_node(node_ID)
+        const node = jmDisplayed.get_node(node_ID)
         const node_data = node.data;
         const shapeEtc = node_data.shapeEtc || {};
         const initialVal = shapeEtc.notes || "";
@@ -735,9 +737,17 @@ export class CustomRenderer4jsMind {
         const placeholder = mkNodeNotesPlaceholder(node);
         // let retMkDialog;
         const objClose = {};
+        let toastEditor;
+        const onEdit = async (editor) => {
+            toastEditor = editor;
+            console.log({ toastEditor });
+            toastEditor.on("change", () => {
+                // console.log("toastEditor on change");
+                funCheckSave(true);
+            });
+        };
         const { easyMDE, btnEdit } =
-            // await modToastUIhelpers.setupEasyMDE4Notes(divEasyMdeOuterWrapper, initialVal, placeholder, objClose);
-            await modToastUIhelpers.setupToastUI4Notes(divEasyMdeOuterWrapper, initialVal, placeholder, objClose);
+            await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, initialVal, placeholder, onEdit, objClose);
 
         setTimeout(async () => {
             // body.appendChild(eltMDEwrapper);
@@ -748,7 +758,6 @@ export class CustomRenderer4jsMind {
             evt.preventDefault();
             evt.stopPropagation();
             setTimeout(() => {
-                // easyMDE.codemirror.options.readOnly = false;
                 const btnSave = getBtnSave();
                 const btnCancel = btnSave.nextElementSibling;
                 const divS = btnSave.closest("div.mdc-dialog__surface");
@@ -757,9 +766,9 @@ export class CustomRenderer4jsMind {
                 console.log({ btnSave, btnCancel, divS, divMDE, ta });
 
                 const ae = document.activeElement;
-                const isCancel = ae == btnCancel;
-                console.log(">>>>>>>>> ae", isCancel, ae);
-                if (!isCancel) {
+                const isCancelAE = ae == btnCancel;
+                console.log(">>>>>>>>> ae", isCancelAE, ae);
+                if (!isCancelAE) {
                     divS.style.backgroundColor = "red";
                 } else {
                     divS.style.backgroundColor = "lawngreen";
@@ -768,7 +777,8 @@ export class CustomRenderer4jsMind {
         });
 
         function somethingToSaveNotes() {
-            return easyMDE.value().trimEnd() != initialVal;
+            // return easyMDE.value().trimEnd() != initialVal;
+            return toastEditor.getMarkdown().trimEnd() != initialVal;
         }
         function getBtnSave() {
             if (btnSave) return btnSave;
@@ -797,10 +807,11 @@ export class CustomRenderer4jsMind {
         // FIX-ME: move to mdc-util
         // setTimeout(() => setStateBtnSaveDisabled(true), 50);
 
-        const funCheckSave = (save) => {
+        function funCheckSave(save) {
             if (!save) return somethingToSaveNotes();
-            shapeEtc.notes = easyMDE.value().trimEnd();
-            setTimeout(() => { modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed); }, 2000);
+            shapeEtc.notes = toastEditor.getMarkdown().trimEnd();
+            // setTimeout(() => { modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed); }, 2000);
+            setTimeout(() => { modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed); }, 2000);
         }
         // const useConfirm = true;
         const useConfirm = false;
@@ -813,7 +824,9 @@ export class CustomRenderer4jsMind {
             ///// retMkDialog.mdc.close(); <- this is the original call
             // const funClose = function() { retMkDialog.mdc.close(); } // btn: ok
             // const funClose = function() { this.mdc.close(); }.bind(retMkDialog); // works, but why
-            const funClose = function () { this.close(); }.bind(retMkDialog.mdc); // works
+            const funClose = function () {
+                this.close();
+            }.bind(retMkDialog.mdc); // works
             objClose.funClose = funClose;
             btnClose.addEventListener("click", () => {
                 funClose();
