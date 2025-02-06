@@ -746,6 +746,7 @@ export class CustomRenderer4jsMind {
                 funCheckSave(true);
             });
         };
+
         const { easyMDE, btnEdit } =
             await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, initialVal, placeholder, onEdit, objClose);
 
@@ -837,6 +838,11 @@ export class CustomRenderer4jsMind {
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
         const modIsDisplayed = await importFc4i("is-displayed");
         const clipImage = {};
+        const jmDisplayed = this.THEjmDisplayed;
+        const node_ID = jsMind.my_get_nodeID_from_DOM_element(eltJmnode);
+        const node = jmDisplayed.get_node(node_ID)
+        const node_data = node.data;
+        const shapeEtc = node_data.shapeEtc || {};
 
         function somethingToSaveNode() {
             return JSON.stringify(initialShapeEtc) != JSON.stringify(currentShapeEtc);
@@ -852,7 +858,7 @@ export class CustomRenderer4jsMind {
         }
         function saveEmdChanges() {
             // currentShapeEtc.notes = easyMDE.value().trimEnd();
-            currentShapeEtc.notes = toastEditor.getMarkdown().trimEnd();
+            currentShapeEtc.notes = toastNotesEditor.getMarkdown().trimEnd();
             const changed = somethingToSaveNode();
             console.warn("saveEmdChanges", changed);
             requestSetStateBtnSave();
@@ -1157,14 +1163,29 @@ export class CustomRenderer4jsMind {
         ]);
         divNotesTab.style.gap = "30px";
 
+        let toastNotesEditor;
+        const onEditNotes = async (editor) => {
+            toastNotesEditor = editor;
+            console.log({ toastNotesEditor });
+            toastNotesEditor.on("change", () => {
+                // console.log("toastNotesEditor on change");
+                // funCheckSaveNotes(true);
+                // shapeEtc.notes = toastNotesEditor.getMarkdown().trimEnd();
+                currentShapeEtc.notes = toastNotesEditor.getMarkdown().trimEnd();
+                requestSetStateBtnSave();
+            });
+        };
+
+
+
         async function activateNotesTab() {
             const valNotes = initNotes;
             const placeholder = mkNodeNotesPlaceholder(node_copied);
-            const { easyMDE, btnEdit } = await modToastUIhelpers.setupEasyMDEview(divEasyMdeOuterWrapper, valNotes, placeholder);
+            const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, valNotes, placeholder, onEditNotes);
             btnEdit.style.right = "0px";
             btnEdit.style.top = "-20px";
-            easyMDE.codemirror.on("changes", () => { saveEmdChanges(); })
-            window["easyMDE"] = easyMDE;
+            // easyMDE.codemirror.on("changes", () => { saveEmdChanges(); })
+            // window["easyMDE"] = easyMDE;
         }
 
         const jmnodesShapes = mkElt("jmnodes");
