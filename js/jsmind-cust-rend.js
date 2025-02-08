@@ -463,10 +463,22 @@ export class CustomRenderer4jsMind {
         const divMDE = mkElt("div");
         const divDesc = mkElt("div", undefined, [pDesc, divMDE]);
         const root_node = this.THEjmDisplayed.get_root();
-        const valDescription = "dummy";
+        const initialDescription = "dummy";
         const placeholder = mkNodeNotesPlaceholder(root_node);
+
+        let toastMMdescEditor;
+        const onEdit = async (editor) => {
+            toastMMdescEditor = editor;
+            console.log({ toastEditor: toastMMdescEditor });
+            toastMMdescEditor.on("change", () => {
+                // console.log("toastEditor on change");
+                funCheckSave(true);
+            });
+        };
+
+
         // const { easyMDE, btnEdit } = await modToastUIhelpers.setupEasyMDEview(divMDE, valDescription, placeholder);
-        const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divMDE, valDescription, placeholder);
+        const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divMDE, initialDescription, placeholder, onEdit);
         btnEdit.style.right = "-4px";
         btnEdit.style.top = "-30px";
         // easyMDE.codemirror.on("changes", () => { saveEmdChanges(); });
@@ -614,7 +626,8 @@ export class CustomRenderer4jsMind {
             }
             rend.setMindmapGlobals(tempGlobals);
             rend.applyThisMindmapGlobals();
-            modMMhelpers.DBrequestSaveThisMindmap(rend.getJm());
+            // modMMhelpers.DBrequestSaveThisMindmap(rend.getJm());
+            this.requestSaveMindMap();
         }));
         btnTestMm.addEventListener("click", evt => {
             evt.stopPropagation();
@@ -713,6 +726,11 @@ export class CustomRenderer4jsMind {
         });
     }
 
+    // FIX-ME: use this!
+    requestSaveMindMap() {
+        const jmDisplayed = this.THEjmDisplayed;
+        modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed);
+    }
     async editNotesDialog(eltJmnode) {
         const jmDisplayed = this.THEjmDisplayed;
         const node_ID = jsMind.my_get_nodeID_from_DOM_element(eltJmnode);
@@ -737,17 +755,20 @@ export class CustomRenderer4jsMind {
         const placeholder = mkNodeNotesPlaceholder(node);
         // let retMkDialog;
         const objClose = {};
-        let toastEditor;
-        const onEdit = async (editor) => {
-            toastEditor = editor;
-            console.log({ toastEditor });
-            toastEditor.on("change", () => {
-                // console.log("toastEditor on change");
-                funCheckSave(true);
-            });
+        let toastNotesEditor;
+        const onEdit = (editor) => {
+            toastNotesEditor = editor;
+            console.log({ toastNotesEditor });
+            // toastNotesEditor.on("change", () => { funCheckSave(true); });
+            const funSave = (val) => {
+                // shapeEtc.notes = toastNotesEditor.getMarkdown().trimEnd();
+                shapeEtc.notes = val.trimEnd();
+                modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed);
+            }
+            return funSave;
         };
 
-        const { easyMDE, btnEdit } =
+        const { btnEdit } =
             await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, initialVal, placeholder, onEdit, objClose);
 
         setTimeout(async () => {
@@ -779,7 +800,7 @@ export class CustomRenderer4jsMind {
 
         function somethingToSaveNotes() {
             // return easyMDE.value().trimEnd() != initialVal;
-            return toastEditor.getMarkdown().trimEnd() != initialVal;
+            return toastNotesEditor.getMarkdown().trimEnd() != initialVal;
         }
         function getBtnSave() {
             if (btnSave) return btnSave;
@@ -796,23 +817,19 @@ export class CustomRenderer4jsMind {
             if (tof != "boolean") throw Error(`Expected boolean, got ${tof} disable:${disable}`);
             const btn = getBtnSave();
             if (!btn) return;
-            // btn.disabled = !somethingToSaveNotes();
             btn.disabled = disable
         }
-        function setStateBtnSaveable() {
-            setStateBtnSaveDisabled(!somethingToSaveNotes());
-        }
-        const debounceStateBtnSaveable = debounce(setStateBtnSaveable, 300);
-        function requestSetStateBtnSaveable() { debounceStateBtnSaveable(); }
+        // function setStateBtnSaveable() { setStateBtnSaveDisabled(!somethingToSaveNotes()); }
+        // const debounceStateBtnSaveable = debounce(setStateBtnSaveable, 300);
+        // function requestSetStateBtnSaveable() { debounceStateBtnSaveable(); }
         // requestSetStateBtnSaveable();
         // FIX-ME: move to mdc-util
         // setTimeout(() => setStateBtnSaveDisabled(true), 50);
 
         function funCheckSave(save) {
             if (!save) return somethingToSaveNotes();
-            shapeEtc.notes = toastEditor.getMarkdown().trimEnd();
-            // setTimeout(() => { modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed); }, 2000);
-            setTimeout(() => { modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed); }, 2000);
+            shapeEtc.notes = toastNotesEditor.getMarkdown().trimEnd();
+            modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed);
         }
         // const useConfirm = true;
         const useConfirm = false;
@@ -858,7 +875,7 @@ export class CustomRenderer4jsMind {
         }
         function saveEmdChanges() {
             // currentShapeEtc.notes = easyMDE.value().trimEnd();
-            currentShapeEtc.notes = toastNotesEditor.getMarkdown().trimEnd();
+            currentShapeEtc.notes = toastNotesInNodesEditor.getMarkdown().trimEnd();
             const changed = somethingToSaveNode();
             console.warn("saveEmdChanges", changed);
             requestSetStateBtnSave();
@@ -1163,15 +1180,15 @@ export class CustomRenderer4jsMind {
         ]);
         divNotesTab.style.gap = "30px";
 
-        let toastNotesEditor;
+        let toastNotesInNodesEditor;
         const onEditNotes = async (editor) => {
-            toastNotesEditor = editor;
-            console.log({ toastNotesEditor });
-            toastNotesEditor.on("change", () => {
+            toastNotesInNodesEditor = editor;
+            console.log({ toastNotesEditor: toastNotesInNodesEditor });
+            toastNotesInNodesEditor.on("change", () => {
                 // console.log("toastNotesEditor on change");
                 // funCheckSaveNotes(true);
                 // shapeEtc.notes = toastNotesEditor.getMarkdown().trimEnd();
-                currentShapeEtc.notes = toastNotesEditor.getMarkdown().trimEnd();
+                currentShapeEtc.notes = toastNotesInNodesEditor.getMarkdown().trimEnd();
                 requestSetStateBtnSave();
             });
         };
@@ -2581,56 +2598,59 @@ export class CustomRenderer4jsMind {
         const save = await modMdc.mkMDCdialogConfirm(body, "save", "cancel");
         console.log({ save });
         if (save) {
-            if (!somethingToSaveNode()) throw Error("Save button enabled but nothing to save?");
+            saveFromButton();
+            function saveFromButton() {
+                if (!somethingToSaveNode()) throw Error("Save button enabled but nothing to save?");
 
-            // FIX-ME: temp
-            const currTemp = currentShapeEtc.temp;
-            const initTemp = initialShapeEtc.temp;
-            delete currentShapeEtc.temp;
-            node_copied_data.shapeEtc = currentShapeEtc;
+                // FIX-ME: temp
+                const currTemp = currentShapeEtc.temp;
+                const initTemp = initialShapeEtc.temp;
+                delete currentShapeEtc.temp;
+                node_copied_data.shapeEtc = currentShapeEtc;
 
-            const sameTopic = currTemp.topic == initTemp.topic;
-            if (!sameTopic) {
-                this.THEjmDisplayed.update_node(node_ID_copied, currTemp.topic);
-            }
-
-            const sameW = currTemp.width == initTemp.width;
-            const sameH = currTemp.height == initTemp.height;
-            console.log({ currTemp, initTemp, sameW, sameH });
-            if (!sameW || !sameH) {
-                this.THEjmDisplayed.set_node_background_image(node_ID_copied, undefined, currTemp.width, currTemp.height);
-            }
-            console.log({ currTemp });
-
-            setTimeout(async () => {
-                console.log("setTimeout in save", { eltJmnode });
-                // FIX-ME: set size once again to trigger a reflow. (Bug in jsMind.)
-                this.THEjmDisplayed.set_node_background_image(node_ID_copied, undefined, currTemp.width, currTemp.height);
-                delete currTemp.width;
-                delete currTemp.height;
-                // await modJsEditCommon.fixJmnodeProblem(eltJmnode);
-                modJsEditCommon.applyNodeShapeEtc(node_copied, eltJmnode);
-                setTimeout(() => { modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed); }, 2000);
-
-                // FIX-ME: use lastElementChild instead???
-                // if (node_copied.data.fc4i) this.updateJmnodeFromCustom(eltJmnode);
-                const eltLast = eltJmnode.lastElementChild;
-                if (!eltLast) return;
-                const strCustom = eltLast.dataset.jsmindCustom;
-                if (strCustom) {
-                    this.updateJmnodeFromCustom(eltJmnode);
-                    // } else {
-                    // this.updateEltNodeLink(eltJmnode);
+                const sameTopic = currTemp.topic == initTemp.topic;
+                if (!sameTopic) {
+                    this.THEjmDisplayed.update_node(node_ID_copied, currTemp.topic);
                 }
-            }, 1100);
+
+                const sameW = currTemp.width == initTemp.width;
+                const sameH = currTemp.height == initTemp.height;
+                console.log({ currTemp, initTemp, sameW, sameH });
+                if (!sameW || !sameH) {
+                    this.THEjmDisplayed.set_node_background_image(node_ID_copied, undefined, currTemp.width, currTemp.height);
+                }
+                console.log({ currTemp });
+
+                setTimeout(async () => {
+                    console.log("setTimeout in save", { eltJmnode });
+                    // FIX-ME: set size once again to trigger a reflow. (Bug in jsMind.)
+                    this.THEjmDisplayed.set_node_background_image(node_ID_copied, undefined, currTemp.width, currTemp.height);
+                    delete currTemp.width;
+                    delete currTemp.height;
+                    // await modJsEditCommon.fixJmnodeProblem(eltJmnode);
+                    modJsEditCommon.applyNodeShapeEtc(node_copied, eltJmnode);
+                    modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed);
+
+                    // FIX-ME: use lastElementChild instead???
+                    // if (node_copied.data.fc4i) this.updateJmnodeFromCustom(eltJmnode);
+                    const eltLast = eltJmnode.lastElementChild;
+                    if (!eltLast) return;
+                    const strCustom = eltLast.dataset.jsmindCustom;
+                    if (strCustom) {
+                        this.updateJmnodeFromCustom(eltJmnode);
+                        // } else {
+                        // this.updateEltNodeLink(eltJmnode);
+                    }
+                }, 1100);
 
 
-            const sameFgColor = currTemp.fgColor == initTemp.fgColor;
-            const sameBgColor = currTemp.bgColor == initTemp.bgColor;
-            if (!sameFgColor || !sameBgColor) {
-                this.THEjmDisplayed.set_node_color(node_ID_copied, currTemp.bgColor, currTemp.fgColor);
+                const sameFgColor = currTemp.fgColor == initTemp.fgColor;
+                const sameBgColor = currTemp.bgColor == initTemp.bgColor;
+                if (!sameFgColor || !sameBgColor) {
+                    this.THEjmDisplayed.set_node_color(node_ID_copied, currTemp.bgColor, currTemp.fgColor);
+                }
+
             }
-
         }
     }
     /*
