@@ -1184,6 +1184,7 @@ export class CustomRenderer4jsMind {
         const onEditNotes = async (editor) => {
             toastNotesInNodesEditor = editor;
             console.log({ toastNotesEditor: toastNotesInNodesEditor });
+            /*
             toastNotesInNodesEditor.on("change", () => {
                 // console.log("toastNotesEditor on change");
                 // funCheckSaveNotes(true);
@@ -1191,6 +1192,16 @@ export class CustomRenderer4jsMind {
                 currentShapeEtc.notes = toastNotesInNodesEditor.getMarkdown().trimEnd();
                 requestSetStateBtnSave();
             });
+            */
+            const funSave = (val) => {
+                // shapeEtc.notes = toastNotesEditor.getMarkdown().trimEnd();
+                // shapeEtc.notes = val.trimEnd();
+                currentShapeEtc.notes = val.trimEnd();
+                // modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed);
+                requestSetStateBtnSave();
+            }
+            return funSave;
+
         };
 
 
