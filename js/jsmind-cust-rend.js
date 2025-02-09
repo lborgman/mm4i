@@ -2609,8 +2609,7 @@ export class CustomRenderer4jsMind {
         const save = await modMdc.mkMDCdialogConfirm(body, "save", "cancel");
         console.log({ save });
         if (save) {
-            saveFromButton();
-            function saveFromButton() {
+            const saveFromButton = () => {
                 if (!somethingToSaveNode()) throw Error("Save button enabled but nothing to save?");
 
                 // FIX-ME: temp
@@ -2662,6 +2661,7 @@ export class CustomRenderer4jsMind {
                 }
 
             }
+            saveFromButton();
         }
     }
     /*
