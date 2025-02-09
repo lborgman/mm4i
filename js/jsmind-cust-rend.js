@@ -463,22 +463,36 @@ export class CustomRenderer4jsMind {
         const divMDE = mkElt("div");
         const divDesc = mkElt("div", undefined, [pDesc, divMDE]);
         const root_node = this.THEjmDisplayed.get_root();
-        const initialDescription = "dummy";
+        const initialDescription = root_node.data.shapeEtc.notes;
+        let currentDescription = initialDescription;
         const placeholder = mkNodeNotesPlaceholder(root_node);
 
         let toastMMdescEditor;
-        const onEdit = async (editor) => {
+        const onEditMMdesc = async (editor) => {
             toastMMdescEditor = editor;
-            console.log({ toastEditor: toastMMdescEditor });
+            console.log({ toastMMdescEditor });
+            /*
             toastMMdescEditor.on("change", () => {
                 // console.log("toastEditor on change");
                 funCheckSave(true);
             });
+            */
+
+            const funSave = (val) => {
+                console.log({ root_node });
+                // currentShapeEtc.notes = val.trimEnd();
+                // root_node.data.shapeEtc.notes = val.trimEnd();
+                currentDescription = val.trimEnd();
+                // modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed);
+                // requestSetStateBtnSave();
+                funDebounceSomethingToSaveMm();
+            }
+            return funSave;
         };
 
 
         // const { easyMDE, btnEdit } = await modToastUIhelpers.setupEasyMDEview(divMDE, valDescription, placeholder);
-        const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divMDE, initialDescription, placeholder, onEdit);
+        const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divMDE, initialDescription, placeholder, onEditMMdesc);
         btnEdit.style.right = "-4px";
         btnEdit.style.top = "-30px";
         // easyMDE.codemirror.on("changes", () => { saveEmdChanges(); });
@@ -608,8 +622,8 @@ export class CustomRenderer4jsMind {
 
         const btnTestMm = modMdc.mkMDCdialogButton("Test", "test");
         const btnSaveMm = modMdc.mkMDCdialogButton("Save", "save", true);
-        const btnCancel = modMdc.mkMDCdialogButton("Cancel", "close");
-        const eltActions = modMdc.mkMDCdialogActions([btnTestMm, btnSaveMm, btnCancel]);
+        const btnCancelMm = modMdc.mkMDCdialogButton("Cancel", "close");
+        const eltActions = modMdc.mkMDCdialogActions([btnTestMm, btnSaveMm, btnCancelMm]);
         const dlg = await modMdc.mkMDCdialog(body, eltActions);
         const somethingHasChangedLines = () => {
             if (!initialLineValues) return false;
@@ -617,6 +631,9 @@ export class CustomRenderer4jsMind {
             return JSON.stringify(initialLineValues) != JSON.stringify(currentLineValues);
         }
         btnSaveMm.addEventListener("click", errorHandlerAsyncEvent(async () => {
+            if (initialDescription != currentDescription) {
+                root_node.data.shapeEtc.notes = currentDescription;
+            }
             // const saveGlobals = { themeCls: selectedThemeCls, }
             // const r = await getOurCustomRenderer();
             // rend.setMindmapGlobals(saveGlobals);
@@ -673,6 +690,8 @@ export class CustomRenderer4jsMind {
         });
 
         function somethingToSaveMm() {
+            // if (initialDescription != root_node.data.shapeEtc.notes) return true;
+            if (initialDescription != currentDescription) return true;
             // if (selectedThemeCls != oldThemeCls) return true;
             tempGlobals = {
                 themeCls: selectedThemeCls,
@@ -1184,24 +1203,12 @@ export class CustomRenderer4jsMind {
         const onEditNotes = async (editor) => {
             toastNotesInNodesEditor = editor;
             console.log({ toastNotesEditor: toastNotesInNodesEditor });
-            /*
-            toastNotesInNodesEditor.on("change", () => {
-                // console.log("toastNotesEditor on change");
-                // funCheckSaveNotes(true);
-                // shapeEtc.notes = toastNotesEditor.getMarkdown().trimEnd();
-                currentShapeEtc.notes = toastNotesInNodesEditor.getMarkdown().trimEnd();
-                requestSetStateBtnSave();
-            });
-            */
             const funSave = (val) => {
-                // shapeEtc.notes = toastNotesEditor.getMarkdown().trimEnd();
-                // shapeEtc.notes = val.trimEnd();
                 currentShapeEtc.notes = val.trimEnd();
                 // modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed);
                 requestSetStateBtnSave();
             }
             return funSave;
-
         };
 
 

@@ -283,7 +283,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
 
                 console.log("%ctoastEditor, change", "background-color:blue", inWhatMode, { needSave });
                 if (needSave) {
-                    debugger;
+                    // debugger;
                     // funSave, onEdit
                     callersSaveFun(currentValue);
                     divEditor.dataset.latestSaved = encodeURIComponent(currentValue);
