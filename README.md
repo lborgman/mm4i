@@ -16,15 +16,14 @@ And then, preferably the computer I always bring with me, my mobile.
 
 
 ## Acknowledgement
-
+[Zhigang Zhang](https://github.com/hizzgdev)
 * [jsmind](https://www.npmjs.com/package/jsmind)
 * [jssm](https://www.npmjs.com/package/jssm)
     * [jssm-viz](https://www.npmjs.com/package/jssm-viz)
     * [viz-js](https://www.npmjs.com/package/@viz-js/viz)
 * [TOAST UI Editor](https://github.com/nhn/tui.editor/blob/master/README.md)
-
-Visual Studio Code
-GitHub
+* [Visual Studio Code](https://code.visualstudio.com/)
+* [GitHub](https://github.com/)
 
 ## Dev
 * [mobile display bug example](https://lborgman.github.io/mm4i/mobile-disp-bug.html)
