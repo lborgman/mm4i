@@ -22,7 +22,7 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
         // "mod3d-force-graph": "https://unpkg.com/3d-force-graph",
 
         "acc-colors": "./js/mod/acc-colors.js",
-        "color-converter": "./js/mod/color-converter.js",
+        "color-tools": "./js/mod/color-tools.js",
         "d3": "./ext/d3/d3.v7.js",
         "db-mindmaps": "./js/db-mindmaps.js",
         "db-fc4i": "./js/db-fc4i.js",

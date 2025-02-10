@@ -18,7 +18,7 @@ const wait4mutations = modTools.wait4mutations;
 // FIX-ME: clean up
 const modMMhelpers = await importFc4i("mindmap-helpers");
 const modMdc = await importFc4i("util-mdc");
-const modColorConverter = await importFc4i("color-converter");
+const modColorTools = await importFc4i("color-tools");
 // const modEasyMDEhelpers = await importFc4i("easyMDE-helpers");
 const modToastUIhelpers = await importFc4i("toast-ui-helpers");
 
@@ -423,11 +423,11 @@ export class CustomRenderer4jsMind {
         async function initBgMmTab() {
             if (bgTabInitialized) return;
             bgTabInitialized = true;
-            const modColorConverter = await importFc4i("color-converter");
+            const modColorTools = await importFc4i("color-tools");
             const s = getComputedStyle(eltJmnodes.closest(".jsmind-inner"));
-            const hex = modColorConverter.toHex6(s.backgroundColor);
+            const hex = modColorTools.toHex6(s.backgroundColor);
             inpBgMmColor.value = hex;
-            const arrRgba = modColorConverter.toRgbaArr(s.backgroundColor);
+            const arrRgba = modColorTools.toRgbaArr(s.backgroundColor);
             const opacity = arrRgba[3] / 255;
             const funChange = () => {
                 console.log("change op");
@@ -578,7 +578,7 @@ export class CustomRenderer4jsMind {
             inpChkChangeLines.checked = old_line;
             const line_width = old_line_width || defaultLineW;
             const line_color = old_line_color || defaultLineC;
-            inpLineColor.value = modColorConverter.toHex6(line_color);
+            inpLineColor.value = modColorTools.toHex6(line_color);
             sliLineWidth["myMdc"].setValue(line_width);
             divPreviewLine.style.height = `${line_width}px`;
             divPreviewLine.style.backgroundColor = line_color;
@@ -699,19 +699,19 @@ export class CustomRenderer4jsMind {
             // const inpBgEnabled = oldGlobals?.backgroundCss != undefined;
             if (inpUseBgMm.checked) {
                 console.log({ inpBgMmColor }, inpBgMmColor.value);
-                console.log({ modColorConverter });
-                const arr = modColorConverter.toRgbaArr(inpBgMmColor.value);
+                console.log({ modColorConverter: modColorTools });
+                const arr = modColorTools.toRgbaArr(inpBgMmColor.value);
                 const opRaw = sliBgMmOpacity["myMdc"].getInput().value;
                 const op = Math.round(opRaw / 100 * 255);
                 arr[3] = op;
 
-                const bgColor = modColorConverter.arrToRgba(arr);
+                const bgColor = modColorTools.arrToRgba(arr);
                 const bgCss = `background-color: ${bgColor}`;
                 tempGlobals.backgroundCss = bgCss;
             } else {
             }
             if (inpChkChangeLines.checked) {
-                tempGlobals.line_color = modColorConverter.toRgba(inpLineColor.value);
+                tempGlobals.line_color = modColorTools.toRgba(inpLineColor.value);
                 tempGlobals.line_width = sliLineWidth["myMdc"].getValue();
             }
             if (JSON.stringify(tempGlobals) != JSON.stringify(oldGlobals)) return true;
