@@ -874,11 +874,11 @@ export class CustomRenderer4jsMind {
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
         const modIsDisplayed = await importFc4i("is-displayed");
         const clipImage = {};
-        const jmDisplayed = this.THEjmDisplayed;
-        const node_ID = jsMind.my_get_nodeID_from_DOM_element(eltJmnode);
-        const node = jmDisplayed.get_node(node_ID)
-        const node_data = node.data;
-        const shapeEtc = node_data.shapeEtc || {};
+        // const jmDisplayed = this.THEjmDisplayed;
+        // const node_ID = jsMind.my_get_nodeID_from_DOM_element(eltJmnode);
+        // const node = jmDisplayed.get_node(node_ID)
+        // const node_data = node.data;
+        // const shapeEtc = node_data.shapeEtc || {};
 
         function somethingToSaveNode() {
             return JSON.stringify(initialShapeEtc) != JSON.stringify(currentShapeEtc);
@@ -975,15 +975,19 @@ export class CustomRenderer4jsMind {
         // FIX-ME: MindmapGlobals
         // if (themeClass) jmnodesCopied.classList.add(themeClass);
         const origJmnodes = eltJmnode.closest("jmnodes");
-        const origJmnodesStyle = getComputedStyle(origJmnodes);
-        const origJmnodesParentStyle = getComputedStyle(origJmnodes.parentElement);
+        // const origJmnodesStyle = getComputedStyle(origJmnodes);
+        // const origJmnodesParentStyle = getComputedStyle(origJmnodes.parentElement);
+        const bcrJmnode = eltJmnode.getBoundingClientRect();
+        const ourBgColor = modColorTools.getBackgroundColorAtPoint(bcrJmnode.x, bcrJmnode.y, origJmnodes);
 
         const themeCls = getJsmindTheme(origJmnodes)
         jmnodesCopied.classList.add(themeCls);
 
         const divEdnodeCopied = mkElt("div", { class: "mdc-card" }, [jmnodesCopied]);
-        jmnodesCopied.style.backgroundColor = origJmnodesStyle.backgroundColor;
-        divEdnodeCopied.style.backgroundColor = origJmnodesParentStyle.backgroundColor;
+        // jmnodesCopied.style.backgroundColor = origJmnodesStyle.backgroundColor;
+        jmnodesCopied.style.backgroundColor = ourBgColor;
+        // divEdnodeCopied.style.backgroundColor = origJmnodesParentStyle.backgroundColor;
+        divEdnodeCopied.style.backgroundColor = ourBgColor;
 
         const paddingDivEdnodeCopied = 8;
         divEdnodeCopied.style.position = "relative";
@@ -1256,9 +1260,11 @@ export class CustomRenderer4jsMind {
         const scaleCopies = desiredW / origW;
 
         const formShapes = mkElt("form", undefined, jmnodesShapes);
-        formShapes.style.backgroundColor = origJmnodesParentStyle.backgroundColor;
+        // formShapes.style.backgroundColor = origJmnodesParentStyle.backgroundColor;
+        formShapes.style.backgroundColor = ourBgColor;
         const divShapes = mkElt("div", { id: "jsmind-ednode-shape" });
-        divShapes.style.backgroundColor = origJmnodesStyle.backgroundColor;
+        // divShapes.style.backgroundColor = origJmnodesStyle.backgroundColor;
+        divShapes.style.backgroundColor = ourBgColor;
 
         /*
         const arrCopiedChildren = [...eltCopied.querySelectorAll("jmnode>[class|=jsmind-custom-image]")];
