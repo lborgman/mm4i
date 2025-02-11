@@ -3,13 +3,23 @@
 Mindmaps in your web browser. So you can use it in your mobile phone. Or in your desktop computer.
 
 MM4I (Mindmaps 4 Internet) offers that. 
-You can start it [here](https://lborgman.github.io/mm4i/mm4i.html) for that.
+You can start it [here](https://lborgman.github.io/mm4i/mm4i.html).
 No installation required. Since it is a web page.
 
 The mindmaps you create are stored in your web browser on your computer or mobile.
-But at the moment you still have to be connected to the Internet since MM4I is loaded from the its 
+(But you still have to be connected to the Internet since MM4I is loaded from the its 
 sources every time you start it.
-(I will change that when I believe it is the right time to do it.)
+I will change that soon so you can use MM4I when you are offline.)
+
+
+## Usage
+I believe there is not much to explain.
+MM4I behaves like most apps with a graphical interface.
+You can drag nodes around.
+You can double click on a node to change color, form, description, etc.
+
+If you think something needs to be explained then please tell me 
+[here](https://github.com/lborgman/mm4i/issues).
 
 
 ## Background
