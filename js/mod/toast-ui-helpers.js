@@ -103,7 +103,16 @@ async function dialogInsertSearch(editor) {
         }
         */
     };
-    await modMdc.mkMDCdialogConfirm(body, titleSave, "cancel", funCheckSave);
+    const answer = await modMdc.mkMDCdialogConfirm(body, titleSave, "cancel", funCheckSave);
+    if (!answer) {
+        return;
+    }
+    if (inpSearch.value.trim() == "") return;
+    if (inpTitle.value.trim() == "") return;
+    console.log({editor});
+    debugger;
+    const [start, end] = editor.getSelection();
+    editor.replaceSelection("my text", start, end);
 }
 
 /** 
@@ -130,6 +139,23 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
     divEditor.innerHTML = "";
     divEditor.dataset.latestSaved = encodeURIComponent(valueInitial);
 
+    // FIX-ME: move to mm4i file:
+    const mm4iRenderer = {
+        link(node, context) {
+            const { origin, entering } = context;
+            const url = node.destination;
+            console.log("mm4iRenderer link", url, context, node);
+
+            const result = origin();
+            if (!entering || url != "4") { return result; }
+            result.attributes.class = "BAD2";
+            result.attributes.style = "color:red;";
+            // result.attributes.href = null;
+            delete result.attributes.href;
+            return result;
+        }
+    }
+
     const toastViewer = new modToastUI.Editor.factory({
         viewer: true,
         // el: ourElt,
@@ -137,6 +163,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
         initialValue: valueInitial,
         previewStyle: "none",
         initialEditType: "WYSIWYG",
+        customHTMLRenderer: mm4iRenderer,
         usageStatistics: false,
     });
 
