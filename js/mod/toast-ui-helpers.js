@@ -103,16 +103,21 @@ async function dialogInsertSearch(editor) {
         }
         */
     };
+    // FIX-ME: save button
+    // FIX-ME: preview search
     const answer = await modMdc.mkMDCdialogConfirm(body, titleSave, "cancel", funCheckSave);
     if (!answer) {
         return;
     }
-    if (inpSearch.value.trim() == "") return;
-    if (inpTitle.value.trim() == "") return;
-    console.log({ editor });
-    debugger;
+    const title = inpTitle.value.trim();
+    if (title == "") return;
+    const search = inpSearch.value.trim();
+    if (search == "") return;
+    // console.log({ editor });
+    // debugger;
     const [start, end] = editor.getSelection();
-    editor.replaceSelection("my text", start, end);
+    const marker = `[${title}](mm4i-search:${search})`;
+    editor.replaceSelection(marker, start, end);
 }
 
 /** 
@@ -148,7 +153,8 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
 
             const result = origin();
             // return result;
-            if (url != "4") { return result; }
+            // if (url != "4") { return result; }
+            if (!url.startsWith("mm4i-search:")) { return result; }
             result.tagName = "span";
             if (entering) {
                 result.classNames = ["toastui-alfa-link"];
@@ -169,7 +175,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
 
         // FIX-ME:
         // const valAlfa = target.dataset.alfaLink;
-        const valAlfa = target.getAttribute("href");
+        const valAlfa = target.getAttribute("href")?.slice(12);
 
         console.log("clicked alfa-link:", { valAlfa }, target);
         searchNodeParams.eltJsMindContainer.classList.add("display-jsmind-search");
@@ -179,12 +185,10 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
         const nHits = resSearch.length;
         console.log({ resSearch, nHits });
 
-        startAlfaPreview();
-
         const dialogContainer = divEditor.closest(".mdc-dialog__container");
         const dcs = dialogContainer.style;
-
         const spanPreviewCounter = mkElt("span");
+
         const eltPreviewNotice = mkElt("span", undefined, ["Close preview ", spanPreviewCounter]);
         eltPreviewNotice.addEventListener("click", evt => {
             evt.stopImmediatePropagation();
@@ -220,8 +224,8 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
         let countPreview = secPreview;
         let intervalPreview;
         let timeoutPreview;
-        const updatePreviewCounter = () => { spanPreviewCounter.textContent = `${countPreview} sec`; }
-        function startAlfaPreview () {
+        function updatePreviewCounter() { spanPreviewCounter.textContent = `${countPreview} sec`; }
+        function startAlfaPreview() {
             dcs.transitionProperty = "opacity";
             dcs.transitionDuration = "1s";
             dcs.opacity = 0;
@@ -273,6 +277,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
 
         });
 
+        startAlfaPreview();
     });
 
 
@@ -433,7 +438,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
                 const currentValue = toastEditor.getMarkdown();
                 const needSave = latestSaved != currentValue;
 
-                console.log("%ctoastEditor, change", "background-color:blue", inWhatMode, { needSave });
+                // console.log("%ctoastEditor, change", "background-color:blue", inWhatMode, { needSave });
                 if (needSave) {
                     // debugger;
                     // funSave, onEdit
@@ -483,7 +488,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
             function getCursorPosition() {
                 const st = "background:green;";
                 const sel = toastEditor.getSelection(); // Get the selection from the WYSIWYG editor
-                console.log("%cgetCursorPosition", st, { sel });
+                // console.log("%cgetCursorPosition", st, { sel });
                 if (!Array.isArray(sel)) throw Error("Expected array");
                 const lenSel = sel.length;
                 if (lenSel != 2) throw Error(`Expected length == 2, got ${lenSel}`);
@@ -502,14 +507,14 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
                 } else {
                     cursorPosition = sel0;
                 }
-                console.log("%cGCP", st, { cursorPosition });
+                // console.log("%cGCP", st, { cursorPosition });
                 if (isNaN(cursorPosition)) throw "savedCursorPosition is not number";
                 return cursorPosition;
             }
 
             async function restoreCursorPosition() {
                 const st = "background:red;";
-                console.log("%crestoreCursorPosition", st, { savedCursorPosition });
+                // console.log("%crestoreCursorPosition", st, { savedCursorPosition });
                 if (!savedCursorPosition) return;
                 if (isNaN(savedCursorPosition)) throw "savedCursorPosition is not number";
                 modTools.waitSeconds(1);
@@ -542,12 +547,12 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
             }
 
             toastEditor.on('changeMode', (newMode) => {
-                console.log("changeMode", newMode);
+                // console.log("changeMode", newMode);
                 const oldMode = newMode == "markdown" ? "wysiwyg" : "markdown";
                 const currentEditor = newMode == "markdown" ? toastEditor.wwEditor : toastEditor.mdEditor;
                 saveCursorPosition(currentEditor, oldMode);
 
-                console.log("changeMode", { savedCursorPosition });
+                // console.log("changeMode", { savedCursorPosition });
                 setTimeout(() => {
                     restoreCursorPosition();
                 }, 1000);
@@ -565,6 +570,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
 }
 
 
+/*
 let origEasyMDEmarkdown;
 async function saveOrigMarkdown() {
     if (origEasyMDEmarkdown) return;
@@ -572,6 +578,7 @@ async function saveOrigMarkdown() {
     const EasyMDE = window["EasyMDE"];
     origEasyMDEmarkdown = EasyMDE.prototype.markdown;
 }
+*/
 
 /**
  * 
@@ -680,4 +687,58 @@ function getAlfaAtCursor(contentMarkdown, startSel, endSel) {
         }
     }
     return;
+}
+
+function isMarkdownPos(pos) {
+    if (!Array.isArray(pos)) return false;
+    if (pos.length != 2) return false;
+    const pos0 = pos[0];
+    const pos1 = pos[1];
+    if (!Number.isInteger(pos0)) return false;
+    if (!Number.isInteger(pos1)) return false;
+    if (pos0 < 0) return false;
+    if (pos1 < 0) return false;
+    return true;
+}
+function isWysiwygPos(pos) {
+    if (!Number.isInteger(pos)) return false;
+    if (pos < 0) return false;
+    return true;
+}
+export function toWysiwygPos(editor, markdownPos) {
+    if (!isMarkdownPos(markdownPos)) {
+        console.error("Not a markdown pos", markdownPos);
+        throw Error(`Not a markdown pos: ${markdownPos}`);
+    }
+    const markdown = editor.getMarkdown();
+    const lineNo = markdownPos[0];
+    const chLinePos = markdownPos[1];
+    const lines = markdown.split("\n");
+    let lineChars = 0;
+    for (let i = 0; i < lineNo - 1; i++) {
+        lineChars += lines[i].length + 1;
+    }
+    return lineChars + chLinePos;
+}
+export function toMarkdownPos(editor, wysiwygPos) {
+    if (!isWysiwygPos(wysiwygPos)) {
+        console.error("Not a wysiwyg pos", wysiwygPos);
+        throw Error(`Not a wysiwyg pos: ${wysiwygPos}`);
+    }
+    const markdown = editor.getMarkdown();
+    const lines = markdown.split("\n");
+    let pos = 0;
+    let iLine = 0;
+    let lineNo, chPos;
+    const len = lines.length;
+    for (; iLine < len; iLine++) {
+        const nextPos = pos + lines[iLine].length + 1;
+        if (nextPos > wysiwygPos) {
+            lineNo = iLine + 1;
+            chPos = wysiwygPos - pos;
+            break;
+        }
+        pos = nextPos;
+    }
+    return [lineNo, chPos];
 }
