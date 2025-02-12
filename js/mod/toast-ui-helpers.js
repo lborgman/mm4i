@@ -109,7 +109,7 @@ async function dialogInsertSearch(editor) {
     }
     if (inpSearch.value.trim() == "") return;
     if (inpTitle.value.trim() == "") return;
-    console.log({editor});
+    console.log({ editor });
     debugger;
     const [start, end] = editor.getSelection();
     editor.replaceSelection("my text", start, end);
@@ -147,14 +147,134 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
             console.log("mm4iRenderer link", url, context, node);
 
             const result = origin();
-            if (!entering || url != "4") { return result; }
-            result.attributes.class = "BAD2";
-            result.attributes.style = "color:red;";
-            // result.attributes.href = null;
-            delete result.attributes.href;
+            // return result;
+            if (url != "4") { return result; }
+            result.tagName = "span";
+            if (entering) {
+                result.classNames = ["toastui-alfa-link"];
+                // result.attributes.style = "color:red;";
+                // result.attributes.href = null;
+                // delete result.attributes.href;
+            }
             return result;
         }
     }
+
+    divEditor.addEventListener("click", async evt => {
+        if (!evt.target) return;
+        const target =/** @type {HTMLSpanElement} */ (evt.target);
+        if (target.tagName != "SPAN") return;
+        const isAlfaLink = target.classList.contains("toastui-alfa-link");
+        if (!isAlfaLink) return;
+
+        // FIX-ME:
+        // const valAlfa = target.dataset.alfaLink;
+        const valAlfa = target.getAttribute("href");
+
+        console.log("clicked alfa-link:", { valAlfa }, target);
+        searchNodeParams.eltJsMindContainer.classList.add("display-jsmind-search");
+
+        searchNodeParams.inpSearch.value = valAlfa;
+        const resSearch = searchNodeParams.searchNodeFun(valAlfa);
+        const nHits = resSearch.length;
+        console.log({ resSearch, nHits });
+
+        startAlfaPreview();
+
+        const dialogContainer = divEditor.closest(".mdc-dialog__container");
+        const dcs = dialogContainer.style;
+
+        const spanPreviewCounter = mkElt("span");
+        const eltPreviewNotice = mkElt("span", undefined, ["Close preview ", spanPreviewCounter]);
+        eltPreviewNotice.addEventListener("click", evt => {
+            evt.stopImmediatePropagation();
+            stopAlfaPreview();
+        });
+        eltPreviewNotice.title = "Close preview";
+        // @ts-ignore
+        eltPreviewNotice.style = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: yellow;
+            padding: 4px;
+            color: black;
+            border: 1px solid black;
+            border-radius: 4px;
+            box-shadow: 3px 2px 8px 2px #000000;
+            cursor: pointer;
+        `;
+        const eltPreviewShield = mkElt("div", undefined, eltPreviewNotice);
+        // @ts-ignore
+        eltPreviewShield.style = `
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            bottom: 0px;
+            right: 0px;
+            z-index: 9999;
+            background-color: rgba(255,255,0,0.2);
+            pointer-events: auto;
+        `;
+        const secPreview = 8;
+        let countPreview = secPreview;
+        let intervalPreview;
+        let timeoutPreview;
+        const updatePreviewCounter = () => { spanPreviewCounter.textContent = `${countPreview} sec`; }
+        function startAlfaPreview () {
+            dcs.transitionProperty = "opacity";
+            dcs.transitionDuration = "1s";
+            dcs.opacity = 0;
+            updatePreviewCounter();
+            document.body.appendChild(eltPreviewShield);
+            intervalPreview = setInterval(() => {
+                countPreview--;
+                updatePreviewCounter();
+            }, 1000);
+            timeoutPreview = setTimeout(() => { stopAlfaPreview(); }, secPreview * 1000);
+        }
+        const stopAlfaPreview = () => {
+            dcs.opacity = 1;
+            eltPreviewShield.remove();
+            clearInterval(intervalPreview);
+            clearTimeout(timeoutPreview);
+        }
+        eltPreviewShield.addEventListener("click", evt => {
+            console.log("clicked preview, objInit", objInit);
+            stopAlfaPreview();
+
+            const funClose = objInit.data.funClose;
+            console.log("funClose", funClose);
+            if (funClose) funClose();
+            const target = evt.target;
+            console.log("shield target", target);
+            if (!target) throw Error("target is null");
+            target.style.pointerEvents = 'none'; // Temporarily disable pointer events
+            let eltFromPoint = document.elementFromPoint(evt.clientX, evt.clientY);
+            if (!eltFromPoint) throw Error(`eltFromPoint is null`);
+            // console.log("eltFromPoint", eltFromPoint, eltFromPoint.click);
+            if (eltFromPoint.classList.contains("mdc-dialog__scrim")) {
+                eltFromPoint.style.display = "none";
+                eltFromPoint = document.elementFromPoint(evt.clientX, evt.clientY);
+                if (!eltFromPoint) throw Error(`eltFromPoint is null`);
+                // console.log("eltFromPoint 2", eltFromPoint);
+            }
+            if (eltFromPoint.classList.contains("mdc-dialog")) {
+                eltFromPoint.style.display = "none";
+                eltFromPoint = document.elementFromPoint(evt.clientX, evt.clientY);
+                if (!eltFromPoint) throw Error(`eltFromPoint is null`);
+                // console.log("eltFromPoint 3", eltFromPoint);
+            }
+
+            setTimeout(() => {
+                eltFromPoint.click(); // Trigger click on the background element
+                target.style.pointerEvents = 'auto'; // Re-enable pointer events
+            }, 1000);
+
+        });
+
+    });
+
 
     const toastViewer = new modToastUI.Editor.factory({
         viewer: true,
@@ -211,6 +331,11 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
             .cm-alfa-after {
                 color: green;
                 text-decoration: underline;
+            }
+            .toastui-alfa-link {
+                color: green;
+                text-decoration: underline;
+                cursor: pointer;
             }
         `;
         document.head.append(eltStyle);
