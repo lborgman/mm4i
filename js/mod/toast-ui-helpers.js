@@ -125,16 +125,19 @@ async function dialogInsertSearch(editor) {
  * 
  */
 /**
- * @callback onEditFun
+ * @callback FunctionOnEdit
  * @param {Object} toastEditor
  * @returns {saveFun}
 */
+
+let lastMDgetCursorPosition; // debugging
+
 /**
  * 
  * @param {HTMLDivElement} divEditor 
  * @param {string} valueInitial 
  * @param {string} valuePlaceholder 
- * @param {onEditFun} onEdit
+ * @param {FunctionOnEdit} onEdit
  * @param {Object|undefined} objInit;
  * @returns 
  */
@@ -149,7 +152,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
         link(node, context) {
             const { origin, entering } = context;
             const url = node.destination;
-            console.log("mm4iRenderer link", url, context, node);
+            // console.log("mm4iRenderer link", url, context, node);
 
             const result = origin();
             // return result;
@@ -186,6 +189,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
         console.log({ resSearch, nHits });
 
         const dialogContainer = divEditor.closest(".mdc-dialog__container");
+        // @ts-ignore
         const dcs = dialogContainer.style;
         const spanPreviewCounter = mkElt("span");
 
@@ -254,18 +258,19 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
             console.log("shield target", target);
             if (!target) throw Error("target is null");
             target.style.pointerEvents = 'none'; // Temporarily disable pointer events
-            let eltFromPoint = document.elementFromPoint(evt.clientX, evt.clientY);
+            let eltFromPoint = /** @type {HTMLElement|null} */ (document.elementFromPoint(evt.clientX, evt.clientY));
             if (!eltFromPoint) throw Error(`eltFromPoint is null`);
             // console.log("eltFromPoint", eltFromPoint, eltFromPoint.click);
             if (eltFromPoint.classList.contains("mdc-dialog__scrim")) {
+                // x@ts-ignor
                 eltFromPoint.style.display = "none";
-                eltFromPoint = document.elementFromPoint(evt.clientX, evt.clientY);
+                eltFromPoint = /** @type {HTMLElement|null} */ (document.elementFromPoint(evt.clientX, evt.clientY));
                 if (!eltFromPoint) throw Error(`eltFromPoint is null`);
                 // console.log("eltFromPoint 2", eltFromPoint);
             }
             if (eltFromPoint.classList.contains("mdc-dialog")) {
                 eltFromPoint.style.display = "none";
-                eltFromPoint = document.elementFromPoint(evt.clientX, evt.clientY);
+                eltFromPoint = /** @type {HTMLElement|null} */ (document.elementFromPoint(evt.clientX, evt.clientY));
                 if (!eltFromPoint) throw Error(`eltFromPoint is null`);
                 // console.log("eltFromPoint 3", eltFromPoint);
             }
@@ -429,7 +434,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
                 },
                 */
             });
-            toastEditor.on("change", (inWhatMode) => {
+            toastEditor.on("change", () => {
                 // debugger;
                 // get latest value
                 // divEditor.dataset.latestSaved = encodeURIComponent(valueInitial);
@@ -446,17 +451,21 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
                     divEditor.dataset.latestSaved = encodeURIComponent(currentValue);
                 }
             });
-            async function handleCursorChangeWW(evt) {
-                console.log('WW handleCursorChange', evt);
+            async function handleCursorChangeWW(_evt) {
+                // console.log('WW handleCursorChange', evt);
                 modTools.waitSeconds(1);
-                const pos = getCursorPosition();
-                console.log("WW", { pos });
+                const pos = getCursorPosition(toastEditor);
+                // console.log("WW", { pos });
+                savedCursorPosition = pos;
+                console.log('WW handleCursorChange', { savedCursorPosition });
             }
-            async function handleCursorChangeMD(evt) {
-                console.log('MD handleCursorChange', evt);
+            async function handleCursorChangeMD(_evt) {
+                // console.log('MD handleCursorChange', evt);
                 modTools.waitSeconds(1);
-                const pos = getCursorPosition();
-                console.log("MD", { pos });
+                const pos = getCursorPosition(toastEditor);
+                // console.log("MD", { pos });
+                savedCursorPosition = pos;
+                console.log('MD handleCursorChange', { savedCursorPosition });
             }
             const elts = toastEditor.getEditorElements();
             const eltMD = elts.mdEditor;
@@ -475,82 +484,34 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
              * Suggested by Deep Seek.
             */
 
-            let savedCursorPosition = 0;
+            let savedCursorPosition = 1;
             const callersSaveFun = await onEdit(toastEditor);
             const tofSaveFun = typeof callersSaveFun;
             if (tofSaveFun != "function") throw Error(`onEdit(...) returned type "${tofSaveFun}", expeced "function"`);
             const lenSaveFun = callersSaveFun.length;
             if (lenSaveFun != 1) throw Error(`Function return by onEdit(...) takes ${lenSaveFun} parameters, expected 1`);
 
-            function saveCursorPosition(currentEditor, oldMode) {
-                savedCursorPosition = getCursorPosition();
-            }
-            function getCursorPosition() {
-                const st = "background:green;";
-                const sel = toastEditor.getSelection(); // Get the selection from the WYSIWYG editor
-                // console.log("%cgetCursorPosition", st, { sel });
-                if (!Array.isArray(sel)) throw Error("Expected array");
-                const lenSel = sel.length;
-                if (lenSel != 2) throw Error(`Expected length == 2, got ${lenSel}`);
-                const sel0 = sel[0];
-                let cursorPosition;
-                if (Array.isArray(sel0)) {
-                    const startLine = sel0[0];
-                    const startCh = sel0[1];
-                    const markdown = toastEditor.getMarkdown();
-                    const lines = markdown.split("\n");
-                    let pos = startCh;
-                    for (let i = 0; i < startLine - 1; i++) {
-                        pos += lines[i].length + 1;
-                    }
-                    cursorPosition = pos;
-                } else {
-                    cursorPosition = sel0;
-                }
-                // console.log("%cGCP", st, { cursorPosition });
-                if (isNaN(cursorPosition)) throw "savedCursorPosition is not number";
-                return cursorPosition;
-            }
+            // function saveCursorPosition() { savedCursorPosition = getCursorPosition(); }
 
             async function restoreCursorPosition() {
                 const st = "background:red;";
-                // console.log("%crestoreCursorPosition", st, { savedCursorPosition });
-                if (!savedCursorPosition) return;
+                console.log("%crestoreCursorPosition", st, { savedCursorPosition, lastMDgetCursorPosition });
+                if (savedCursorPosition == undefined) return;
                 if (isNaN(savedCursorPosition)) throw "savedCursorPosition is not number";
+                const pos = savedCursorPosition;
                 modTools.waitSeconds(1);
-                ourSetSelection(savedCursorPosition);
+                setCursorPos(toastEditor, pos);
                 /**
                  * 
                  * @param {number} posStart 
                  */
-                function ourSetSelection(posStart) {
-                    if (toastEditor.mode != "markdown") {
-                        toastEditor.setSelection(posStart, posStart);
-                    } else {
-                        const markdown = toastEditor.getMarkdown();
-                        const lines = markdown.split("\n");
-                        let linesLength = 0;
-                        let lineNo = 1;
-                        for (let i = 0, len = lines.length; i < len; i++) {
-                            const line = lines[i];
-                            if (line.length + linesLength > posStart) {
-                                lineNo = i - 1;
-                                break;
-                            }
-                            linesLength += line.length;
-                        }
-                        const chNo = posStart - linesLength;
-                        const pos = [lineNo, chNo];
-                        toastEditor.setSelection(pos, pos);
-                    }
-                }
             }
 
-            toastEditor.on('changeMode', (newMode) => {
+            toastEditor.on('changeMode', (_newMode) => {
                 // console.log("changeMode", newMode);
-                const oldMode = newMode == "markdown" ? "wysiwyg" : "markdown";
-                const currentEditor = newMode == "markdown" ? toastEditor.wwEditor : toastEditor.mdEditor;
-                saveCursorPosition(currentEditor, oldMode);
+                // const oldMode = newMode == "markdown" ? "wysiwyg" : "markdown";
+                // const currentEditor = newMode == "markdown" ? toastEditor.wwEditor : toastEditor.mdEditor;
+                // saveCursorPosition();
 
                 // console.log("changeMode", { savedCursorPosition });
                 setTimeout(() => {
@@ -689,6 +650,8 @@ function getAlfaAtCursor(contentMarkdown, startSel, endSel) {
     return;
 }
 
+
+
 function isMarkdownPos(pos) {
     if (!Array.isArray(pos)) return false;
     if (pos.length != 2) return false;
@@ -700,11 +663,30 @@ function isMarkdownPos(pos) {
     if (pos1 < 0) return false;
     return true;
 }
+/**
+ * 
+ * @param {number} pos 
+ * @returns {boolean}
+ */
 function isWysiwygPos(pos) {
     if (!Number.isInteger(pos)) return false;
     if (pos < 0) return false;
     return true;
 }
+
+/**
+ * @typedef markdownPosition
+ * @type {Array}
+ * @property {number} 0
+ * @property {number} 1
+ */
+
+/**
+ * 
+ * @param {Object} editor 
+ * @param {markdownPosition} markdownPos 
+ * @returns 
+ */
 export function toWysiwygPos(editor, markdownPos) {
     if (!isMarkdownPos(markdownPos)) {
         console.error("Not a markdown pos", markdownPos);
@@ -720,6 +702,12 @@ export function toWysiwygPos(editor, markdownPos) {
     }
     return lineChars + chLinePos;
 }
+/**
+ * 
+ * @param {Object} editor 
+ * @param {number} wysiwygPos 
+ * @returns 
+ */
 export function toMarkdownPos(editor, wysiwygPos) {
     if (!isWysiwygPos(wysiwygPos)) {
         console.error("Not a wysiwyg pos", wysiwygPos);
@@ -733,12 +721,117 @@ export function toMarkdownPos(editor, wysiwygPos) {
     const len = lines.length;
     for (; iLine < len; iLine++) {
         const nextPos = pos + lines[iLine].length + 1;
-        if (nextPos > wysiwygPos) {
+        if (nextPos >= wysiwygPos) {
             lineNo = iLine + 1;
             chPos = wysiwygPos - pos;
             break;
         }
         pos = nextPos;
     }
+    if (lineNo == undefined) {
+        debugger;
+        throw Error(`lineNo is undefined`);
+    }
     return [lineNo, chPos];
+}
+
+
+/**
+ * 
+ * @param {any} toastEditor 
+ * @returns {number}
+ */
+function getCursorPosition(toastEditor) {
+    // const st = "background:green;";
+    const sel = toastEditor.getSelection(); // Get the selection from the WYSIWYG editor
+    // console.log("%cgetCursorPosition", st, { sel });
+    if (!Array.isArray(sel)) throw Error("Expected array");
+    const lenSel = sel.length;
+    if (lenSel != 2) throw Error(`Expected length == 2, got ${lenSel}`);
+    const sel0 = sel[0];
+    let cursorPosition;
+    if (Array.isArray(sel0)) {
+        lastMDgetCursorPosition = sel0;
+        const startLine = sel0[0];
+        const startCh = sel0[1];
+        const markdown = toastEditor.getMarkdown();
+        const lines = markdown.split("\n");
+        let mdString = "";
+        let pos = startCh;
+        let i = 0;
+        for (; i < startLine - 1; i++) {
+            pos += lines[i].length + 1;
+            mdString += lines[i];
+        }
+        // cursorPosition = pos;
+        mdString += lines[i].slice(0, startCh);
+        const wysiwygLenght = getWysiwygLength(mdString);
+        cursorPosition = wysiwygLenght;
+    } else {
+        cursorPosition = sel0;
+    }
+    // console.log("%cGCP", st, { cursorPosition });
+    if (isNaN(cursorPosition)) throw "savedCursorPosition is not number";
+    return cursorPosition;
+}
+
+/**
+ * 
+ * @param {any} toastEditor 
+ * @param {number} posWysiwyg 
+ */
+export function setCursorPos(toastEditor, posWysiwyg) {
+    if (!isWysiwygPos(posWysiwyg)) throw Error(`Not wysiwyg position: ${posWysiwyg}`);
+    if (toastEditor.mode != "markdown") {
+        console.log("setCursorPos", toastEditor.mode, posWysiwyg);
+        toastEditor.wwEditor.view.dom.focus();
+        toastEditor.setSelection(posWysiwyg, posWysiwyg);
+    } else {
+        const posMarkdown = toMarkdownPos(toastEditor, posWysiwyg)
+        console.log("setCursorPos", toastEditor.mode, posMarkdown.toString());
+        toastEditor.mdEditor.view.dom.focus();
+        toastEditor.setSelection(posMarkdown, posMarkdown);
+    }
+}
+
+
+// temp test
+
+export function mySetCursorPos(posWysiwyg) {
+    if (!isWysiwygPos(posWysiwyg)) debugger; // eslint-disable-line no-debugger
+    const editor = window["MYtoastEditor"];
+    setTimeout(() => setCursorPos(editor, posWysiwyg), 5 * 1000);
+}
+
+
+
+function convertMarkdownToHtml(markdownString) {
+    return modToastUI.Editor.factory({
+        el: document.createElement('div'),
+        initialValue: markdownString,
+        initialEditType: 'markdown'
+    }).getHTML();
+}
+function convertMarkdownToHtml2(markdownString) {
+    const viewer = modToastUI.Editor.factory({
+        el: document.createElement('div'),
+        initialValue: markdownString,
+        initialEditType: 'markdown',
+        viewer: true
+    });
+    return viewer.getHTML();
+}
+
+/**
+ * 
+ * @param {string} markdownString 
+ * @returns {number}
+ */
+function getWysiwygLength(markdownString) {
+    const html = convertMarkdownToHtml(markdownString);
+    const elt = document.createElement("selection");
+    elt.innerHTML = html;
+    const txt = elt.textContent;
+    if (txt == null) return 0;
+    return txt.length;
 }
