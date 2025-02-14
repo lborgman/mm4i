@@ -2212,3 +2212,72 @@ function searchByTokensStringsAndSymbols(tokens, funSearch1String) {
     }
     test();
 }
+
+// https://rosettacode.org/wiki/Binary_search binarySearchLeft
+export function binarySearch(arr, value, funCompare, checkSorted = false) {
+    if (checkSorted) {
+        const arrSorted = arr.toSorted(funCompare);
+        for (let i = 0, len = arr.length; i < len; i++) {
+            if (arrSorted[i] != arr[i]) throw Error("not sorted!");
+        }
+    }
+    let low = 0;
+    let high = arr.length - 1;
+    let mid;
+    let comp;
+    while (low <= high) {
+        // invariants: value > A[i] for all i < low value < A[i] for all i > high
+        mid = Math.floor((low + high) / 2);
+        comp = funCompare(arr[mid], value);
+        // if (arr[mid] > value)
+        if (comp > 0)
+            high = mid - 1;
+        // else if (arr[mid] < value)
+        else if (comp < 0)
+            low = mid + 1;
+        else
+            return { value, mid };
+    }
+    // return not_found // value would be inserted at index "low"
+    const upperBound = low;
+    const lowerBound = high;
+    const outSide = lowerBound < 0 || upperBound >= arr.length;
+    return { value, lowerBound, upperBound, outSide }; // value would be inserted at index "low"
+}
+
+test_binarySearch();
+function test_binarySearch() {
+    const arr = [5.5, 7.5, 8.5, 10.5];
+    const prxArr = new Proxy(arr, {
+        get(arrTarget, idx,) {
+            // return 0;
+            return arrTarget[idx] * 1.01;
+        }
+        // get(arr, idx, ) { return arr[idx]; }
+    });
+    const stLog = "font-size:20px; background:lightskyblue; color:brown;";
+    const at2 = arr[2];
+    const prxAt2 = prxArr[2];
+    console.log("%cprx", stLog, { at2, prxAt2 });
+    const funCompare = (a, b) => {
+        if (a < b) return -1;
+        if (a > b) return 1;
+        return 0;
+    }
+    console.log("%ctest_binarySearch", stLog, arr);
+    const res = []
+    res.push(binarySearch(arr, 4, funCompare));
+    res.push(binarySearch(prxArr, 4, funCompare));
+
+    res.push(binarySearch(arr, 5.5, funCompare));
+    res.push(binarySearch(arr, 7.5, funCompare));
+    res.push(binarySearch(prxArr, 7.5, funCompare));
+    // res.push(binarySearchLeft(arr, 8.5, funCompare));
+    res.push(binarySearch(arr, 10.5, funCompare));
+    res.push(binarySearch(arr, 11, funCompare));
+    res.push(binarySearch(arr, 7.6, funCompare));
+    res.push(binarySearch(prxArr, 7.6, funCompare));
+    res.push(binarySearch(arr, 11.6, funCompare));
+    res.push(binarySearch(arr, 4.6, funCompare));
+    console.log("%ctest_binarySearch", stLog, res);
+}
