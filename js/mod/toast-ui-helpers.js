@@ -395,7 +395,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
             btnEditMyNotes.remove();
             const ourElt = toastViewer.options.el;
             const valueInitial = toastViewer.options.initialValue;
-            console.log({ ourElt });
+            // console.log({ ourElt });
             toastViewer.destroy();
             ourElt.innerHTML = "";
 
@@ -452,6 +452,9 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
                 }
             });
             async function handleCursorChangeWW(_evt) {
+                const sel = toastEditor.getSelection();
+                console.log('WW handleCursorChange', { sel });
+                return;
                 // console.log('WW handleCursorChange', evt);
                 modTools.waitSeconds(1);
                 const pos = getCursorPosition(toastEditor);
@@ -460,6 +463,9 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
                 console.log('WW handleCursorChange', { savedCursorPosition });
             }
             async function handleCursorChangeMD(_evt) {
+                const sel = toastEditor.getSelection();
+                console.log('MD handleCursorChange', { sel });
+                return;
                 // console.log('MD handleCursorChange', evt);
                 modTools.waitSeconds(1);
                 const pos = getCursorPosition(toastEditor);
@@ -494,6 +500,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
             // function saveCursorPosition() { savedCursorPosition = getCursorPosition(); }
 
             async function restoreCursorPosition() {
+                return;
                 const st = "background:red;";
                 console.log("%crestoreCursorPosition", st, { savedCursorPosition, lastMDgetCursorPosition });
                 if (savedCursorPosition == undefined) return;
@@ -715,6 +722,28 @@ export function toMarkdownPos(editor, wysiwygPos) {
     }
     const markdown = editor.getMarkdown();
     const lines = markdown.split("\n");
+    const cacheLineWWtotLen = [];
+    const lineWWtotLen = new Proxy(lines, {
+        get(arr, prop) {
+            if (prop == "length") return arr.length;
+            if (cacheLineWWtotLen[prop] == undefined) {
+                const md = lines.slice(0, prop).join("\n"); // FIX-ME: non-breaking space
+                const len = getWysiwygLength(md);
+                const html = convertMarkdownToHtml(md);
+                const elt = document.createElement("selection");
+                elt.innerHTML = html;
+                const txt = elt.textContent;
+                const len2 = txt?.length;
+                console.log({ len, md, len2, txt });
+                cacheLineWWtotLen[prop] = len;
+            }
+            return cacheLineWWtotLen[prop];
+        }
+    });
+    const res = modTools.binarySearch(lineWWtotLen, wysiwygPos, (a, b) => a - b);
+    console.log({ res });
+    // debugger;
+
     let pos = 0;
     let iLine = 0;
     let lineNo, chPos;
@@ -741,7 +770,9 @@ export function toMarkdownPos(editor, wysiwygPos) {
  * @param {any} toastEditor 
  * @returns {number}
  */
+// FIX-ME: This causes bad behavior of the editor!
 function getCursorPosition(toastEditor) {
+    throw Error("don't use getCursorPosition");
     // const st = "background:green;";
     const sel = toastEditor.getSelection(); // Get the selection from the WYSIWYG editor
     // console.log("%cgetCursorPosition", st, { sel });

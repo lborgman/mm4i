@@ -2249,9 +2249,10 @@ test_binarySearch();
 function test_binarySearch() {
     const arr = [5.5, 7.5, 8.5, 10.5];
     const prxArr = new Proxy(arr, {
-        get(arrTarget, idx,) {
+        get(arrTarget, prop,) {
             // return 0;
-            return arrTarget[idx] * 1.01;
+            if (prop == "length") return arrTarget.length;
+            return arrTarget[prop] * 1.01;
         }
         // get(arr, idx, ) { return arr[idx]; }
     });
@@ -2266,18 +2267,17 @@ function test_binarySearch() {
     }
     console.log("%ctest_binarySearch", stLog, arr);
     const res = []
-    res.push(binarySearch(arr, 4, funCompare));
-    res.push(binarySearch(prxArr, 4, funCompare));
+    const arrUse = prxArr;
 
-    res.push(binarySearch(arr, 5.5, funCompare));
-    res.push(binarySearch(arr, 7.5, funCompare));
-    res.push(binarySearch(prxArr, 7.5, funCompare));
+    res.push(binarySearch(arrUse, 4, funCompare));
+    res.push(binarySearch(arrUse, 4.6, funCompare));
+    res.push(binarySearch(arrUse, 5.5, funCompare));
+    res.push(binarySearch(arrUse, 7.5, funCompare));
+    res.push(binarySearch(arrUse, 7.6, funCompare));
     // res.push(binarySearchLeft(arr, 8.5, funCompare));
-    res.push(binarySearch(arr, 10.5, funCompare));
-    res.push(binarySearch(arr, 11, funCompare));
-    res.push(binarySearch(arr, 7.6, funCompare));
-    res.push(binarySearch(prxArr, 7.6, funCompare));
-    res.push(binarySearch(arr, 11.6, funCompare));
-    res.push(binarySearch(arr, 4.6, funCompare));
+    res.push(binarySearch(arrUse, 10.5, funCompare));
+    res.push(binarySearch(arrUse, 11, funCompare));
+    res.push(binarySearch(arrUse, 11.6, funCompare));
+    res.push(binarySearch(arrUse, 14.6, funCompare));
     console.log("%ctest_binarySearch", stLog, res);
 }

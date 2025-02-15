@@ -777,7 +777,7 @@ export class CustomRenderer4jsMind {
         let toastNotesEditor;
         const onEdit = (editor) => {
             toastNotesEditor = editor;
-            console.log({ toastNotesEditor });
+            // console.log({ toastNotesEditor });
             // toastNotesEditor.on("change", () => { funCheckSave(true); });
             const funSave = (val) => {
                 // shapeEtc.notes = toastNotesEditor.getMarkdown().trimEnd();
