@@ -730,6 +730,7 @@ export function toMarkdownPos(editor, wysiwygPos) {
         debugger;
         throw Error(`lineNo is undefined`);
     }
+    chPos = chPos - lineNo + 1;
     return [lineNo, chPos];
 }
 
