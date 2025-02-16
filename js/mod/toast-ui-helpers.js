@@ -452,26 +452,12 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
                 }
             });
             async function handleCursorChangeWW(_evt) {
-                const sel = toastEditor.getSelection();
-                console.log('WW handleCursorChange', { sel });
-                return;
-                // console.log('WW handleCursorChange', evt);
-                modTools.waitSeconds(1);
-                const pos = getCursorPosition(toastEditor);
-                // console.log("WW", { pos });
-                savedCursorPosition = pos;
-                console.log('WW handleCursorChange', { savedCursorPosition });
+                savedCursorPosition = toastEditor.getSelection();
+                // console.log('WW handleCursorChange', { savedCursorPosition });
             }
             async function handleCursorChangeMD(_evt) {
-                const sel = toastEditor.getSelection();
-                console.log('MD handleCursorChange', { sel });
-                return;
-                // console.log('MD handleCursorChange', evt);
-                modTools.waitSeconds(1);
-                const pos = getCursorPosition(toastEditor);
-                // console.log("MD", { pos });
-                savedCursorPosition = pos;
-                console.log('MD handleCursorChange', { savedCursorPosition });
+                savedCursorPosition = toastEditor.getSelection();
+                // console.log('MD handleCursorChange', { savedCursorPosition });
             }
             const elts = toastEditor.getEditorElements();
             const eltMD = elts.mdEditor;
@@ -490,7 +476,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
              * Suggested by Deep Seek.
             */
 
-            let savedCursorPosition = 1;
+            let savedCursorPosition = [1, 1];
             const callersSaveFun = await onEdit(toastEditor);
             const tofSaveFun = typeof callersSaveFun;
             if (tofSaveFun != "function") throw Error(`onEdit(...) returned type "${tofSaveFun}", expeced "function"`);
@@ -500,30 +486,20 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
             // function saveCursorPosition() { savedCursorPosition = getCursorPosition(); }
 
             async function restoreCursorPosition() {
-                return;
                 const st = "background:red;";
                 console.log("%crestoreCursorPosition", st, { savedCursorPosition, lastMDgetCursorPosition });
                 if (savedCursorPosition == undefined) return;
-                if (isNaN(savedCursorPosition)) throw "savedCursorPosition is not number";
-                const pos = savedCursorPosition;
-                modTools.waitSeconds(1);
+                const saved0 = savedCursorPosition[0];
+                const pos = saved0;
+                // modTools.waitSeconds(1);
                 setCursorPos(toastEditor, pos);
-                /**
-                 * 
-                 * @param {number} posStart 
-                 */
             }
 
             toastEditor.on('changeMode', (_newMode) => {
-                // console.log("changeMode", newMode);
-                // const oldMode = newMode == "markdown" ? "wysiwyg" : "markdown";
-                // const currentEditor = newMode == "markdown" ? toastEditor.wwEditor : toastEditor.mdEditor;
-                // saveCursorPosition();
-
-                // console.log("changeMode", { savedCursorPosition });
-                setTimeout(() => {
+                modTools.wait4mutations(toastEditor.options.el);
+                // setTimeout(() => {
                     restoreCursorPosition();
-                }, 1000);
+                // }, 1);
             });
 
 
@@ -658,7 +634,11 @@ function getAlfaAtCursor(contentMarkdown, startSel, endSel) {
 }
 
 
-
+/**
+ * 
+ * @param {number|Array} pos 
+ * @returns {boolean}
+ */
 function isMarkdownPos(pos) {
     if (!Array.isArray(pos)) return false;
     if (pos.length != 2) return false;
@@ -672,7 +652,7 @@ function isMarkdownPos(pos) {
 }
 /**
  * 
- * @param {number} pos 
+ * @param {number|Array} pos 
  * @returns {boolean}
  */
 function isWysiwygPos(pos) {
@@ -717,7 +697,9 @@ export function toWysiwygPos(editor, markdownPos) {
  */
 export function toMarkdownPos(editor, wysiwygPos) {
     if (!isWysiwygPos(wysiwygPos)) {
-        console.error("Not a wysiwyg pos", wysiwygPos);
+        //// This happens when just switching back and forth between markdown <-> wysiwyg
+        // console.error("Not a wysiwyg pos", wysiwygPos);
+        if (isMarkdownPos(wysiwygPos)) return wysiwygPos;
         throw Error(`Not a wysiwyg pos: ${wysiwygPos}`);
     }
     const markdown = editor.getMarkdown();
@@ -809,19 +791,23 @@ function getCursorPosition(toastEditor) {
 /**
  * 
  * @param {any} toastEditor 
- * @param {number} posWysiwyg 
+ * @param {number|Array} pos 
  */
-export function setCursorPos(toastEditor, posWysiwyg) {
-    if (!isWysiwygPos(posWysiwyg)) throw Error(`Not wysiwyg position: ${posWysiwyg}`);
+export function setCursorPos(toastEditor, pos) {
+    const isWWpos = isWysiwygPos(pos);
+    const isMDpos = isMarkdownPos(pos);
+    if (!(isWWpos || isMDpos)) throw Error(`Not wysiwyg or markdown position: ${pos.toString()}`);
     if (toastEditor.mode != "markdown") {
-        console.log("setCursorPos", toastEditor.mode, posWysiwyg);
+        console.log("setCursorPos", toastEditor.mode, pos);
+        const posWW = isWWpos ? pos : toWysiwygPos(toastEditor, pos);
         toastEditor.wwEditor.view.dom.focus();
-        toastEditor.setSelection(posWysiwyg, posWysiwyg);
+        toastEditor.wwEditor.setSelection(posWW, posWW);
     } else {
-        const posMarkdown = toMarkdownPos(toastEditor, posWysiwyg)
+        const posMarkdown = toMarkdownPos(toastEditor, pos)
         console.log("setCursorPos", toastEditor.mode, posMarkdown.toString());
+        const posMD = isMDpos ? pos : toMarkdownPos(toastEditor, pos);
         toastEditor.mdEditor.view.dom.focus();
-        toastEditor.setSelection(posMarkdown, posMarkdown);
+        toastEditor.mdEditor.setSelection(posMD, posMD);
     }
 }
 
