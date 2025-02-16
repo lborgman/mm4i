@@ -426,38 +426,23 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
                 previewStyle: "tab",
                 initialEditType: "markdown",
                 usageStatistics: false,
-                /*
-                events: {
-                    stateChange: () => {
-                        console.log("-------------------- stateChange");
-                    },
-                },
-                */
             });
             toastEditor.on("change", () => {
-                // debugger;
-                // get latest value
-                // divEditor.dataset.latestSaved = encodeURIComponent(valueInitial);
                 const divEditor = toastEditor.options.el;
                 const latestSaved = decodeURIComponent(divEditor.dataset.latestSaved);
                 const currentValue = toastEditor.getMarkdown();
                 const needSave = latestSaved != currentValue;
 
-                // console.log("%ctoastEditor, change", "background-color:blue", inWhatMode, { needSave });
                 if (needSave) {
-                    // debugger;
-                    // funSave, onEdit
                     callersSaveFun(currentValue);
                     divEditor.dataset.latestSaved = encodeURIComponent(currentValue);
                 }
             });
             async function handleCursorChangeWW(_evt) {
                 savedCursorPosition = toastEditor.getSelection();
-                // console.log('WW handleCursorChange', { savedCursorPosition });
             }
             async function handleCursorChangeMD(_evt) {
                 savedCursorPosition = toastEditor.getSelection();
-                // console.log('MD handleCursorChange', { savedCursorPosition });
             }
             const elts = toastEditor.getEditorElements();
             const eltMD = elts.mdEditor;
@@ -487,18 +472,20 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
 
             async function restoreCursorPosition() {
                 const st = "background:red;";
-                console.log("%crestoreCursorPosition", st, { savedCursorPosition, lastMDgetCursorPosition });
+                console.log("%crestoreCursorPosition", st, savedCursorPosition.toString());
                 if (savedCursorPosition == undefined) return;
                 const saved0 = savedCursorPosition[0];
                 const pos = saved0;
                 // modTools.waitSeconds(1);
+                await modTools.wait4mutations(toastEditor.options.el);
                 setCursorPos(toastEditor, pos);
             }
 
             toastEditor.on('changeMode', (_newMode) => {
-                modTools.wait4mutations(toastEditor.options.el);
+                // await modTools.wait4mutations(toastEditor.options.el);
+                // await modTools.waitSeconds(1);
                 // setTimeout(() => {
-                    restoreCursorPosition();
+                restoreCursorPosition();
                 // }, 1);
             });
 
@@ -676,8 +663,9 @@ function isWysiwygPos(pos) {
  */
 export function toWysiwygPos(editor, markdownPos) {
     if (!isMarkdownPos(markdownPos)) {
-        console.error("Not a markdown pos", markdownPos);
-        throw Error(`Not a markdown pos: ${markdownPos}`);
+        //// This happens when just switching back and forth between markdown <-> wysiwyg
+        if (isWysiwygPos(markdownPos)) return markdownPos;
+        throw Error(`Not a markdown or wysiwyg pos: ${markdownPos.toString()}`);
     }
     const markdown = editor.getMarkdown();
     const lineNo = markdownPos[0];
@@ -692,15 +680,14 @@ export function toWysiwygPos(editor, markdownPos) {
 /**
  * 
  * @param {Object} editor 
- * @param {number} wysiwygPos 
+ * @param {number|Array} wysiwygPos 
  * @returns 
  */
 export function toMarkdownPos(editor, wysiwygPos) {
     if (!isWysiwygPos(wysiwygPos)) {
         //// This happens when just switching back and forth between markdown <-> wysiwyg
-        // console.error("Not a wysiwyg pos", wysiwygPos);
         if (isMarkdownPos(wysiwygPos)) return wysiwygPos;
-        throw Error(`Not a wysiwyg pos: ${wysiwygPos}`);
+        throw Error(`Not a wysiwyg or markdown pos: ${wysiwygPos.toString()}`);
     }
     const markdown = editor.getMarkdown();
     const lines = markdown.split("\n");
@@ -716,7 +703,7 @@ export function toMarkdownPos(editor, wysiwygPos) {
                 elt.innerHTML = html;
                 const txt = elt.textContent;
                 const len2 = txt?.length;
-                console.log({ len, md, len2, txt });
+                // console.log({ len, md, len2, txt });
                 cacheLineWWtotLen[prop] = len;
             }
             return cacheLineWWtotLen[prop];
@@ -797,14 +784,14 @@ export function setCursorPos(toastEditor, pos) {
     const isWWpos = isWysiwygPos(pos);
     const isMDpos = isMarkdownPos(pos);
     if (!(isWWpos || isMDpos)) throw Error(`Not wysiwyg or markdown position: ${pos.toString()}`);
-    if (toastEditor.mode != "markdown") {
-        console.log("setCursorPos", toastEditor.mode, pos);
+    if (toastEditor.mode == "wysiwyg") {
         const posWW = isWWpos ? pos : toWysiwygPos(toastEditor, pos);
+        console.warn("setCursorPos", toastEditor.mode, posWW.toString());
         toastEditor.wwEditor.view.dom.focus();
         toastEditor.wwEditor.setSelection(posWW, posWW);
     } else {
         const posMarkdown = toMarkdownPos(toastEditor, pos)
-        console.log("setCursorPos", toastEditor.mode, posMarkdown.toString());
+        console.warn("setCursorPos", toastEditor.mode, posMarkdown.toString());
         const posMD = isMDpos ? pos : toMarkdownPos(toastEditor, pos);
         toastEditor.mdEditor.view.dom.focus();
         toastEditor.mdEditor.setSelection(posMD, posMD);
