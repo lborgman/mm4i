@@ -568,6 +568,21 @@
             /* caret-shape: NOT YET SUPPORTED */
             font-size: 18px;
         }
+
+
+        .toastui-alfa-link {
+            color: green;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        span.toastui-alfa-link::before {
+            content: "X";
+            color: red;
+            padding-right: 2px;
+            text-decoration: none !important;
+            text-decoration-color: transparent !important;
+        }
     </style>
 
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind@0.5/es6/jsmind.js"></script> -->
@@ -585,7 +600,8 @@
 <body class="NOno-test-items">
     <div id="PWA-version">(temp ver 1.73)</div>
 
-    <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+    <!-- <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script> -->
+    <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.js"></script>
 
     <script src="./ext/mdc/material-components-web.js"></script>
     <!-- <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script> -->

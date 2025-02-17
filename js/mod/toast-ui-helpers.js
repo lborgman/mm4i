@@ -26,16 +26,34 @@ const modToastUI = window["toastui"] || await importFc4i("toast-ui");
 
 const reAlfaBefore = /\[@(.+?)\]\((.+?)\)/gm;
 async function dialogInsertSearch(editor) {
-    const selection = editor.getSelection();
-    const startSel = selection[0];
-    const endSel = selection[1];
-    const contentMarkdown = editor.getMarkdown();
+    /*
+    // FIX-ME: use JavaScript/DOM native selection for this!
+    // https://javascript.info/selection-range
+    const ws = window.getSelection();
+    let {anchorNode, anchorOffset, focusNode, focusOffset} = ws;
+    console.log({anchorNode});
+    console.log({focusNode});
+    const ntAnchor = anchorNode.nodeType;
+    if (ntAnchor != 3) throw Error(`Expected text node (3), got (${ntAnchor})`);
+    const eltAnchor = anchorNode.parentElement;
+    const tnAnc = eltAnchor.tagName;
+    console.log({tnAnc});
+    debugger;
+    return;
+    */
 
-    let initialTitle = contentMarkdown.slice(startSel, endSel);
+
+    // const selection = editor.getSelection();
+    // const startSel = selection[0];
+    // const endSel = selection[1];
+    // const contentMarkdown = editor.getMarkdown();
+
+    let initialTitle = editor.getSelectedText();
     let initialSearch = "";
 
-    const alfaAtCursor = getAlfaAtCursor(contentMarkdown, startSel, endSel);
-    console.log("dialogInsertSearch", alfaAtCursor);
+    // const alfaAtCursor = getAlfaAtCursor(contentMarkdown, startSel, endSel);
+    // console.log("dialogInsertSearch", alfaAtCursor);
+    let alfaAtCursor;
     if (alfaAtCursor) {
         initialTitle = alfaAtCursor.title;
         initialSearch = alfaAtCursor.search;
@@ -114,6 +132,8 @@ async function dialogInsertSearch(editor) {
     const search = inpSearch.value.trim();
     if (search == "") return;
     // console.log({ editor });
+    editor.exec("addLink", { linkUrl: `mm4i-search: ${search}`, linkText: title });
+    return;
     // debugger;
     const [start, end] = editor.getSelection();
     const marker = `[${title}](mm4i-search:${search})`;
@@ -152,19 +172,19 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
         link(node, context) {
             const { origin, entering } = context;
             const url = node.destination;
-            // console.log("mm4iRenderer link", url, context, node);
+            const isAlfa = url.startsWith("mm4i-search:");
+            // console.warn("mm4iRenderer link", url, isAlfa, context, node);
+            console.warn("mm4iRenderer link", url, isAlfa, entering);
 
             const result = origin();
-            // return result;
-            // if (url != "4") { return result; }
-            if (!url.startsWith("mm4i-search:")) { return result; }
+            if (!isAlfa) { return result; }
             result.tagName = "span";
-            if (entering) {
-                result.classNames = ["toastui-alfa-link"];
-                // result.attributes.style = "color:red;";
-                // result.attributes.href = null;
-                // delete result.attributes.href;
-            }
+            if (!entering) { return result; }
+            result.classNames = ["toastui-alfa-link"];
+            // result.attributes.style = "color:red;";
+            // result.attributes.href = null;
+            // delete result.attributes.href;
+            console.log("mm4iRenderer", result)
             return result;
         }
     }
@@ -288,7 +308,6 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
 
     const toastViewer = new modToastUI.Editor.factory({
         viewer: true,
-        // el: ourElt,
         el: divEditor,
         initialValue: valueInitial,
         previewStyle: "none",
@@ -347,8 +366,15 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
                 text-decoration: underline;
                 cursor: pointer;
             }
+            .toastui-alfa-link::before {
+                content: "X";
+                color: red;
+                padding-right: 2px;
+                text-decoration: none !important;
+                text-decoration-color: transparent !important;
+            }
         `;
-        document.head.append(eltStyle);
+        // document.head.append(eltStyle);
     }
 
 
@@ -422,6 +448,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
                 el: ourElt,
                 toolbarItems: objToolbarItems,
                 initialValue: valueInitial,
+                customHTMLRenderer: mm4iRenderer,
                 // previewStyle: "vertical",
                 previewStyle: "tab",
                 initialEditType: "markdown",
@@ -471,12 +498,11 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
             // function saveCursorPosition() { savedCursorPosition = getCursorPosition(); }
 
             async function restoreCursorPosition() {
-                const st = "background:red;";
-                console.log("%crestoreCursorPosition", st, savedCursorPosition.toString());
+                // const st = "background:red;";
+                // console.log("%crestoreCursorPosition", st, savedCursorPosition.toString());
                 if (savedCursorPosition == undefined) return;
                 const saved0 = savedCursorPosition[0];
                 const pos = saved0;
-                // modTools.waitSeconds(1);
                 await modTools.wait4mutations(toastEditor.options.el);
                 setCursorPos(toastEditor, pos);
             }

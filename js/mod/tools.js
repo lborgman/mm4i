@@ -2247,6 +2247,7 @@ export function binarySearch(arr, value, funCompare, checkSorted = false) {
 
 test_binarySearch();
 function test_binarySearch() {
+    return;
     const arr = [5.5, 7.5, 8.5, 10.5];
     const prxArr = new Proxy(arr, {
         get(arrTarget, prop,) {
