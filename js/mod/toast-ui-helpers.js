@@ -29,7 +29,6 @@ async function dialogInsertSearch(editor) {
     /*
     // FIX-ME: use JavaScript/DOM native selection for this!
     // https://javascript.info/selection-range
-    const ws = window.getSelection();
     let {anchorNode, anchorOffset, focusNode, focusOffset} = ws;
     console.log({anchorNode});
     console.log({focusNode});
@@ -43,7 +42,32 @@ async function dialogInsertSearch(editor) {
     */
 
 
-    // const selection = editor.getSelection();
+    const ws = window.getSelection();
+    const es = editor.getSelection();
+    console.log({ ws, es });
+    let { anchorNode, anchorOffset, focusNode, focusOffset } = ws;
+    console.log({ anchorNode, focusNode });
+    const ntAnchor = anchorNode.nodeType;
+    if (ntAnchor != 3) throw Error(`Expected text node (3), got (${ntAnchor})`);
+    const eltAnchor = anchorNode.parentElement;
+    const tnAnc = eltAnchor.tagName;
+    console.log({ tnAnc });
+    const titleSel = eltAnchor.textContent;
+    const urlSel = eltAnchor.href; // FIX-ME:
+    debugger;
+    // eltAnchor.textContent = ["SR"];
+    const arrc = [...eltAnchor.childNodes];
+    const a0 = arrc[0];
+    a0.remove();
+    // eltAnchor.append("SR");
+    eltAnchor.appendChild("SR");
+
+    // await modTools.waitSeconds(1);
+    eltAnchor.href = "https://www.sr.se/"; // FIX-ME:
+    return;
+    debugger;
+
+
     // const startSel = selection[0];
     // const endSel = selection[1];
     // const contentMarkdown = editor.getMarkdown();
