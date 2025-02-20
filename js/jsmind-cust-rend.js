@@ -792,9 +792,10 @@ export class CustomRenderer4jsMind {
 
         body.appendChild(divEasyMdeOuterWrapper);
         // await modTools.waitSeconds(1);
+        // FIX-ME: remove setTimeout??
         setTimeout(async () => {
             const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, initialVal, placeholder, onEdit, objClose);
-            let btnSave;
+            // let btnSave;
             btnEdit.addEventListener("click", (evt) => {
                 evt.preventDefault();
                 evt.stopPropagation();
@@ -816,7 +817,7 @@ export class CustomRenderer4jsMind {
                     }
                 }, 1);
             });
-        }, 1000);
+        }, 1);
 
         function somethingToSaveNotes() {
             // return easyMDE.value().trimEnd() != initialVal;

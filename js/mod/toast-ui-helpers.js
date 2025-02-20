@@ -49,24 +49,30 @@ async function dialogInsertSearch(editor) {
 
     const ws = window.getSelection();
     const es = editor.getSelection();
-    console.log({ ws, es });
+    const esText = editor.getSelectedText();
+    console.log({ ws, es, esText });
     let { anchorNode, anchorOffset, focusNode, focusOffset } = ws;
     console.log({ anchorNode, focusNode });
-    const ntAnchor = anchorNode.nodeType;
-    if (ntAnchor != 3) throw Error(`Expected text node (3), got (${ntAnchor})`);
+    const nnAnchor = anchorNode.nodeName;
+    if (nnAnchor != "#text") throw Error(`Expected text node (#text), got (${nnAnchor})`);
     const eltAnchor = anchorNode.parentElement;
     const tnAnc = eltAnchor.tagName;
     console.log({ tnAnc });
-    const titleSel = eltAnchor.textContent;
-    const urlSel = eltAnchor.href; // FIX-ME:
+    // const titleSel = eltAnchor.textContent;
+    const titleSel = esText;
+    const urlSel = eltAnchor.nodeName != "A" ? "" : eltAnchor.href; // FIX-ME:
     debugger;
-    eltAnchor.remove();
-    await modTools.waitSeconds(1);
-    editor.exec("addLink", { linkUrl: `mm4i-search: search again`, linkText: "title again" });
-    await modTools.waitSeconds(1);
-    return;
+    // eltAnchor.remove();
 
+    const insertAlfaLink = (title, search) => {
+        editor.replaceSelection("");
+        // await modTools.waitSeconds(1);
+        editor.exec("addLink", { linkUrl: `mm4i-search: ${search}`, linkText: title });
+        // await modTools.waitSeconds(1);
+    }
+    // return;
 
+    /*
     // eltAnchor.textContent = ["SR"];
     const arrc = [...eltAnchor.childNodes];
     const a0 = arrc[0];
@@ -79,14 +85,15 @@ async function dialogInsertSearch(editor) {
     eltAnchor.setAttribute("href", "https://www.sr.se/");
     return;
     debugger;
+    */
 
 
     // const startSel = selection[0];
     // const endSel = selection[1];
     // const contentMarkdown = editor.getMarkdown();
 
-    let initialTitle = editor.getSelectedText();
-    let initialSearch = "";
+    // let initialTitle = editor.getSelectedText();
+    // let initialSearch = "";
 
     // const alfaAtCursor = getAlfaAtCursor(contentMarkdown, startSel, endSel);
     // console.log("dialogInsertSearch", alfaAtCursor);
@@ -97,11 +104,12 @@ async function dialogInsertSearch(editor) {
     }
 
     const inpTitle = modMdc.mkMDCtextFieldInput();
-    inpTitle.value = initialTitle;
+    inpTitle.value = titleSel;
     const taTitle = modMdc.mkMDCtextField("Title", inpTitle);
 
     const inpSearch = modMdc.mkMDCtextFieldInput();
-    inpSearch.value = initialSearch;
+    const valAlfa = decodeURIComponent(urlSel.slice(12)).trim();
+    inpSearch.value = valAlfa;
     const taSearch = modMdc.mkMDCtextField("Search", inpSearch);
 
     const spanSearched = mkElt("span", undefined, searchNodeParams.inpSearch.value);
@@ -209,7 +217,6 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
     divEditor.dataset.latestSaved = encodeURIComponent(initialMD);
 
     // FIX-ME: move to mm4i file:
-    // https://github.com/nhn/tui.editor/issues/3298
     const mm4iRenderer = {
         link(node, context) {
             console.log({ node });
@@ -250,7 +257,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
 
         // FIX-ME:
         // const valAlfa = target.dataset.alfaLink;
-        const valAlfa = eltAlfaLink.getAttribute("href")?.slice(12);
+        const valAlfa = decodeURIComponent(eltAlfaLink.getAttribute("href")?.slice(12)).trim();
 
         console.log("clicked alfa-link:", { valAlfa }, eltAlfaLink);
         searchNodeParams.eltJsMindContainer.classList.add("display-jsmind-search");
@@ -366,6 +373,8 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
     // await modTools.waitSeconds(1);
     const useToastPreview = true;
     const toastPreview = !useToastPreview ? undefined : makeFakeViewer();
+
+    // https://github.com/nhn/tui.editor/issues/3298
     function makeFakeViewer() {
         const editorViewer = new modToastUI.Editor({
             el: divEditor,
@@ -375,6 +384,11 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
             previewStyle: "tab",
             initialEditType: "wysiwyg",
             usageStatistics: false,
+            previewOptions: {
+                container: {
+                    padding: '0px'
+                }
+            }
         });
         const hideElement = (selector) => {
             const element = divEditor.querySelector(selector);
@@ -385,6 +399,16 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         hideElement(selectorToolBar);
         const selectorSwitch = "div.toastui-editor-mode-switch";
         hideElement(selectorSwitch);
+
+        const arrC = [...divEditor.querySelectorAll(".toastui-editor-ww-container div[contenteditable=true]")];
+        if (arrC.length != 1) throw Error(`Expected to match 1 contenteditable, got ${arrC.length}`);
+        const arrC0 = arrC[0];
+        // @ts-ignore
+        arrC0.style = `
+            padding: 0;
+        `;
+        const eltDialogContent = arrC0.closest(".mdc-dialog__content");
+        eltDialogContent.style.paddingBottom = "0px";
 
         const selectorWWcont = "div.toastui-editor-ww-container";
         const previewWWcont = divEditor.querySelector(selectorWWcont);
