@@ -787,35 +787,36 @@ export class CustomRenderer4jsMind {
             return funSave;
         };
 
-        const { btnEdit } =
-            await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, initialVal, placeholder, onEdit, objClose);
+        // const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, initialVal, placeholder, onEdit, objClose);
+        // let btnEdit;
 
+        body.appendChild(divEasyMdeOuterWrapper);
+        // await modTools.waitSeconds(1);
         setTimeout(async () => {
-            // body.appendChild(eltMDEwrapper);
-            body.appendChild(divEasyMdeOuterWrapper);
-        }, 100);
-        let btnSave;
-        btnEdit.addEventListener("click", (evt) => {
-            evt.preventDefault();
-            evt.stopPropagation();
-            setTimeout(() => {
-                const btnSave = getBtnSave();
-                const btnCancel = btnSave.nextElementSibling;
-                const divS = btnSave.closest("div.mdc-dialog__surface");
-                const divMDE = divS.querySelector("div.EasyMDEContainer")
-                const ta = divMDE.previousElementSibling;
-                console.log({ btnSave, btnCancel, divS, divMDE, ta });
+            const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, initialVal, placeholder, onEdit, objClose);
+            let btnSave;
+            btnEdit.addEventListener("click", (evt) => {
+                evt.preventDefault();
+                evt.stopPropagation();
+                setTimeout(() => {
+                    const btnSave = getBtnSave();
+                    const btnCancel = btnSave.nextElementSibling;
+                    const divS = btnSave.closest("div.mdc-dialog__surface");
+                    const divMDE = divS.querySelector("div.EasyMDEContainer")
+                    const ta = divMDE.previousElementSibling;
+                    console.log({ btnSave, btnCancel, divS, divMDE, ta });
 
-                const ae = document.activeElement;
-                const isCancelAE = ae == btnCancel;
-                console.log(">>>>>>>>> ae", isCancelAE, ae);
-                if (!isCancelAE) {
-                    divS.style.backgroundColor = "red";
-                } else {
-                    divS.style.backgroundColor = "lawngreen";
-                }
-            }, 1);
-        });
+                    const ae = document.activeElement;
+                    const isCancelAE = ae == btnCancel;
+                    console.log(">>>>>>>>> ae", isCancelAE, ae);
+                    if (!isCancelAE) {
+                        divS.style.backgroundColor = "red";
+                    } else {
+                        divS.style.backgroundColor = "lawngreen";
+                    }
+                }, 1);
+            });
+        }, 1000);
 
         function somethingToSaveNotes() {
             // return easyMDE.value().trimEnd() != initialVal;

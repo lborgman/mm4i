@@ -42,6 +42,11 @@ async function dialogInsertSearch(editor) {
     */
 
 
+    // editor.exec("addLink", { linkUrl: `mm4i-search: search`, linkText: "title" });
+    // const h = editor.getHTML();
+    // console.log(h);
+    // return;
+
     const ws = window.getSelection();
     const es = editor.getSelection();
     console.log({ ws, es });
@@ -55,15 +60,23 @@ async function dialogInsertSearch(editor) {
     const titleSel = eltAnchor.textContent;
     const urlSel = eltAnchor.href; // FIX-ME:
     debugger;
+    eltAnchor.remove();
+    await modTools.waitSeconds(1);
+    editor.exec("addLink", { linkUrl: `mm4i-search: search again`, linkText: "title again" });
+    await modTools.waitSeconds(1);
+    return;
+
+
     // eltAnchor.textContent = ["SR"];
     const arrc = [...eltAnchor.childNodes];
     const a0 = arrc[0];
     a0.remove();
-    // eltAnchor.append("SR");
-    eltAnchor.appendChild("SR");
+    const sr = document.createTextNode("SR");
+    eltAnchor.append(sr);
 
     // await modTools.waitSeconds(1);
-    eltAnchor.href = "https://www.sr.se/"; // FIX-ME:
+    // eltAnchor.href = "https://www.sr.se/"; // FIX-ME:
+    eltAnchor.setAttribute("href", "https://www.sr.se/");
     return;
     debugger;
 
@@ -179,26 +192,41 @@ let lastMDgetCursorPosition; // debugging
 /**
  * 
  * @param {HTMLDivElement} divEditor 
- * @param {string} valueInitial 
+ * @param {string} initialMD 
  * @param {string} valuePlaceholder 
  * @param {FunctionOnEdit} onEdit
  * @param {Object|undefined} objInit;
  * @returns 
  */
-async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdit, objInit) {
+async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, objInit) {
+    if (!divEditor.isConnected) {
+        console.error("The editor container is not connected to the DOM", divEditor);
+        debugger;
+    }
     // const ourElt = divEditor;
     // ourElt.innerHTML = "";
     divEditor.innerHTML = "";
-    divEditor.dataset.latestSaved = encodeURIComponent(valueInitial);
+    divEditor.dataset.latestSaved = encodeURIComponent(initialMD);
 
     // FIX-ME: move to mm4i file:
+    // https://github.com/nhn/tui.editor/issues/3298
     const mm4iRenderer = {
         link(node, context) {
-            const { origin, entering } = context;
+            console.log({ node });
+            const { origin } = context;
             const url = node.destination;
             const isAlfa = url.startsWith("mm4i-search:");
-            // console.warn("mm4iRenderer link", url, isAlfa, context, node);
-            console.warn("mm4iRenderer link", url, isAlfa, entering);
+            console.warn("mm4iRenderer link", url, isAlfa);
+            if (isAlfa) {
+                const linkAttrs = { href: url };
+                linkAttrs.style = "color:red";
+                console.log("after red", linkAttrs);
+                return [
+                    { type: 'openTag', tagName: 'a', attributes: linkAttrs },
+                    { type: 'closeTag', tagName: 'a' }
+                ];
+            }
+            return origin();
 
             const result = origin();
             if (!isAlfa) { return result; }
@@ -212,19 +240,19 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
             return result;
         }
     }
-
-    divEditor.addEventListener("click", async evt => {
-        if (!evt.target) return;
-        const target =/** @type {HTMLSpanElement} */ (evt.target);
-        if (target.tagName != "SPAN") return;
-        const isAlfaLink = target.classList.contains("toastui-alfa-link");
-        if (!isAlfaLink) return;
+    function check4alfa(eltAlfaLink) {
+        // const eltAlfaLink =/** @type {HTMLAnchorElement} */ (evt.target);
+        if (eltAlfaLink.tagName != "A") return;
+        const href = eltAlfaLink.href;
+        if (!href.startsWith("mm4i-search:")) return;
+        // const isAlfaLink = eltAlfaLink.classList.contains("toastui-alfa-link");
+        // if (!isAlfaLink) return;
 
         // FIX-ME:
         // const valAlfa = target.dataset.alfaLink;
-        const valAlfa = target.getAttribute("href")?.slice(12);
+        const valAlfa = eltAlfaLink.getAttribute("href")?.slice(12);
 
-        console.log("clicked alfa-link:", { valAlfa }, target);
+        console.log("clicked alfa-link:", { valAlfa }, eltAlfaLink);
         searchNodeParams.eltJsMindContainer.classList.add("display-jsmind-search");
 
         searchNodeParams.inpSearch.value = valAlfa;
@@ -327,18 +355,126 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
         });
 
         startAlfaPreview();
+    }
+
+    divEditor.addEventListener("click", async evt => {
+        if (!evt.target) return;
+        check4alfa(evt.target);
     });
 
 
-    const toastViewer = new modToastUI.Editor.factory({
+    // await modTools.waitSeconds(1);
+    const useToastPreview = true;
+    const toastPreview = !useToastPreview ? undefined : makeFakeViewer();
+    function makeFakeViewer() {
+        const editorViewer = new modToastUI.Editor({
+            el: divEditor,
+            toolbarItems: [],
+            initialValue: initialMD,
+            customHTMLRenderer: mm4iRenderer,
+            previewStyle: "tab",
+            initialEditType: "wysiwyg",
+            usageStatistics: false,
+        });
+        const hideElement = (selector) => {
+            const element = divEditor.querySelector(selector);
+            if (!element) throw Error(`Could not find "${selector}`);
+            element.style.display = "none";
+        }
+        const selectorToolBar = "div.toastui-editor-toolbar";
+        hideElement(selectorToolBar);
+        const selectorSwitch = "div.toastui-editor-mode-switch";
+        hideElement(selectorSwitch);
+
+        const selectorWWcont = "div.toastui-editor-ww-container";
+        const previewWWcont = divEditor.querySelector(selectorWWcont);
+        if (!previewWWcont) throw Error(`Could not find "${selectorWWcont}`);
+        const bcr = previewWWcont.getBoundingClientRect();
+        console.log({ bcr });
+        const shield = mkElt("div");
+        shield.style = `
+        background: red;
+        opacity: 0.5;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        position: absolute;
+        z-index: 30;
+    `;
+        const selectorWWmode = "div.toastui-editor-main.toastui-editor-ww-mode";
+        const eltWWmode = divEditor.querySelector(selectorWWmode);
+        if (!eltWWmode) throw Error(`Could not find "${selectorWWmode}"`);
+        eltWWmode.appendChild(shield);
+        shield.addEventListener("pointerdown", evt => {
+            evt.stopImmediatePropagation();
+            console.log({ evt });
+            const x = evt.clientX;
+            const y = evt.clientY;
+            const elts = document.elementsFromPoint(x, y);
+            console.log(elts);
+            const eltsA = elts.filter(elt => elt.tagName == "A");
+            console.log({ eltsA });
+            if (eltsA.length > 1) debugger;
+            if (eltsA.length == 1) {
+                const eltA = /** type {DOMElement} */ eltsA[0];
+                console.log({ eltA });
+                eltA.click();
+            }
+        });
+        shield.addEventListener("pointerup", evt => {
+            console.log({ evt });
+            // startAlfaPreview();
+            check4alfa(evt.target);
+        });
+        console.log(shield);
+        const eltsA = [...eltWWmode.querySelectorAll("a")];
+        eltsA.forEach(eltA => console.log(eltA.outerHTML));
+        eltsA.forEach(eltA => {
+            if (eltA.textContent.length > 0) {
+                eltA.addEventListener("click", _evt => {
+                    console.log("clicked", eltA.outerHTML);
+                });
+            }
+        });
+        /*
+        debugger;
+        setTimeout(() => {
+            console.log("--- in timeout");
+            const eltsA = [...eltWWmode.querySelectorAll("a")];
+            eltsA.forEach(eltA => console.log(eltA.outerHTML));
+        }, 3000);
+        */
+        return editorViewer;
+    }
+    // return; // FIX-ME:
+    // await modTools.waitSeconds(1);
+    // toastPreview.destroy();
+    // await modTools.waitSeconds(1);
+
+    const toastViewer = toastPreview || new modToastUI.Editor.factory({
         viewer: true,
         el: divEditor,
-        initialValue: valueInitial,
-        previewStyle: "none",
-        initialEditType: "WYSIWYG",
+        initialValue: initialMD,
+        // previewStyle: "none",
+        // initialEditType: "wysiwyg",
         customHTMLRenderer: mm4iRenderer,
         usageStatistics: false,
     });
+    /*
+    */
+    /*
+    */
+
+    window["myToastViewer"] = toastViewer;
+    // await modTools.waitSeconds(1);
+    // toastViewer.setMarkdown("");
+    // await modTools.waitSeconds(1);
+    // toastViewer.setMarkdown(initialMD);
+    console.log({ toastViewer });
+    // toastViewer.setMarkdown("");
+    // await modTools.waitSeconds(1);
+    //  toastViewer.setMarkdown(valueInitial);
 
     if (objInit) {
         const tofObjInit = typeof objInit;
@@ -404,26 +540,26 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
 
 
 
-    const btnEdit = addEditMDEbutton();
+    const btnEdit = addEditMDbutton();
     // const objReturn = {};
 
-    (async function () {
-        await modTools.wait4connected(btnEdit, 800);
-        btnEdit.focus();
-        const eltActive = document.activeElement;
-        if (btnEdit != eltActive) {
-            console.error("active element is not btnEdit", eltActive);
-            throw Error(`document.activeElement is not btnEdit`);
-        }
-        // divEasyMdeInert.removeAttribute("inert");
-        // }, 600);
-    })();
+    // (async function () {
+    // await modTools.wait4connected(btnEdit, 800);
+    btnEdit.focus();
+    const eltActive = document.activeElement;
+    if (btnEdit != eltActive) {
+        console.error("active element is not btnEdit", eltActive);
+        throw Error(`document.activeElement is not btnEdit`);
+    }
+    // divEasyMdeInert.removeAttribute("inert");
+    // }, 600);
+    // })();
 
     return { toastViewer, btnEdit };
     // objReturn.btnEdit = btnEdit;
     // return objReturn;
 
-    function addEditMDEbutton() {
+    function addEditMDbutton() {
         divEditor.style.position = "relative";
         const btnEditMyNotes = modMdc.mkMDCiconButton("edit", "Edit my notes");
         divEditor.appendChild(btnEditMyNotes);
@@ -437,6 +573,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
         border-radius: 50%;
         color: green;
         background: color-mix(in srgb, var(--mdc-theme-primary) 30%, transparent);
+        z-index: 999;
         `;
         btnEditMyNotes.addEventListener("click", async evt => {
             evt.preventDefault();
@@ -478,6 +615,7 @@ async function setupToastUIview(divEditor, valueInitial, valuePlaceholder, onEdi
                 initialEditType: "markdown",
                 usageStatistics: false,
             });
+            console.log({ toastEditor });
             toastEditor.on("change", () => {
                 const divEditor = toastEditor.options.el;
                 const latestSaved = decodeURIComponent(divEditor.dataset.latestSaved);
