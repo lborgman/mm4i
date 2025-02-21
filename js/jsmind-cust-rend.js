@@ -766,7 +766,7 @@ export class CustomRenderer4jsMind {
 
         const body = mkElt("div", undefined, [
             mkElt("h2", undefined, [
-                mkElt("span", { style: "font-style:italic;opacity:0.5;" }, "Notes for node "),
+                mkElt("span", { style: "font-style:italic;opacity:0.5;" }, "Node: "),
                 node.topic
             ])
         ]);

@@ -66,9 +66,8 @@ async function dialogInsertSearch(editor) {
 
     const insertAlfaLink = (title, search) => {
         editor.replaceSelection("");
-        // await modTools.waitSeconds(1);
-        editor.exec("addLink", { linkUrl: `mm4i-search: ${search}`, linkText: title });
-        // await modTools.waitSeconds(1);
+        // editor.exec("addLink", { linkUrl: `mm4i-search: ${search}`, linkText: title });
+        editor.exec("addLink", { linkUrl: searchString2marker(search), linkText: title });
     }
     // return;
 
@@ -108,7 +107,8 @@ async function dialogInsertSearch(editor) {
     const taTitle = modMdc.mkMDCtextField("Title", inpTitle);
 
     const inpSearch = modMdc.mkMDCtextFieldInput();
-    const valAlfa = decodeURIComponent(urlSel.slice(12)).trim();
+    // const valAlfa = decodeURIComponent(urlSel.slice(12)).trim();
+    const valAlfa = searchMarker2string(decodeURIComponent(urlSel));
     inpSearch.value = valAlfa;
     const taSearch = modMdc.mkMDCtextField("Search", inpSearch);
 
@@ -177,12 +177,14 @@ async function dialogInsertSearch(editor) {
     const search = inpSearch.value.trim();
     if (search == "") return;
     // console.log({ editor });
-    editor.exec("addLink", { linkUrl: `mm4i-search: ${search}`, linkText: title });
+    // editor.exec("addLink", { linkUrl: `mm4i-search: ${search}`, linkText: title });
+    editor.exec("addLink", { linkUrl: searchString2marker(search), linkText: title });
     return;
     // debugger;
     const [start, end] = editor.getSelection();
-    const marker = `[${title}](mm4i-search:${search})`;
-    editor.replaceSelection(marker, start, end);
+    // const marker = `[${title}](mm4i-search:${search})`;
+    const mdMarker = `[${title}](${searchString2marker(search)})`;
+    editor.replaceSelection(mdMarker, start, end);
 }
 
 /** 
@@ -222,11 +224,12 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
             console.log({ node });
             const { origin } = context;
             const url = node.destination;
-            const isAlfa = url.startsWith("mm4i-search:");
+            // const isAlfa = url.startsWith("mm4i-search:");
+            const isAlfa = isSearchMarker(url);
             console.warn("mm4iRenderer link", url, isAlfa);
             if (isAlfa) {
                 const linkAttrs = { href: url };
-                linkAttrs.style = "color:red";
+                linkAttrs.style = "color:red; cursor:pointer;";
                 console.log("after red", linkAttrs);
                 return [
                     { type: 'openTag', tagName: 'a', attributes: linkAttrs },
@@ -251,13 +254,15 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         // const eltAlfaLink =/** @type {HTMLAnchorElement} */ (evt.target);
         if (eltAlfaLink.tagName != "A") return;
         const href = eltAlfaLink.href;
-        if (!href.startsWith("mm4i-search:")) return;
+        // if (!href.startsWith("mm4i-search:")) return;
+        if (!isSearchMarker(href)) return;
         // const isAlfaLink = eltAlfaLink.classList.contains("toastui-alfa-link");
         // if (!isAlfaLink) return;
 
         // FIX-ME:
         // const valAlfa = target.dataset.alfaLink;
-        const valAlfa = decodeURIComponent(eltAlfaLink.getAttribute("href")?.slice(12)).trim();
+        // const valAlfa = decodeURIComponent(eltAlfaLink.getAttribute("href")?.slice(12)).trim();
+        const valAlfa = searchMarker2string(decodeURIComponent(eltAlfaLink.getAttribute("href")));
 
         console.log("clicked alfa-link:", { valAlfa }, eltAlfaLink);
         searchNodeParams.eltJsMindContainer.classList.add("display-jsmind-search");
@@ -383,6 +388,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
             customHTMLRenderer: mm4iRenderer,
             previewStyle: "tab",
             initialEditType: "wysiwyg",
+            height: "auto",
             usageStatistics: false,
             previewOptions: {
                 container: {
@@ -390,6 +396,10 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
                 }
             }
         });
+        // const eltEditorMain = divEditor.querySelector(".toastui-editor-main");
+        // eltEditorMain?.classList.add("faked-viewer");
+        const eltEditorDefaultUI = divEditor.querySelector(".toastui-editor-defaultUI");
+        eltEditorDefaultUI?.classList.add("faked-viewer");
         const hideElement = (selector) => {
             const element = divEditor.querySelector(selector);
             if (!element) throw Error(`Could not find "${selector}`);
@@ -417,15 +427,17 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         console.log({ bcr });
         const shield = mkElt("div");
         shield.style = `
-        background: red;
-        opacity: 0.5;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        position: absolute;
-        z-index: 30;
-    `;
+          background: red;
+          opacity: 0.1;
+          top: 0;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          position: absolute;
+          z-index: 30;
+          pointer-events: none;
+          border: none;
+        `;
         const selectorWWmode = "div.toastui-editor-main.toastui-editor-ww-mode";
         const eltWWmode = divEditor.querySelector(selectorWWmode);
         if (!eltWWmode) throw Error(`Could not find "${selectorWWmode}"`);
@@ -1052,3 +1064,13 @@ function getWysiwygLength(markdownString) {
     if (txt == null) return 0;
     return txt.length;
 }
+
+
+/** @param {string} str @returns {string} */
+function searchString2marker(str) { return `mm4i-search: ${str.trim()}`; }
+
+/** @param {string} marker @returns {string} */
+function searchMarker2string(marker) { return marker.slice(12).trim(); }
+
+/** @param {string} str @returns {boolean} */
+function isSearchMarker(str) { return str.startsWith("mm4i-search:"); }
