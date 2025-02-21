@@ -47,22 +47,15 @@ async function dialogInsertSearch(editor) {
     // console.log(h);
     // return;
 
-    const ws = window.getSelection();
+    const windowAlfaAtCursor = getWWalfaAtCursor(editor);
+    // const ws = window.getSelection();
     const es = editor.getSelection();
     const esText = editor.getSelectedText();
-    console.log({ ws, es, esText });
-    let { anchorNode, anchorOffset, focusNode, focusOffset } = ws;
-    console.log({ anchorNode, focusNode });
-    const nnAnchor = anchorNode.nodeName;
-    if (nnAnchor != "#text") throw Error(`Expected text node (#text), got (${nnAnchor})`);
-    const eltAnchor = anchorNode.parentElement;
-    const tnAnc = eltAnchor.tagName;
-    console.log({ tnAnc });
-    // const titleSel = eltAnchor.textContent;
-    const titleSel = esText;
-    const urlSel = eltAnchor.nodeName != "A" ? "" : eltAnchor.href; // FIX-ME:
+    console.log({ windowAlfaAtCursor, es, esText });
+    const titleSel = esText || windowAlfaAtCursor?.searchTitle || "";
+    // const urlSel = eltAnchor.nodeName != "A" ? "" : eltAnchor.href; // FIX-ME:
+    const searchSel = windowAlfaAtCursor?.searchString;
     debugger;
-    // eltAnchor.remove();
 
     const insertAlfaLink = (title, search) => {
         editor.replaceSelection("");
@@ -71,36 +64,6 @@ async function dialogInsertSearch(editor) {
     }
     // return;
 
-    /*
-    // eltAnchor.textContent = ["SR"];
-    const arrc = [...eltAnchor.childNodes];
-    const a0 = arrc[0];
-    a0.remove();
-    const sr = document.createTextNode("SR");
-    eltAnchor.append(sr);
-
-    // await modTools.waitSeconds(1);
-    // eltAnchor.href = "https://www.sr.se/"; // FIX-ME:
-    eltAnchor.setAttribute("href", "https://www.sr.se/");
-    return;
-    debugger;
-    */
-
-
-    // const startSel = selection[0];
-    // const endSel = selection[1];
-    // const contentMarkdown = editor.getMarkdown();
-
-    // let initialTitle = editor.getSelectedText();
-    // let initialSearch = "";
-
-    // const alfaAtCursor = getAlfaAtCursor(contentMarkdown, startSel, endSel);
-    // console.log("dialogInsertSearch", alfaAtCursor);
-    let alfaAtCursor;
-    if (alfaAtCursor) {
-        initialTitle = alfaAtCursor.title;
-        initialSearch = alfaAtCursor.search;
-    }
 
     const inpTitle = modMdc.mkMDCtextFieldInput();
     inpTitle.value = titleSel;
@@ -108,8 +71,8 @@ async function dialogInsertSearch(editor) {
 
     const inpSearch = modMdc.mkMDCtextFieldInput();
     // const valAlfa = decodeURIComponent(urlSel.slice(12)).trim();
-    const valAlfa = searchMarker2string(decodeURIComponent(urlSel));
-    inpSearch.value = valAlfa;
+    // const valAlfa = searchMarker2string(decodeURIComponent(urlSel));
+    inpSearch.value = searchSel;
     const taSearch = modMdc.mkMDCtextField("Search", inpSearch);
 
     const spanSearched = mkElt("span", undefined, searchNodeParams.inpSearch.value);
@@ -118,21 +81,15 @@ async function dialogInsertSearch(editor) {
         taSearch,
         spanSearched,
     ]);
-    /*
-    if (alfaAtCursor) {
-        const { title, search, startAlfa, endAlfa } = alfaAtCursor;
-        inpTitle.value = title;
-        inpSearch.value = search;
-    }
-    */
     // @ts-ignore
     divInputs.style = `
             display: grid;
             gap: 10px;
             grid-template-columns: 80px 1fr 1fr;
         `;
-    const titleH2 = alfaAtCursor ? "Update search link" : "Insert search link";
-    const titleSave = alfaAtCursor ? "Update" : "Insert";
+    const hasAlfaAtCursor = windowAlfaAtCursor;
+    const titleH2 = hasAlfaAtCursor ? "Update search link" : "Insert search link";
+    const titleSave = hasAlfaAtCursor ? "Update" : "Insert";
     const body = mkElt("div", undefined, [
         mkElt("h2", undefined, titleH2),
         // taTitle, taSearch,
@@ -228,11 +185,17 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
             const isAlfa = isSearchMarker(url);
             console.warn("mm4iRenderer link", url, isAlfa);
             if (isAlfa) {
-                const linkAttrs = { href: url };
-                linkAttrs.style = "color:red; cursor:pointer;";
-                console.log("after red", linkAttrs);
+                const attributes = { href: url };
+                // attributes.style = "cursor:pointer;";
+                const search = searchMarker2string(decodeURIComponent(url));
+                attributes.title = `Search nodes for "${search}"`;
+                console.log("after red", attributes);
                 return [
-                    { type: 'openTag', tagName: 'a', attributes: linkAttrs },
+                    {
+                        type: 'openTag', tagName: 'a',
+                        attributes: attributes,
+                        classNames: ["toastui-alfa-link"],
+                    },
                     { type: 'closeTag', tagName: 'a' }
                 ];
             }
@@ -1074,3 +1037,24 @@ function searchMarker2string(marker) { return marker.slice(12).trim(); }
 
 /** @param {string} str @returns {boolean} */
 function isSearchMarker(str) { return str.startsWith("mm4i-search:"); }
+
+function getWWalfaAtCursor(editor) {
+    // debugger;
+    if (editor.mode != "wysiwyg") return;
+    const ws = window.getSelection();
+    let { anchorNode, anchorOffset, focusNode, focusOffset } = ws;
+    console.log({ anchorNode, focusNode });
+    const nnAnchor = anchorNode.nodeName;
+    if (nnAnchor != "#text") throw Error(`Expected text node (#text), got (${nnAnchor})`);
+    const eltAnchor = anchorNode.parentElement;
+    if (!eltAnchor.classList.contains("toastui-alfa-link")) return;
+    const tnAnc = eltAnchor.tagName;
+    if (tnAnc != "A") throw Error(`Expected tagName "A", got "${tnAnc}"`);
+    console.log({ tnAnc });
+    const searchLink = decodeURIComponent(eltAnchor.href);
+    const searchString = searchMarker2string(searchLink);
+    const searchTitle = eltAnchor.textContent;
+    console.log({ searchLink, searchString, searchTitle })
+    // debugger;
+    return { searchString, searchTitle };
+}
