@@ -47,17 +47,18 @@ async function dialogInsertSearch(editor) {
     // console.log(h);
     // return;
 
-    const windowAlfaAtCursor = getWWalfaAtCursor(editor);
+    const alfaAtCursor = getWWalfaAtCursor(editor) || getMDalfaAtCursor(editor);
     // const ws = window.getSelection();
     const es = editor.getSelection();
     const esText = editor.getSelectedText();
-    console.log({ windowAlfaAtCursor, es, esText });
-    const titleSel = esText || windowAlfaAtCursor?.searchTitle || "";
+    console.log({ windowAlfaAtCursor: alfaAtCursor, es, esText });
+    const titleInit = esText || alfaAtCursor?.searchTitle || "";
     // const urlSel = eltAnchor.nodeName != "A" ? "" : eltAnchor.href; // FIX-ME:
-    const searchSel = windowAlfaAtCursor?.searchString;
-    debugger;
+    const searchInit = alfaAtCursor?.searchString;
+    // debugger;
 
     const insertAlfaLink = (title, search) => {
+        debugger;
         editor.replaceSelection("");
         // editor.exec("addLink", { linkUrl: `mm4i-search: ${search}`, linkText: title });
         editor.exec("addLink", { linkUrl: searchString2marker(search), linkText: title });
@@ -66,13 +67,11 @@ async function dialogInsertSearch(editor) {
 
 
     const inpTitle = modMdc.mkMDCtextFieldInput();
-    inpTitle.value = titleSel;
+    inpTitle.value = titleInit;
     const taTitle = modMdc.mkMDCtextField("Title", inpTitle);
 
     const inpSearch = modMdc.mkMDCtextFieldInput();
-    // const valAlfa = decodeURIComponent(urlSel.slice(12)).trim();
-    // const valAlfa = searchMarker2string(decodeURIComponent(urlSel));
-    inpSearch.value = searchSel;
+    inpSearch.value = searchInit;
     const taSearch = modMdc.mkMDCtextField("Search", inpSearch);
 
     const spanSearched = mkElt("span", undefined, searchNodeParams.inpSearch.value);
@@ -86,8 +85,11 @@ async function dialogInsertSearch(editor) {
             display: grid;
             gap: 10px;
             grid-template-columns: 80px 1fr 1fr;
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
         `;
-    const hasAlfaAtCursor = windowAlfaAtCursor;
+    const hasAlfaAtCursor = alfaAtCursor != undefined;
     const titleH2 = hasAlfaAtCursor ? "Update search link" : "Insert search link";
     const titleSave = hasAlfaAtCursor ? "Update" : "Insert";
     const body = mkElt("div", undefined, [
@@ -104,7 +106,7 @@ async function dialogInsertSearch(editor) {
         const search = inpSearch.value.trim();
         if (wantSave == false) {
             // return title.length > 0 && search.length > 0;
-            return title != initialTitle || search != initialSearch;
+            return title != titleInit || search != searchInit;
         }
         /*
         // const cm = editor.codemirror;
@@ -125,7 +127,8 @@ async function dialogInsertSearch(editor) {
     };
     // FIX-ME: save button
     // FIX-ME: preview search
-    const answer = await modMdc.mkMDCdialogConfirm(body, titleSave, "cancel", funCheckSave);
+    // const answer = await modMdc.mkMDCdialogConfirm(body, titleSave, "cancel", funCheckSave);
+    const answer = await modMdc.mkMDCdialogConfirm(body, titleSave, "cancel");
     if (!answer) {
         return;
     }
@@ -135,7 +138,28 @@ async function dialogInsertSearch(editor) {
     if (search == "") return;
     // console.log({ editor });
     // editor.exec("addLink", { linkUrl: `mm4i-search: ${search}`, linkText: title });
-    editor.exec("addLink", { linkUrl: searchString2marker(search), linkText: title });
+    // debugger;
+
+    // Avoid block browser:
+    if (alfaAtCursor) {
+        const node = alfaAtCursor.eltAnchor;
+        const lbMD = editor.getMarkdown().length;
+        const lbWW = editor.getHTML().length;
+        console.log("before remove", lbMD, lbWW, node.isConnected, node)
+        const eltMut = node.parentElement;
+        node.remove();
+        await modTools.wait4mutations(eltMut);
+    }
+    (async function () {
+        if (alfaAtCursor) {
+            // modTools.waitSeconds(1);
+            const node = alfaAtCursor.eltAnchor;
+            const laMD = editor.getMarkdown().length;
+            const laWW = editor.getHTML().length;
+            console.log("after remove", laMD, laWW, node.isConnected, node);
+        }
+        editor.exec("addLink", { linkUrl: searchString2marker(search), linkText: title });
+    })();
     return;
     // debugger;
     const [start, end] = editor.getSelection();
@@ -1030,7 +1054,7 @@ function getWysiwygLength(markdownString) {
 
 
 /** @param {string} str @returns {string} */
-function searchString2marker(str) { return `mm4i-search: ${str.trim()}`; }
+function searchString2marker(str) { return `mm4i-search:${str.trim()}`; }
 
 /** @param {string} marker @returns {string} */
 function searchMarker2string(marker) { return marker.slice(12).trim(); }
@@ -1042,11 +1066,23 @@ function getWWalfaAtCursor(editor) {
     // debugger;
     if (editor.mode != "wysiwyg") return;
     const ws = window.getSelection();
-    let { anchorNode, anchorOffset, focusNode, focusOffset } = ws;
-    console.log({ anchorNode, focusNode });
+    if (!ws) {
+        debugger; // FIX-ME: Can this happen??
+        return;
+    }
+    const { anchorNode } = ws;
+    if (!anchorNode) {
+        debugger; // FIX-ME: Can this happen??
+        return;
+    }
+    console.log({ anchorNode });
     const nnAnchor = anchorNode.nodeName;
     if (nnAnchor != "#text") throw Error(`Expected text node (#text), got (${nnAnchor})`);
     const eltAnchor = anchorNode.parentElement;
+    if (!eltAnchor) {
+        debugger; // FIX-ME: Can this happen??
+        return;
+    }
     if (!eltAnchor.classList.contains("toastui-alfa-link")) return;
     const tnAnc = eltAnchor.tagName;
     if (tnAnc != "A") throw Error(`Expected tagName "A", got "${tnAnc}"`);
@@ -1056,5 +1092,11 @@ function getWWalfaAtCursor(editor) {
     const searchTitle = eltAnchor.textContent;
     console.log({ searchLink, searchString, searchTitle })
     // debugger;
-    return { searchString, searchTitle };
+    return { searchString, searchTitle, eltAnchor };
+}
+function getMDalfaAtCursor(editor) {
+    const es = editor.getSelection();
+    const lines = editor.getMarkdown().split("\n");
+    debugger;
+
 }
