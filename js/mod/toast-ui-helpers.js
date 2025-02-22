@@ -1080,10 +1080,29 @@ function getMDalfaAtCursor(editor) {
     if (editor.mode == "wysiwyg") return;
     const es = editor.getSelection();
     const lines = editor.getMarkdown().split("\n");
-    debugger; // eslint-disable-line no-debugger
+    // debugger; // eslint-disable-line no-debugger
     const es0 = es[0];
     const es00 = es0[0];
-    const currentLine = lines[es00];
+    const lineNo = es00 - 1;
+    const currentLine = lines[lineNo];
+    console.log({ currentLine });
+    const reLink = /\[(.+?)\]\((.+?)\)/;
+    const reSearchLink = /\[(.+?)\]\(mm4i-search:(.+?)\)/;
+    const m = currentLine.match(reSearchLink);
+    const searchLink = m[0];
+    const searchTitle = m[1];
+    const searchString = m[2];
+    // FIX-ME: several on same line
+    // const e = reSearchLink.exec(currentLine);
     debugger; // eslint-disable-line no-debugger
-
+    if (!m) return;
+    const start = currentLine.indexOf(searchLink);
+    const end = start + searchLink.length;
+    const sl = currentLine.slice(start, end);
+    console.log(searchLink);
+    console.log(sl);
+    if (searchLink != sl) throw Error(`searchLink=="${searchLink}", but sl=="${sl}"`);
+    const selection = [[lineNo, start], [lineNo, end]];
+    debugger; // eslint-disable-line no-debugger
+    return { searchString, searchTitle, selection };
 }
