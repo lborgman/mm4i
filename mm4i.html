@@ -581,16 +581,37 @@
             font-size: 16px;
         }
 
-        a.toastui-alfa-link {
+        a.NOtoastui-alfa-link {
             color: green !important;
             text-decoration: underline;
             cursor: pointer;
         }
+        a[href^="mm4i-search:"] {
+            color: orange;
+            color: goldenrod;
+            color: goldenrod;
+            color: black;
+            background: orange;
+            padding-right: 2px;
+            border-radius: 4px;
+        }
 
-        a.toastui-alfa-link::before {
+        a.NOtoastui-alfa-link::before {
             content: url(img/search14px.svg);
             padding: 0;
             color: green !important;
+        }
+        a[href^="mm4i-search:"]::before {
+            content: url(img/search14px.svg);
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            padding: 0;
+            padding-left: 2px;
+            padding-right: 2px;
+            margin-right: 4px;
+            padding-top: 2px;
+            margin-top: 2px;
         }
     </style>
 

@@ -140,25 +140,38 @@ async function dialogInsertSearch(editor) {
     // editor.exec("addLink", { linkUrl: `mm4i-search: ${search}`, linkText: title });
     // debugger;
 
-    // Avoid block browser:
+    // Avoid blocking browser:
+    const lbMD = editor.getMarkdown().length;
+    const lbWW = editor.getHTML().length;
+    let node, eltMut;
+    const sel = editor.getSelection();
     if (alfaAtCursor) {
-        const node = alfaAtCursor.eltAnchor;
-        const lbMD = editor.getMarkdown().length;
-        const lbWW = editor.getHTML().length;
-        console.log("before remove", lbMD, lbWW, node.isConnected, node)
-        const eltMut = node.parentElement;
+        node = alfaAtCursor.eltAnchor;
+        // console.log("before remove", lbMD, lbWW, node.isConnected, node)
+        eltMut = node.parentElement;
         node.remove();
         await modTools.wait4mutations(eltMut);
     }
     (async function () {
         if (alfaAtCursor) {
             // modTools.waitSeconds(1);
-            const node = alfaAtCursor.eltAnchor;
+            // const node = alfaAtCursor.eltAnchor;
             const laMD = editor.getMarkdown().length;
             const laWW = editor.getHTML().length;
-            console.log("after remove", laMD, laWW, node.isConnected, node);
+            // console.log("after remove", laMD, laWW, node.isConnected, node);
+            if (lbMD == laMD || lbWW == laWW) {
+                const msgLen = `MD:${lbMD}=>${laMD}, WW:${lbWW}=>${laWW}`;
+                console.error(msgLen);
+                debugger;
+                throw Error(`Editor was not read: ${msgLen}`);
+            }
         }
         editor.exec("addLink", { linkUrl: searchString2marker(search), linkText: title });
+        if (alfaAtCursor) { await modTools.wait4mutations(eltMut); }
+        const htmlContent = editor.getHTML();
+        editor.setHTML(htmlContent);
+        if (alfaAtCursor) { await modTools.wait4mutations(eltMut); }
+        editor.setSelection(sel[0], sel[1]);
     })();
     return;
     // debugger;
@@ -238,17 +251,11 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         }
     }
     function check4alfa(eltAlfaLink) {
-        // const eltAlfaLink =/** @type {HTMLAnchorElement} */ (evt.target);
         if (eltAlfaLink.tagName != "A") return;
         const href = eltAlfaLink.href;
-        // if (!href.startsWith("mm4i-search:")) return;
         if (!isSearchMarker(href)) return;
-        // const isAlfaLink = eltAlfaLink.classList.contains("toastui-alfa-link");
-        // if (!isAlfaLink) return;
 
         // FIX-ME:
-        // const valAlfa = target.dataset.alfaLink;
-        // const valAlfa = decodeURIComponent(eltAlfaLink.getAttribute("href")?.slice(12)).trim();
         const valAlfa = searchMarker2string(decodeURIComponent(eltAlfaLink.getAttribute("href")));
 
         console.log("clicked alfa-link:", { valAlfa }, eltAlfaLink);
@@ -372,7 +379,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
             el: divEditor,
             toolbarItems: [],
             initialValue: initialMD,
-            customHTMLRenderer: mm4iRenderer,
+            // customHTMLRenderer: mm4iRenderer,
             previewStyle: "tab",
             initialEditType: "wysiwyg",
             height: "auto",
@@ -481,7 +488,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         initialValue: initialMD,
         // previewStyle: "none",
         // initialEditType: "wysiwyg",
-        customHTMLRenderer: mm4iRenderer,
+        // customHTMLRenderer: mm4iRenderer,
         usageStatistics: false,
     });
     /*
@@ -632,7 +639,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
                 el: ourElt,
                 toolbarItems: objToolbarItems,
                 initialValue: valueInitial,
-                customHTMLRenderer: mm4iRenderer,
+                // customHTMLRenderer: mm4iRenderer,
                 // previewStyle: "vertical",
                 previewStyle: "tab",
                 initialEditType: "markdown",
