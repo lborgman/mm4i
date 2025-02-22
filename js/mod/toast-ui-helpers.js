@@ -213,6 +213,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
     divEditor.dataset.latestSaved = encodeURIComponent(initialMD);
 
     // FIX-ME: move to mm4i file:
+    /*
     const mm4iRenderer = {
         link(node, context) {
             console.log({ node });
@@ -238,22 +239,19 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
             }
             return origin();
 
-            const result = origin();
-            if (!isAlfa) { return result; }
-            result.tagName = "span";
-            if (!entering) { return result; }
-            result.classNames = ["toastui-alfa-link"];
-            // result.attributes.style = "color:red;";
-            // result.attributes.href = null;
-            // delete result.attributes.href;
-            console.log("mm4iRenderer", result)
-            return result;
         }
     }
+    */
+
+
     function check4alfa(eltAlfaLink) {
         if (eltAlfaLink.tagName != "A") return;
         const href = eltAlfaLink.href;
         if (!isSearchMarker(href)) return;
+        if (!eltAlfaLink.closest(".faked-viewer")) {
+            // dialogInsertSearch(editor); // FIX-ME:
+            return;
+        }
 
         // FIX-ME:
         const valAlfa = searchMarker2string(decodeURIComponent(eltAlfaLink.getAttribute("href")));
@@ -365,6 +363,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
 
     divEditor.addEventListener("click", async evt => {
         if (!evt.target) return;
+        // toastEditor
         check4alfa(evt.target);
     });
 
@@ -617,23 +616,26 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
             ourElt.innerHTML = "";
 
             const objToolbarItems = [
-                ["bold", "italic", "strike"],
-                ["heading", "hr", "quote"],
                 [
-                    "link",
                     {
                         name: 'searchButton',
                         tooltip: 'Insert search',
                         className: 'toastui-editor-toolbar-icons search-button',
                         command: "searchCommand"
-                    }
+                    },
+                    "link",
                 ],
+                [
+                    "bold", "italic",
+                    // "strike"
+                ],
+                ["heading", "hr", "quote"],
             ];
             function insertSearchCommand(editor) {
                 // dialog
                 // FIX-ME: what is editor here???
                 console.log("searchCommand clicked", editor);
-                dialogInsertSearch(toastEditor);
+                dialogInsertSearch(editor);
             }
             const toastEditor = new modToastUI.Editor({
                 el: ourElt,
@@ -752,56 +754,6 @@ export async function setupToastUIpreview(taOrDiv, valueInitial, valuePlaceholde
     return await setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, onEdit, objInit4Notes);
 }
 
-/*
-async function addAlfa(easyMDE) {
-    console.error("This addAlfa is for easyMDE");
-    debugger;
-    return;
-    await saveOrigMarkdown();
-    // const EasyMDE = window["EasyMDE"];
-
-    function markHejGreen(txt) {
-        const newTxt = txt.replaceAll(/hej/g, `<span style="color:green;">HEJ</span>`);
-        return newTxt;
-    }
-    function markHejRed(txt) {
-        const newTxt = txt.replaceAll(/hej/g, `<span style="color:red;">HEJ</span>`);
-        return newTxt;
-    }
-    const reAlfaBefore = /\[@(.+?)\]\((.+?)\)/g;
-    function markAlfaBefore(txt) {
-        const newTxt = txt.replaceAll(reAlfaBefore, `<span data-alfa-link="$2" class="cm-alfa-before" title="Lookup '$2'">🔍$1</a>`);
-        return newTxt;
-    }
-    const reAlfaAfter = /<a href="(.*?)"(.*?)>@(.*?)<\/a>/g;
-    function markAlfaAfter(txt) {
-        const newTxt = txt.replaceAll(reAlfaAfter, `<span data-alfa-link="$1" class="cm-alfa-after" $2>🔍$3</span>`);
-        return newTxt;
-    }
-    function markMoreBefore(txt) {
-        let newTxt = txt;
-        newTxt = markHejGreen(txt);
-        newTxt = markAlfaBefore(newTxt);
-        return newTxt;
-    }
-    function markMoreAfter(txt) {
-        let newTxt = txt;
-        newTxt = markHejRed(txt);
-        newTxt = markAlfaAfter(newTxt);
-        return newTxt;
-    }
-    modifyEasyMDEmarkdown(markMoreBefore, markMoreAfter);
-    // console.log("++++ added HEJ");
-    function modifyEasyMDEmarkdown(funMoreBefore, funMoreAfter) {
-        EasyMDE.prototype.markdown = function (txt) {
-            if (funMoreBefore) txt = funMoreBefore(txt);
-            txt = origEasyMDEmarkdown.call(easyMDE, txt);
-            if (funMoreAfter) txt = funMoreAfter(txt);
-            return txt;
-        }
-    }
-}
-*/
 
 
 // insert search link
