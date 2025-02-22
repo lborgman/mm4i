@@ -751,6 +751,7 @@ export class CustomRenderer4jsMind {
         modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed);
     }
     async editNotesDialog(eltJmnode) {
+        let btnSave;
         const jmDisplayed = this.THEjmDisplayed;
         const node_ID = jsMind.my_get_nodeID_from_DOM_element(eltJmnode);
         // const node = this.THEjmDisplayed.get_node(node_ID)

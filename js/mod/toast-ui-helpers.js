@@ -54,11 +54,11 @@ async function dialogInsertSearch(editor) {
     console.log({ windowAlfaAtCursor: alfaAtCursor, es, esText });
     const titleInit = esText || alfaAtCursor?.searchTitle || "";
     // const urlSel = eltAnchor.nodeName != "A" ? "" : eltAnchor.href; // FIX-ME:
-    const searchInit = alfaAtCursor?.searchString;
+    const searchInit = alfaAtCursor?.searchString || "";
     // debugger;
 
     const insertAlfaLink = (title, search) => {
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         editor.replaceSelection("");
         // editor.exec("addLink", { linkUrl: `mm4i-search: ${search}`, linkText: title });
         editor.exec("addLink", { linkUrl: searchString2marker(search), linkText: title });
@@ -162,8 +162,8 @@ async function dialogInsertSearch(editor) {
             if (lbMD == laMD || lbWW == laWW) {
                 const msgLen = `MD:${lbMD}=>${laMD}, WW:${lbWW}=>${laWW}`;
                 console.error(msgLen);
-                debugger;
-                throw Error(`Editor was not read: ${msgLen}`);
+                debugger; // eslint-disable-line no-debugger
+                throw Error(`Editor was not ready: ${msgLen}`);
             }
         }
         editor.exec("addLink", { linkUrl: searchString2marker(search), linkText: title });
@@ -203,9 +203,12 @@ let lastMDgetCursorPosition; // debugging
  * @returns 
  */
 async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, objInit) {
+    let toastViewer;
+    let toastEditor;
+
     if (!divEditor.isConnected) {
         console.error("The editor container is not connected to the DOM", divEditor);
-        debugger;
+        debugger; // eslint-disable-line no-debugger
     }
     // const ourElt = divEditor;
     // ourElt.innerHTML = "";
@@ -415,6 +418,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
             padding: 0;
         `;
         const eltDialogContent = arrC0.closest(".mdc-dialog__content");
+        // @ts-ignore
         eltDialogContent.style.paddingBottom = "0px";
 
         const selectorWWcont = "div.toastui-editor-ww-container";
@@ -448,7 +452,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
             console.log(elts);
             const eltsA = elts.filter(elt => elt.tagName == "A");
             console.log({ eltsA });
-            if (eltsA.length > 1) debugger;
+            if (eltsA.length > 1) debugger; // eslint-disable-line no-debugger
             if (eltsA.length == 1) {
                 const eltA = /** type {DOMElement} */ eltsA[0];
                 console.log({ eltA });
@@ -463,6 +467,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         console.log(shield);
         const eltsA = [...eltWWmode.querySelectorAll("a")];
         eltsA.forEach(eltA => console.log(eltA.outerHTML));
+        /*
         eltsA.forEach(eltA => {
             if (eltA.textContent.length > 0) {
                 eltA.addEventListener("NOclick", _evt => {
@@ -471,6 +476,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
                 });
             }
         });
+        */
         /*
         debugger;
         setTimeout(() => {
@@ -486,7 +492,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
     // toastPreview.destroy();
     // await modTools.waitSeconds(1);
 
-    const toastViewer = toastPreview || new modToastUI.Editor.factory({
+    toastViewer = toastPreview || new modToastUI.Editor.factory({
         viewer: true,
         el: divEditor,
         initialValue: initialMD,
@@ -636,13 +642,14 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
                 ],
                 ["heading", "hr", "quote"],
             ];
-            function insertSearchCommand(editor) {
+            function insertSearchCommand(dummy) {
                 // dialog
                 // FIX-ME: what is editor here???
-                console.log("searchCommand clicked", editor);
-                dialogInsertSearch(editor);
+                console.log("searchCommand clicked", dummy);
+                // toastEditor
+                dialogInsertSearch(toastEditor);
             }
-            const toastEditor = new modToastUI.Editor({
+            toastEditor = new modToastUI.Editor({
                 el: ourElt,
                 toolbarItems: objToolbarItems,
                 initialValue: valueInitial,
@@ -751,7 +758,9 @@ export async function setupToastUIpreview(taOrDiv, valueInitial, valuePlaceholde
     const lenOnEdit = onEdit.length;
     if (lenOnEdit != 1) throw Error(`Function param onEdit should take 1 param, not ${lenOnEdit}`);
 
-    const funInit = async (editor) => console.log("funInit", editor);
+    const funInit = async (editor) => {
+        console.log("funInit", editor);
+    };
     const objInit4Notes = {
         funInit
     }
@@ -762,7 +771,7 @@ export async function setupToastUIpreview(taOrDiv, valueInitial, valuePlaceholde
 
 
 // insert search link
-function getAlfaAtCursor(contentMarkdown, startSel, endSel) {
+function NOgetAlfaAtCursor(contentMarkdown, startSel, endSel) {
 
     /*
     // FIX-ME: Looks like a JavaScript bug here with iterators.
@@ -818,6 +827,7 @@ function isMarkdownPos(pos) {
  * @returns {boolean}
  */
 function isWysiwygPos(pos) {
+    if (Array.isArray(pos)) return false;
     if (!Number.isInteger(pos)) return false;
     if (pos < 0) return false;
     return true;
@@ -876,8 +886,8 @@ export function toMarkdownPos(editor, wysiwygPos) {
                 const html = convertMarkdownToHtml(md);
                 const elt = document.createElement("selection");
                 elt.innerHTML = html;
-                const txt = elt.textContent;
-                const len2 = txt?.length;
+                // const txt = elt.textContent;
+                // const len2 = txt?.length;
                 // console.log({ len, md, len2, txt });
                 cacheLineWWtotLen[prop] = len;
             }
@@ -890,7 +900,7 @@ export function toMarkdownPos(editor, wysiwygPos) {
 
     let pos = 0;
     let iLine = 0;
-    let lineNo, chPos;
+    let lineNo, chPos = 0;
     const len = lines.length;
     for (; iLine < len; iLine++) {
         const nextPos = pos + lines[iLine].length + 1;
@@ -902,7 +912,7 @@ export function toMarkdownPos(editor, wysiwygPos) {
         pos = nextPos;
     }
     if (lineNo == undefined) {
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         throw Error(`lineNo is undefined`);
     }
     chPos = chPos - lineNo + 1;
@@ -992,6 +1002,7 @@ function convertMarkdownToHtml(markdownString) {
         initialEditType: 'markdown'
     }).getHTML();
 }
+/*
 function convertMarkdownToHtml2(markdownString) {
     const viewer = modToastUI.Editor.factory({
         el: document.createElement('div'),
@@ -1001,6 +1012,7 @@ function convertMarkdownToHtml2(markdownString) {
     });
     return viewer.getHTML();
 }
+*/
 
 /**
  * 
@@ -1031,12 +1043,14 @@ function getWWalfaAtCursor(editor) {
     if (editor.mode != "wysiwyg") return;
     const ws = window.getSelection();
     if (!ws) {
-        debugger; // FIX-ME: Can this happen??
+        // FIX-ME: Can this happen??
+        debugger; // eslint-disable-line no-debugger
         return;
     }
     const { anchorNode } = ws;
     if (!anchorNode) {
-        debugger; // FIX-ME: Can this happen??
+        // FIX-ME: Can this happen??
+        debugger; // eslint-disable-line no-debugger
         return;
     }
     console.log({ anchorNode });
@@ -1044,23 +1058,32 @@ function getWWalfaAtCursor(editor) {
     if (nnAnchor != "#text") throw Error(`Expected text node (#text), got (${nnAnchor})`);
     const eltAnchor = anchorNode.parentElement;
     if (!eltAnchor) {
-        debugger; // FIX-ME: Can this happen??
+        // FIX-ME: Can this happen??
+        debugger; // eslint-disable-line no-debugger
         return;
     }
-    if (!eltAnchor.classList.contains("toastui-alfa-link")) return;
+    // if (!eltAnchor.classList.contains("toastui-alfa-link")) return;
     const tnAnc = eltAnchor.tagName;
-    if (tnAnc != "A") throw Error(`Expected tagName "A", got "${tnAnc}"`);
-    console.log({ tnAnc });
-    const searchLink = decodeURIComponent(eltAnchor.href);
+    if (tnAnc != "A") {
+        // debugger;
+        console.log(`Expected tagName "A", got "${tnAnc}"`);
+        return;
+    }
+    // const searchLink = decodeURIComponent(eltAnchor.href);
+    const searchLink = decodeURIComponent(eltAnchor.getAttribute("href") || "");
     const searchString = searchMarker2string(searchLink);
     const searchTitle = eltAnchor.textContent;
     console.log({ searchLink, searchString, searchTitle })
-    // debugger;
     return { searchString, searchTitle, eltAnchor };
 }
 function getMDalfaAtCursor(editor) {
+    if (editor.mode == "wysiwyg") return;
     const es = editor.getSelection();
     const lines = editor.getMarkdown().split("\n");
-    debugger;
+    debugger; // eslint-disable-line no-debugger
+    const es0 = es[0];
+    const es00 = es0[0];
+    const currentLine = lines[es00];
+    debugger; // eslint-disable-line no-debugger
 
 }
