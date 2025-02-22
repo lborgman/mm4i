@@ -246,6 +246,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
 
     function check4searchLink(eltAlfaLink) {
         if (eltAlfaLink.tagName != "A") return;
+        if (!eltAlfaLink.closest(".faked-viewer")) { return; }
         const href = eltAlfaLink.href;
         if (!isSearchMarker(href)) {
             // FIX-ME: Add popup
@@ -253,12 +254,6 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
             aHelper.href = href;
             aHelper.target = "_blank";
             aHelper.click();
-            return;
-        }
-        if (!eltAlfaLink.closest(".faked-viewer")) {
-            // dialogInsertSearch(editor); // FIX-ME: 
-            // toastEditor =
-            // eltAlfaLink.click();
             return;
         }
 
