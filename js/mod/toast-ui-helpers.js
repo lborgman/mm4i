@@ -244,12 +244,21 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
     */
 
 
-    function check4alfa(eltAlfaLink) {
+    function check4searchLink(eltAlfaLink) {
         if (eltAlfaLink.tagName != "A") return;
         const href = eltAlfaLink.href;
-        if (!isSearchMarker(href)) return;
+        if (!isSearchMarker(href)) {
+            // FIX-ME: Add popup
+            const aHelper = document.createElement("a");
+            aHelper.href = href;
+            aHelper.target = "_blank";
+            aHelper.click();
+            return;
+        }
         if (!eltAlfaLink.closest(".faked-viewer")) {
-            // dialogInsertSearch(editor); // FIX-ME:
+            // dialogInsertSearch(editor); // FIX-ME: 
+            // toastEditor =
+            // eltAlfaLink.click();
             return;
         }
 
@@ -364,7 +373,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
     divEditor.addEventListener("click", async evt => {
         if (!evt.target) return;
         // toastEditor
-        check4alfa(evt.target);
+        check4searchLink(evt.target);
     });
 
 
@@ -454,15 +463,16 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         shield.addEventListener("pointerup", evt => {
             console.log({ evt });
             // startAlfaPreview();
-            check4alfa(evt.target);
+            check4searchLink(evt.target);
         });
         console.log(shield);
         const eltsA = [...eltWWmode.querySelectorAll("a")];
         eltsA.forEach(eltA => console.log(eltA.outerHTML));
         eltsA.forEach(eltA => {
             if (eltA.textContent.length > 0) {
-                eltA.addEventListener("click", _evt => {
-                    console.log("clicked", eltA.outerHTML);
+                eltA.addEventListener("NOclick", _evt => {
+                    console.log("clicked .click()", eltA.outerHTML);
+                    // eltA.click();
                 });
             }
         });
