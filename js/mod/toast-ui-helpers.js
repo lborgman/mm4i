@@ -460,32 +460,8 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
             check4searchLink(evt.target);
         });
         console.log(shield);
-        const eltsA = [...eltWWmode.querySelectorAll("a")];
-        eltsA.forEach(eltA => console.log(eltA.outerHTML));
-        /*
-        eltsA.forEach(eltA => {
-            if (eltA.textContent.length > 0) {
-                eltA.addEventListener("NOclick", _evt => {
-                    console.log("clicked .click()", eltA.outerHTML);
-                    // eltA.click();
-                });
-            }
-        });
-        */
-        /*
-        debugger;
-        setTimeout(() => {
-            console.log("--- in timeout");
-            const eltsA = [...eltWWmode.querySelectorAll("a")];
-            eltsA.forEach(eltA => console.log(eltA.outerHTML));
-        }, 3000);
-        */
         return editorViewer;
     }
-    // return; // FIX-ME:
-    // await modTools.waitSeconds(1);
-    // toastPreview.destroy();
-    // await modTools.waitSeconds(1);
 
     toastViewer = toastPreview || new modToastUI.Editor.factory({
         viewer: true,
@@ -496,20 +472,9 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         // customHTMLRenderer: mm4iRenderer,
         usageStatistics: false,
     });
-    /*
-    */
-    /*
-    */
 
     window["myToastViewer"] = toastViewer;
-    // await modTools.waitSeconds(1);
-    // toastViewer.setMarkdown("");
-    // await modTools.waitSeconds(1);
-    // toastViewer.setMarkdown(initialMD);
     console.log({ toastViewer });
-    // toastViewer.setMarkdown("");
-    // await modTools.waitSeconds(1);
-    //  toastViewer.setMarkdown(valueInitial);
 
     if (objInit) {
         const tofObjInit = typeof objInit;
@@ -541,40 +506,6 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
 
 
 
-    // Add custom styling for special syntax
-    const idStyle = "cm-special-style-for-easyMDE";
-    if (!document.getElementById(idStyle)) {
-        const eltStyle = document.createElement("style");
-        eltStyle.id = idStyle;
-        eltStyle.textContent = `
-            .cm-alfa-before {
-                color: red;
-                text-decoration: underline;
-                cursor: pointer;
-            }
-            .cm-alfa-after {
-                color: green;
-                text-decoration: underline;
-            }
-            .toastui-alfa-link {
-                color: green;
-                text-decoration: underline;
-                cursor: pointer;
-            }
-            .toastui-alfa-link::before {
-                content: "X";
-                color: red;
-                padding-right: 2px;
-                text-decoration: none !important;
-                text-decoration-color: transparent !important;
-            }
-        `;
-        // document.head.append(eltStyle);
-    }
-
-
-
-
     const btnEdit = addEditMDbutton();
     // const objReturn = {};
 
@@ -586,13 +517,8 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         console.error("active element is not btnEdit", eltActive);
         throw Error(`document.activeElement is not btnEdit`);
     }
-    // divEasyMdeInert.removeAttribute("inert");
-    // }, 600);
-    // })();
 
     return { toastViewer, btnEdit };
-    // objReturn.btnEdit = btnEdit;
-    // return objReturn;
 
     function addEditMDbutton() {
         divEditor.style.position = "relative";
@@ -728,15 +654,6 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
 }
 
 
-/*
-let origEasyMDEmarkdown;
-async function saveOrigMarkdown() {
-    if (origEasyMDEmarkdown) return;
-    await importFc4i("easymde");
-    const EasyMDE = window["EasyMDE"];
-    origEasyMDEmarkdown = EasyMDE.prototype.markdown;
-}
-*/
 
 /**
  * 
@@ -765,32 +682,6 @@ export async function setupToastUIpreview(taOrDiv, valueInitial, valuePlaceholde
 
 
 
-// insert search link
-/*
-function NOgetAlfaAtCursor(contentMarkdown, startSel, endSel) {
-
-
-    const matches = contentMarkdown.matchAll(reAlfaBefore);
-    const arrMatches = [...matches];
-    if (arrMatches.length == 0) return;
-
-    for (let match of arrMatches) {
-        const lenAlfa = match[0].length;
-        const startAlfa = match.index;
-        const endAlfa = startAlfa + lenAlfa;
-        if (startSel == endSel) {
-            if (startAlfa < startSel && startSel < endAlfa) {
-                const title = match[1];
-                const search = match[2];
-                return { title, search, startAlfa, endAlfa }
-            }
-        } else {
-            debugger; // eslint-disable-line no-debugger
-        }
-    }
-    return;
-}
-*/
 
 
 /**
@@ -874,9 +765,6 @@ export function toMarkdownPos(editor, wysiwygPos) {
                 const html = convertMarkdownToHtml(md);
                 const elt = document.createElement("selection");
                 elt.innerHTML = html;
-                // const txt = elt.textContent;
-                // const len2 = txt?.length;
-                // console.log({ len, md, len2, txt });
                 cacheLineWWtotLen[prop] = len;
             }
             return cacheLineWWtotLen[prop];
@@ -884,7 +772,6 @@ export function toMarkdownPos(editor, wysiwygPos) {
     });
     const res = modTools.binarySearch(lineWWtotLen, wysiwygPos, (a, b) => a - b);
     console.log({ res });
-    // debugger;
 
     let pos = 0;
     let iLine = 0;
@@ -913,41 +800,6 @@ export function toMarkdownPos(editor, wysiwygPos) {
  * @param {any} toastEditor 
  * @returns {number}
  */
-// FIX-ME: This causes bad behavior of the editor!
-function getCursorPosition(toastEditor) {
-    throw Error("don't use getCursorPosition");
-    // const st = "background:green;";
-    const sel = toastEditor.getSelection(); // Get the selection from the WYSIWYG editor
-    // console.log("%cgetCursorPosition", st, { sel });
-    if (!Array.isArray(sel)) throw Error("Expected array");
-    const lenSel = sel.length;
-    if (lenSel != 2) throw Error(`Expected length == 2, got ${lenSel}`);
-    const sel0 = sel[0];
-    let cursorPosition;
-    if (Array.isArray(sel0)) {
-        lastMDgetCursorPosition = sel0;
-        const startLine = sel0[0];
-        const startCh = sel0[1];
-        const markdown = toastEditor.getMarkdown();
-        const lines = markdown.split("\n");
-        let mdString = "";
-        let pos = startCh;
-        let i = 0;
-        for (; i < startLine - 1; i++) {
-            pos += lines[i].length + 1;
-            mdString += lines[i];
-        }
-        // cursorPosition = pos;
-        mdString += lines[i].slice(0, startCh);
-        const wysiwygLenght = getWysiwygLength(mdString);
-        cursorPosition = wysiwygLenght;
-    } else {
-        cursorPosition = sel0;
-    }
-    // console.log("%cGCP", st, { cursorPosition });
-    if (isNaN(cursorPosition)) throw "savedCursorPosition is not number";
-    return cursorPosition;
-}
 
 /**
  * 
@@ -972,8 +824,6 @@ export function setCursorPos(toastEditor, pos) {
     }
 }
 
-
-// temp test
 
 export function mySetCursorPos(posWysiwyg) {
     if (!isWysiwygPos(posWysiwyg)) debugger; // eslint-disable-line no-debugger
@@ -1019,8 +869,6 @@ function getWysiwygLength(markdownString) {
     if (txt == null) return 0;
     return txt.length;
 }
-/*
-*/
 
 
 /** @param {string} str @returns {string} */
