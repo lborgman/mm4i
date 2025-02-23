@@ -57,12 +57,14 @@ async function dialogInsertSearch(editor) {
     const searchInit = alfaAtCursor?.searchString || "";
     // debugger;
 
+    /*
     const insertAlfaLink = (title, search) => {
         debugger; // eslint-disable-line no-debugger
         editor.replaceSelection("");
         // editor.exec("addLink", { linkUrl: `mm4i-search: ${search}`, linkText: title });
         editor.exec("addLink", { linkUrl: searchString2marker(search), linkText: title });
     }
+    */
     // return;
 
 
@@ -97,6 +99,7 @@ async function dialogInsertSearch(editor) {
         // taTitle, taSearch,
         divInputs
     ]);
+    /*
     const funCheckSave = (wantSave) => {
         console.log({ wantSave });
         const tofWantSave = typeof wantSave;
@@ -108,23 +111,8 @@ async function dialogInsertSearch(editor) {
             // return title.length > 0 && search.length > 0;
             return title != titleInit || search != searchInit;
         }
-        /*
-        // const cm = editor.codemirror;
-        // const doc = cm.getDoc();
-        // const cursor = doc.getCursor();
-        const txtInsert = `[@${title}](${search})`;
-        if (!alfaAtCursor) {
-            doc.replaceRange(txtInsert, cursor);
-        } else {
-            debugger; // eslint-disable-line no-debugger
-            const { title, search, posAlfa, lenAlfa } = alfaAtCursor;
-            const lineNo = cursor.line;
-            const from = { line: lineNo, ch: posAlfa };
-            const to = { line: lineNo, ch: posAlfa + lenAlfa };
-            doc.replaceRange(txtInsert, from, to);
-        }
-        */
     };
+    */
     // FIX-ME: save button
     // FIX-ME: preview search
     // const answer = await modMdc.mkMDCdialogConfirm(body, titleSave, "cancel", funCheckSave);
@@ -136,49 +124,56 @@ async function dialogInsertSearch(editor) {
     if (title == "") return;
     const search = inpSearch.value.trim();
     if (search == "") return;
-    // console.log({ editor });
-    // editor.exec("addLink", { linkUrl: `mm4i-search: ${search}`, linkText: title });
-    // debugger;
 
-    // Avoid blocking browser:
-    const lbMD = editor.getMarkdown().length;
-    const lbWW = editor.getHTML().length;
-    let node, eltMut;
-    const sel = editor.getSelection();
-    if (alfaAtCursor) {
-        node = alfaAtCursor.eltAnchor;
-        // console.log("before remove", lbMD, lbWW, node.isConnected, node)
-        eltMut = node.parentElement;
-        node.remove();
-        await modTools.wait4mutations(eltMut);
-    }
-    (async function () {
+    if (editor.mode == "wysiwyg") {
+        // Avoid blocking browser:
+        const lbMD = editor.getMarkdown().length;
+        const lbWW = editor.getHTML().length;
+        let node, eltMut;
+        const sel = editor.getSelection();
         if (alfaAtCursor) {
-            // modTools.waitSeconds(1);
-            // const node = alfaAtCursor.eltAnchor;
-            const laMD = editor.getMarkdown().length;
-            const laWW = editor.getHTML().length;
-            // console.log("after remove", laMD, laWW, node.isConnected, node);
-            if (lbMD == laMD || lbWW == laWW) {
-                const msgLen = `MD:${lbMD}=>${laMD}, WW:${lbWW}=>${laWW}`;
-                console.error(msgLen);
-                debugger; // eslint-disable-line no-debugger
-                throw Error(`Editor was not ready: ${msgLen}`);
-            }
+            node = alfaAtCursor.eltAnchor;
+            // console.log("before remove", lbMD, lbWW, node.isConnected, node)
+            eltMut = node.parentElement;
+            node.remove();
+            await modTools.wait4mutations(eltMut);
         }
-        editor.exec("addLink", { linkUrl: searchString2marker(search), linkText: title });
-        if (alfaAtCursor) { await modTools.wait4mutations(eltMut); }
-        const htmlContent = editor.getHTML();
-        editor.setHTML(htmlContent);
-        if (alfaAtCursor) { await modTools.wait4mutations(eltMut); }
-        editor.setSelection(sel[0], sel[1]);
-    })();
-    return;
-    // debugger;
-    const [start, end] = editor.getSelection();
-    // const marker = `[${title}](mm4i-search:${search})`;
-    const mdMarker = `[${title}](${searchString2marker(search)})`;
-    editor.replaceSelection(mdMarker, start, end);
+        (async function () {
+            if (alfaAtCursor) {
+                const laMD = editor.getMarkdown().length;
+                const laWW = editor.getHTML().length;
+                if (lbMD == laMD || lbWW == laWW) {
+                    const msgLen = `MD:${lbMD}=>${laMD}, WW:${lbWW}=>${laWW}`;
+                    console.error(msgLen);
+                    debugger; // eslint-disable-line no-debugger
+                    throw Error(`Editor was not ready: ${msgLen}`);
+                }
+            }
+            editor.exec("addLink", { linkUrl: searchString2marker(search), linkText: title });
+            if (alfaAtCursor) { await modTools.wait4mutations(eltMut); }
+            const htmlContent = editor.getHTML();
+            editor.setHTML(htmlContent);
+            if (alfaAtCursor) { await modTools.wait4mutations(eltMut); }
+            editor.setSelection(sel[0], sel[1]);
+        })();
+    } else if (editor.mode == "markdown") {
+        debugger;
+        const sel = alfaAtCursor.selection;
+        console.log({sel});
+        const start = sel[0];
+        const end = sel[1];
+        editor.setSelection(start, end);
+        // editor.replaceSelection("HEJ");
+        const mdSearchLink = `[${title}](${searchString2marker(search)})`;
+        editor.replaceSelection(mdSearchLink);
+
+        return;
+        // const [start, end] = editor.getSelection();
+        // const mdMarker = `[${title}](${searchString2marker(search)})`;
+        // editor.replaceSelection(mdMarker, start, end);
+    } else {
+        debugger;
+    }
 }
 
 /** 
@@ -771,17 +766,9 @@ export async function setupToastUIpreview(taOrDiv, valueInitial, valuePlaceholde
 
 
 // insert search link
+/*
 function NOgetAlfaAtCursor(contentMarkdown, startSel, endSel) {
 
-    /*
-    // FIX-ME: Looks like a JavaScript bug here with iterators.
-    //   Taking a closer look later!
-    const m = reAlfaBefore.exec(contentMarkdown);
-    if (!m) return;
-    debugger;
-    const matches = contentMarkdown.matchAll(reAlfaBefore);
-    const temp = [...matches];
-    */
 
     const matches = contentMarkdown.matchAll(reAlfaBefore);
     const arrMatches = [...matches];
@@ -803,6 +790,7 @@ function NOgetAlfaAtCursor(contentMarkdown, startSel, endSel) {
     }
     return;
 }
+*/
 
 
 /**
@@ -1003,6 +991,10 @@ function convertMarkdownToHtml(markdownString) {
     }).getHTML();
 }
 /*
+*/
+
+
+/*
 function convertMarkdownToHtml2(markdownString) {
     const viewer = modToastUI.Editor.factory({
         el: document.createElement('div'),
@@ -1027,6 +1019,8 @@ function getWysiwygLength(markdownString) {
     if (txt == null) return 0;
     return txt.length;
 }
+/*
+*/
 
 
 /** @param {string} str @returns {string} */
@@ -1083,26 +1077,41 @@ function getMDalfaAtCursor(editor) {
     // debugger; // eslint-disable-line no-debugger
     const es0 = es[0];
     const es00 = es0[0];
-    const lineNo = es00 - 1;
-    const currentLine = lines[lineNo];
+    const es01 = es0[1];
+    const linePos = es00;
+    const lineIdx = linePos - 1;
+    const charPos = es01;
+    const charIdx = charPos - 1;
+    const currentLine = lines[lineIdx];
     console.log({ currentLine });
     const reLink = /\[(.+?)\]\((.+?)\)/;
     const reSearchLink = /\[(.+?)\]\(mm4i-search:(.+?)\)/;
+
+    // FIX-ME: several on same line, see https://javascript.info/regexp-methods
     const m = currentLine.match(reSearchLink);
+    // const e = reSearchLink.exec(currentLine);
+
+    if (!m) return;
     const searchLink = m[0];
     const searchTitle = m[1];
     const searchString = m[2];
-    // FIX-ME: several on same line
-    // const e = reSearchLink.exec(currentLine);
-    debugger; // eslint-disable-line no-debugger
-    if (!m) return;
-    const start = currentLine.indexOf(searchLink);
-    const end = start + searchLink.length;
-    const sl = currentLine.slice(start, end);
+    // debugger; // eslint-disable-line no-debugger
+
+    const startPos = currentLine.indexOf(searchLink) + 1;
+    if (charPos < startPos) return;
+    const endPos = startPos + searchLink.length;
+    if (charPos > endPos) return;
+
+    const sl = currentLine.slice(startPos-1, endPos-1);
     console.log(searchLink);
     console.log(sl);
     if (searchLink != sl) throw Error(`searchLink=="${searchLink}", but sl=="${sl}"`);
-    const selection = [[lineNo, start], [lineNo, end]];
-    debugger; // eslint-disable-line no-debugger
+    const start = [linePos, startPos];
+    const end = [linePos, endPos];
+    const selection = [start, end];
+    // debugger; // eslint-disable-line no-debugger
+    // editor.setSelection(start, end);
+    // editor.replaceSelection("HEJ");
+    // debugger; // eslint-disable-line no-debugger
     return { searchString, searchTitle, selection };
 }
