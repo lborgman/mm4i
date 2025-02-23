@@ -645,12 +645,13 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
 
     const notes = shapeEtc.notes;
     if (notes) {
-        const reHttps = /(?:^|\W)(https:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()\[\]@:%_\+.~#?&\/=]*))(?:$|\s)/g;
-        const m = [...notes.matchAll(reHttps)];
-        // m.forEach(m2 => { const url = m2[1]; console.log(`In notes: ${url}`); });
-        const hasLinks = m.length > 0;
+        // const reHttps = /(?:^|\W)(https:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b(?:[-a-zA-Z0-9()\[\]@:%_\+.~#?&\/=]*))(?:$|\s)/g;
+        // const m = [...notes.matchAll(reHttps)];
+        // const hasLinks = m.length > 0;
 
-        const iconNotes = hasLinks ? "link" : "edit";
+        // const iconNotes = hasLinks ? "link" : "edit";
+        // const iconNotes = hasLinks ? "link" : "description";
+        const iconNotes = "description";
         const iconNotesBtn = modMdc.mkMDCiconButton(iconNotes, "Show notes");
         iconNotesBtn.classList.add(clsIconButton);
 
