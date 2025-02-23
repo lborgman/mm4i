@@ -98,7 +98,6 @@ async function dialogInsertSearch(editor) {
         const sel = editor.getSelection();
         if (searchLinkAtCursor) {
             node = searchLinkAtCursor.eltAnchor;
-            // console.log("before remove", lbMD, lbWW, node.isConnected, node)
             eltMut = node.parentElement;
             node.remove();
             await modTools.wait4mutations(eltMut);
@@ -122,20 +121,13 @@ async function dialogInsertSearch(editor) {
             editor.setSelection(sel[0], sel[1]);
         })();
     } else if (editor.mode == "markdown") {
-        debugger;
         const sel = searchLinkAtCursor.selection;
-        console.log({sel});
         const start = sel[0];
         const end = sel[1];
         editor.setSelection(start, end);
-        // editor.replaceSelection("HEJ");
         const mdSearchLink = `[${title}](${searchString2marker(search)})`;
         editor.replaceSelection(mdSearchLink);
-
         return;
-        // const [start, end] = editor.getSelection();
-        // const mdMarker = `[${title}](${searchString2marker(search)})`;
-        // editor.replaceSelection(mdMarker, start, end);
     } else {
         debugger;
     }
@@ -190,13 +182,13 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         }
 
         // FIX-ME:
-        const valAlfa = searchMarker2string(decodeURIComponent(eltSearchLink.getAttribute("href")));
+        const valSearchstring = searchMarker2string(decodeURIComponent(eltSearchLink.getAttribute("href")));
 
-        console.log("clicked alfa-link:", { valAlfa }, eltSearchLink);
+        console.log("clicked search-link:", { valSearchstring }, eltSearchLink);
         searchNodeParams.eltJsMindContainer.classList.add("display-jsmind-search");
 
-        searchNodeParams.inpSearch.value = valAlfa;
-        const resSearch = searchNodeParams.searchNodeFun(valAlfa);
+        searchNodeParams.inpSearch.value = valSearchstring;
+        const resSearch = searchNodeParams.searchNodeFun(valSearchstring);
         const nHits = resSearch.length;
         console.log({ resSearch, nHits });
 
@@ -353,8 +345,6 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         const selectorWWcont = "div.toastui-editor-ww-container";
         const previewWWcont = divEditor.querySelector(selectorWWcont);
         if (!previewWWcont) throw Error(`Could not find "${selectorWWcont}`);
-        const bcr = previewWWcont.getBoundingClientRect();
-        console.log({ bcr });
         const shield = mkElt("div");
         shield.style = `
           background: red;
@@ -392,7 +382,6 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
             console.log({ evt });
             check4searchLink(evt.target);
         });
-        console.log(shield);
         return editorViewer;
     }
 
@@ -814,7 +803,6 @@ function searchMarker2string(marker) { return marker.slice(12).trim(); }
 function isSearchMarker(str) { return str.startsWith("mm4i-search:"); }
 
 function getWWsearchLinkAtCursor(editor) {
-    // debugger;
     if (editor.mode != "wysiwyg") return;
     const ws = window.getSelection();
     if (!ws) {
@@ -837,14 +825,11 @@ function getWWsearchLinkAtCursor(editor) {
         debugger; // eslint-disable-line no-debugger
         return;
     }
-    // if (!eltAnchor.classList.contains("toastui-alfa-link")) return;
     const tnAnc = eltAnchor.tagName;
     if (tnAnc != "A") {
-        // debugger;
         console.log(`Expected tagName "A", got "${tnAnc}"`);
         return;
     }
-    // const searchLink = decodeURIComponent(eltAnchor.href);
     const searchLink = decodeURIComponent(eltAnchor.getAttribute("href") || "");
     const searchString = searchMarker2string(searchLink);
     const searchTitle = eltAnchor.textContent;
@@ -876,23 +861,20 @@ function getMDsearchLinkAtCursor(editor) {
     const searchLink = m[0];
     const searchTitle = m[1];
     const searchString = m[2];
-    // debugger; // eslint-disable-line no-debugger
 
     const startPos = currentLine.indexOf(searchLink) + 1;
     if (charPos < startPos) return;
     const endPos = startPos + searchLink.length;
     if (charPos > endPos) return;
 
-    const sl = currentLine.slice(startPos-1, endPos-1);
-    console.log(searchLink);
-    console.log(sl);
-    if (searchLink != sl) throw Error(`searchLink=="${searchLink}", but sl=="${sl}"`);
+    const sl = currentLine.slice(startPos - 1, endPos - 1);
+    if (searchLink != sl) {
+        console.log(searchLink);
+        console.log(sl);
+        throw Error(`searchLink=="${searchLink}", but sl=="${sl}"`);
+    }
     const start = [linePos, startPos];
     const end = [linePos, endPos];
     const selection = [start, end];
-    // debugger; // eslint-disable-line no-debugger
-    // editor.setSelection(start, end);
-    // editor.replaceSelection("HEJ");
-    // debugger; // eslint-disable-line no-debugger
     return { searchString, searchTitle, selection };
 }
