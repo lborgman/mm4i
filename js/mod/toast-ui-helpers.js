@@ -24,48 +24,13 @@ export function setupSearchNodes(searchPar) {
 
 const modToastUI = window["toastui"] || await importFc4i("toast-ui");
 
-const reAlfaBefore = /\[@(.+?)\]\((.+?)\)/gm;
 async function dialogInsertSearch(editor) {
-    /*
-    // FIX-ME: use JavaScript/DOM native selection for this!
-    // https://javascript.info/selection-range
-    let {anchorNode, anchorOffset, focusNode, focusOffset} = ws;
-    console.log({anchorNode});
-    console.log({focusNode});
-    const ntAnchor = anchorNode.nodeType;
-    if (ntAnchor != 3) throw Error(`Expected text node (3), got (${ntAnchor})`);
-    const eltAnchor = anchorNode.parentElement;
-    const tnAnc = eltAnchor.tagName;
-    console.log({tnAnc});
-    debugger;
-    return;
-    */
-
-
-    // editor.exec("addLink", { linkUrl: `mm4i-search: search`, linkText: "title" });
-    // const h = editor.getHTML();
-    // console.log(h);
-    // return;
-
-    const alfaAtCursor = getWWalfaAtCursor(editor) || getMDalfaAtCursor(editor);
-    // const ws = window.getSelection();
+    const searchLinkAtCursor = getWWsearchLinkAtCursor(editor) || getMDsearchLinkAtCursor(editor);
     const es = editor.getSelection();
     const esText = editor.getSelectedText();
-    console.log({ windowAlfaAtCursor: alfaAtCursor, es, esText });
-    const titleInit = esText || alfaAtCursor?.searchTitle || "";
-    // const urlSel = eltAnchor.nodeName != "A" ? "" : eltAnchor.href; // FIX-ME:
-    const searchInit = alfaAtCursor?.searchString || "";
-    // debugger;
-
-    /*
-    const insertAlfaLink = (title, search) => {
-        debugger; // eslint-disable-line no-debugger
-        editor.replaceSelection("");
-        // editor.exec("addLink", { linkUrl: `mm4i-search: ${search}`, linkText: title });
-        editor.exec("addLink", { linkUrl: searchString2marker(search), linkText: title });
-    }
-    */
-    // return;
+    console.log({ searchLinkAtCursor, es, esText });
+    const titleInit = esText || searchLinkAtCursor?.searchTitle || "";
+    const searchInit = searchLinkAtCursor?.searchString || "";
 
 
     const inpTitle = modMdc.mkMDCtextFieldInput();
@@ -91,9 +56,9 @@ async function dialogInsertSearch(editor) {
             flex-direction: column;
             flex-wrap: wrap;
         `;
-    const hasAlfaAtCursor = alfaAtCursor != undefined;
-    const titleH2 = hasAlfaAtCursor ? "Update search link" : "Insert search link";
-    const titleSave = hasAlfaAtCursor ? "Update" : "Insert";
+    const hasSearchlinkAtCursor = searchLinkAtCursor != undefined;
+    const titleH2 = hasSearchlinkAtCursor ? "Update search link" : "Insert search link";
+    const titleSave = hasSearchlinkAtCursor ? "Update" : "Insert";
     const body = mkElt("div", undefined, [
         mkElt("h2", undefined, titleH2),
         // taTitle, taSearch,
@@ -131,15 +96,15 @@ async function dialogInsertSearch(editor) {
         const lbWW = editor.getHTML().length;
         let node, eltMut;
         const sel = editor.getSelection();
-        if (alfaAtCursor) {
-            node = alfaAtCursor.eltAnchor;
+        if (searchLinkAtCursor) {
+            node = searchLinkAtCursor.eltAnchor;
             // console.log("before remove", lbMD, lbWW, node.isConnected, node)
             eltMut = node.parentElement;
             node.remove();
             await modTools.wait4mutations(eltMut);
         }
         (async function () {
-            if (alfaAtCursor) {
+            if (searchLinkAtCursor) {
                 const laMD = editor.getMarkdown().length;
                 const laWW = editor.getHTML().length;
                 if (lbMD == laMD || lbWW == laWW) {
@@ -150,15 +115,15 @@ async function dialogInsertSearch(editor) {
                 }
             }
             editor.exec("addLink", { linkUrl: searchString2marker(search), linkText: title });
-            if (alfaAtCursor) { await modTools.wait4mutations(eltMut); }
+            if (searchLinkAtCursor) { await modTools.wait4mutations(eltMut); }
             const htmlContent = editor.getHTML();
             editor.setHTML(htmlContent);
-            if (alfaAtCursor) { await modTools.wait4mutations(eltMut); }
+            if (searchLinkAtCursor) { await modTools.wait4mutations(eltMut); }
             editor.setSelection(sel[0], sel[1]);
         })();
     } else if (editor.mode == "markdown") {
         debugger;
-        const sel = alfaAtCursor.selection;
+        const sel = searchLinkAtCursor.selection;
         console.log({sel});
         const start = sel[0];
         const end = sel[1];
@@ -210,42 +175,11 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
     divEditor.innerHTML = "";
     divEditor.dataset.latestSaved = encodeURIComponent(initialMD);
 
-    // FIX-ME: move to mm4i file:
-    /*
-    const mm4iRenderer = {
-        link(node, context) {
-            console.log({ node });
-            const { origin } = context;
-            const url = node.destination;
-            // const isAlfa = url.startsWith("mm4i-search:");
-            const isAlfa = isSearchMarker(url);
-            console.warn("mm4iRenderer link", url, isAlfa);
-            if (isAlfa) {
-                const attributes = { href: url };
-                // attributes.style = "cursor:pointer;";
-                const search = searchMarker2string(decodeURIComponent(url));
-                attributes.title = `Search nodes for "${search}"`;
-                console.log("after red", attributes);
-                return [
-                    {
-                        type: 'openTag', tagName: 'a',
-                        attributes: attributes,
-                        classNames: ["toastui-alfa-link"],
-                    },
-                    { type: 'closeTag', tagName: 'a' }
-                ];
-            }
-            return origin();
 
-        }
-    }
-    */
-
-
-    function check4searchLink(eltAlfaLink) {
-        if (eltAlfaLink.tagName != "A") return;
-        if (!eltAlfaLink.closest(".faked-viewer")) { return; }
-        const href = eltAlfaLink.href;
+    function check4searchLink(eltSearchLink) {
+        if (eltSearchLink.tagName != "A") return;
+        if (!eltSearchLink.closest(".faked-viewer")) { return; }
+        const href = eltSearchLink.href;
         if (!isSearchMarker(href)) {
             // FIX-ME: Add popup
             const aHelper = document.createElement("a");
@@ -256,9 +190,9 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         }
 
         // FIX-ME:
-        const valAlfa = searchMarker2string(decodeURIComponent(eltAlfaLink.getAttribute("href")));
+        const valAlfa = searchMarker2string(decodeURIComponent(eltSearchLink.getAttribute("href")));
 
-        console.log("clicked alfa-link:", { valAlfa }, eltAlfaLink);
+        console.log("clicked alfa-link:", { valAlfa }, eltSearchLink);
         searchNodeParams.eltJsMindContainer.classList.add("display-jsmind-search");
 
         searchNodeParams.inpSearch.value = valAlfa;
@@ -274,7 +208,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         const eltPreviewNotice = mkElt("span", undefined, ["Close preview ", spanPreviewCounter]);
         eltPreviewNotice.addEventListener("click", evt => {
             evt.stopImmediatePropagation();
-            stopAlfaPreview();
+            stopSearchPreview();
         });
         eltPreviewNotice.title = "Close preview";
         // @ts-ignore
@@ -307,7 +241,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         let intervalPreview;
         let timeoutPreview;
         function updatePreviewCounter() { spanPreviewCounter.textContent = `${countPreview} sec`; }
-        function startAlfaPreview() {
+        function startSearchPreview() {
             dcs.transitionProperty = "opacity";
             dcs.transitionDuration = "1s";
             dcs.opacity = 0;
@@ -317,9 +251,9 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
                 countPreview--;
                 updatePreviewCounter();
             }, 1000);
-            timeoutPreview = setTimeout(() => { stopAlfaPreview(); }, secPreview * 1000);
+            timeoutPreview = setTimeout(() => { stopSearchPreview(); }, secPreview * 1000);
         }
-        const stopAlfaPreview = () => {
+        const stopSearchPreview = () => {
             dcs.opacity = 1;
             eltPreviewShield.remove();
             clearInterval(intervalPreview);
@@ -327,7 +261,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         }
         eltPreviewShield.addEventListener("click", evt => {
             console.log("clicked preview, objInit", objInit);
-            stopAlfaPreview();
+            stopSearchPreview();
 
             const funClose = objInit.data.funClose;
             console.log("funClose", funClose);
@@ -360,7 +294,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
 
         });
 
-        startAlfaPreview();
+        startSearchPreview();
     }
 
     divEditor.addEventListener("click", async evt => {
@@ -456,7 +390,6 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         });
         shield.addEventListener("pointerup", evt => {
             console.log({ evt });
-            // startAlfaPreview();
             check4searchLink(evt.target);
         });
         console.log(shield);
@@ -880,7 +813,7 @@ function searchMarker2string(marker) { return marker.slice(12).trim(); }
 /** @param {string} str @returns {boolean} */
 function isSearchMarker(str) { return str.startsWith("mm4i-search:"); }
 
-function getWWalfaAtCursor(editor) {
+function getWWsearchLinkAtCursor(editor) {
     // debugger;
     if (editor.mode != "wysiwyg") return;
     const ws = window.getSelection();
@@ -918,7 +851,7 @@ function getWWalfaAtCursor(editor) {
     console.log({ searchLink, searchString, searchTitle })
     return { searchString, searchTitle, eltAnchor };
 }
-function getMDalfaAtCursor(editor) {
+function getMDsearchLinkAtCursor(editor) {
     if (editor.mode == "wysiwyg") return;
     const es = editor.getSelection();
     const lines = editor.getMarkdown().split("\n");
