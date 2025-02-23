@@ -818,7 +818,11 @@ function getWWsearchLinkAtCursor(editor) {
     }
     console.log({ anchorNode });
     const nnAnchor = anchorNode.nodeName;
-    if (nnAnchor != "#text") throw Error(`Expected text node (#text), got (${nnAnchor})`);
+    if (nnAnchor != "#text") {
+        // throw Error(`Expected text node (#text), got (${nnAnchor})`);
+        console.log(`Expected text node (#text), got (${nnAnchor})`);
+        return;
+    }
     const eltAnchor = anchorNode.parentElement;
     if (!eltAnchor) {
         // FIX-ME: Can this happen??
