@@ -577,6 +577,13 @@ export async function applyShapeEtcBg(bgName, bgValue, eltJmnode) {
     }
 
 }
+
+async function editNotes(eltJmnode) {
+    const modCustRend = await importFc4i("jsmind-cust-rend");
+    const renderer = await modCustRend.getOurCustomRenderer();
+    renderer.editNotesDialog(eltJmnode);
+}
+
 export async function applyShapeEtc(shapeEtc, eltJmnode) {
     const eltShape = eltJmnode.querySelector(".jmnode-bg");
     if (!eltShape) { throw Error("eltShape is null, no .jmnode-bg found"); }
@@ -664,13 +671,13 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
             evt.preventDefault();
             evt.stopPropagation();
             evt.stopImmediatePropagation();
-            // console.log("clicked eltSpan");
-            const modCustRend = await importFc4i("jsmind-cust-rend");
-            const renderer = await modCustRend.getOurCustomRenderer();
-            // renderer.editNodeDialog(eltJmnode, true);
-            renderer.editNotesDialog(eltJmnode);
+            // const modCustRend = await importFc4i("jsmind-cust-rend");
+            // const renderer = await modCustRend.getOurCustomRenderer();
+            // renderer.editNotesDialog(eltJmnode);
+            editNotes(eltJmnode);
         }));
     }
+
 
     const nodeLink = shapeEtc.nodeLink;
     const nodeCustom = shapeEtc.nodeCustom;
@@ -1844,11 +1851,22 @@ export async function pageSetup() {
             hideContextMenu();
         }
 
+        // has-notes-mark
+        const liNodeNotes = mkMenuItem("Node's notes", editNodesNotes);
+        markIfNoSelected(liDeleteNode);
+        markIfNoMother(liDeleteNode);
+
+        function editNodesNotes() {
+            const eltJmnode = document.querySelector("jmnode.selected");
+            editNotes(eltJmnode);
+        }
+
         const arrMenuEntries = [
             liAddChild,
             liAddSibling,
             liDeleteNode,
             liEditNode,
+            liNodeNotes,
             // liTestConvertToCustom,
             // liDragAccessibility,
             modMdc.mkMDCmenuItemSeparator(),
