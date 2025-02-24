@@ -78,10 +78,36 @@ async function dialogInsertSearch(editor) {
         }
     };
     */
-    // FIX-ME: save button
-    // FIX-ME: preview search
-    // const answer = await modMdc.mkMDCdialogConfirm(body, titleSave, "cancel", funCheckSave);
-    const answer = await modMdc.mkMDCdialogConfirm(body, titleSave, "cancel");
+    // const answer = await modMdc.mkMDCdialogConfirm(body, titleSave, "cancel");
+
+    const btnTest = modMdc.mkMDCdialogButton("Test search", "test");
+    btnTest.addEventListener("click", evt => {
+        evt.stopImmediatePropagation();
+        // alert("not implemented yet");
+        doSearchPreview(inpSearch.value);
+    });
+    const btnSave = modMdc.mkMDCdialogButton(titleSave, "confirm", true);
+    const btnCancel = modMdc.mkMDCdialogButton("Cancel", "close");
+    const arrBtns = [btnTest, btnSave, btnCancel];
+    const eltActions = modMdc.mkMDCdialogActions(arrBtns);
+    const dlg = await modMdc.mkMDCdialog(body, eltActions);
+    const answer = await new Promise((resolve) => {
+        dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async evt => {
+            const action = evt.detail.action;
+            switch (action) {
+                case "confirm":
+                    resolve(true);
+                    break;
+                case "close":
+                    resolve(false);
+                    break;
+                default:
+                    throw Error(`error in mkMDCdialogConfirm, action is "${action}"`)
+            }
+        }));
+    });
+
+
     if (!answer) {
         return;
     }
@@ -145,6 +171,123 @@ async function dialogInsertSearch(editor) {
 
 let lastMDgetCursorPosition; // debugging
 
+function doSearchPreview(valSearchstring) {
+    searchNodeParams.eltJsMindContainer.classList.add("display-jsmind-search");
+
+    searchNodeParams.inpSearch.value = valSearchstring;
+    const resSearch = searchNodeParams.searchNodeFun(valSearchstring);
+    const nHits = resSearch.length;
+    console.log({ resSearch, nHits });
+
+    // const dialogContainer = divEditor.closest(".mdc-dialog__container");
+    const arrDialogContainer = [...document.querySelectorAll(".mdc-dialog__container")];
+
+    // @ts-ignore
+    // const dcs = dialogContainer.style;
+    // dcs.transitionProperty = "opacity";
+    // dcs.transitionDuration = "1s";
+    const arrDcs = arrDialogContainer.map(elt => elt.style);
+    arrDcs.forEach(dcs => {
+        dcs.transitionProperty = "opacity";
+        dcs.transitionDuration = "1s";
+    });
+    // arrDcs.forEach(dcs => { dcs.opacity = 0; });
+
+    const spanPreviewCounter = mkElt("span");
+
+    const eltPreviewNotice = mkElt("span", undefined, ["Close preview ", spanPreviewCounter]);
+    eltPreviewNotice.addEventListener("click", evt => {
+        evt.stopImmediatePropagation();
+        stopSearchPreview();
+    });
+    eltPreviewNotice.title = "Close preview";
+    // @ts-ignore
+    eltPreviewNotice.style = `
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background-color: yellow;
+            padding: 4px;
+            color: black;
+            border: 1px solid black;
+            border-radius: 4px;
+            box-shadow: 3px 2px 8px 2px #000000;
+            cursor: pointer;
+        `;
+    const eltPreviewShield = mkElt("div", undefined, eltPreviewNotice);
+    // @ts-ignore
+    eltPreviewShield.style = `
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            bottom: 0px;
+            right: 0px;
+            z-index: 9999;
+            background-color: rgba(255,255,0,0.2);
+            pointer-events: auto;
+        `;
+    const secPreview = 8;
+    let countPreview = secPreview;
+    let intervalPreview;
+    let timeoutPreview;
+    function updatePreviewCounter() { spanPreviewCounter.textContent = `${countPreview} sec`; }
+    function startSearchPreview() {
+        // dcs.opacity = 0;
+        arrDcs.forEach(dcs => { dcs.opacity = 0; });
+        updatePreviewCounter();
+        document.body.appendChild(eltPreviewShield);
+        intervalPreview = setInterval(() => {
+            countPreview--;
+            updatePreviewCounter();
+        }, 1000);
+        timeoutPreview = setTimeout(() => { stopSearchPreview(); }, secPreview * 1000);
+    }
+    const stopSearchPreview = () => {
+        // dcs.opacity = 1;
+        arrDcs.forEach(dcs => { dcs.opacity = 1; });
+        eltPreviewShield.remove();
+        clearInterval(intervalPreview);
+        clearTimeout(timeoutPreview);
+    }
+    eltPreviewShield.addEventListener("click", evt => {
+        console.log("clicked preview, objInit", objInit);
+        stopSearchPreview();
+
+        const funClose = objInit.data.funClose;
+        console.log("funClose", funClose);
+        if (funClose) funClose();
+        const target = evt.target;
+        console.log("shield target", target);
+        if (!target) throw Error("target is null");
+        target.style.pointerEvents = 'none'; // Temporarily disable pointer events
+        let eltFromPoint = /** @type {HTMLElement|null} */ (document.elementFromPoint(evt.clientX, evt.clientY));
+        if (!eltFromPoint) throw Error(`eltFromPoint is null`);
+        // console.log("eltFromPoint", eltFromPoint, eltFromPoint.click);
+        if (eltFromPoint.classList.contains("mdc-dialog__scrim")) {
+            // x@ts-ignor
+            eltFromPoint.style.display = "none";
+            eltFromPoint = /** @type {HTMLElement|null} */ (document.elementFromPoint(evt.clientX, evt.clientY));
+            if (!eltFromPoint) throw Error(`eltFromPoint is null`);
+            // console.log("eltFromPoint 2", eltFromPoint);
+        }
+        if (eltFromPoint.classList.contains("mdc-dialog")) {
+            eltFromPoint.style.display = "none";
+            eltFromPoint = /** @type {HTMLElement|null} */ (document.elementFromPoint(evt.clientX, evt.clientY));
+            if (!eltFromPoint) throw Error(`eltFromPoint is null`);
+            // console.log("eltFromPoint 3", eltFromPoint);
+        }
+
+        setTimeout(() => {
+            eltFromPoint.click(); // Trigger click on the background element
+            target.style.pointerEvents = 'auto'; // Re-enable pointer events
+        }, 1000);
+
+    });
+
+    startSearchPreview();
+
+}
+
 /**
  * 
  * @param {HTMLDivElement} divEditor 
@@ -185,108 +328,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         const valSearchstring = searchMarker2string(decodeURIComponent(eltSearchLink.getAttribute("href")));
 
         console.log("clicked search-link:", { valSearchstring }, eltSearchLink);
-        searchNodeParams.eltJsMindContainer.classList.add("display-jsmind-search");
-
-        searchNodeParams.inpSearch.value = valSearchstring;
-        const resSearch = searchNodeParams.searchNodeFun(valSearchstring);
-        const nHits = resSearch.length;
-        console.log({ resSearch, nHits });
-
-        const dialogContainer = divEditor.closest(".mdc-dialog__container");
-        // @ts-ignore
-        const dcs = dialogContainer.style;
-        const spanPreviewCounter = mkElt("span");
-
-        const eltPreviewNotice = mkElt("span", undefined, ["Close preview ", spanPreviewCounter]);
-        eltPreviewNotice.addEventListener("click", evt => {
-            evt.stopImmediatePropagation();
-            stopSearchPreview();
-        });
-        eltPreviewNotice.title = "Close preview";
-        // @ts-ignore
-        eltPreviewNotice.style = `
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            background-color: yellow;
-            padding: 4px;
-            color: black;
-            border: 1px solid black;
-            border-radius: 4px;
-            box-shadow: 3px 2px 8px 2px #000000;
-            cursor: pointer;
-        `;
-        const eltPreviewShield = mkElt("div", undefined, eltPreviewNotice);
-        // @ts-ignore
-        eltPreviewShield.style = `
-            position: fixed;
-            top: 0px;
-            left: 0px;
-            bottom: 0px;
-            right: 0px;
-            z-index: 9999;
-            background-color: rgba(255,255,0,0.2);
-            pointer-events: auto;
-        `;
-        const secPreview = 8;
-        let countPreview = secPreview;
-        let intervalPreview;
-        let timeoutPreview;
-        function updatePreviewCounter() { spanPreviewCounter.textContent = `${countPreview} sec`; }
-        function startSearchPreview() {
-            dcs.transitionProperty = "opacity";
-            dcs.transitionDuration = "1s";
-            dcs.opacity = 0;
-            updatePreviewCounter();
-            document.body.appendChild(eltPreviewShield);
-            intervalPreview = setInterval(() => {
-                countPreview--;
-                updatePreviewCounter();
-            }, 1000);
-            timeoutPreview = setTimeout(() => { stopSearchPreview(); }, secPreview * 1000);
-        }
-        const stopSearchPreview = () => {
-            dcs.opacity = 1;
-            eltPreviewShield.remove();
-            clearInterval(intervalPreview);
-            clearTimeout(timeoutPreview);
-        }
-        eltPreviewShield.addEventListener("click", evt => {
-            console.log("clicked preview, objInit", objInit);
-            stopSearchPreview();
-
-            const funClose = objInit.data.funClose;
-            console.log("funClose", funClose);
-            if (funClose) funClose();
-            const target = evt.target;
-            console.log("shield target", target);
-            if (!target) throw Error("target is null");
-            target.style.pointerEvents = 'none'; // Temporarily disable pointer events
-            let eltFromPoint = /** @type {HTMLElement|null} */ (document.elementFromPoint(evt.clientX, evt.clientY));
-            if (!eltFromPoint) throw Error(`eltFromPoint is null`);
-            // console.log("eltFromPoint", eltFromPoint, eltFromPoint.click);
-            if (eltFromPoint.classList.contains("mdc-dialog__scrim")) {
-                // x@ts-ignor
-                eltFromPoint.style.display = "none";
-                eltFromPoint = /** @type {HTMLElement|null} */ (document.elementFromPoint(evt.clientX, evt.clientY));
-                if (!eltFromPoint) throw Error(`eltFromPoint is null`);
-                // console.log("eltFromPoint 2", eltFromPoint);
-            }
-            if (eltFromPoint.classList.contains("mdc-dialog")) {
-                eltFromPoint.style.display = "none";
-                eltFromPoint = /** @type {HTMLElement|null} */ (document.elementFromPoint(evt.clientX, evt.clientY));
-                if (!eltFromPoint) throw Error(`eltFromPoint is null`);
-                // console.log("eltFromPoint 3", eltFromPoint);
-            }
-
-            setTimeout(() => {
-                eltFromPoint.click(); // Trigger click on the background element
-                target.style.pointerEvents = 'auto'; // Re-enable pointer events
-            }, 1000);
-
-        });
-
-        startSearchPreview();
+        doSearchPreview(valSearchstring);
     }
 
     divEditor.addEventListener("click", async evt => {
