@@ -6,7 +6,7 @@ const importFc4i = window["importFc4i"];
 
 
 const mkElt = window["mkElt"];
-// const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
+const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 const modTools = await importFc4i("toolsJs");
 const modMdc = await importFc4i("util-mdc");
 
@@ -147,6 +147,7 @@ async function dialogInsertSearch(editor) {
             editor.setSelection(sel[0], sel[1]);
         })();
     } else if (editor.mode == "markdown") {
+        if (!searchLinkAtCursor) throw Error(`searchLinkAtCursor is null`);
         const sel = searchLinkAtCursor.selection;
         const start = sel[0];
         const end = sel[1];
@@ -155,7 +156,7 @@ async function dialogInsertSearch(editor) {
         editor.replaceSelection(mdSearchLink);
         return;
     } else {
-        debugger;
+        debugger; // eslint-disable-line no-debugger
     }
 }
 
@@ -169,7 +170,7 @@ async function dialogInsertSearch(editor) {
  * @returns {saveFun}
 */
 
-let lastMDgetCursorPosition; // debugging
+// let lastMDgetCursorPosition; // debugging
 
 function doSearchPreview(valSearchstring) {
     searchNodeParams.eltJsMindContainer.classList.add("display-jsmind-search");
@@ -415,7 +416,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
             console.log({ eltsA });
             if (eltsA.length > 1) debugger; // eslint-disable-line no-debugger
             if (eltsA.length == 1) {
-                const eltA = /** type {DOMElement} */ eltsA[0];
+                const eltA = /** @type {HTMLAnchorElement} */ (eltsA[0]);
                 console.log({ eltA });
                 eltA.click();
             }
@@ -708,7 +709,7 @@ export function toWysiwygPos(editor, markdownPos) {
 /**
  * 
  * @param {Object} editor 
- * @param {number|Array} wysiwygPos 
+ * @param {number} wysiwygPos 
  * @returns 
  */
 export function toMarkdownPos(editor, wysiwygPos) {
@@ -893,10 +894,10 @@ function getMDsearchLinkAtCursor(editor) {
     const linePos = es00;
     const lineIdx = linePos - 1;
     const charPos = es01;
-    const charIdx = charPos - 1;
+    // const charIdx = charPos - 1;
     const currentLine = lines[lineIdx];
     console.log({ currentLine });
-    const reLink = /\[(.+?)\]\((.+?)\)/;
+    // const reLink = /\[(.+?)\]\((.+?)\)/;
     const reSearchLink = /\[(.+?)\]\(mm4i-search:(.+?)\)/;
 
     // FIX-ME: several on same line, see https://javascript.info/regexp-methods
