@@ -36,6 +36,9 @@ async function dialogInsertSearch(editor) {
     const inpTitle = modMdc.mkMDCtextFieldInput();
     inpTitle.value = titleInit;
     const taTitle = modMdc.mkMDCtextField("Title", inpTitle);
+    inpTitle.addEventListener("input", evt => {
+        updateTestButton();
+    });
 
     const inpSearch = modMdc.mkMDCtextFieldInput();
     inpSearch.value = searchInit;
@@ -45,24 +48,43 @@ async function dialogInsertSearch(editor) {
     const divInputs = mkElt("div", undefined, [
         taTitle,
         taSearch,
-        spanSearched,
+        // spanSearched,
     ]);
     // @ts-ignore
     divInputs.style = `
             display: grid;
-            gap: 10px;
-            grid-template-columns: 80px 1fr 1fr;
+            gap: 20px;
             display: flex;
             flex-direction: column;
-            flex-wrap: wrap;
+            NOflex-wrap: wrap;
         `;
     const hasSearchlinkAtCursor = searchLinkAtCursor != undefined;
     const titleH2 = hasSearchlinkAtCursor ? "Update search link" : "Insert search link";
     const titleSave = hasSearchlinkAtCursor ? "Update" : "Insert";
+    const aTest = mkElt("a");
+    aTest.href = `mm4i-search:dummy`;
+    aTest.style.padding = "4px";
+    function updateTestButton() {
+        // aTest.href = `mm4i-search:${inpSearch.value}`;
+        aTest.textContent = inpTitle.value;
+    }
+    const fakedWrapper = mkElt("div", undefined, aTest);
+    fakedWrapper.style.display = "inline-block";
+    fakedWrapper.classList.add("faked-viewer");
+    const spanTest = mkElt("span", undefined, fakedWrapper);
+    spanTest.addEventListener("click", evt => {
+        // test search
+        doSearchPreview(inpSearch.value);
+    });
+    updateTestButton();
+    const eltTest = mkElt("p", undefined, [
+        "Click to test: ", spanTest
+    ])
     const body = mkElt("div", undefined, [
         mkElt("h2", undefined, titleH2),
         // taTitle, taSearch,
-        divInputs
+        divInputs,
+        eltTest
     ]);
     /*
     const funCheckSave = (wantSave) => {
