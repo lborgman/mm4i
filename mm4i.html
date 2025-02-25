@@ -572,6 +572,14 @@
 
         /* .toastui-editor-main.faked-viewer * { font-size: 16px; } */
 
+        div.faked-viewer div.toastui-editor-ww-container [contenteditable] {
+            pointer-events: none;
+        }
+
+        div.faked-viewer div.toastui-editor-ww-container [contenteditable] a {
+            pointer-events: all;
+        }
+
         #edit-my-notes {
             position: absolute;
             right: -20px;
@@ -596,7 +604,7 @@
             right: 0;
             position: absolute;
             border: none;
-            NOpointer-events: none;
+            pointer-events: none;
             z-index: 30;
             display: none;
         }
@@ -682,7 +690,7 @@
 </head>
 
 <body class="NOno-test-items">
-    <div id="PWA-version">(temp ver 1.75)</div>
+    <div id="PWA-version">(temp ver 1.76)</div>
 
     <!-- <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script> -->
     <!-- <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.js"></script> -->

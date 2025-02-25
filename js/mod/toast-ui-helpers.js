@@ -419,17 +419,31 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         const previewWWcont = divEditor.querySelector(selectorWWcont);
         if (!previewWWcont) throw Error(`Could not find "${selectorWWcont}`);
 
+        const arrCmContenteditable = [...previewWWcont.querySelectorAll("[contenteditable]")];
+        const lenArrCm = arrCmContenteditable.length;
+        if (lenArrCm != 1) {
+            debugger;
+        }
+        let cmContenteditable;
+        cmContenteditable = cmContenteditable || arrCmContenteditable[0];
+        // cmContenteditable.inert = true;
+        // cmContenteditable.setAttribute("tabindex", "-1");
+        const stCmContenteditable = getComputedStyle(cmContenteditable);
+        const pointerEvensCm = stCmContenteditable["pointer-events"];
+        console.log({ cmContenteditable, pointerEvensCm });
+        // debugger;
 
 
-        const shield = mkElt("div");
+
+        const shieldEdit = mkElt("div");
         const selectorWWmode = "div.toastui-editor-main.toastui-editor-ww-mode";
         const eltWWmode = divEditor.querySelector(selectorWWmode);
         if (!eltWWmode) throw Error(`Could not find "${selectorWWmode}"`);
-        eltWWmode.appendChild(shield);
+        eltWWmode.appendChild(shieldEdit);
 
-        shield.classList.add("faked-viewer-edit-shield");
+        shieldEdit.classList.add("faked-viewer-edit-shield");
         // FIX-ME: hover - maybe implement via "pointermove"?
-        shield.addEventListener("pointerdown", evt => {
+        shieldEdit.addEventListener("NOpointerdown", evt => {
             evt.stopImmediatePropagation();
             // console.log({ evt });
             const x = evt.clientX;
@@ -445,7 +459,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
                 eltA.click();
             }
         });
-        shield.addEventListener("pointerup", evt => {
+        shieldEdit.addEventListener("NOpointerup", evt => {
             evt.stopImmediatePropagation();
             // console.log({ evt });
             // check4searchLink(evt.target);
