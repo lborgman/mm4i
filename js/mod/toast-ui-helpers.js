@@ -299,7 +299,7 @@ function doSearchPreview(valSearchstring) {
  * @returns 
  */
 async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, objInit) {
-    let toastViewer;
+    // let toastViewer;
     let toastEditor;
 
     if (!divEditor.isConnected) {
@@ -365,8 +365,9 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         dialogInsertSearch(toastEditor);
     }
 
-    const useToastPreview = true;
-    const toastPreview = !useToastPreview ? undefined : makeFakedViewer();
+    // const useToastPreview = true;
+    // const toastPreview = !useToastPreview ? undefined : makeFakedViewer();
+    toastEditor = makeFakedViewer();
 
 
     // https://github.com/nhn/tui.editor/issues/3298
@@ -386,10 +387,8 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
                 }
             }
         });
-        // const eltEditorMain = divEditor.querySelector(".toastui-editor-main");
-        // eltEditorMain?.classList.add("faked-viewer");
-        // const eltEditorDefaultUI = divEditor.querySelector(".toastui-editor-defaultUI");
-        // eltEditorDefaultUI?.classList.add("faked-viewer");
+        editorViewer.addCommand("markdown", "searchCommand", insertSearchCommand);
+        editorViewer.addCommand("wysiwyg", "searchCommand", insertSearchCommand);
         editorViewer.options.el.classList.add("faked-viewer");
         const hideElement = (selector) => {
             const element = divEditor.querySelector(selector);
@@ -400,9 +399,9 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         // const selectorToolBar = "div.toastui-editor-toolbar";
         // hideElement(selectorToolBar);
 
-        const selectorSwitch = "div.toastui-editor-mode-switch";
+        // const selectorSwitch = "div.toastui-editor-mode-switch";
         // hideElement(selectorSwitch);
-        divEditor.querySelector(selectorSwitch).style.display = null;
+        // divEditor.querySelector(selectorSwitch).style.display = null;
 
         const arrC = [...divEditor.querySelectorAll(".toastui-editor-ww-container div[contenteditable=true]")];
         if (arrC.length != 1) throw Error(`Expected to match 1 contenteditable, got ${arrC.length}`);
@@ -432,13 +431,13 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         // FIX-ME: hover - maybe implement via "pointermove"?
         shield.addEventListener("pointerdown", evt => {
             evt.stopImmediatePropagation();
-            console.log({ evt });
+            // console.log({ evt });
             const x = evt.clientX;
             const y = evt.clientY;
             const elts = document.elementsFromPoint(x, y);
-            console.log(elts);
+            // console.log(elts);
             const eltsA = elts.filter(elt => elt.tagName == "A");
-            console.log({ eltsA });
+            // console.log({ eltsA });
             if (eltsA.length > 1) debugger; // eslint-disable-line no-debugger
             if (eltsA.length == 1) {
                 const eltA = /** @type {HTMLAnchorElement} */ (eltsA[0]);
@@ -454,6 +453,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         return editorViewer;
     }
 
+    /*
     toastViewer = toastPreview || new modToastUI.Editor.factory({
         viewer: true,
         el: divEditor,
@@ -466,6 +466,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
 
     window["myToastViewer"] = toastViewer;
     console.log({ toastViewer });
+    */
 
     if (objInit) {
         const tofObjInit = typeof objInit;
@@ -489,19 +490,15 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         // const lenFun = funInit.length;
         // if (lenFun != lenObj) { throw Error(`.funInit takes ${lenFun} parameters, should take ${lenObj}`); }
         if (dataObj) {
-            await objInit.funInit(toastViewer, dataObj);
+            await objInit.funInit(toastEditor, dataObj);
         } else {
-            await objInit.funInit(toastViewer);
+            await objInit.funInit(toastEditor);
         }
     }
 
 
 
     const btnEdit = addEditMDbutton();
-    // const objReturn = {};
-
-    // (async function () {
-    // await modTools.wait4connected(btnEdit, 800);
     btnEdit.focus();
     const eltActive = document.activeElement;
     if (btnEdit != eltActive) {
@@ -509,31 +506,27 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         throw Error(`document.activeElement is not btnEdit`);
     }
 
-    return { toastViewer, btnEdit };
+    return { toastEditor, btnEdit };
 
     function addEditMDbutton() {
         divEditor.style.position = "relative";
         const btnEditMyNotes = modMdc.mkMDCiconButton("edit", "Edit my notes");
         divEditor.appendChild(btnEditMyNotes);
-        // eltMDEContainer.parentElement.parentElement.appendChild(btnEditMyNotes);
 
         btnEditMyNotes.id = "edit-my-notes";
-        btnEditMyNotes.style = `
-        position: absolute;
-        right: -20px;
-        top: -15px;
-        border-radius: 50%;
-        color: green;
-        background: color-mix(in srgb, var(--mdc-theme-primary) 30%, transparent);
-        z-index: 999;
-        `;
-            let eltFaked;
+        let eltFaked;
         btnEditMyNotes.addEventListener("click", async evt => {
             evt.preventDefault();
             evt.stopImmediatePropagation();
             evt.stopPropagation();
             eltFaked = eltFaked || btnEditMyNotes.closest(".faked-viewer");
-            eltFaked.classList.toggle("faked-viewer")
+            eltFaked.classList.toggle("faked-viewer");
+            if (eltFaked.classList.contains("faked-viewer")) {
+                btnEditMyNotes.textContent = "edit";
+                if (toastEditor.mode != "wysiwyg") { toastEditor.changeMode("wysiwyg"); }
+            } else {
+                btnEditMyNotes.textContent = "edit_off";
+            }
             return;
 
 

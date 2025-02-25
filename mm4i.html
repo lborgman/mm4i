@@ -572,6 +572,21 @@
 
         /* .toastui-editor-main.faked-viewer * { font-size: 16px; } */
 
+        #edit-my-notes {
+            position: absolute;
+            right: -20px;
+            top: -15px;
+            border-radius: 50%;
+            color: red;
+            background: color-mix(in srgb, var(--mdc-theme-primary) 30%, transparent);
+            z-index: 999;
+        }
+
+        div.faked-viewer #edit-my-notes {
+            color: green;
+        }
+
+
         div.faked-viewer-edit-shield {
             background: red;
             opacity: 0.5;
@@ -585,6 +600,7 @@
             z-index: 30;
             display: none;
         }
+
         div.faked-viewer div.faked-viewer-edit-shield {
             display: block;
         }
@@ -629,6 +645,7 @@
         div.faked-viewer a[href^="mm4i-search:"] {
             background: orange;
         }
+
         div.faked-viewer a[href^="mm4i-search:"]:hover {
             background: red;
         }
