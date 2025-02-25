@@ -572,26 +572,65 @@
 
         /* .toastui-editor-main.faked-viewer * { font-size: 16px; } */
 
-        div.toastui-editor-defaultUI.faked-viewer {
+        div.faked-viewer-edit-shield {
+            background: red;
+            opacity: 0.5;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            position: absolute;
+            border: none;
+            NOpointer-events: none;
+            z-index: 30;
+            display: none;
+        }
+        div.faked-viewer div.faked-viewer-edit-shield {
+            display: block;
+        }
+
+        div.faked-viewer div.toastui-editor-toolbar {
+            display: none;
+        }
+
+        div.toastui-editor-mode-switch {
+            display: block;
+        }
+
+        div.faked-viewer div.toastui-editor-mode-switch {
+            display: none;
+        }
+
+        div.faked-viewer div.toastui-editor-defaultUI,
+        NOdiv.toastui-editor-defaultUI.faked-viewer {
             border: red 2px dotted;
             border: none;
             max-width: 300px;
         }
 
-        div.toastui-editor-defaultUI.faked-viewer * {
+        div.faked-viewer div.toastui-editor-defaultUI *,
+        NOdiv.toastui-editor-defaultUI.faked-viewer * {
             font-size: 16px;
         }
 
-        div.toastui-editor-defaultUI.faked-viewer a {
+        div.faked-viewer div.toastui-editor-defaultUI a,
+        NOdiv.toastui-editor-defaultUI.faked-viewer a {
             cursor: pointer;
         }
 
         a[href^="mm4i-search:"] {
             color: black;
-            background: orange;
+            background: lightgrey;
             padding-right: 2px;
             border-radius: 4px;
             text-decoration: none;
+        }
+
+        div.faked-viewer a[href^="mm4i-search:"] {
+            background: orange;
+        }
+        div.faked-viewer a[href^="mm4i-search:"]:hover {
+            background: red;
         }
 
         a[href^="mm4i-search:"]:hover {

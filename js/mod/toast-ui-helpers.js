@@ -334,20 +334,46 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
 
     divEditor.addEventListener("click", async evt => {
         if (!evt.target) return;
+        // return; // FIX-ME: this is the one that works...
         // toastEditor
         check4searchLink(evt.target);
     });
 
 
-    // await modTools.waitSeconds(1);
+
+    const objToolbarItems = [
+        [
+            {
+                name: 'searchButton',
+                tooltip: 'Insert search',
+                className: 'toastui-editor-toolbar-icons search-button',
+                command: "searchCommand"
+            },
+            "link",
+        ],
+        [
+            "bold", "italic",
+            // "strike"
+        ],
+        ["heading", "hr", "quote"],
+    ];
+    function insertSearchCommand(dummy) {
+        // dialog
+        // FIX-ME: what is editor here???
+        console.log("searchCommand clicked", dummy);
+        // toastEditor
+        dialogInsertSearch(toastEditor);
+    }
+
     const useToastPreview = true;
-    const toastPreview = !useToastPreview ? undefined : makeFakeViewer();
+    const toastPreview = !useToastPreview ? undefined : makeFakedViewer();
+
 
     // https://github.com/nhn/tui.editor/issues/3298
-    function makeFakeViewer() {
+    function makeFakedViewer() {
         const editorViewer = new modToastUI.Editor({
             el: divEditor,
-            toolbarItems: [],
+            toolbarItems: objToolbarItems,
             initialValue: initialMD,
             // customHTMLRenderer: mm4iRenderer,
             previewStyle: "tab",
@@ -362,21 +388,26 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         });
         // const eltEditorMain = divEditor.querySelector(".toastui-editor-main");
         // eltEditorMain?.classList.add("faked-viewer");
-        const eltEditorDefaultUI = divEditor.querySelector(".toastui-editor-defaultUI");
-        eltEditorDefaultUI?.classList.add("faked-viewer");
+        // const eltEditorDefaultUI = divEditor.querySelector(".toastui-editor-defaultUI");
+        // eltEditorDefaultUI?.classList.add("faked-viewer");
+        editorViewer.options.el.classList.add("faked-viewer");
         const hideElement = (selector) => {
             const element = divEditor.querySelector(selector);
             if (!element) throw Error(`Could not find "${selector}`);
             element.style.display = "none";
         }
-        const selectorToolBar = "div.toastui-editor-toolbar";
-        hideElement(selectorToolBar);
+
+        // const selectorToolBar = "div.toastui-editor-toolbar";
+        // hideElement(selectorToolBar);
+
         const selectorSwitch = "div.toastui-editor-mode-switch";
-        hideElement(selectorSwitch);
+        // hideElement(selectorSwitch);
+        divEditor.querySelector(selectorSwitch).style.display = null;
 
         const arrC = [...divEditor.querySelectorAll(".toastui-editor-ww-container div[contenteditable=true]")];
         if (arrC.length != 1) throw Error(`Expected to match 1 contenteditable, got ${arrC.length}`);
         const arrC0 = arrC[0];
+        arrC0.setAttribute("tabindex", "-1");
         // @ts-ignore
         arrC0.style = `
             padding: 0;
@@ -388,23 +419,17 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         const selectorWWcont = "div.toastui-editor-ww-container";
         const previewWWcont = divEditor.querySelector(selectorWWcont);
         if (!previewWWcont) throw Error(`Could not find "${selectorWWcont}`);
+
+
+
         const shield = mkElt("div");
-        shield.style = `
-          background: red;
-          opacity: 0.1;
-          top: 0;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          position: absolute;
-          z-index: 30;
-          pointer-events: none;
-          border: none;
-        `;
         const selectorWWmode = "div.toastui-editor-main.toastui-editor-ww-mode";
         const eltWWmode = divEditor.querySelector(selectorWWmode);
         if (!eltWWmode) throw Error(`Could not find "${selectorWWmode}"`);
         eltWWmode.appendChild(shield);
+
+        shield.classList.add("faked-viewer-edit-shield");
+        // FIX-ME: hover - maybe implement via "pointermove"?
         shield.addEventListener("pointerdown", evt => {
             evt.stopImmediatePropagation();
             console.log({ evt });
@@ -422,8 +447,9 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
             }
         });
         shield.addEventListener("pointerup", evt => {
-            console.log({ evt });
-            check4searchLink(evt.target);
+            evt.stopImmediatePropagation();
+            // console.log({ evt });
+            // check4searchLink(evt.target);
         });
         return editorViewer;
     }
@@ -501,10 +527,16 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         background: color-mix(in srgb, var(--mdc-theme-primary) 30%, transparent);
         z-index: 999;
         `;
+            let eltFaked;
         btnEditMyNotes.addEventListener("click", async evt => {
             evt.preventDefault();
             evt.stopImmediatePropagation();
             evt.stopPropagation();
+            eltFaked = eltFaked || btnEditMyNotes.closest(".faked-viewer");
+            eltFaked.classList.toggle("faked-viewer")
+            return;
+
+
             btnEditMyNotes.remove();
             const ourElt = toastViewer.options.el;
             const valueInitial = toastViewer.options.initialValue;
@@ -512,29 +544,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
             toastViewer.destroy();
             ourElt.innerHTML = "";
 
-            const objToolbarItems = [
-                [
-                    {
-                        name: 'searchButton',
-                        tooltip: 'Insert search',
-                        className: 'toastui-editor-toolbar-icons search-button',
-                        command: "searchCommand"
-                    },
-                    "link",
-                ],
-                [
-                    "bold", "italic",
-                    // "strike"
-                ],
-                ["heading", "hr", "quote"],
-            ];
-            function insertSearchCommand(dummy) {
-                // dialog
-                // FIX-ME: what is editor here???
-                console.log("searchCommand clicked", dummy);
-                // toastEditor
-                dialogInsertSearch(toastEditor);
-            }
+
             toastEditor = new modToastUI.Editor({
                 el: ourElt,
                 toolbarItems: objToolbarItems,
