@@ -526,12 +526,15 @@ export class CustomRenderer4jsMind {
         function disableCardLine(disabled) {
             // sliLineWidth["myMdc"].disabled = disable;
             modMdc.setMDCSliderDisabled(sliLineWidth, disabled);
+            /*
             inpLineColor.disabled = disabled;
             if (disabled) {
                 cardLine.style.opacity = "0.3";
             } else {
                 cardLine.style.opacity = "1";
             }
+            */
+            inpLineColor.inert = disabled;
         }
         // .mindmapGlobals
         inpLineColor.addEventListener("input", () => {

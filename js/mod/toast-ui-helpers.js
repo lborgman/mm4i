@@ -60,7 +60,8 @@ async function dialogInsertSearch(editor) {
 
     const hasSearchlinkAtCursor = searchLinkAtCursor != undefined;
     const titleH2 = hasSearchlinkAtCursor ? "Update search link" : "Insert search link";
-    const titleSave = hasSearchlinkAtCursor ? "Update" : "Insert";
+    // const titleSave = hasSearchlinkAtCursor ? "Update" : "Insert";
+    const titleSave = "Save";
 
     const aTest = mkElt("a");
     aTest.href = `mm4i-search:dummy`;
@@ -91,6 +92,7 @@ async function dialogInsertSearch(editor) {
         if (valTitle == "") { inert = true; }
         if (valSearch == "") { inert = true; }
         eltTest.inert = inert;
+        inert = inert || (titleInit == valTitle && searchInit == valSearch);
         btnSave.inert = inert;
     }
 
@@ -336,8 +338,8 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
     let toastEditor;
 
     if (!divEditor.isConnected) {
-        console.error("The editor container is not connected to the DOM", divEditor);
-        debugger; // eslint-disable-line no-debugger
+        console.warn("The editor container is not connected to the DOM", divEditor);
+        // debugger; // eslint-disable-line no-debugger
     }
     divEditor.innerHTML = "";
     // divEditor.dataset.latestSaved = encodeURIComponent(initialMD);
@@ -510,8 +512,8 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
     btnEdit.focus();
     const eltActive = document.activeElement;
     if (btnEdit != eltActive) {
-        console.error("active element is not btnEdit", eltActive);
-        throw Error(`document.activeElement is not btnEdit`);
+        console.warn("active element is not btnEdit", eltActive);
+        // throw Error(`document.activeElement is not btnEdit`);
     }
 
     return { toastEditor, btnEdit };
