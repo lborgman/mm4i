@@ -468,34 +468,16 @@ export class CustomRenderer4jsMind {
         const placeholder = mkNodeNotesPlaceholder(root_node);
 
         let toastMMdescEditor;
-        const onEditMMdesc = async (editor) => {
-            toastMMdescEditor = editor;
-            console.log({ toastMMdescEditor });
-            /*
-            toastMMdescEditor.on("change", () => {
-                // console.log("toastEditor on change");
-                funCheckSave(true);
-            });
-            */
-
-            const funSave = (val) => {
-                console.log({ root_node });
-                // currentShapeEtc.notes = val.trimEnd();
-                // root_node.data.shapeEtc.notes = val.trimEnd();
-                currentDescription = val.trimEnd();
-                // modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed);
-                // requestSetStateBtnSave();
-                funDebounceSomethingToSaveMm();
-            }
-            return funSave;
+        const onChangeMMdesc = (val) => {
+            // console.log({ root_node });
+            currentDescription = val.trimEnd();
+            funDebounceSomethingToSaveMm();
         };
 
 
-        // const { easyMDE, btnEdit } = await modToastUIhelpers.setupEasyMDEview(divMDE, valDescription, placeholder);
-        const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divMDE, initialDescription, placeholder, onEditMMdesc);
+        const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divMDE, initialDescription, placeholder, onChangeMMdesc);
         btnEdit.style.right = "-4px";
         btnEdit.style.top = "-30px";
-        // easyMDE.codemirror.on("changes", () => { saveEmdChanges(); });
 
         const jmOpt = this.getJmOptions();
         const defaultLineW = jmOpt.view.line_width;
@@ -776,26 +758,15 @@ export class CustomRenderer4jsMind {
         // let retMkDialog;
         const objClose = {};
         let toastNotesEditor;
-        const onEdit = (editor) => {
-            toastNotesEditor = editor;
-            // console.log({ toastNotesEditor });
-            // toastNotesEditor.on("change", () => { funCheckSave(true); });
-            const funSave = (val) => {
-                // shapeEtc.notes = toastNotesEditor.getMarkdown().trimEnd();
-                shapeEtc.notes = val.trimEnd();
-                modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed);
-            }
-            return funSave;
+        const onChange = (val) => {
+            shapeEtc.notes = val.trimEnd();
+            modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed);
         };
 
-        // const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, initialVal, placeholder, onEdit, objClose);
-        // let btnEdit;
-
         body.appendChild(divEasyMdeOuterWrapper);
-        // await modTools.waitSeconds(1);
         // FIX-ME: remove setTimeout??
         setTimeout(async () => {
-            const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, initialVal, placeholder, onEdit, objClose);
+            const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, initialVal, placeholder, onChange, objClose);
             // let btnSave;
             btnEdit.addEventListener("click", (evt) => {
                 evt.preventDefault();
@@ -1207,15 +1178,9 @@ export class CustomRenderer4jsMind {
         divNotesTab.style.gap = "30px";
 
         let toastNotesInNodesEditor;
-        const onEditNotes = async (editor) => {
-            toastNotesInNodesEditor = editor;
-            console.log({ toastNotesEditor: toastNotesInNodesEditor });
-            const funSave = (val) => {
-                currentShapeEtc.notes = val.trimEnd();
-                // modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed);
-                requestSetStateBtnSave();
-            }
-            return funSave;
+        const onChangeNotes = (val) => {
+            currentShapeEtc.notes = val.trimEnd();
+            requestSetStateBtnSave();
         };
 
 
@@ -1223,11 +1188,9 @@ export class CustomRenderer4jsMind {
         async function activateNotesTab() {
             const valNotes = initNotes;
             const placeholder = mkNodeNotesPlaceholder(node_copied);
-            const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, valNotes, placeholder, onEditNotes);
+            const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, valNotes, placeholder, onChangeNotes);
             btnEdit.style.right = "0px";
             btnEdit.style.top = "-20px";
-            // easyMDE.codemirror.on("changes", () => { saveEmdChanges(); })
-            // window["easyMDE"] = easyMDE;
         }
 
         const jmnodesShapes = mkElt("jmnodes");

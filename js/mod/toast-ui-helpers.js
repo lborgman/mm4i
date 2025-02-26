@@ -187,9 +187,9 @@ async function dialogInsertSearch(editor) {
  * 
  */
 /**
- * @callback FunctionOnEdit
- * @param {Object} toastEditor
- * @returns {saveFun}
+ * @callback FunctionOnChange
+ * @param {string} newValue
+ * @returns
 */
 
 // let lastMDgetCursorPosition; // debugging
@@ -316,22 +316,18 @@ function doSearchPreview(valSearchstring) {
  * @param {HTMLDivElement} divEditor 
  * @param {string} initialMD 
  * @param {string} valuePlaceholder 
- * @param {FunctionOnEdit} onEdit
- * @param {Object|undefined} objInit;
+ * @param {FunctionOnChange} onChange
  * @returns 
  */
-async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, objInit) {
-    // let toastViewer;
+async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange) {
     let toastEditor;
 
     if (!divEditor.isConnected) {
         console.error("The editor container is not connected to the DOM", divEditor);
         debugger; // eslint-disable-line no-debugger
     }
-    // const ourElt = divEditor;
-    // ourElt.innerHTML = "";
     divEditor.innerHTML = "";
-    divEditor.dataset.latestSaved = encodeURIComponent(initialMD);
+    // divEditor.dataset.latestSaved = encodeURIComponent(initialMD);
 
 
     function check4searchLink(eltSearchLink) {
@@ -380,15 +376,10 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         ["heading", "hr", "quote"],
     ];
     function insertSearchCommand(dummy) {
-        // dialog
-        // FIX-ME: what is editor here???
         console.log("searchCommand clicked", dummy);
-        // toastEditor
         dialogInsertSearch(toastEditor);
     }
 
-    // const useToastPreview = true;
-    // const toastPreview = !useToastPreview ? undefined : makeFakedViewer();
     toastEditor = makeFakedViewer();
 
 
@@ -397,34 +388,30 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         const editorViewer = new modToastUI.Editor({
             el: divEditor,
             toolbarItems: objToolbarItems,
+            placeholder: valuePlaceholder,
             initialValue: initialMD,
-            // customHTMLRenderer: mm4iRenderer,
             previewStyle: "tab",
             initialEditType: "wysiwyg",
             height: "auto",
             usageStatistics: false,
-            previewOptions: {
-                container: {
-                    padding: '0px'
-                }
-            }
+            // previewOptions: { container: { padding: '0px' } }
         });
         editorViewer.addCommand("markdown", "searchCommand", insertSearchCommand);
         editorViewer.addCommand("wysiwyg", "searchCommand", insertSearchCommand);
         editorViewer.options.el.classList.add("faked-viewer");
-        const hideElement = (selector) => {
-            const element = divEditor.querySelector(selector);
-            if (!element) throw Error(`Could not find "${selector}`);
-            element.style.display = "none";
-        }
+        editorViewer.on("change", ()=> {
+            console.log("changed");
+            const md = editorViewer.getMarkdown();
+            onChange(md);
+        });
 
-        // const selectorToolBar = "div.toastui-editor-toolbar";
-        // hideElement(selectorToolBar);
+        const modeSwiSelector = "div.toastui-editor-mode-switch";
+        const eltModeSwitch = divEditor.querySelector(modeSwiSelector);
+        if (!eltModeSwitch) throw Error(`Did not find "${modeSwiSelector}"`);
+        // @ts-ignore
+        eltModeSwitch.style.display = null;
 
-        // const selectorSwitch = "div.toastui-editor-mode-switch";
-        // hideElement(selectorSwitch);
-        // divEditor.querySelector(selectorSwitch).style.display = null;
-
+        /*
         const arrC = [...divEditor.querySelectorAll(".toastui-editor-ww-container div[contenteditable=true]")];
         if (arrC.length != 1) throw Error(`Expected to match 1 contenteditable, got ${arrC.length}`);
         const arrC0 = arrC[0];
@@ -448,12 +435,11 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
         }
         let cmContenteditable;
         cmContenteditable = cmContenteditable || arrCmContenteditable[0];
-        // cmContenteditable.inert = true;
-        // cmContenteditable.setAttribute("tabindex", "-1");
         const stCmContenteditable = getComputedStyle(cmContenteditable);
         const pointerEvensCm = stCmContenteditable["pointer-events"];
         console.log({ cmContenteditable, pointerEvensCm });
         // debugger;
+        */
 
 
 
@@ -504,33 +490,6 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
     console.log({ toastViewer });
     */
 
-    if (objInit) {
-        const tofObjInit = typeof objInit;
-        if (tofObjInit != "object") throw Error(`objInit is "${tofObjInit}", should be "object"`);
-        const keysObj = Object.keys(objInit);
-        const lenObj = keysObj.length;
-        const funInit = objInit.funInit;
-        let dataObj;
-        if (!funInit) { throw Error(`objInit is missing key "funInit"`); }
-        const tofFunInit = typeof funInit;
-        if (tofFunInit != "function") { throw Error(`.funInit is "${tofFunInit}", should be "function"`); }
-        if (lenObj > 2) {
-            throw Error(`objInit should have key "funInit" and optional key "data", but number of keys is ${lenObj}`);
-        }
-        if (lenObj == 2) {
-            if (!keysObj.includes("data")) {
-                throw Error(`objInit is missing optional key "data"`);
-            }
-            dataObj = objInit.data;
-        }
-        // const lenFun = funInit.length;
-        // if (lenFun != lenObj) { throw Error(`.funInit takes ${lenFun} parameters, should take ${lenObj}`); }
-        if (dataObj) {
-            await objInit.funInit(toastEditor, dataObj);
-        } else {
-            await objInit.funInit(toastEditor);
-        }
-    }
 
 
 
@@ -664,24 +623,16 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onEdit, 
  * @param {HTMLDivElement} taOrDiv 
  * @param {string} valueInitial 
  * @param {string} valuePlaceholder
- * @param {function} onEdit
- * @param {Object} objClose 
+ * @param {function} onChange
  * @returns {Promise<{btnEdit:HTMLButtonElement}>}
  */
-export async function setupToastUIpreview(taOrDiv, valueInitial, valuePlaceholder, onEdit, objClose) {
-    const tofOnEdit = typeof onEdit;
-    if (tofOnEdit != "function") throw Error(`onEdit should be function, is ${tofOnEdit}`);
-    const lenOnEdit = onEdit.length;
-    if (lenOnEdit != 1) throw Error(`Function param onEdit should take 1 param, not ${lenOnEdit}`);
+export async function setupToastUIpreview(taOrDiv, valueInitial, valuePlaceholder, onChange) {
+    const tofOnChange = typeof onChange;
+    if (tofOnChange != "function") throw Error(`onChange should be function, is ${tofOnChange}`);
+    const lenOnChange = onChange.length;
+    if (lenOnChange != 1) throw Error(`Function param onChange should take 1 param, not ${lenOnChange}`);
 
-    const funInit = async (editor) => {
-        console.log("funInit", editor);
-    };
-    const objInit4Notes = {
-        funInit
-    }
-    if (objClose) objInit4Notes.data = objClose;
-    return await setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, onEdit, objInit4Notes);
+    return await setupToastUIview(taOrDiv, valueInitial, valuePlaceholder, onChange);
 }
 
 
