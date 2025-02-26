@@ -37,14 +37,14 @@ async function dialogInsertSearch(editor) {
     inpTitle.value = titleInit;
     const taTitle = modMdc.mkMDCtextField("Title", inpTitle);
     inpTitle.addEventListener("input", evt => {
-        updateTestButton();
+        updateButtonsEtc();
     });
 
     const inpSearch = modMdc.mkMDCtextFieldInput();
     inpSearch.value = searchInit;
     const taSearch = modMdc.mkMDCtextField("Search", inpSearch);
 
-    const spanSearched = mkElt("span", undefined, searchNodeParams.inpSearch.value);
+    // const spanSearched = mkElt("span", undefined, searchNodeParams.inpSearch.value);
     const divInputs = mkElt("div", undefined, [
         taTitle,
         taSearch,
@@ -52,67 +52,80 @@ async function dialogInsertSearch(editor) {
     ]);
     // @ts-ignore
     divInputs.style = `
-            display: grid;
+            display: flex;
             gap: 20px;
             display: flex;
             flex-direction: column;
-            NOflex-wrap: wrap;
         `;
+
     const hasSearchlinkAtCursor = searchLinkAtCursor != undefined;
     const titleH2 = hasSearchlinkAtCursor ? "Update search link" : "Insert search link";
     const titleSave = hasSearchlinkAtCursor ? "Update" : "Insert";
+
     const aTest = mkElt("a");
     aTest.href = `mm4i-search:dummy`;
     aTest.style.padding = "4px";
-    function updateTestButton() {
-        // aTest.href = `mm4i-search:${inpSearch.value}`;
-        aTest.textContent = inpTitle.value;
-    }
+
     const fakedWrapper = mkElt("div", undefined, aTest);
     fakedWrapper.style.display = "inline-block";
     fakedWrapper.classList.add("faked-viewer");
     const spanTest = mkElt("span", undefined, fakedWrapper);
-    spanTest.addEventListener("click", evt => {
-        // test search
-        doSearchPreview(inpSearch.value);
-    });
-    updateTestButton();
     const eltTest = mkElt("p", undefined, [
         "Click to test: ", spanTest
-    ])
+    ]);
+    inpSearch.addEventListener("input", _evt => {
+        updateButtonsEtc();
+    });
+    inpTitle.addEventListener("input", _evt => {
+        updateButtonsEtc();
+    });
+
+    spanTest.addEventListener("click", evt => {
+        doSearchPreview(inpSearch.value);
+    });
+    function updateButtonsEtc() {
+        const valTitle = inpTitle.value.trim();
+        const valSearch = inpSearch.value.trim();
+        aTest.textContent = valTitle;
+        let inert = false;
+        if (valTitle == "") { inert = true; }
+        if (valSearch == "") { inert = true; }
+        eltTest.inert = inert;
+        btnSave.inert = inert;
+    }
+
+
+    const divInfo = mkElt("div", undefined, [
+        mkElt("p", undefined, "Search links search for nodes in your mindmap. Title and node notes are searched."),
+    ]);
+    divInfo.style = `
+        display: none;
+        transition: opacity 2s;
+        opacity: 0;
+    `;
+    // btnEdit
+    const btnInfo = modMdc.mkMDCiconButton("info", "What are search links?");
+    btnInfo.style = `
+        color: blue;
+    `;
+    btnInfo.addEventListener("click", evt => {
+        evt.stopImmediatePropagation();
+        divInfo.style.display = "flex";
+        setTimeout(() => divInfo.style.opacity = "1", 10);
+    });
     const body = mkElt("div", undefined, [
-        mkElt("h2", undefined, titleH2),
-        // taTitle, taSearch,
+        mkElt("h2", undefined, [titleH2, " ", btnInfo]),
+        divInfo,
         divInputs,
         eltTest
     ]);
-    /*
-    const funCheckSave = (wantSave) => {
-        console.log({ wantSave });
-        const tofWantSave = typeof wantSave;
-        if (tofWantSave != "boolean") throw Error(`Expected type "boolean", got "${tofWantSave}"`);
 
-        const title = inpTitle.value.trim();
-        const search = inpSearch.value.trim();
-        if (wantSave == false) {
-            // return title.length > 0 && search.length > 0;
-            return title != titleInit || search != searchInit;
-        }
-    };
-    */
-    // const answer = await modMdc.mkMDCdialogConfirm(body, titleSave, "cancel");
-
-    const btnTest = modMdc.mkMDCdialogButton("Test search", "test");
-    btnTest.addEventListener("click", evt => {
-        evt.stopImmediatePropagation();
-        // alert("not implemented yet");
-        doSearchPreview(inpSearch.value);
-    });
     const btnSave = modMdc.mkMDCdialogButton(titleSave, "confirm", true);
     const btnCancel = modMdc.mkMDCdialogButton("Cancel", "close");
-    const arrBtns = [btnTest, btnSave, btnCancel];
+    const arrBtns = [btnSave, btnCancel];
     const eltActions = modMdc.mkMDCdialogActions(arrBtns);
     const dlg = await modMdc.mkMDCdialog(body, eltActions);
+    updateButtonsEtc();
     const answer = await new Promise((resolve) => {
         dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async evt => {
             const action = evt.detail.action;
@@ -124,7 +137,7 @@ async function dialogInsertSearch(editor) {
                     resolve(false);
                     break;
                 default:
-                    throw Error(`error in mkMDCdialogConfirm, action is "${action}"`)
+                    throw Error(`error in MDC dialog, action is "${action}"`)
             }
         }));
     });
@@ -363,7 +376,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
         [
             {
                 name: 'searchButton',
-                tooltip: 'Insert search',
+                tooltip: 'Add/update search link',
                 className: 'toastui-editor-toolbar-icons search-button',
                 command: "searchCommand"
             },
@@ -399,7 +412,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
         editorViewer.addCommand("markdown", "searchCommand", insertSearchCommand);
         editorViewer.addCommand("wysiwyg", "searchCommand", insertSearchCommand);
         editorViewer.options.el.classList.add("faked-viewer");
-        editorViewer.on("change", ()=> {
+        editorViewer.on("change", () => {
             console.log("changed");
             const md = editorViewer.getMarkdown();
             onChange(md);
