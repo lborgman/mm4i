@@ -24,13 +24,33 @@ export function setupSearchNodes(searchPar) {
 
 const modToastUI = window["toastui"] || await importFc4i("toast-ui");
 
-async function dialogInsertSearch(editor) {
-    const searchLinkAtCursor = getWWsearchLinkAtCursor(editor) || getMDsearchLinkAtCursor(editor);
-    const es = editor.getSelection();
+async function dialogLinkURL(editor) {
+    debugger;
+    dialogLink(editor, "URL");
+}
+async function dialogLinkSearch(editor) {
+    dialogLink(editor, "Search");
+}
+async function dialogLink(editor, wantsLinkType) {
+    if (!["Search", "URL"].includes(wantsLinkType)) throw Error(`Unknown link type: "${wantsLinkType}"`);
+    const linkAtCursor = getLinkAtCursor(editor);
     const esText = editor.getSelectedText();
-    console.log({ searchLinkAtCursor, es, esText });
-    const titleInit = esText || searchLinkAtCursor?.searchTitle || "";
-    const searchInit = searchLinkAtCursor?.searchString || "";
+    console.log({ linkAtCursor, esText });
+    // debugger;
+    const titleInit = esText || linkAtCursor?.linkTitle || "";
+    const hrefInit = linkAtCursor?.linkHref || "";
+
+    const hrefType = !linkAtCursor ? undefined :
+        (isSearchMarker(hrefInit) ? "Search" : "URL");
+    const mismatch = (hrefType && (hrefType !== wantsLinkType));
+    const msgMismatch = !mismatch ? undefined
+        : `Notice: The existing link is of type "${hrefType}", using that`;
+    console.log({ msgMismatch });
+
+    const useLinkType = hrefType || wantsLinkType;
+    const strTaHref = useLinkType;
+    const h2LinkType = useLinkType == "URL" ? "URL" : "search link";
+    // debugger;
 
 
     const inpTitle = modMdc.mkMDCtextFieldInput();
@@ -40,15 +60,13 @@ async function dialogInsertSearch(editor) {
         updateButtonsEtc();
     });
 
-    const inpSearch = modMdc.mkMDCtextFieldInput();
-    inpSearch.value = searchInit;
-    const taSearch = modMdc.mkMDCtextField("Search", inpSearch);
+    const inpHrefSearch = modMdc.mkMDCtextFieldInput();
+    inpHrefSearch.value = isSearchMarker(hrefInit) ? searchMarker2string(hrefInit) : hrefInit;
+    const taHref = modMdc.mkMDCtextField(strTaHref, inpHrefSearch);
 
-    // const spanSearched = mkElt("span", undefined, searchNodeParams.inpSearch.value);
     const divInputs = mkElt("div", undefined, [
         taTitle,
-        taSearch,
-        // spanSearched,
+        taHref,
     ]);
     // @ts-ignore
     divInputs.style = `
@@ -58,8 +76,8 @@ async function dialogInsertSearch(editor) {
             flex-direction: column;
         `;
 
-    const hasSearchlinkAtCursor = searchLinkAtCursor != undefined;
-    const titleH2 = hasSearchlinkAtCursor ? "Update search link" : "Insert search link";
+    const hasLinkAtCursor = linkAtCursor != undefined;
+    const titleH2 = hasLinkAtCursor ? `Update ${h2LinkType}` : `Insert ${h2LinkType}`;
     // const titleSave = hasSearchlinkAtCursor ? "Update" : "Insert";
     const titleSave = "Save";
 
@@ -74,7 +92,7 @@ async function dialogInsertSearch(editor) {
     const eltTest = mkElt("p", undefined, [
         "Click to test: ", spanTest
     ]);
-    inpSearch.addEventListener("input", _evt => {
+    inpHrefSearch.addEventListener("input", _evt => {
         updateButtonsEtc();
     });
     inpTitle.addEventListener("input", _evt => {
@@ -82,17 +100,17 @@ async function dialogInsertSearch(editor) {
     });
 
     spanTest.addEventListener("click", evt => {
-        doSearchPreview(inpSearch.value);
+        doSearchPreview(inpHrefSearch.value);
     });
     function updateButtonsEtc() {
         const valTitle = inpTitle.value.trim();
-        const valSearch = inpSearch.value.trim();
+        const valSearch = inpHrefSearch.value.trim();
         aTest.textContent = valTitle;
         let inert = false;
         if (valTitle == "") { inert = true; }
         if (valSearch == "") { inert = true; }
         eltTest.inert = inert;
-        inert = inert || (titleInit == valTitle && searchInit == valSearch);
+        inert = inert || (titleInit == valTitle && hrefInit == valSearch);
         btnSave.inert = inert;
     }
 
@@ -106,21 +124,24 @@ async function dialogInsertSearch(editor) {
         opacity: 0;
     `;
     // btnEdit
-    const btnInfo = modMdc.mkMDCiconButton("info", "What are search links?");
-    btnInfo.style = `
+    const btnSearchInfo = modMdc.mkMDCiconButton("info", "What are search links?");
+    btnSearchInfo.style = `
         color: blue;
     `;
-    btnInfo.addEventListener("click", evt => {
+    btnSearchInfo.addEventListener("click", evt => {
         evt.stopImmediatePropagation();
         divInfo.style.display = "flex";
         setTimeout(() => divInfo.style.opacity = "1", 10);
     });
+    const eltH2 = mkElt("h2", undefined, titleH2);
+    if (useLinkType == "Search") { eltH2.appendChild(btnSearchInfo); }
     const body = mkElt("div", undefined, [
-        mkElt("h2", undefined, [titleH2, " ", btnInfo]),
+        eltH2,
         divInfo,
         divInputs,
-        eltTest
     ]);
+    if (useLinkType == "Search") { body.appendChild(eltTest); }
+    if (mismatch) { body.appendChild(mkElt("p", undefined, `(${msgMismatch})`)); }
 
     const btnSave = modMdc.mkMDCdialogButton(titleSave, "confirm", true);
     const btnCancel = modMdc.mkMDCdialogButton("Cancel", "close");
@@ -150,7 +171,7 @@ async function dialogInsertSearch(editor) {
     }
     const title = inpTitle.value.trim();
     if (title == "") return;
-    const search = inpSearch.value.trim();
+    const search = inpHrefSearch.value.trim();
     if (search == "") return;
 
     if (editor.mode == "wysiwyg") {
@@ -159,14 +180,14 @@ async function dialogInsertSearch(editor) {
         const lbWW = editor.getHTML().length;
         let node, eltMut;
         const sel = editor.getSelection();
-        if (searchLinkAtCursor) {
-            node = searchLinkAtCursor.eltAnchor;
+        if (linkAtCursor) {
+            node = linkAtCursor.eltAnchor;
             eltMut = node.parentElement;
             node.remove();
             await modTools.wait4mutations(eltMut);
         }
         (async function () {
-            if (searchLinkAtCursor) {
+            if (linkAtCursor) {
                 const laMD = editor.getMarkdown().length;
                 const laWW = editor.getHTML().length;
                 if (lbMD == laMD || lbWW == laWW) {
@@ -176,16 +197,17 @@ async function dialogInsertSearch(editor) {
                     throw Error(`Editor was not ready: ${msgLen}`);
                 }
             }
-            editor.exec("addLink", { linkUrl: searchString2marker(search), linkText: title });
-            if (searchLinkAtCursor) { await modTools.wait4mutations(eltMut); }
+            const linkUrl = useLinkType == "Search" ? searchString2marker(search) : search;
+            editor.exec("addLink", { linkUrl, linkText: title });
+            if (linkAtCursor) { await modTools.wait4mutations(eltMut); }
             const htmlContent = editor.getHTML();
             editor.setHTML(htmlContent);
-            if (searchLinkAtCursor) { await modTools.wait4mutations(eltMut); }
+            if (linkAtCursor) { await modTools.wait4mutations(eltMut); }
             editor.setSelection(sel[0], sel[1]);
         })();
     } else if (editor.mode == "markdown") {
-        if (!searchLinkAtCursor) throw Error(`searchLinkAtCursor is null`);
-        const sel = searchLinkAtCursor.selection;
+        if (!linkAtCursor) throw Error(`searchLinkAtCursor is null`);
+        const sel = linkAtCursor.selection;
         const start = sel[0];
         const end = sel[1];
         editor.setSelection(start, end);
@@ -392,8 +414,13 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
     ];
     function insertSearchCommand(dummy) {
         console.log("searchCommand clicked", dummy);
-        dialogInsertSearch(toastEditor);
+        dialogLinkSearch(toastEditor);
     }
+    function insertLinkCommand(dummy) {
+        console.log("searchCommand clicked", dummy);
+        dialogLink(toastEditor);
+    }
+
 
     toastEditor = makeFakedViewer();
 
@@ -411,8 +438,14 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
             usageStatistics: false,
             // previewOptions: { container: { padding: '0px' } }
         });
+
+        // FIX-ME: move!
         editorViewer.addCommand("markdown", "searchCommand", insertSearchCommand);
         editorViewer.addCommand("wysiwyg", "searchCommand", insertSearchCommand);
+        editorViewer.addCommand("markdown", "myLinkCommand", insertLinkCommand);
+        editorViewer.addCommand("wysiwyg", "myLinkCommand", insertLinkCommand);
+
+
         editorViewer.options.el.classList.add("faked-viewer");
         editorViewer.on("change", () => {
             console.log("changed");
@@ -438,11 +471,11 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
         const eltDialogContent = arrC0.closest(".mdc-dialog__content");
         // @ts-ignore
         eltDialogContent.style.paddingBottom = "0px";
-
+ 
         const selectorWWcont = "div.toastui-editor-ww-container";
         const previewWWcont = divEditor.querySelector(selectorWWcont);
         if (!previewWWcont) throw Error(`Could not find "${selectorWWcont}`);
-
+ 
         const arrCmContenteditable = [...previewWWcont.querySelectorAll("[contenteditable]")];
         const lenArrCm = arrCmContenteditable.length;
         if (lenArrCm != 1) {
@@ -500,7 +533,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
         // customHTMLRenderer: mm4iRenderer,
         usageStatistics: false,
     });
-
+ 
     window["myToastViewer"] = toastViewer;
     console.log({ toastViewer });
     */
@@ -845,12 +878,14 @@ function getWysiwygLength(markdownString) {
 function searchString2marker(str) { return `mm4i-search:${str.trim()}`; }
 
 /** @param {string} marker @returns {string} */
-function searchMarker2string(marker) { return marker.slice(12).trim(); }
+function searchMarker2string(marker) {
+    return marker.slice(12).trim();
+}
 
 /** @param {string} str @returns {boolean} */
 function isSearchMarker(str) { return str.startsWith("mm4i-search:"); }
 
-function getWWsearchLinkAtCursor(editor) {
+function getWWlinkAtCursor(editor) {
     if (editor.mode != "wysiwyg") return;
     const ws = window.getSelection();
     if (!ws) {
@@ -882,13 +917,25 @@ function getWWsearchLinkAtCursor(editor) {
         console.log(`Expected tagName "A", got "${tnAnc}"`);
         return;
     }
-    const searchLink = decodeURIComponent(eltAnchor.getAttribute("href") || "");
-    const searchString = searchMarker2string(searchLink);
-    const searchTitle = eltAnchor.textContent;
-    console.log({ searchLink, searchString, searchTitle })
-    return { searchString, searchTitle, eltAnchor };
+    const linkHref = decodeURIComponent(eltAnchor.getAttribute("href") || "");
+    const linkTitle = eltAnchor.textContent;
+    console.log({ linkHref, linkTitle })
+    return { linkHref, linkTitle, eltAnchor };
 }
-function getMDsearchLinkAtCursor(editor) {
+function OLDgetWWsearchLinkAtCursor(editor) {
+    const objLink = getWWlinkAtCursor(editor);
+    if (!objLink) return;
+    const linkHref = objLink.linkHref;
+    if (!isSearchMarker(linkHref)) return;
+    const searchString = searchMarker2string(linkHref);
+    objLink.searchString = searchString;
+    return objLink;
+}
+// function getMDsearchLinkAtCursor(editor) { return getMDLinkAtCursor(editor); }
+function getLinkAtCursor(editor) {
+    return getMDLinkAtCursor(editor) || getWWlinkAtCursor(editor);
+}
+function getMDLinkAtCursor(editor) {
     if (editor.mode == "wysiwyg") return;
     const es = editor.getSelection();
     const lines = editor.getMarkdown().split("\n");
@@ -902,31 +949,33 @@ function getMDsearchLinkAtCursor(editor) {
     // const charIdx = charPos - 1;
     const currentLine = lines[lineIdx];
     console.log({ currentLine });
-    // const reLink = /\[(.+?)\]\((.+?)\)/;
-    const reSearchLink = /\[(.+?)\]\(mm4i-search:(.+?)\)/;
+    const reLink = /\[(.+?)\]\((.+?)\)/;
+    // const reSearchLink = /\[(.+?)\]\(mm4i-search:(.+?)\)/;
 
     // FIX-ME: several on same line, see https://javascript.info/regexp-methods
-    const m = currentLine.match(reSearchLink);
+    // const m = currentLine.match(reSearchLink);
+    const m = currentLine.match(reLink);
     // const e = reSearchLink.exec(currentLine);
 
     if (!m) return;
-    const searchLink = m[0];
-    const searchTitle = m[1];
-    const searchString = m[2];
+    const wholeLink = m[0];
+    const linkTitle = m[1];
+    const linkHref = m[2];
+    // const searchString = m[2];
 
-    const startPos = currentLine.indexOf(searchLink) + 1;
+    const startPos = currentLine.indexOf(wholeLink) + 1;
     if (charPos < startPos) return;
-    const endPos = startPos + searchLink.length;
+    const endPos = startPos + wholeLink.length;
     if (charPos > endPos) return;
 
     const sl = currentLine.slice(startPos - 1, endPos - 1);
-    if (searchLink != sl) {
-        console.log(searchLink);
+    if (wholeLink != sl) {
+        console.log(wholeLink);
         console.log(sl);
-        throw Error(`searchLink=="${searchLink}", but sl=="${sl}"`);
+        throw Error(`wholeLink=="${wholeLink}", but sl=="${sl}"`);
     }
     const start = [linePos, startPos];
     const end = [linePos, endPos];
     const selection = [start, end];
-    return { searchString, searchTitle, selection };
+    return { linkHref, linkTitle, selection };
 }
