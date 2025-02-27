@@ -25,7 +25,7 @@ export function setupSearchNodes(searchPar) {
 const modToastUI = window["toastui"] || await importFc4i("toast-ui");
 
 async function dialogLinkURL(editor) {
-    debugger;
+    // debugger;
     dialogLink(editor, "URL");
 }
 async function dialogLinkSearch(editor) {
@@ -116,7 +116,7 @@ async function dialogLink(editor, wantsLinkType) {
 
 
     const divInfo = mkElt("div", undefined, [
-        mkElt("p", undefined, "Search links search for nodes in your mindmap. Title and node notes are searched."),
+        mkElt("p", undefined, "Search links looks for nodes in your mindmap. Node titles and notes are searched."),
     ]);
     divInfo.style = `
         display: none;
@@ -404,7 +404,14 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
                 className: 'toastui-editor-toolbar-icons search-button',
                 command: "searchCommand"
             },
-            "link",
+            // "link",
+            {
+                name: 'linkButton',
+                tooltip: 'Add/update URL link',
+                className: 'toastui-editor-toolbar-icons link',
+                command: "myLinkCommand"
+            },
+
         ],
         [
             "bold", "italic",
@@ -418,7 +425,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
     }
     function insertLinkCommand(dummy) {
         console.log("searchCommand clicked", dummy);
-        dialogLink(toastEditor);
+        dialogLinkURL(toastEditor);
     }
 
 
