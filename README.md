@@ -1,34 +1,26 @@
+![my image](./img/mm4i.png)
+
 # Mindmaps 4 Internet
 
 Mindmaps in your web browser. So you can use it in your mobile phone. Or in your desktop computer.
 
-MM4I (Mindmaps 4 Internet) offers that. 
-You can start it [here](https://lborgman.github.io/mm4i/mm4i.html).
-No installation required. Since it is a web page.
+MM4I (Mindmaps 4 Internet) offers that.  You can start it [here](https://lborgman.github.io/mm4i/mm4i.html).  No installation required. Since it is a web page.
 
-The mindmaps you create are stored in your web browser on your computer or mobile.
-(But you still have to be connected to the Internet since MM4I is loaded from the its 
-sources every time you start it.
-I will change that soon so you can use MM4I when you are offline.)
+The mindmaps you create are stored locally in your web browser on your computer or mobile.  (But you still have to be connected to the Internet since MM4I is loaded from the its sources every time you start it.  I will change that soon so you can use MM4I when you are offline.)
 
 
 ## Usage
-I believe there is not much to explain.
-MM4I behaves like most apps with a graphical interface.
-You can drag nodes around.
-You can double click on a node to change color, form, description, etc.
+Just try it. If you think something needs to be explained then please tell me [here](https://github.com/lborgman/mm4i/issues).
 
-If you think something needs to be explained then please tell me 
-[here](https://github.com/lborgman/mm4i/issues).
+Hm. Maybe node notes and search needs explanation?
 
+### Node notes and search links
+Each node in a mindmap can have a note that you create.  You can search the mindmap for the text in the node notes.  And you can create "search links" in your node notes that start such a search when clicked.
 
 ## Background
-Ever since I first saw mindmaps in practical use I have wanted to use it myself. 
-But. It looked like you needed a big paper. 
-Or rather several to redraw the mindmap. 
+Ever since I first saw mindmaps in practical use I have wanted to use it myself.  But. It looked like you needed a big paper.  Or rather several to redraw the mindmap. 
 
-Putting the mindmap in a computer could be a good idea, I thought.
-And then, preferably the computer I always bring with me, my mobile.
+Putting the mindmap in a computer could be a good idea, I thought.  And then, preferably the computer I always bring with me, my mobile.
 
 
 ## Acknowledgement

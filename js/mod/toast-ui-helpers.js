@@ -198,7 +198,14 @@ async function dialogLink(editor, wantsLinkType) {
                 }
             }
             const linkUrl = useLinkType == "Search" ? searchString2marker(search) : search;
-            editor.exec("addLink", { linkUrl, linkText: title });
+
+            //// It looks like Toast UI Editor does not support the title in GFM:
+            // editor.addLink('Click here', 'https://example.com', { target: '_blank', rel: 'noopener', title: 'Go to example.com' });
+            // const popupTitle = useLinkType == "Search" ? search : linkUrl;
+            const popupTitle = "popup title test";
+
+            editor.exec("addLink", { linkUrl, linkText: title, linkTitle: popupTitle });
+
             if (linkAtCursor) { await modTools.wait4mutations(eltMut); }
             const htmlContent = editor.getHTML();
             editor.setHTML(htmlContent);
@@ -414,10 +421,8 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
 
         ],
         [
-            "bold", "italic",
-            // "strike"
+            "bold", "italic", "heading"
         ],
-        ["heading", "hr", "quote"],
     ];
     function insertSearchCommand(dummy) {
         console.log("searchCommand clicked", dummy);
