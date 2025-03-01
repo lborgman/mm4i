@@ -2853,3 +2853,12 @@ function cssTxt2keyVal(cssTxt) {
 
 
 createOurCustomRenderer();
+
+
+
+forCoverage();
+function forCoverage() {
+    return;
+    const r = new CustomRenderer4jsMind();
+    console.log(r);
+}

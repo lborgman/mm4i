@@ -56,7 +56,7 @@ async function dialogLink(editor, wantsLinkType) {
     const inpTitle = modMdc.mkMDCtextFieldInput();
     inpTitle.value = titleInit;
     const taTitle = modMdc.mkMDCtextField("Title", inpTitle);
-    inpTitle.addEventListener("input", evt => {
+    inpTitle.addEventListener("input", () => {
         updateButtonsEtc();
     });
 
@@ -95,11 +95,11 @@ async function dialogLink(editor, wantsLinkType) {
     inpHrefSearch.addEventListener("input", _evt => {
         updateButtonsEtc();
     });
-    inpTitle.addEventListener("input", _evt => {
+    inpTitle.addEventListener("input", () => {
         updateButtonsEtc();
     });
 
-    spanTest.addEventListener("click", evt => {
+    spanTest.addEventListener("click", () => {
         doSearchPreview(inpHrefSearch.value);
     });
     function updateButtonsEtc() {
@@ -317,12 +317,12 @@ function doSearchPreview(valSearchstring) {
         clearTimeout(timeoutPreview);
     }
     eltPreviewShield.addEventListener("click", evt => {
-        console.log("clicked preview, objInit", objInit);
+        console.log("clicked eltPreviewShield");
         stopSearchPreview();
 
-        const funClose = objInit.data.funClose;
-        console.log("funClose", funClose);
-        if (funClose) funClose();
+        // const funClose = objInit.data.funClose;
+        // console.log("funClose", funClose);
+        // if (funClose) funClose();
         const target = evt.target;
         console.log("shield target", target);
         if (!target) throw Error("target is null");
@@ -583,6 +583,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
                 btnEditMyNotes.textContent = "edit_off";
             }
             return;
+            /*
 
 
             btnEditMyNotes.remove();
@@ -632,11 +633,9 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
             window["MYtoastEditor"] = toastEditor;
 
 
-            /**** Looking for workaround for the cursor move bug in Toast UI.  */
+            // Looking for workaround for the cursor move bug in Toast UI. 
 
-            /***
-             * Suggested by Deep Seek.
-            */
+            // Suggested by Deep Seek.
 
             let savedCursorPosition = [1, 1];
             const callersSaveFun = await onEdit(toastEditor);
@@ -670,6 +669,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
             toastEditor.addCommand("markdown", "searchCommand", insertSearchCommand);
             toastEditor.addCommand("wysiwyg", "searchCommand", insertSearchCommand);
             toastEditor.changeMode("wysiwyg");
+            */
 
         });
         return btnEditMyNotes;
@@ -934,6 +934,7 @@ function getWWlinkAtCursor(editor) {
     console.log({ linkHref, linkTitle })
     return { linkHref, linkTitle, eltAnchor };
 }
+/*
 function OLDgetWWsearchLinkAtCursor(editor) {
     const objLink = getWWlinkAtCursor(editor);
     if (!objLink) return;
@@ -943,6 +944,7 @@ function OLDgetWWsearchLinkAtCursor(editor) {
     objLink.searchString = searchString;
     return objLink;
 }
+*/
 // function getMDsearchLinkAtCursor(editor) { return getMDLinkAtCursor(editor); }
 function getLinkAtCursor(editor) {
     return getMDLinkAtCursor(editor) || getWWlinkAtCursor(editor);
@@ -990,4 +992,15 @@ function getMDLinkAtCursor(editor) {
     const end = [linePos, endPos];
     const selection = [start, end];
     return { linkHref, linkTitle, selection };
+}
+
+
+
+// This is for things JavaScript Coverage tool does not think is run
+// Coverage does not understand execution (2025-0-31) so it does not see "return".
+forCoverage();
+function forCoverage() {
+    // debugger;
+    return;
+    dialogLink();
 }
