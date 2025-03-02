@@ -1098,7 +1098,7 @@ export class CustomRenderer4jsMind {
                     detPattern.open = true;
                     break;
                 case "bg-choice-color":
-                    inpBgColor.value = modJsEditCommon.standardizeColorTo6Hex(bgVal);
+                    inpBgColor.value = modTools.standardizeColorTo6Hex(bgVal);
                     detBgColor.open = true;
                     break;
                 case "bg-choice-img-link":
