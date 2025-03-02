@@ -27,17 +27,8 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
         "db-mindmaps": "./js/db-mindmaps.js",
         "db-fc4i": "./js/db-fc4i.js",
 
-        // "easyMDE-helpers": "./js/mod/easyMDE-helpers.js",
-        // "easyMDE-helpers": "./js/mod/toast-ui-helpers.js",
         "toast-ui-helpers": "./js/mod/toast-ui-helpers.js",
 
-        // "toast-ui": "https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js",
-        // "toast-ui": "/ext/toast-ui/toastui-editor-all.min.js",
-        // "toast-ui": "https://cdn.jsdelivr.net/npm/@toast-ui/editor@latest/dist/esm/index.js",
-        // The es6 from jsdelivr is flawed:
-        // "toast-ui": "https://cdn.jsdelivr.net/npm/@toast-ui/editor@latest/+esm",
-
-        // "easymde": "https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js",
         // "jsmind": "https://cdn.jsdelivr.net/npm/jsmind@0.8.5/es6/jsmind.js",
 
         "fc4i-items": "./src/js/share.js",
@@ -68,35 +59,21 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
         "mindmap-helpers": "./js/mindmap-helpers.js",
         "my-svg": "./js/mod/my-svg.js",
         "mm4i-jsmind.drag-node": "./ext/jsmind/testing/mm4i-jsmind.drag-node.js",
-        // "mm4i-jsmind.draggable-nodes": "./ext/jsmind/testing/jsmind.draggable-node-TEMP.js",
         "sharing-params": "./src/js/mod/sharing-params.js",
         "move-help": "./js/mod/move-help.js",
         "toolsJs": "./js/mod/tools.js",
         "util-mdc": "./js/mod/util-mdc.js",
 
         // Tests:
-        "easymde": "https://cdn.jsdelivr.net/npm/easymde/dist/easymde.min.js",
         "jssm": "https://cdn.jsdelivr.net/npm/jssm@latest/dist/jssm.es6.mjs",
         "jssm-viz": "./ext/jssm/jssm-viz.es6.js",
         "mm4i-fsm": "./js/mm4i-fsm.js",
         // "viz-js": "https://cdn.jsdelivr.net/npm/viz-js@latest/dist/jssm.es6.mjs",
         "viz-js": "./ext/viz-js/viz-standalone.mjs",
-        // "zoom": "https://cdn.jsdelivr.net/npm/pinch-zoom-js@latest/dist/jssm.es6.mjs",
         "zoom": "./js/mod/zoom.js",
         "rd-parser": "./js/mod/rd-parser.js",
         "grammar-search": "./js/mod/grammar-search.js",
     };
-    /*
-        It looks like you can't reliable use importmap this way:
-
-        const elt = document.createElement("script");
-        elt.type = "importmap";
-        const objMap = {
-            imports: relImports
-        }
-        elt.textContent = JSON.stringify(objMap, null, 2);
-        document.currentScript.insertAdjacentElement("afterend", elt);
-    */
 
     const isImporting = {};
 
@@ -141,7 +118,9 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
             }
             const prevPoints = getStackPoints(prevStack);
             const currPoints = getStackPoints(currStack);
-            // FIX-ME: how do I see if it is cyclic????
+
+
+            //// FIX-ME: how do I see if it is cyclic????
 
             // const setPrev = new Set(prevPoints);
             // let samePoint;
@@ -163,7 +142,6 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
             // FIX-ME: why is this necessary when using <base ...>? file issue?
             // return await import(makeAbsLink(idOrLink));
             throw Error(`Start with . not tested: ${idOrLink}`);
-            // ourImportLink = makeAbsLink(idOrLink);
         }
         if (!ourImportLink) {
             const relUrl = relImports[idOrLink];
@@ -180,14 +158,4 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
     }
     window["importFc4i"] = importFc4i;
 
-    /*
-    const makeAbsLink = (relLink) => {
-        if (relLink.startsWith("/")) throw Error(`relLink should not start with "/" "${relLink}`);
-        const u = new URL(relLink, document.baseURI);
-        return u.href;
-    }
-    window.makeAbsLink = makeAbsLink;
-     */
 }
-
-// console.log("END fc4i-importmaps");
