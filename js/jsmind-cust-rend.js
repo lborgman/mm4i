@@ -961,16 +961,13 @@ export class CustomRenderer4jsMind {
         jmnodesCopied.classList.add(themeCls);
 
         const divEdnodeCopied = mkElt("div", { class: "mdc-card" }, [jmnodesCopied]);
-        // jmnodesCopied.style.backgroundColor = origJmnodesStyle.backgroundColor;
+        divEdnodeCopied.id = "div-ednode-copied";
         jmnodesCopied.style.backgroundColor = ourBgColor;
-        // divEdnodeCopied.style.backgroundColor = origJmnodesParentStyle.backgroundColor;
         divEdnodeCopied.style.backgroundColor = ourBgColor;
 
         const paddingDivEdnodeCopied = 8;
         divEdnodeCopied.style.position = "relative";
-        // divEdnodeCopied.style.height = "200px";
         divEdnodeCopied.style.width = "100%";
-        // divEdnodeCopied.style.backgroundColor = "black";
         divEdnodeCopied.style.padding = `${paddingDivEdnodeCopied}px`;
         divEdnodeCopied.style.border = "1px solid black";
         divEdnodeCopied.style.marginBottom = "5px";
