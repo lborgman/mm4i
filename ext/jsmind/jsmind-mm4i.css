@@ -603,7 +603,8 @@ jmnodes jmnode .jmnode-text {
     */
     outline: 1px dashed red;
     /* black does not work??? */
-    text-shadow: 1px 0 black, -1px 0 black, 0 1px black, 0 -1px black, 0 0 2px black;
+    /* text-shadow: 1px 0 black, -1px 0 black, 0 1px black, 0 -1px black, 0 0 2px black; */
+    -webkit-text-stroke: 0.3px black;
 }
 
 /* .jsmind_container jmnodes jmnode[nodeid='root'] { */
