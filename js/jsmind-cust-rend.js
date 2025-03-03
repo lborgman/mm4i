@@ -786,8 +786,6 @@ export class CustomRenderer4jsMind {
         const ctrlsSliders = {}
 
         const eltCopied = eltJmnode.cloneNode(true);
-        // const aPlainLink = eltCopied.querySelector("a.jsmind-plain-link");
-        // aPlainLink?.remove();
         const spanNotes = eltCopied.querySelector("span.has-notes-mark");
         spanNotes?.remove();
 

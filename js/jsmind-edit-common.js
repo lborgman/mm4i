@@ -652,19 +652,15 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
 
     const notes = shapeEtc.notes;
     if (notes) {
+        const oldMark = eltJmnode.querySelector("has-notes-mark");
+        if (oldMark) { debugger; }
 
-        // const iconNotes = hasLinks ? "link" : "edit";
-        // const iconNotes = hasLinks ? "link" : "description";
-
-        // const iconNotes = "description";
-        // const iconNotes = "draft"; // FIX-ME: does not work??
         const iconNotes = "summarize";
 
         const iconNotesBtn = modMdc.mkMDCiconButton(iconNotes, "Show notes");
         iconNotesBtn.classList.add(clsIconButton);
 
         const eltSpanNotes = mkElt("span", undefined, iconNotesBtn);
-        // eltSpan.classList.add("jsmind-plain-link");
         eltSpanNotes.classList.add("has-notes-mark");
         eltJmnode.appendChild(eltSpanNotes);
 
@@ -672,9 +668,6 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
             evt.preventDefault();
             evt.stopPropagation();
             evt.stopImmediatePropagation();
-            // const modCustRend = await importFc4i("jsmind-cust-rend");
-            // const renderer = await modCustRend.getOurCustomRenderer();
-            // renderer.editNotesDialog(eltJmnode);
             editNotes(eltJmnode);
         }));
     }
