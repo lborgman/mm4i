@@ -649,27 +649,28 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
     const oldBtn = eltJmnode.querySelector(`.${clsIconButton}`);
     oldBtn?.remove();
 
+    if (!eltJmnode.closest("#div-ednode-copied")) {
+        const notes = shapeEtc.notes;
+        if (notes) {
+            const oldMark = eltJmnode.querySelector("has-notes-mark");
+            if (oldMark) { debugger; }
 
-    const notes = shapeEtc.notes;
-    if (notes) {
-        const oldMark = eltJmnode.querySelector("has-notes-mark");
-        if (oldMark) { debugger; }
+            const iconNotes = "summarize";
 
-        const iconNotes = "summarize";
+            const iconNotesBtn = modMdc.mkMDCiconButton(iconNotes, "Show notes");
+            iconNotesBtn.classList.add(clsIconButton);
 
-        const iconNotesBtn = modMdc.mkMDCiconButton(iconNotes, "Show notes");
-        iconNotesBtn.classList.add(clsIconButton);
+            const eltSpanNotes = mkElt("span", undefined, iconNotesBtn);
+            eltSpanNotes.classList.add("has-notes-mark");
+            eltJmnode.appendChild(eltSpanNotes);
 
-        const eltSpanNotes = mkElt("span", undefined, iconNotesBtn);
-        eltSpanNotes.classList.add("has-notes-mark");
-        eltJmnode.appendChild(eltSpanNotes);
-
-        eltSpanNotes.addEventListener("click", errorHandlerAsyncEvent(async evt => {
-            evt.preventDefault();
-            evt.stopPropagation();
-            evt.stopImmediatePropagation();
-            editNotes(eltJmnode);
-        }));
+            eltSpanNotes.addEventListener("click", errorHandlerAsyncEvent(async evt => {
+                evt.preventDefault();
+                evt.stopPropagation();
+                evt.stopImmediatePropagation();
+                editNotes(eltJmnode);
+            }));
+        }
     }
 
 
