@@ -173,95 +173,10 @@ export class CustomRenderer4jsMind {
         // return this.linkRendererImg;
         return this.#providers[providerName].img;
     }
-    // addJmnodeBgAndText(eltJmnode) { return addJmnodeBgAndText(eltJmnode) }
-    // fixLeftRightChildren(eltJmnode) { fixLeftRightChildren(eltJmnode); }
-    /*
-    async OLDupdateEltNodeLink(eltJmnode) {
-        // Moved to applyShapeEtc
-        debugger; // eslint-disable-line no-debugger
-        return;
-        const node_id = jsMind.my_get_nodeID_from_DOM_element(eltJmnode);
-        const node = this.THEjmDisplayed.get_node(node_id);
-        const nodeLink = node.data.shapeEtc?.nodeLink;
-        // console.log({ node }, node.data.shapeEtc, nodeLink);
-        if (nodeLink && nodeLink.length > 0) {
-            const oldBtn = eltJmnode.querySelector("a.jsmind-plain-link");
-            oldBtn?.remove();
-            const iconBtn = modMdc.mkMDCiconButton("link", "Visit web page");
-            iconBtn.classList.add("icon-button-30");
-            const eltA3 = mkElt("a", { href: nodeLink, class: "jsmind-plain-link" }, iconBtn);
-            eltJmnode.appendChild(eltA3);
-        }
-    }
-    */
 
-    // async updateJmnodeFromCustom(eltJmnode, jmOwner) {
     async updateJmnodeFromCustom() {
         console.error("updateJmnodeFromCustom is obsolete");
-        // debugger; // eslint-disable-line no-debugger
-        /*
-        return;
-        async function fixRenderImg(eltDiv) {
-            return;
-            const eltParent = eltDiv.parentElement;
-            eltDiv.remove();
-            const btnURL = modMdc.mkMDCiconButton("");
-            btnURL.title = "Go to this item in Fc4i (1)";
-            btnURL.classList.add("icon-button-40");
-            // btnURL.classList.add(...themePrimary);
-
-
-            const strCustom = eltDiv.dataset.jsmindCustom;
-            const objCustom = JSON.parse(strCustom);
-            const provider = objCustom.provider;
-            const key = objCustom.key;
-
-            const linkProvider = await theCustomRenderer.#providers[provider].getRecLink(key);
-            const aURL = mkElt("a", { href: linkProvider }, btnURL);
-            aURL.classList.add("jsmind-renderer-img");
-            aURL.dataset.jsmindCustom = strCustom;
-            const bgImg = theCustomRenderer.getLinkRendererImage(provider);
-            btnURL.style.backgroundImage = `url(${bgImg})`;
-            eltParent.appendChild(aURL);
-        }
-
-        const eltBefore = eltJmnode.cloneNode(true);
-        // console.warn("updateJmnodeFromCustom", eltBefore, eltBefore.childElementCount);
-        if (eltJmnode.childElementCount != 3) throw Error(`ChildElementCount != 3, ${eltJmnode.childElementCount}`);
-
-        const tn = eltJmnode.tagName;
-        if (tn !== "JMNODE") throw Error(`Not a <jmnode>: ${tn}`)
-        if (eltJmnode.childElementCount != 3) {
-            debugger; // eslint-disable-line no-debugger
-            return;
-        }
-
-        const divRendererImg = eltJmnode.lastElementChild;
-        const tnDiv = divRendererImg.tagName;
-        if (tnDiv != "DIV") throw Error(`Expected div, but element is ${tnDiv}`);
-        // console.log("htmlRenderingImg", htmlRendererImg);
-        const strCustom = divRendererImg.dataset.jsmindCustom;
-        if (!strCustom) throw Error("No jsmindCustom key found on <jmnode>");
-        await fixRenderImg(divRendererImg);
-        const objCustom = JSON.parse(strCustom)
-        // const keyRec = await get1Reminder(objCustom.key);
-        const provider = objCustom.provider;
-        if (!provider) throw Error(`strCustom, but no provider: ${strCustom}`);
-        const keyRec = await this.#providers[provider].getRec(objCustom.key);
-
-        const divText = eltJmnode.querySelector(".jmnode-text");
-
-        divText.textContent = keyRec.title;
-        let backgroundImage;
-        if (keyRec.images && (keyRec.images.length > 0)) {
-            const blob = keyRec.images[0];
-            const urlBlob = URL.createObjectURL(blob);
-            const urlBg = `url(${urlBlob})`;
-            backgroundImage = urlBg;
-            const divBg = eltJmnode.querySelector(".jmnode-bg");
-            divBg.style.backgroundImage = backgroundImage;
-        }
-        */
+        debugger; // eslint-disable-line no-debugger
     }
 
     async editMindmapDialog() {
@@ -467,9 +382,8 @@ export class CustomRenderer4jsMind {
         let currentDescription = initialDescription;
         const placeholder = mkNodeNotesPlaceholder(root_node);
 
-        let toastMMdescEditor;
+        // let toastMMdescEditor;
         const onChangeMMdesc = (val) => {
-            // console.log({ root_node });
             currentDescription = val.trimEnd();
             funDebounceSomethingToSaveMm();
         };
@@ -675,13 +589,10 @@ export class CustomRenderer4jsMind {
         });
 
         function somethingToSaveMm() {
-            // if (initialDescription != root_node.data.shapeEtc.notes) return true;
             if (initialDescription != currentDescription) return true;
-            // if (selectedThemeCls != oldThemeCls) return true;
             tempGlobals = {
                 themeCls: selectedThemeCls,
             }
-            // const inpBgEnabled = oldGlobals?.backgroundCss != undefined;
             if (inpUseBgMm.checked) {
                 console.log({ inpBgMmColor }, inpBgMmColor.value);
                 console.log({ modColorConverter: modColorTools });
@@ -739,15 +650,11 @@ export class CustomRenderer4jsMind {
         let btnSave;
         const jmDisplayed = this.THEjmDisplayed;
         const node_ID = jsMind.my_get_nodeID_from_DOM_element(eltJmnode);
-        // const node = this.THEjmDisplayed.get_node(node_ID)
         const node = jmDisplayed.get_node(node_ID)
         const node_data = node.data;
         const shapeEtc = node_data.shapeEtc || {};
         const initialVal = shapeEtc.notes || "";
 
-        // const taEasyMde = mkElt("textarea");
-        // const divEasyMdeInert = mkElt("div", undefined, taEasyMde);
-        // const divEasyMdeOuterWrapper = mkElt("div", undefined, divEasyMdeInert);
         const divEasyMdeOuterWrapper = mkElt("div");
 
         const body = mkElt("div", undefined, [
@@ -851,11 +758,6 @@ export class CustomRenderer4jsMind {
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
         const modIsDisplayed = await importFc4i("is-displayed");
         const clipImage = {};
-        // const jmDisplayed = this.THEjmDisplayed;
-        // const node_ID = jsMind.my_get_nodeID_from_DOM_element(eltJmnode);
-        // const node = jmDisplayed.get_node(node_ID)
-        // const node_data = node.data;
-        // const shapeEtc = node_data.shapeEtc || {};
 
         function somethingToSaveNode() {
             return JSON.stringify(initialShapeEtc) != JSON.stringify(currentShapeEtc);
@@ -1095,7 +997,7 @@ export class CustomRenderer4jsMind {
                     detPattern.open = true;
                     break;
                 case "bg-choice-color":
-                    inpBgColor.value = modTools.standardizeColorTo6Hex(bgVal);
+                    inpBgColor.value = modColorTools.standardizeColorTo6Hex(bgVal);
                     detBgColor.open = true;
                     break;
                 case "bg-choice-img-link":
@@ -1145,8 +1047,8 @@ export class CustomRenderer4jsMind {
         taTopic.addEventListener("input", () => {
             onTaTopicInput();
         });
-        const initialCustomTopic = currentShapeEtc.nodeCustom;
-        const copiedWasCustom = initialCustomTopic != undefined;
+        // const initialCustomTopic = currentShapeEtc.nodeCustom;
+        // const copiedWasCustom = initialCustomTopic != undefined;
         const initTopic = initialTempData.topic;
         const initNotes = initialShapeEtc.notes;
 
@@ -1341,7 +1243,7 @@ export class CustomRenderer4jsMind {
                 inpBgColor.value = modTools.standardizeColorTo6Hex(style.backgroundColor);
             }
             // inpFgColor.value = modJsEditCommon.to6HexColor(style.color);
-            inpFgColor.value = modTools.standardizeColorTo6Hex(style.color);
+            inpFgColor.value = modColorTools.standardizeColorTo6Hex(style.color);
             checkColorContrast();
         });
         // let bgColorChanged;
@@ -1949,15 +1851,6 @@ export class CustomRenderer4jsMind {
         }
         /*
 
-        /*
-        const mkTopicChoice = (id, label, divChoice) => {
-            const inpRadio = mkElt("input", { type: "radio", id, name: "topic-choice" });
-            const mdcRadio = modMdc.mkMDCradioElt(inpRadio);
-            const lbl = mkElt("label", undefined, [mdcRadio, label]);
-            return mkElt("div", { class: "mdc-card topic-choice" }, [lbl, divChoice]);
-        }
-        */
-        // const OLDdivTopicChoiceSimple = mkTopicChoice("topic-choice-simple", "Default node type", mkElt("div", undefined, [tafTopic, tfLink, divLinkPreview]));
         const detBasicNodeChoices =
             mkElt("div", undefined, [
                 mkElt("b", undefined, "Node basics"),
@@ -2131,16 +2024,14 @@ export class CustomRenderer4jsMind {
             }
         }
 
-        if (copiedWasCustom) {
+        // if (copiedWasCustom) {
             // detNodeChoiceCustom.dataset.jsmindCustom = initCustomTopic;
-            setTimeout(() => { detNodeChoiceCustom.scrollIntoView(); }, 500);
-            onAnyCtrlChangeNode();
-        }
-        showCustomItem();
+            // setTimeout(() => { detNodeChoiceCustom.scrollIntoView(); }, 500);
+            // onAnyCtrlChangeNode();
+        // }
+        // showCustomItem();
 
-        if (strCopiedCustom) {
-            divContent.classList.add("custom-node");
-        }
+        // if (strCopiedCustom) { divContent.classList.add("custom-node"); }
 
 
 
@@ -2210,7 +2101,7 @@ export class CustomRenderer4jsMind {
             const objShEtc = getShapeEtcGrpMbr(pathShEtc);
             const initColor = getFromShapeEtc(objShEtc, initialShapeEtc) || defaultColor;
             // const initHex6 = modJsEditCommon.to6HexColor(initColor);
-            const initHex6 = modTools.standardizeColorTo6Hex(initColor);
+            const initHex6 = modColorTools.standardizeColorTo6Hex(initColor);
             const inpColor = mkElt("input", { type: "color", value: initHex6 });
             // const funGrp = onCtrlsGrpChg[objShEtc.grpName];
             inpColor.addEventListener("input", () => {

@@ -2807,11 +2807,11 @@
         }
         _reset_node_custom_style(node_element, node_data) {
             if ('background-color' in node_data) {
-                console.error("background-color can not be used");
+                console.error("background-color can not be used", node_data);
                 // node_element.style.backgroundColor = node_data['background-color'];
             }
             if ('foreground-color' in node_data) {
-                console.error("foreground-color can not be used");
+                console.error("foreground-color can not be used", node_data);
                 // node_element.style.color = node_data['foreground-color'];
             }
             if ('width' in node_data) {
