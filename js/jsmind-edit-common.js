@@ -496,9 +496,19 @@ const jmnodesBgNames = [
 export function checkJmnodesBgName(bgName) {
     if (!jmnodesBgNames.includes(bgName)) throw Error(`Not a jmnodesBgName: ${bgName}`);
 }
+const modColorTools = await importFc4i("color-tools");
 export function mkJmnodeBgObj(bgName, bgValue) {
-    const bgObj = { bgName, bgValue };
-    // bgObj[bgName] = bgValue;
+    let bgTheme;
+    switch (bgName) {
+        case "bg-choice-none":
+            break;
+        case "bg-choice-color":
+            bgTheme = modColorTools.isDark(bgValue) ? "dark" : "light";
+            break;
+        default:
+            bgTheme = "mixed";
+    }
+    const bgObj = { bgName, bgValue, bgTheme };
     checkJmnodeBgObj(bgObj);
     return bgObj;
 }
@@ -509,8 +519,8 @@ export function checkShapeEtcBgObj(shapeEtc) {
 export function checkJmnodeBgObj(bgObj) {
     if (!bgObj) return;
     const bgKeys = Object.keys(bgObj);
-    if (bgKeys.length != 2) {
-        throw Error(`bgKeys.length == ${bgKeys.length}, should be 2`);
+    if (![2, 3].includes(bgKeys.length)) {
+        throw Error(`bgKeys.length == ${bgKeys.length}, should be 2 or 3`);
     }
     const bgName = bgObj.bgName;
     checkJmnodesBgName(bgName);
@@ -545,7 +555,15 @@ export function getShapeEtcBgObj(shapeEtc) {
     return bgObj;
 }
 // editNodeDialog
-export async function applyShapeEtcBg(bgName, bgValue, eltJmnode) {
+function setNodeTheme(bgTheme, eltJmnode) {
+    if (!["light", "dark", "mixed", undefined].includes(bgTheme)) throw Error(`Unrecognized bgThem == "${bgTheme}"`);
+    eltJmnode.classList.remove("node-theme-light");
+    eltJmnode.classList.remove("node-theme-dark");
+    eltJmnode.classList.remove("node-theme-mixed");
+    if (bgTheme) eltJmnode.classList.add(`node-theme-${bgTheme}`);
+}
+export async function applyShapeEtcBg(bgName, bgValue, bgTheme, eltJmnode) {
+    setNodeTheme(bgTheme, eltJmnode);
     checkJmnodesBgName(bgName);
     const eltBg = eltJmnode.querySelector(".jmnode-bg");
     const modCustRend = await importFc4i("jsmind-cust-rend");
@@ -639,7 +657,7 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
         // const bgEntries = Object.entries(bgObj);
         // const [bgName, bgValue] = bgEntries[0];
         // FIX-ME:
-        applyShapeEtcBg(bgObj.bgName, bgObj.bgValue, eltJmnode);
+        applyShapeEtcBg(bgObj.bgName, bgObj.bgValue, bgObj.bgTheme, eltJmnode);
     }
 
     // const clsIconButton = "icon-button-40";

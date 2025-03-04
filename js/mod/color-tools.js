@@ -169,6 +169,9 @@ export function standardizeColorTo6Hex(strColor) {
 // https://codepen.io/davidhalford/pen/AbKBNr
 // Named getxCorrectTextColor there
 export function getBlackOrWhiteTextColor(bgColor) {
+    return (isDark(bgColor))? "#ffffff": "#000000";
+}
+export function isDark(bgColor) {
 
     /*
         From this W3C document: http://www.w3.org/TR/AERT#color-contrast
@@ -190,5 +193,6 @@ export function getBlackOrWhiteTextColor(bgColor) {
     function cutHex(h) { return (h.charAt(0) == "#") ? h.substring(1, 7) : h }
 
     const cBrightness = ((hRed * 299) + (hGreen * 587) + (hBlue * 114)) / 1000;
-    if (cBrightness > threshold) { return "#000000"; } else { return "#ffffff"; }
+    return cBrightness < threshold;
+    // if (cBrightness > threshold) { return "#000000"; } else { return "#ffffff"; }
 }

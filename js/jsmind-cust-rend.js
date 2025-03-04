@@ -771,13 +771,6 @@ export class CustomRenderer4jsMind {
             requestUpdateCopiesSizes();
             modJsEditCommon.applyShapeEtc(currentShapeEtc, eltCopied);
         }
-        function saveEmdChanges() {
-            // currentShapeEtc.notes = easyMDE.value().trimEnd();
-            currentShapeEtc.notes = toastNotesInNodesEditor.getMarkdown().trimEnd();
-            const changed = somethingToSaveNode();
-            console.warn("saveEmdChanges", changed);
-            requestSetStateBtnSave();
-        }
 
         const onCtrlsGrpChg = {
             border: setBorderCopied,
