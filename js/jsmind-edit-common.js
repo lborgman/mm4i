@@ -1867,8 +1867,8 @@ export async function pageSetup() {
 
         // has-notes-mark
         const liNodeNotes = mkMenuItem("Node's notes", editNodesNotes);
-        markIfNoSelected(liDeleteNode);
-        markIfNoMother(liDeleteNode);
+        markIfNoSelected(liNodeNotes);
+        markIfNoMother(liNodeNotes);
 
         function editNodesNotes() {
             const eltJmnode = document.querySelector("jmnode.selected");

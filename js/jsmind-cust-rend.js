@@ -1230,10 +1230,8 @@ export class CustomRenderer4jsMind {
             // Check if backgroundColor is our transparent default:
             const bgRgba = style.backgroundColor;
             if (bgRgba != "rgba(0, 0, 0, 0)") {
-                // inpBgColor.value = modJsEditCommon.to6HexColor(style.backgroundColor);
-                inpBgColor.value = modTools.standardizeColorTo6Hex(style.backgroundColor);
+                inpBgColor.value = modColorTools.standardizeColorTo6Hex(style.backgroundColor);
             }
-            // inpFgColor.value = modJsEditCommon.to6HexColor(style.color);
             inpFgColor.value = modColorTools.standardizeColorTo6Hex(style.color);
             checkColorContrast();
         });
