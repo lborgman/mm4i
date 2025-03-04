@@ -1763,12 +1763,11 @@ export async function pageSetup() {
             inpTopic.value = prefillTopic;
             const tfTopic = modMdc.mkMDCtextFieldOutlined("Topic", inpTopic);
 
-            const taNotes = mkElt("textarea");
-            // const taNotes = modMdc.mkMDCtextFieldTextarea(undefined, 10, 10);
-            taNotes.placeholder = "Enter preliminary notes here";
+            // const taNotes = mkElt("textarea");
+            // taNotes.placeholder = "Enter preliminary notes here";
             const body = mkElt("div", undefined, [
                 tfTopic,
-                taNotes
+                // taNotes
             ]);
             body.style = `
                 display: flex;
@@ -1776,12 +1775,12 @@ export async function pageSetup() {
                 gap: 25px;
             `;
 
-            const modEasyMDE = await importFc4i("easymde");
-            console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
-            const easyMDE = new window["EasyMDE"]({
-                element: taNotes,
-                status: false,
-            });
+            // const modEasyMDE = await importFc4i("easymde");
+            // console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
+            // const easyMDE = new window["EasyMDE"]({
+                // element: taNotes,
+                // status: false,
+            // });
 
 
 
@@ -1826,12 +1825,14 @@ export async function pageSetup() {
                     }
                     break;
             }
+            /*
             let notes = easyMDE.value().trimEnd();
             if (notes.length > 0) {
                 debugger; // eslint-disable-line no-debugger
                 const se = { notes };
                 new_node.data.shapeEtc = se;
             }
+            */
             jm.select_node(new_node);
         }
 
