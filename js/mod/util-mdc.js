@@ -176,7 +176,9 @@ export function mkOnTabActivate4mdc(divTabContents) {
             if (fin1) { await fin1; } else { await waitSeconds(animSec); }
             eltCurrent.style.display = "none";
         }
-        eltNext.style.display = "grid";
+        eltNext.style.display = "grid"; // FIX-ME: ???
+        // eltNext.style.display = eltNext.style.display || "grid"; // FIX-ME: ???
+        // eltNext.style.display = "flex"; // FIX-ME: ???
 
         divTabContents.animate([
             { opacity: "0" },

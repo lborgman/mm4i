@@ -189,7 +189,14 @@ export class CustomRenderer4jsMind {
         const eltJmnodes = eltRoot.closest("jmnodes");
 
         const idThemeChoices = "theme-choices";
-        const divThemeChoices = mkElt("div", { id: idThemeChoices });
+        const divThemeChoicesInner = mkElt("div");
+        divThemeChoicesInner.style = `
+            display : flex;
+            gap : 10px;
+            flex-wrap: wrap;
+            padding: 10px;
+        `;
+        const divThemeChoices = mkElt("div", { id: idThemeChoices }, divThemeChoicesInner);
         /*
         const divColorThemes = mkElt("div", undefined, [
             "Themes are for all nodes",
@@ -212,12 +219,24 @@ export class CustomRenderer4jsMind {
                 const inpRadio = /** @type {HTMLInputElement} */ (mkElt("input", { type: "radio", name: "theme", value: cls }));
                 if (cls == oldThemeCls) inpRadio.checked = true;
                 const eltLbl = mkElt("label", undefined, [inpRadio, themeName]);
-                return mkElt("jmnodes", { class: cls },
-                    mkElt("jmnode", undefined, eltLbl)
-                );
+                const eltBg = mkElt("div", { class: "jmnode-bg" }, eltLbl);
+                eltBg.style = `
+                    NOwidth: 120px;
+                    padding: 10px;
+                    display: block;
+                    NOcolor: red !important;
+                `;
+                const eltJmnode = mkElt("jmnode", undefined, eltBg);
+                eltJmnode.style = `
+                    width: 140px;
+                    NOpadding: 10px;
+                    NOdisplay: block;
+                `;
+                return mkElt("jmnodes", { class: cls }, eltJmnode);
             }
             arrFormThemes.forEach(cls => {
-                divThemeChoices.appendChild(mkThemeAlt(cls));
+                // divThemeChoices.appendChild(mkThemeAlt(cls));
+                divThemeChoicesInner.appendChild(mkThemeAlt(cls));
             });
 
             // https://javascript.info/events-change-input
@@ -2014,9 +2033,9 @@ export class CustomRenderer4jsMind {
         }
 
         // if (copiedWasCustom) {
-            // detNodeChoiceCustom.dataset.jsmindCustom = initCustomTopic;
-            // setTimeout(() => { detNodeChoiceCustom.scrollIntoView(); }, 500);
-            // onAnyCtrlChangeNode();
+        // detNodeChoiceCustom.dataset.jsmindCustom = initCustomTopic;
+        // setTimeout(() => { detNodeChoiceCustom.scrollIntoView(); }, 500);
+        // onAnyCtrlChangeNode();
         // }
         // showCustomItem();
 
