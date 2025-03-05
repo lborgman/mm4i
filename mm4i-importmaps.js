@@ -52,7 +52,7 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
         "jsmind": "./ext/jsmind/testing/jsmind-mm4i.js",
 
         "jsmind-edit-common": "./js/jsmind-edit-common.js",
-        "jsmind-edit-spec-fc4i": "./js/jsmind-edit-spec-fc4i.js",
+        // "jsmind-edit-spec-fc4i": "./js/jsmind-edit-spec-fc4i.js",
         "jsmind-cust-rend": "./js/jsmind-cust-rend.js",
         "jssm-tools": "./js/mod/jssm-tools.js",
         "local-settings": "./src/js/mod/local-settings.js",

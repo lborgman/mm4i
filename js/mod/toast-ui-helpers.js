@@ -683,7 +683,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
  * @param {HTMLDivElement} taOrDiv 
  * @param {string} valueInitial 
  * @param {string} valuePlaceholder
- * @param {function} onChange
+ * @param {FunctionOnChange} onChange
  * @returns {Promise<{btnEdit:HTMLButtonElement}>}
  */
 export async function setupToastUIpreview(taOrDiv, valueInitial, valuePlaceholder, onChange) {
@@ -728,6 +728,11 @@ function isWysiwygPos(pos) {
 }
 
 /**
+ * @typedef wysiwygPosition
+ * @type {number}
+ */
+
+/**
  * @typedef markdownPosition
  * @type {Array}
  * @property {number} 0
@@ -759,7 +764,7 @@ export function toWysiwygPos(editor, markdownPos) {
 /**
  * 
  * @param {Object} editor 
- * @param {number} wysiwygPos 
+ * @param {wysiwygPosition} wysiwygPos 
  * @returns 
  */
 export function toMarkdownPos(editor, wysiwygPos) {
@@ -819,23 +824,29 @@ export function toMarkdownPos(editor, wysiwygPos) {
 /**
  * 
  * @param {any} toastEditor 
- * @param {number|Array} pos 
+ * @param {wysiwygPosition|markdownPosition} pos 
  */
 export function setCursorPos(toastEditor, pos) {
     const isWWpos = isWysiwygPos(pos);
     const isMDpos = isMarkdownPos(pos);
     if (!(isWWpos || isMDpos)) throw Error(`Not wysiwyg or markdown position: ${pos.toString()}`);
     if (toastEditor.mode == "wysiwyg") {
-        const posWW = isWWpos ? pos : toWysiwygPos(toastEditor, pos);
+        const posWW = (() => {
+            if (isWWpos) return pos;
+            if (!Array.isArray(pos)) throw Error(`pos is not array: ${pos}`);
+            const mdPos = /** @type {markdownPosition} */ pos;
+            return toWysiwygPos(toastEditor, mdPos);
+        })();
         console.warn("setCursorPos", toastEditor.mode, posWW.toString());
         toastEditor.wwEditor.view.dom.focus();
         toastEditor.wwEditor.setSelection(posWW, posWW);
     } else {
-        const posMarkdown = toMarkdownPos(toastEditor, pos)
-        console.warn("setCursorPos", toastEditor.mode, posMarkdown.toString());
-        const posMD = isMDpos ? pos : toMarkdownPos(toastEditor, pos);
+        if (!Number.isInteger(pos)) throw Error(`pos is not integer: ${pos}`);
+        const wwPos = /** @type {wysiwygPosition} */ pos;
+        const mdPos = toMarkdownPos(toastEditor, wwPos)
+        console.warn("setCursorPos", toastEditor.mode, mdPos.toString());
         toastEditor.mdEditor.view.dom.focus();
-        toastEditor.mdEditor.setSelection(posMD, posMD);
+        toastEditor.mdEditor.setSelection(mdPos, mdPos);
     }
 }
 

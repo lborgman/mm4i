@@ -118,6 +118,7 @@ export class CustomRenderer4jsMind {
         applyMindmapGlobals(elt, globals);
     }
 
+    /*
     addProvider(objProv) {
         if (!(objProv instanceof providerDetails)) { throw Error("Not object of class providerDetails"); }
         this.#providers[objProv.name] = objProv;
@@ -128,7 +129,6 @@ export class CustomRenderer4jsMind {
         const provDet = this.#providers[providerShortName];
         return provDet.longName;
     }
-    // const linkProvider = await theCustomRenderer.#providers[provider].getRecLink(key);
     getRecLink(key, provider) {
         const provDet = this.#providers[provider];
         return provDet.getRecLink(key);
@@ -139,7 +139,6 @@ export class CustomRenderer4jsMind {
     showCustomRec(key, provider) {
         this.#providers[provider].showRec(key);
     }
-    // getOurCustomRenderer().getCustomRec(key, provider);
 
     customData2jsmindTopic(customKey, customProvider) {
         const eltCustom = mkElt("div");
@@ -151,13 +150,9 @@ export class CustomRenderer4jsMind {
         return eltCustom.outerHTML;
     }
     jsmindTopic2customElt(strEltCustom) {
-        // FIX-ME: wrong format for DOMParser???
-        // this.domParser = this.domParser || new DOMParser();
-        // const doc = this.domParser.parseFromString(strEltCustom);
-        // const eltCustom = doc.body.firstElementChild;
         const divParse = mkElt("div");
         divParse.innerHTML = strEltCustom;
-        const eltCustom = /** @type {HTMLElement} */ (divParse.firstElementChild);
+        const eltCustom = (divParse.firstElementChild);
 
         const strCustom = eltCustom.dataset.jsmindCustom;
         if (typeof strCustom == "undefined") throw Error("strCustom is undefined");
@@ -167,10 +162,10 @@ export class CustomRenderer4jsMind {
         eltCustom.classList.add("jsmind-custom-image");
         return eltCustom;
     }
+    */
 
 
     getLinkRendererImage(providerName) {
-        // return this.linkRendererImg;
         return this.#providers[providerName].img;
     }
 
@@ -699,7 +694,7 @@ export class CustomRenderer4jsMind {
         const placeholder = mkNodeNotesPlaceholder(node);
         // let retMkDialog;
         const objClose = {};
-        let toastNotesEditor;
+        /** @type {Object | undefined} */ let toastNotesEditor;
         const onChange = (val) => {
             shapeEtc.notes = val.trimEnd();
             modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed);
@@ -735,6 +730,7 @@ export class CustomRenderer4jsMind {
 
         function somethingToSaveNotes() {
             // return easyMDE.value().trimEnd() != initialVal;
+            if (!toastNotesEditor) throw Error(`toastNotesEditor is ${toastNotesEditor}`);
             return toastNotesEditor.getMarkdown().trimEnd() != initialVal;
         }
         function getBtnSave() {
@@ -1102,7 +1098,7 @@ export class CustomRenderer4jsMind {
         ]);
         divNotesTab.style.gap = "30px";
 
-        let toastNotesInNodesEditor;
+        // let toastNotesInNodesEditor;
         const onChangeNotes = (val) => {
             currentShapeEtc.notes = val.trimEnd();
             requestSetStateBtnSave();
@@ -1989,6 +1985,7 @@ export class CustomRenderer4jsMind {
         }
         */
 
+        /*
         async function addBackupCustom(objCustom) {
             const key = objCustom.key;
             const provider = objCustom.provider;
@@ -2001,6 +1998,8 @@ export class CustomRenderer4jsMind {
             detNodeChoiceCustom.dataset.backupCustom = strBackup;
             // return rec;
         }
+        */
+        /*
         async function showCustomItem() {
             if (detNodeChoiceCustom.dataset.jsmindCustom) {
                 const strCustom = detNodeChoiceCustom.dataset.jsmindCustom;
@@ -2030,20 +2029,20 @@ export class CustomRenderer4jsMind {
                     // const divImage = mkElt("p", undefined, divBgImage);
                     // divShow.appendChild(divImage);
                     const divImage = document.getElementById("ednode-cust-image");
+                    if (!divImage) throw Error("Could not find #ednode-cust-image");
                     divImage.textContent = "";
                     divImage.appendChild(divBgImage);
                 }
             } else {
-                /*
                 setTimeout(() => {
                     const divTitle = document.getElementById("ednode-cust-title");
                     divTitle.textContent = "(No custom item selected.)";
                     const divImage = document.getElementById("ednode-cust-image");
                     divImage.textContent = "";
                 }, 1000); 
-                */
             }
         }
+        */
 
         // if (copiedWasCustom) {
         // detNodeChoiceCustom.dataset.jsmindCustom = initCustomTopic;
@@ -2432,9 +2431,7 @@ export class CustomRenderer4jsMind {
             return divBorderStyle.querySelector("[name=borderstyle]:checked").value;
         }
 
-        function getCtrlValBorderColor() {
-            return inpBorderColor.value;
-        }
+        // function getCtrlValBorderColor() { return inpBorderColor.value; }
 
 
         /*
@@ -2636,11 +2633,13 @@ export function setOurCustomRendererJm(jmDisplayed) {
 export function setOurCustomRendererJmOptions(jmOptions) {
     theCustomRenderer.setJmOptions(jmOptions);
 }
+/*
 export async function ourCustomRendererAddProvider(providerRec) {
     const prov = new providerDetails(providerRec)
     const custRend = await getOurCustomRenderer();
     custRend.addProvider(prov);
 }
+*/
 export function clearBgCssValue(elt) {
     const bgStyle = elt.style;
     for (const prop in bgStyle) {

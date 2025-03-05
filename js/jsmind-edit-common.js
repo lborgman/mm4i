@@ -174,7 +174,7 @@ class PointHandle {
         instMoveAtDragBorder.hideMover();
     }
     setupPointHandle() {
-        console.log("setupPointHandle");
+        // console.log("setupPointHandle");
         /** @type {HTMLElement | null} */
         const elt = document.body.querySelector("jmnodes");
         if (!elt) throw Error("Could not find <jmnodes>");
@@ -671,7 +671,10 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
         const notes = shapeEtc.notes;
         if (notes) {
             const oldMark = eltJmnode.querySelector("has-notes-mark");
-            if (oldMark) { debugger; }
+            if (oldMark) {
+                debugger; // eslint-disable-line no-debugger
+                throw Error(`Node ${eltJmnode.textContent} already had "has-notes-mark"`);
+            }
 
             const iconNotes = "summarize";
 
@@ -1373,11 +1376,7 @@ export async function pageSetup() {
     }
 
 
-    // let jmMirrored;
-    // let ourCustomRenderer4mirror;
-
-    // FIX-ME: remove when this is fixed in jsmind.
-    updateCustomAndShapes(jmDisplayed);
+    initialUpdateCustomAndShapes(jmDisplayed); // FIX-ME: maybe remove when this is fixed in jsmind?
 
     async function setNodeHitsFromArray(arrIdHits, hitType) {
         const eltJmnodes = getJmnodesFromJm(jmDisplayed);
@@ -1775,8 +1774,8 @@ export async function pageSetup() {
             // const modEasyMDE = await importFc4i("easymde");
             // console.log({ modEasyMDE }); // EasyMDE is defined in global scope!
             // const easyMDE = new window["EasyMDE"]({
-                // element: taNotes,
-                // status: false,
+            // element: taNotes,
+            // status: false,
             // });
 
 
@@ -2083,10 +2082,10 @@ function getJmnodesFromJm(jmDisplayed) {
 }
 
 
-function updateCustomAndShapes(jmDisplayed) {
+function initialUpdateCustomAndShapes(jmDisplayed) {
     setTimeout(() => {
-        console.log("updateCustomAndShapes (in setTimeout fun)");
-        addDebugLog("updateCustomAndShapes (in setTimeout fun)");
+        console.log("initialUpdateCustomAndShapes (in setTimeout fun)");
+        addDebugLog("initialUpdateCustomAndShapes (in setTimeout fun)");
         const eltJmnodes = getJmnodesFromJm(jmDisplayed);
         [...eltJmnodes.getElementsByTagName("jmnode")].forEach(async eltJmnode => {
             const node_id = jsMind.my_get_nodeID_from_DOM_element(eltJmnode);

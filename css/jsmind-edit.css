@@ -84,7 +84,6 @@ div.dialog-mindmaps-image {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    NObackground: lightgray;
 }
 
 #jsmind-ednode-shape jmnodes jmnode {
