@@ -6,7 +6,7 @@
  *   https://github.com/hizzgdev/jsmind/
  */
 
- /* https://colors.artyclick.com/contrast-color-finder/ */
+/* https://colors.artyclick.com/contrast-color-finder/ */
 
 /* important section */
 .jsmind-inner {
@@ -491,6 +491,10 @@ jmnodes jmnode .jmnode-text {
     /* Otherwise it will be behind jmnode-bg??? */
     padding: 0px;
     height: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
 
     /* https://blog.logrocket.com/guide-css-word-wrap-overflow-wrap-word-break/ */
 
