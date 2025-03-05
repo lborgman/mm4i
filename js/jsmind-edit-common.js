@@ -1509,13 +1509,10 @@ export async function pageSetup() {
                 break;
             case "move_node":
                 {
-                    const id_moved = operation_node_id;
-                    const moved_node = jmDisplayed.get_node(id_moved);
-                    const eltJmnode = jsMind.my_get_DOM_element_from_node(moved_node);
-                    // const isPlainNode = eltJmnode.childElementCount == 0;
-                    // if (!isPlainNode) {
-                    (await getCustomRenderer()).updateJmnodeFromCustom(eltJmnode);
-                    // }
+                    // const id_moved = operation_node_id;
+                    // const moved_node = jmDisplayed.get_node(id_moved);
+                    // const eltJmnode = jsMind.my_get_DOM_element_from_node(moved_node);
+                    // (await getCustomRenderer()).updateJmnodeFromCustom(eltJmnode);
                     break;
                 }
             case "remove_node":
