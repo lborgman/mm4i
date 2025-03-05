@@ -406,13 +406,13 @@ export class CustomRenderer4jsMind {
         const divDesc = mkElt("div", undefined, [pDesc, divMDE]);
         const root_node = this.THEjmDisplayed.get_root();
         const initialDescription = root_node.data.shapeEtc.notes;
-        let currentDescription = initialDescription;
+        // let currentDescription = initialDescription;
         const placeholder = mkNodeNotesPlaceholder(root_node);
 
-        // let toastMMdescEditor;
+        /** @param {string} val @returns {void} */
         const onChangeMMdesc = (val) => {
-            currentDescription = val.trimEnd();
-            funDebounceSomethingToSaveMm();
+            root_node.data.shapeEtc.notes = val.trimEnd();
+            modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed);
         };
 
 
@@ -557,9 +557,7 @@ export class CustomRenderer4jsMind {
             return JSON.stringify(initialLineValues) != JSON.stringify(currentLineValues);
         }
         btnSaveMm.addEventListener("click", errorHandlerAsyncEvent(async () => {
-            if (initialDescription != currentDescription) {
-                root_node.data.shapeEtc.notes = currentDescription;
-            }
+            // if (initialDescription != currentDescription) { root_node.data.shapeEtc.notes = currentDescription; }
             // const saveGlobals = { themeCls: selectedThemeCls, }
             // const r = await getOurCustomRenderer();
             // rend.setMindmapGlobals(saveGlobals);
@@ -616,7 +614,7 @@ export class CustomRenderer4jsMind {
         });
 
         function somethingToSaveMm() {
-            if (initialDescription != currentDescription) return true;
+            // if (initialDescription != currentDescription) return true;
             tempGlobals = {
                 themeCls: selectedThemeCls,
             }
@@ -2705,6 +2703,11 @@ export function applyMindmapGlobals(eltJmnodes, mindmapGlobals) {
 
 
 // https://stackoverflow.com/questions/9014804/javascript-validate-css
+/**
+ * 
+ * @param {string} css 
+ * @returns {string}
+ */
 function css_sanitize(css) {
     const iframe = document.createElement("iframe");
     // iframe.setAttribute("sandbox", "sandbox");
@@ -2712,9 +2715,11 @@ function css_sanitize(css) {
     iframe.style.width = "10px"; //make small in case display:none fails
     iframe.style.height = "10px";
     document.body.appendChild(iframe);
+    if (iframe.contentDocument == null) throw Error("iframe.contentDocument is null");
     const style = iframe.contentDocument.createElement('style');
     style.innerHTML = css;
     iframe.contentDocument.head.appendChild(style);
+    if (style.sheet == null) throw Error("style.sheet is null");
     const result = Array.from(style.sheet.cssRules).map(rule => rule.cssText || '').join('\n');
     iframe.remove();
     return result;

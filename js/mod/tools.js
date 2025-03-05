@@ -1950,6 +1950,7 @@ function ArraysAreEqual(arrA, arrB) {
         arrA.every((a, idx) => a === arrB[idx]);
 }
 async function testString2searchTokens() {
+    return;
     function testSearchString(strTested, arrWanted) {
         if (typeof strTested !== "string") throw Error("first param should be string");
         console.log("%ctestSearchString", "background:yellow;color:black;font-size:20px;", `[${strTested}]`);
@@ -1991,7 +1992,7 @@ async function testString2searchTokens() {
 
 }
 
-// testString2searchTokens(); debugger; // eslint-disable-line no-debugger
+testString2searchTokens(); // debugger; // eslint-disable-line no-debugger
 
 
 
