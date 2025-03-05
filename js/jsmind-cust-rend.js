@@ -268,12 +268,25 @@ export class CustomRenderer4jsMind {
                 try {
                     const markWithOutline = false;
                     divThemeChoices.querySelectorAll("jmnode").forEach(jmnode => {
-                        const s = getComputedStyle(jmnode);
-                        const fgColor = s.color;
-                        const bgColor = s.backgroundColor;
-                        const contrast = modContrast.colorContrast(fgColor, bgColor);
+                        const tit = jmnode.textContent;
+                        const sJmnode = getComputedStyle(jmnode);
+                        const fgJmColor = sJmnode.color;
+                        // const bgJmColor = sJmnode.backgroundColor;
+
+                        const divBg = jmnode.querySelector("div.jmnode-bg");
+                        const sBg = getComputedStyle(divBg);
+                        const fgBgColor = sBg.color;
+                        const bgBgColor = sBg.backgroundColor;
+
+                        const fg = modColorTools.standardizeColorTo6Hex(fgBgColor);
+                        const bg = modColorTools.standardizeColorTo6Hex(bgBgColor);
+                        // console.log(tit, { fgJmColor, bgJmColor, fgBgColor, bgBgColor });
+
+                        const contrast = modContrast.colorContrast(fg, bg);
                         if (contrast < 3.0) {
-                            jmnode.classList.add("low-theme-contrast");
+                            jmnode.classList.add(`low-theme-contrast`);
+                            const msg = `${tit} low c (${contrast}): fg=="${fg}", bg=="${bg}"`;
+                            console.log(msg);
                         }
                         if (markWithOutline) {
                             if (contrast < 7) jmnode.style.outline = "1px dotted red";
@@ -283,8 +296,8 @@ export class CustomRenderer4jsMind {
                             if (contrast < 2.0) jmnode.style.outline = "10px dotted red";
                         }
                         // const fgHex = to6HexColor(fgColor);
-                        const fgHex = modTools.standardizeColorTo6Hex(fgColor);
-                        const fgHexCorrect = modTools.getBlackOrWhiteTextColor(bgColor);
+                        const fgHex = modColorTools.standardizeColorTo6Hex(fgJmColor);
+                        const fgHexCorrect = modColorTools.getBlackOrWhiteTextColor(bgBgColor);
                         if (fgHex !== fgHexCorrect) {
                             jmnode.style.outlineColor = "black";
                         }

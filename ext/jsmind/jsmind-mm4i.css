@@ -6,6 +6,8 @@
  *   https://github.com/hizzgdev/jsmind/
  */
 
+ /* https://colors.artyclick.com/contrast-color-finder/ */
+
 /* important section */
 .jsmind-inner {
     position: relative;
@@ -60,8 +62,8 @@ jmnode {
 
 jmnode>.jmnode-bg {
     border-radius: 5px;
-    background-color: white;
-    color: black;
+    /* background-color: white; */
+    /* color: black; */
 }
 
 
@@ -196,7 +198,7 @@ jmnodes.theme-primary jmexpander:hover {}
 
 /* warning theme */
 jmnodes.theme-warning jmnode {
-    color: #fff;
+    color: darkred;
 }
 
 jmnodes.theme-warning jmnode .jmnode-bg {
@@ -227,7 +229,7 @@ jmnodes.theme-danger jmexpander:hover {}
 
 /* success theme */
 jmnodes.theme-success jmnode {
-    color: #fff;
+    color: #000;
 }
 
 jmnodes.theme-success jmnode .jmnode-bg {
@@ -242,7 +244,7 @@ jmnodes.theme-success jmexpander:hover {}
 
 /* info theme */
 jmnodes.theme-info jmnode {
-    color: #fff;
+    color: #000;
 }
 
 jmnodes.theme-info jmnode .jmnode-bg {
@@ -258,7 +260,7 @@ jmnodes.theme-info jmexpander:hover {}
 
 /* greensea theme */
 jmnodes.theme-greensea jmnode {
-    color: #fff;
+    color: #000;
 }
 
 jmnodes.theme-greensea jmnode .jmnode-bg {
@@ -275,7 +277,7 @@ jmnodes.theme-greensea jmexpander:hover {}
 
 /* nephrite theme */
 jmnodes.theme-nephrite jmnode {
-    color: #fff;
+    color: #000;
 }
 
 jmnodes.theme-nephrite jmnode .jmnode-bg {
@@ -344,8 +346,8 @@ jmnodes.theme-asphalt jmexpander:hover {}
 
 
 /* orange theme */
-jmnodes.theme-orange jmnode>.jmnode-bg {
-    color: #fff;
+jmnodes.theme-orange jmnode {
+    color: #4b1e83;
 }
 
 jmnodes.theme-orange jmnode .jmnode-bg {
@@ -364,7 +366,7 @@ jmnodes.theme-orange jmexpander:hover {}
 
 /* pumpkin theme */
 jmnodes.theme-pumpkin jmnode {
-    color: #fff;
+    color: #000;
 }
 
 jmnodes.theme-pumpkin jmnode .jmnode-bg {
@@ -413,7 +415,7 @@ jmnodes.theme-clouds jmexpander:hover {}
 
 /* asbestos theme */
 jmnodes.theme-asbestos jmnode {
-    color: #fff;
+    color: #000;
 }
 
 jmnodes.theme-asbestos jmnode .jmnode-bg {
