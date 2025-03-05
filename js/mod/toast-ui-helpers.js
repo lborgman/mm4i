@@ -727,16 +727,17 @@ function isWysiwygPos(pos) {
     return true;
 }
 
-/**
- * @typedef wysiwygPosition
- * @type {number}
- */
+/** @typedef {number} wysiwygPosition */
+/** @typedef {wysiwygPosition|markdownPosition} editorPosition */
 
-/**
- * @typedef markdownPosition
+/*
+ * @typedef OLDmarkdownPosition
  * @type {Array}
  * @property {number} 0
  * @property {number} 1
+ */
+/**
+ * @typedef {[number, number]} markdownPosition
  */
 
 /**
@@ -824,7 +825,7 @@ export function toMarkdownPos(editor, wysiwygPos) {
 /**
  * 
  * @param {any} toastEditor 
- * @param {wysiwygPosition|markdownPosition} pos 
+ * @param {editorPosition} pos 
  */
 export function setCursorPos(toastEditor, pos) {
     const isWWpos = isWysiwygPos(pos);
@@ -841,6 +842,7 @@ export function setCursorPos(toastEditor, pos) {
         toastEditor.wwEditor.view.dom.focus();
         toastEditor.wwEditor.setSelection(posWW, posWW);
     } else {
+        if (typeof pos != "number") throw Error(`pos is not number: ${pos}`);
         if (!Number.isInteger(pos)) throw Error(`pos is not integer: ${pos}`);
         const wwPos = /** @type {wysiwygPosition} */ pos;
         const mdPos = toMarkdownPos(toastEditor, wwPos)

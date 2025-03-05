@@ -321,6 +321,8 @@ export function mkMDCtextareaField(label, textarea, prefill) {
   </span>
 </label>
     */
+    /*
+    // Keep, maybe use?
     const flOutlined = mkElt("label", { class: "mdc-text-field mdc-text-field--textarea" }, [
         mkElt("span", { class: "mdc-notched-outline" }, [
             mkElt("span", { class: "mdc-notched-outline__leading" }),
@@ -331,6 +333,7 @@ export function mkMDCtextareaField(label, textarea, prefill) {
         ]),
         mkElt("span", { class: "mdc-text-field__resizer" }, textarea),
     ]);
+    */
     const flFilled = mkElt("label", { class: "mdc-text-field mdc-text-field--filled mdc-text-field--textarea" }, [
         mkElt("span", { class: "mdc-text-field__ripple" }),
         mkElt("span", { class: "mdc-floating-label", id: "my-label-id" }, label),
@@ -465,6 +468,7 @@ export function setMdcInputValid(input, valid) {
     }
     input.dataset.ourValid = valid;
 }
+/*
 function getMdcInputValid(input) {
     const txtValid = input.dataset.ourValid;
     switch (txtValid) {
@@ -474,6 +478,7 @@ function getMdcInputValid(input) {
         default: throw Error(`bad input.dataset.ourValid: ${txtValid}`);
     }
 }
+*/
 
 
 export function mkMDCtextFieldSimpleInput(id, placeHolder) {
@@ -2177,8 +2182,8 @@ export function mkMDCdataTable(tableName, columnLabels, exampleRow4sort) {
                     lbl);
                 trHead.appendChild(th);
             } else {
-                const val = exampleRow4sort[c];
-                const numeric = !isNaN(val);
+                // const val = exampleRow4sort[c];
+                // const numeric = !isNaN(val);
                 const idLbl = lbl.replaceAll(" ", "");
                 /*
                 <th

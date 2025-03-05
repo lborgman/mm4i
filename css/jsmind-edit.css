@@ -4,6 +4,7 @@
     text-overflow: ellipsis;
 }
 
+/*
 jmnode div.jsmind-custom {
     display: grid;
     grid-template-rows: min-content 1fr;
@@ -23,6 +24,7 @@ jmnode div.jsmind-custom div.fc4i-image {
     background-size: contain;
     background-repeat: no-repeat;
 }
+*/
 
 
 
@@ -735,9 +737,11 @@ https://unused-css.com/tools/clip-path-generator (adjustable nodes!)
     display: block;
 }
 
+/*
 #jsmind-ednode-content .custom-content {
     NOdisplay: none;
 }
+*/
 
 #jsmind-ednode-content .custom-content>div {
     display: flex;
@@ -745,17 +749,11 @@ https://unused-css.com/tools/clip-path-generator (adjustable nodes!)
     gap: 10px;
 }
 
-#jsmind-ednode-content #ednode-custom-title {
-    line-height: normal;
-}
+/* #jsmind-ednode-content #ednode-custom-title { line-height: normal; } */
 
-#jsmind-ednode-content.custom-node .custom-content {
-    NOdisplay: block;
-}
+/* #jsmind-ednode-content.custom-node .custom-content { NOdisplay: block; } */
 
-#jsmind-ednode-content.custom-node .normal-content {
-    display: none;
-}
+/* #jsmind-ednode-content.custom-node .normal-content { display: none; } */
 
 
 

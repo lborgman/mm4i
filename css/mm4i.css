@@ -1594,7 +1594,7 @@ div.bg-choice:not(input[disabled]):has(input:checked) {
 */
 
 ul[role="menu"]>li[inert] {
-    NObackground-color: red !important;
+    /* background-color: red !important; */
     opacity: 0.5;
     background-color: gray;
 }

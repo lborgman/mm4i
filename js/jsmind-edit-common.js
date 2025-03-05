@@ -2232,6 +2232,7 @@ export async function dialogMindMaps(linkMindmapsPage, info, arrMindmapsHits, pr
         }
         // console.log({ m, key, j, name });
         // let name = topic;
+        /*
         if (topic.startsWith("<")) {
             // FIX-ME: use DOMParser? It may be synchronous.
             // https://stackoverflow.com/questions/63869394/parse-html-as-a-plain-text-via-javascript
@@ -2254,6 +2255,7 @@ export async function dialogMindMaps(linkMindmapsPage, info, arrMindmapsHits, pr
                 })();
             }
         }
+        */
         return { key, topic, hits };
     });
     const arrPromLiMenu = arrToShow.map(async m => {
