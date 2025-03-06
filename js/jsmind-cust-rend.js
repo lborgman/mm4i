@@ -1488,15 +1488,17 @@ export class CustomRenderer4jsMind {
         }));
         // const sli
         // async function mkSlider4shapeEtc(pathShEtc, eltCont, min, max, defaultVal, step, title, funChgThis) {
-        const inpBlur = mkElt("input", { type: "number", max: 5, min: 0, step: 0.5, value: 0 });
-        inpBlur.style.width = "40px";
+        // const inpBlur = mkElt("input", { type: "number", max: 5, min: 0, step: 0.5, value: 0 });
+        const inpBlur = modMdc.mkMDCtextFieldInput(undefined, "number");
+        inpBlur.style.width = "80px";
         inpBlur.addEventListener("input", _evt => {
             const blur = inpBlur.value;
             console.log("inpBlur", blur);
             divClipboardImage.style.filter = `blur(${blur}px)`;
         });
-        const lblBlur = mkElt("label", undefined, ["Blur: ", inpBlur]);
-        const divBlur = mkElt("div", undefined, lblBlur);
+        const tfBlur = modMdc.mkMDCtextFieldOutlined("Blur", inpBlur);
+        // const lblBlur = mkElt("label", undefined, ["Blur: ", inpBlur]);
+        const divBlur = mkElt("div", undefined, tfBlur);
         // debugger;
         const divFromClipboard = mkElt("div", undefined, [
             divClipboardImage, divBlur,
