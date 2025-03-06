@@ -1032,12 +1032,23 @@ export class CustomRenderer4jsMind {
                 case "bg-choice-img-clipboard":
                     // clipImage
                     {
-                        const blob = bgVal;
+                        let blob, blurVal;
+                        blob = bgVal;
+                        blurVal = "9";
+                        // New format?
+                        if (bgVal.blob) {
+                            blob = bgVal.blob;
+                            blurVal = bgVal.blur;
+                        }
+                        const blur = `blur(${blurVal}px)`;
                         clipImage.blob = blob;
                         const objectUrl = URL.createObjectURL(blob);
                         setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
                         const divClipboardImage = document.getElementById("div-clipboard-image");
+                        if (!divClipboardImage) throw Error("Could not find #div-cliboard-image");
                         divClipboardImage.style.backgroundImage = `url("${objectUrl}")`;
+                        divClipboardImage.style.filter = blur;
+                        inpBlur.value = blurVal;
                         const d = rad.closest("div.bg-choice");
                         setBgNodeChoiceValid(d, true);
                         const det = d.querySelector("details")
@@ -1465,11 +1476,39 @@ export class CustomRenderer4jsMind {
             console.log({ added });
             if (!added) return;
             setBgNodeChoiceValid(bgChoiceImgClipboard, true);
+            const currentBgName = divBgChoices.querySelector("input[name=bg-choice]:checked")?.id;
+            console.log({ currentChoice: currentBgName });
+            // debugger;
+            if (currentBgName == "bg-choice-img-clipboard") {
+                // debugger;
+                const bgValue = await getBgValueFromElt(currentBgName);
+                currentShapeEtc.background = modJsEditCommon.mkJmnodeBgObj(currentBgName, bgValue)
+                debounceApplyCurrentBgToCopied();
+            }
         }));
+        // const sli
+        // async function mkSlider4shapeEtc(pathShEtc, eltCont, min, max, defaultVal, step, title, funChgThis) {
+        const inpBlur = mkElt("input", { type: "number", max: 5, min: 0, step: 0.5, value: 0 });
+        inpBlur.style.width = "40px";
+        inpBlur.addEventListener("input", _evt => {
+            const blur = inpBlur.value;
+            console.log("inpBlur", blur);
+            divClipboardImage.style.filter = `blur(${blur}px)`;
+        });
+        const lblBlur = mkElt("label", undefined, ["Blur: ", inpBlur]);
+        const divBlur = mkElt("div", undefined, lblBlur);
+        // debugger;
+        const divFromClipboard = mkElt("div", undefined, [
+            divClipboardImage, divBlur,
+        ]);
+        divFromClipboard.style = `
+            display: flex;
+            gap: 20px;
+        `;
         const divClipboard = mkElt("div", undefined, [
             "An image from the clipboard.",
             btnClipboard,
-            divClipboardImage
+            divFromClipboard
         ]);
 
 
@@ -1692,20 +1731,26 @@ export class CustomRenderer4jsMind {
                     bgValue = taImgPattern.value.trim();
                     break;
                 case "bg-choice-img-clipboard":
-                    if (clipImage.blob) {
-                        bgValue = clipImage.blob;
-                    } else {
-                        // FIX-ME: return minimal image
-                        const canvas = document.createElement("canvas");
-                        canvas.width = 1;
-                        canvas.height = 1;
-                        const ctx = canvas.getContext("2d");
-                        if (!ctx) throw Error("Could not get canvas 2d");
-                        ctx.fillStyle = "red";
-                        ctx.fillRect(0, 0, 1, 1);
-                        bgValue = await new Promise(resolve => {
-                            canvas.toBlob(blob => { resolve(blob); }, "image/webp");
-                        });
+                    {
+                        let bgBlob;
+                        const blurVal = inpBlur.value;
+                        if (clipImage.blob) {
+                            bgBlob = clipImage.blob;
+                        } else {
+                            // FIX-ME: return minimal image
+                            const canvas = document.createElement("canvas");
+                            canvas.width = 1;
+                            canvas.height = 1;
+                            const ctx = canvas.getContext("2d");
+                            if (!ctx) throw Error("Could not get canvas 2d");
+                            ctx.fillStyle = "red";
+                            ctx.fillRect(0, 0, 1, 1);
+                            bgBlob = await new Promise(resolve => {
+                                canvas.toBlob(blob => { resolve(blob); }, "image/webp");
+                            });
+                        }
+                        // bgValue = bgBlob;
+                        bgValue = { blob: bgBlob, blur: blurVal };
                     }
 
                     break;
@@ -1811,6 +1856,8 @@ export class CustomRenderer4jsMind {
                 } else {
                     console.log(eltCopied);
                     const maxBlobSize = 20 * 1000;
+                    // const maxBlobSize = 5 * 1000;
+                    // const maxBlobSize = 1 * 1000;
                     // FIX-ME: only one
                     for (const blobIn of resultImageBlobs) {
                         const {

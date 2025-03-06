@@ -531,12 +531,32 @@ export function checkJmnodeBgObj(bgObj) {
         case "bg-choice-none":
             break;
         case "bg-choice-img-clipboard":
-            // debugger;
-            if (!(bgValue instanceof Blob)) {
-                errMsg = `${bgName} should be Blob`;
-            } else {
-                const bType = "image/webp"
-                if (bgValue.type != bType) errMsg = `${bgName} should be ${bType}`;
+            {
+                let blob, blurVal;
+                blob = bgValue;
+                // New format?
+                if (bgValue.blob) {
+                    blob = bgValue.blob;
+                    blurVal = bgValue.blur;
+                }
+                // debugger;
+                if (!(blob instanceof Blob)) {
+                    errMsg = `${bgName} should be Blob`;
+                } else {
+                    const bType = "image/webp"
+                    if (blob.type != bType) errMsg = `${bgName} should be ${bType}`;
+                }
+                if (blurVal != undefined) {
+                    // debugger;
+                    const tofBlur = typeof blurVal;
+                    if (tofBlur !== "string") {
+                        throw Error(`Expected blur to be string, got ${tofBlur}`);
+                    }
+                    const isNotNumber = Number.isNaN(Number(blurVal));
+                    if (isNotNumber) {
+                        throw Error(`Expected blur to be a "string number", got "${blurVal}"`);
+                    }
+                }
             }
             break;
         default:
@@ -585,10 +605,19 @@ export async function applyShapeEtcBg(bgName, bgValue, bgTheme, eltJmnode) {
             break;
         case "bg-choice-img-clipboard":
             let objectUrl;
-            const blob = bgValue;
+            let blob, blurValue;
+            blob = bgValue;
+            blurValue = 9;
+            // New format?
+            if (bgValue.blob) {
+                blob = bgValue.blob;
+                blurValue = bgValue.blur;
+                // debugger;
+            }
             objectUrl = URL.createObjectURL(blob);
             setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
             eltBg.style.backgroundImage = `url("${objectUrl}")`;
+            eltBg.style.filter = `blur(${blurValue}px)`;
             break;
         default:
             throw Error(`Not impl yet: ${bgName}`)
