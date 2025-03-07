@@ -835,6 +835,7 @@ export async function mkMDCslider(min, max, now, step, label, onChange, onInput,
         });
         const eltMdcKnob = eltSlider.querySelector("div.mdc-slider__thumb-knob");
         eltMdcKnob.style.display = "none";
+        return {eltSlider, slider}
     }
     return eltSlider;
 }

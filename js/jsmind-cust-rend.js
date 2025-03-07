@@ -1049,6 +1049,11 @@ export class CustomRenderer4jsMind {
                         divClipboardImage.style.backgroundImage = `url("${objectUrl}")`;
                         divClipboardImage.style.filter = blur;
                         inpBlur.value = blurVal;
+                        sliderBlur.set( blurVal);
+
+                        const darkBg = modColorTools.imageIsDark(objectUrl);
+                        console.log({darkBg});
+
                         const d = rad.closest("div.bg-choice");
                         setBgNodeChoiceValid(d, true);
                         const det = d.querySelector("details")
@@ -1498,18 +1503,23 @@ export class CustomRenderer4jsMind {
         });
         // const tfBlur = modMdc.mkMDCtextFieldOutlined("Blur", inpBlur);
         // const lblBlur = mkElt("label", undefined, ["Blur: ", inpBlur]);
-        function onSliderChange(val) {
+        async function onSliderChange(val) {
             console.log("onSliderChange", val);
             const blur = val;
             divClipboardImage.style.filter = `blur(${blur}px)`;
+            const currentBgName = "bg-choice-img-clipboard";
+            const bgValue = await getBgValueFromElt(currentBgName);
+            currentShapeEtc.background = modJsEditCommon.mkJmnodeBgObj(currentBgName, bgValue)
+            debounceApplyCurrentBgToCopied();
         }
         function onSliderInput(val) { console.log("onSliderInput", val); }
 
-        const eltSlider = await modMdc.mkMDCslider(0, 5, 1, 1, "blur", onSliderChange, onSliderInput, false);
+        const { eltSlider: eltSliderBlur, slider: sliderBlur } = await modMdc.mkMDCslider(0, 5, 1, 1, "blur", onSliderChange, onSliderInput, false);
+        // const sliderBlur = slider;
         // const eltSlider = await modMdc.mkMDCslider(0, 5, 1, 1, "blur", onSliderChange, onSliderInput, true);
 
         // const divBlur = mkElt("div", undefined, [tfBlur, eltSlider]);
-        const divBlur = mkElt("div", undefined, [eltSlider]);
+        const divBlur = mkElt("div", undefined, [eltSliderBlur]);
         divBlur.style.width = "100%";
         // debugger;
         const divFromClipboard = mkElt("div", undefined, [
@@ -1747,7 +1757,8 @@ export class CustomRenderer4jsMind {
                 case "bg-choice-img-clipboard":
                     {
                         let bgBlob;
-                        const blurVal = inpBlur.value;
+                        // const blurVal = inpBlur.value;
+                        const blurVal = sliderBlur.get();
                         if (clipImage.blob) {
                             bgBlob = clipImage.blob;
                         } else {
@@ -1879,7 +1890,11 @@ export class CustomRenderer4jsMind {
                         } = await modImages.shrinkImgBlobToSizes(blobIn, maxBlobSize);
 
                         const blob = blobOut;
-                        const url = URL.createObjectURL(blob);
+                        const objectUrl = URL.createObjectURL(blob);
+
+                        const darkBg = modColorTools.imageIsDark(objectUrl);
+                        console.log({darkBg});
+
                         // clipImage.url = url;
                         clipImage.blob = blob;
                         // const objBackground = currentShapeEtc.background;
@@ -1888,7 +1903,7 @@ export class CustomRenderer4jsMind {
                         currentShapeEtc.background =
                             modJsEditCommon.mkJmnodeBgObj("bg-choice-img-clipboard", blob);
                         requestSetStateBtnSave();
-                        toDiv.style.backgroundImage = `url("${url}")`;
+                        toDiv.style.backgroundImage = `url("${objectUrl}")`;
                         toDiv.scrollIntoView({
                             behavior: "smooth",
                             block: "nearest"

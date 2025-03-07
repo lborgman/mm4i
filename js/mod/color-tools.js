@@ -169,7 +169,7 @@ export function standardizeColorTo6Hex(strColor) {
 // https://codepen.io/davidhalford/pen/AbKBNr
 // Named getxCorrectTextColor there
 export function getBlackOrWhiteTextColor(bgColor) {
-    return (isDark(bgColor))? "#ffffff": "#000000";
+    return (isDark(bgColor)) ? "#ffffff" : "#000000";
 }
 export function isDark(bgColor) {
 
@@ -195,4 +195,56 @@ export function isDark(bgColor) {
     const cBrightness = ((hRed * 299) + (hGreen * 587) + (hBlue * 114)) / 1000;
     return cBrightness < threshold;
     // if (cBrightness > threshold) { return "#000000"; } else { return "#ffffff"; }
+}
+
+
+export function imageIsDark(srcImg) {
+    // debugger;
+    const img = document.createElement("img");
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    img.onload = () => {
+        // debugger;
+        const imgWidth = img.width;
+        const imgHeight = img.height;
+
+        // Set canvas dimensions to hold a 3x3 grid of the image
+        canvas.width = imgWidth * 3;
+        canvas.height = imgHeight * 3;
+
+        // Draw the image in a 3x3 grid
+        for (let row = -1; row <= 1; row++) {
+            for (let col = -1; col <= 1; col++) {
+                ctx.drawImage(img, col * imgWidth, row * imgHeight);
+            }
+        }
+
+        // Apply blur and grayscale
+        ctx.filter = 'blur(20px) grayscale(1)';
+        ctx.drawImage(canvas, 0, 0); // Redraw blurred image
+
+        // Focus on the center image area
+        const x = imgWidth; // Start at the actual image's top-left corner
+        const y = imgHeight;
+        const width = imgWidth;
+        const height = imgHeight;
+        const imageData = ctx.getImageData(x, y, width, height);
+        const data = imageData.data;
+
+        // Calculate average brightness
+        let totalBrightness = 0;
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+            totalBrightness += brightness;
+        }
+        const avgBrightness = totalBrightness / (data.length / 4);
+        // avgBrightness < 128 ? 'white' : 'black';
+        const isDark = avgBrightness < 128;
+        console.log({ avgBrightness, isDark });
+        return isDark;
+    }
+    img.src = srcImg;
 }
