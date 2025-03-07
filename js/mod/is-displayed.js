@@ -1,5 +1,5 @@
 const version = "0.1.0";
-console.log(`here is is-displayed.js, module ${version}`);
+logConsoleHereIs(`here is is-displayed.js, module ${version}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 // https://stackoverflow.com/questions/19669786/check-if-element-is-visible-in-dom

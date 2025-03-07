@@ -1496,9 +1496,21 @@ export class CustomRenderer4jsMind {
             console.log("inpBlur", blur);
             divClipboardImage.style.filter = `blur(${blur}px)`;
         });
-        const tfBlur = modMdc.mkMDCtextFieldOutlined("Blur", inpBlur);
+        // const tfBlur = modMdc.mkMDCtextFieldOutlined("Blur", inpBlur);
         // const lblBlur = mkElt("label", undefined, ["Blur: ", inpBlur]);
-        const divBlur = mkElt("div", undefined, tfBlur);
+        function onSliderChange(val) {
+            console.log("onSliderChange", val);
+            const blur = val;
+            divClipboardImage.style.filter = `blur(${blur}px)`;
+        }
+        function onSliderInput(val) { console.log("onSliderInput", val); }
+
+        const eltSlider = await modMdc.mkMDCslider(0, 5, 1, 1, "blur", onSliderChange, onSliderInput, false);
+        // const eltSlider = await modMdc.mkMDCslider(0, 5, 1, 1, "blur", onSliderChange, onSliderInput, true);
+
+        // const divBlur = mkElt("div", undefined, [tfBlur, eltSlider]);
+        const divBlur = mkElt("div", undefined, [eltSlider]);
+        divBlur.style.width = "100%";
         // debugger;
         const divFromClipboard = mkElt("div", undefined, [
             divClipboardImage, divBlur,

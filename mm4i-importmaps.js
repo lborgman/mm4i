@@ -73,6 +73,13 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
         "zoom": "./js/mod/zoom.js",
         "rd-parser": "./js/mod/rd-parser.js",
         "grammar-search": "./js/mod/grammar-search.js",
+        // "no-ui-slider": "https://cdn.jsdelivr.net/npm/nouislider/distribute/nouislider.min.js",
+        // "no-ui-slider": "https://cdn.jsdelivr.net/npm/nouislider/distribute/nouislider.mjs",
+        // "no-ui-slider": "https://cdn.jsdelivr.net/gh/leongersen/nouislider@15.8.1/distribute/nouislider.mjs",
+        // "no-ui-slider": "https://raw.githubusercontent.com/leongersen/nouislider/master/distribute/nouislider.mjs",
+        // "no-ui-slider": "https://raw.githubusercontent.com/leongersen/noUiSlider/refs/heads/master/dist/nouislider.mjs",
+        // "no-ui-slider": "https://cdn.jsdelivr.net/gh/leongersen/noUiSlider@master/dist/nouislider.mjs",
+        "no-ui-slider": "./ext/no-ui-slider/nouislider.mjs",
     };
 
     const isImporting = {};

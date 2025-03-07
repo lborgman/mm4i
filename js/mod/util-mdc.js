@@ -700,7 +700,8 @@ export function mkMDClistItem(txt, role) {
 // https://m2.material.io/components/sliders
 // https://stackoverflow.com/questions/64892909/how-do-i-use-mdcslider-in-javascript
 // If now is an array then it is a range slider
-export async function mkMDCslider(min, max, now, step, label, onChange, onInput) {
+export async function mkMDCslider(min, max, now, step, label, onChange, onInput, useMdcJs) {
+    if (useMdcJs == undefined) useMdcJs = true;
     /*
     <div class="mdc-slider">
         <div class="mdc-slider__track">
@@ -804,11 +805,37 @@ export async function mkMDCslider(min, max, now, step, label, onChange, onInput)
         eltSlider.dataset.step = step;
         if (discrete) eltThumb.appendChild(mkEltIndicator());
     }
-    eltSlider.addEventListener("MDCSlider:change", onChange);
-    if (onInput) eltSlider.addEventListener("MDCSlider:input", onInput);
+    if (useMdcJs) {
+        eltSlider.addEventListener("MDCSlider:change", onChange);
+        if (onInput) eltSlider.addEventListener("MDCSlider:input", onInput);
 
-    // Looks like we have to wait until the eltSlider is on the page until we attach the slider object.
-    attachMdcWhenOnDocument(eltSlider, mdc.slider.MDCSlider);
+        // Looks like we have to wait until the eltSlider is on the page until we attach the slider object.
+        attachMdcWhenOnDocument(eltSlider, mdc.slider.MDCSlider);
+    } else {
+        // debugger;
+        const modNoUiSlider = await importFc4i("no-ui-slider");
+        const slider = modNoUiSlider.create(eltSlider, {
+            start: now,
+            range: { min, max },
+            step
+
+            /*
+            start: 50, // Initial value
+            range: {
+                min: 0,
+                max: 100, // Adjust range as needed
+            }
+            */
+        });
+        console.log({ slider });
+        slider.on("change", (values, handle) => {
+            console.log(`Final value for handle ${handle} is: ${values[handle]}`);
+            // console.log({ onChange });
+            onChange(values[handle]);
+        });
+        const eltMdcKnob = eltSlider.querySelector("div.mdc-slider__thumb-knob");
+        eltMdcKnob.style.display = "none";
+    }
     return eltSlider;
 }
 async function attachMdcWhenOnDocument(eltMdc, clsMdc) {
