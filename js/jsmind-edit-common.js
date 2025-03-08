@@ -564,6 +564,7 @@ export function checkJmnodeBgObj(bgObj) {
                 errMsg = `${bgName} should be "string", not ${tofVal}`;
     }
     if (errMsg) {
+        console.error(errMsg);
         debugger; // eslint-disable-line no-debugger
         throw Error(errMsg);
     }
@@ -605,19 +606,25 @@ export async function applyShapeEtcBg(bgName, bgValue, bgTheme, eltJmnode) {
             break;
         case "bg-choice-img-clipboard":
             let objectUrl;
-            let blob, blurValue;
+            let blob, blurValue, isDark;
             blob = bgValue;
             blurValue = 9;
+            isDark = false; // Default to black text
             // New format?
             if (bgValue.blob) {
                 blob = bgValue.blob;
                 blurValue = bgValue.blur;
+                isDark = bgValue.isDark;
                 // debugger;
             }
             objectUrl = URL.createObjectURL(blob);
             setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
             eltBg.style.backgroundImage = `url("${objectUrl}")`;
             eltBg.style.filter = `blur(${blurValue}px)`;
+            // setNodeTheme node-theme-dark
+            eltJmnode.classList.remove("node-theme-dark");
+            eltJmnode.classList.remove("node-theme-light");
+            eltJmnode.classList.remove("node-theme-mixed");
             break;
         default:
             throw Error(`Not impl yet: ${bgName}`)

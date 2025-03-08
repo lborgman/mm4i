@@ -198,53 +198,59 @@ export function isDark(bgColor) {
 }
 
 
-export function imageIsDark(srcImg) {
+export async function imageIsDark(srcImg) {
     // debugger;
     const img = document.createElement("img");
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    img.onload = () => {
-        // debugger;
-        const imgWidth = img.width;
-        const imgHeight = img.height;
+    const res = new Promise((resolve, reject) => {
 
-        // Set canvas dimensions to hold a 3x3 grid of the image
-        canvas.width = imgWidth * 3;
-        canvas.height = imgHeight * 3;
+        img.onload = () => {
+            // debugger;
+            const imgWidth = img.width;
+            const imgHeight = img.height;
 
-        // Draw the image in a 3x3 grid
-        for (let row = -1; row <= 1; row++) {
-            for (let col = -1; col <= 1; col++) {
-                ctx.drawImage(img, col * imgWidth, row * imgHeight);
+            // Set canvas dimensions to hold a 3x3 grid of the image
+            canvas.width = imgWidth * 3;
+            canvas.height = imgHeight * 3;
+
+            // Draw the image in a 3x3 grid
+            for (let row = -1; row <= 1; row++) {
+                for (let col = -1; col <= 1; col++) {
+                    ctx.drawImage(img, col * imgWidth, row * imgHeight);
+                }
             }
+
+            // Apply blur and grayscale
+            ctx.filter = 'blur(20px) grayscale(1)';
+            ctx.drawImage(canvas, 0, 0); // Redraw blurred image
+
+            // Focus on the center image area
+            const x = imgWidth; // Start at the actual image's top-left corner
+            const y = imgHeight;
+            const width = imgWidth;
+            const height = imgHeight;
+            const imageData = ctx.getImageData(x, y, width, height);
+            const data = imageData.data;
+
+            // Calculate average brightness
+            let totalBrightness = 0;
+            for (let i = 0; i < data.length; i += 4) {
+                const r = data[i];
+                const g = data[i + 1];
+                const b = data[i + 2];
+                const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
+                totalBrightness += brightness;
+            }
+            const avgBrightness = totalBrightness / (data.length / 4);
+            // avgBrightness < 128 ? 'white' : 'black';
+            const isDark = avgBrightness < 128;
+            console.log({ avgBrightness, isDark });
+            // const brightness = parseFloat(avgBrightness.toFixed(1));
+            const brightness = Math.round(avgBrightness);
+            resolve({ isDark, brightness });
         }
-
-        // Apply blur and grayscale
-        ctx.filter = 'blur(20px) grayscale(1)';
-        ctx.drawImage(canvas, 0, 0); // Redraw blurred image
-
-        // Focus on the center image area
-        const x = imgWidth; // Start at the actual image's top-left corner
-        const y = imgHeight;
-        const width = imgWidth;
-        const height = imgHeight;
-        const imageData = ctx.getImageData(x, y, width, height);
-        const data = imageData.data;
-
-        // Calculate average brightness
-        let totalBrightness = 0;
-        for (let i = 0; i < data.length; i += 4) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            const brightness = 0.299 * r + 0.587 * g + 0.114 * b;
-            totalBrightness += brightness;
-        }
-        const avgBrightness = totalBrightness / (data.length / 4);
-        // avgBrightness < 128 ? 'white' : 'black';
-        const isDark = avgBrightness < 128;
-        console.log({ avgBrightness, isDark });
-        return isDark;
-    }
-    img.src = srcImg;
+        img.src = srcImg;
+    });
+    return res;
 }

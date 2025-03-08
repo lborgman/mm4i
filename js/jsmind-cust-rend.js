@@ -1049,10 +1049,18 @@ export class CustomRenderer4jsMind {
                         divClipboardImage.style.backgroundImage = `url("${objectUrl}")`;
                         divClipboardImage.style.filter = blur;
                         inpBlur.value = blurVal;
-                        sliderBlur.set( blurVal);
+                        sliderBlur.set(blurVal);
 
-                        const darkBg = modColorTools.imageIsDark(objectUrl);
-                        console.log({darkBg});
+                        (async () => {
+                            const darkBg = await modColorTools.imageIsDark(objectUrl);
+                            console.log({ darkBg });
+                            divFgAccColor.textContent = `darkBg: ${JSON.stringify(darkBg)}`;
+                            if (darkBg.isDark) {
+                                inpWhite.checked = true;
+                            } else {
+                                inpBlack.checked = true;
+                            }
+                        })();
 
                         const d = rad.closest("div.bg-choice");
                         setBgNodeChoiceValid(d, true);
@@ -1514,13 +1522,36 @@ export class CustomRenderer4jsMind {
         }
         function onSliderInput(val) { console.log("onSliderInput", val); }
 
+        const divInfoAcc = mkElt("div", undefined,
+            "You can make node text more visible by blurring the image and choose text color."
+        );
         const { eltSlider: eltSliderBlur, slider: sliderBlur } = await modMdc.mkMDCslider(0, 5, 1, 1, "blur", onSliderChange, onSliderInput, false);
         // const sliderBlur = slider;
         // const eltSlider = await modMdc.mkMDCslider(0, 5, 1, 1, "blur", onSliderChange, onSliderInput, true);
 
+        const divFgAccColor = mkElt("div");
+
+        const inpBlack = mkElt("input", {type:"radio", name:"black-or-white", id:"black-text"})
+        const lblBlack = mkElt("label", undefined, [inpBlack, "black text"]);
+        const inpWhite = mkElt("input", {type:"radio", name:"black-or-white", id:"white-text"})
+        const lblWhite = mkElt("label", undefined, [inpWhite, "white text"]);
+        const divFgRadios = mkElt("div", undefined, [
+            lblBlack, lblWhite
+        ]);
+
         // const divBlur = mkElt("div", undefined, [tfBlur, eltSlider]);
-        const divBlur = mkElt("div", undefined, [eltSliderBlur]);
-        divBlur.style.width = "100%";
+        const divBlur = mkElt("div", undefined, [
+            divInfoAcc, eltSliderBlur,
+            divFgRadios,
+            divFgAccColor,
+        ]);
+        // modColorTools
+        divBlur.style = `
+            width: "100%";
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        `;
         // debugger;
         const divFromClipboard = mkElt("div", undefined, [
             divClipboardImage, divBlur,
@@ -1892,8 +1923,9 @@ export class CustomRenderer4jsMind {
                         const blob = blobOut;
                         const objectUrl = URL.createObjectURL(blob);
 
-                        const darkBg = modColorTools.imageIsDark(objectUrl);
-                        console.log({darkBg});
+                        const darkBg = await modColorTools.imageIsDark(objectUrl);
+                        console.log({ darkBg });
+                        divFgAccColor.textContent = `darkBg: ${JSON.stringify(darkBg)}`;
 
                         // clipImage.url = url;
                         clipImage.blob = blob;
