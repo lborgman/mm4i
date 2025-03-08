@@ -1052,7 +1052,7 @@ export class CustomRenderer4jsMind {
                         sliderBlur.set(blurVal);
 
                         (async () => {
-                            const darkBg = await modColorTools.imageIsDark(objectUrl);
+                            const darkBg = await modColorTools.isImageDark(objectUrl);
                             console.log({ darkBg });
                             divFgAccColor.textContent = `darkBg: ${JSON.stringify(darkBg)}`;
                             if (darkBg.isDark) {
@@ -1923,7 +1923,7 @@ export class CustomRenderer4jsMind {
                         const blob = blobOut;
                         const objectUrl = URL.createObjectURL(blob);
 
-                        const darkBg = await modColorTools.imageIsDark(objectUrl);
+                        const darkBg = await modColorTools.isImageDark(objectUrl);
                         console.log({ darkBg });
                         divFgAccColor.textContent = `darkBg: ${JSON.stringify(darkBg)}`;
 

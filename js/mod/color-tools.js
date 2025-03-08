@@ -198,7 +198,7 @@ export function isDark(bgColor) {
 }
 
 
-export async function imageIsDark(srcImg) {
+export async function isImageDark(srcImg) {
     // debugger;
     const img = document.createElement("img");
     const canvas = document.createElement('canvas');
@@ -254,3 +254,195 @@ export async function imageIsDark(srcImg) {
     });
     return res;
 }
+
+
+/*** Color contrast using CIE-LAB */
+
+export function getContrastingColorLAB(rgb) {
+    // Step 1: Convert RGB to LAB
+    const { x, y, z } = rgbToXyz(rgb[0], rgb[1], rgb[2]);
+    const { l, a, b } = xyzToLab(x, y, z);
+
+    // Step 2: Adjust Lightness for contrast
+    const newL = l < 50 ? 85 : 15; // Make light colors dark, dark colors light
+
+    // Step 3: Adjust Chromaticity for distinct contrast
+    const newA = -a; // Invert chromaticity
+    const newB = -b; // Invert chromaticity
+
+    // (Optional): Amplify chromaticity for more vibrancy
+    // const newA = a * 1.5;
+    // const newB = b * 1.5;
+
+    // Step 4: Convert back to RGB
+    const { x: newX, y: newY, z: newZ } = labToXyz(newL, newA, newB);
+    return xyzToRgb(newX, newY, newZ);
+}
+
+
+
+// Example Usage:
+const avgColor = [100, 150, 200]; // Replace with your calculated avgColor
+const contrastingColor = getContrastingColorLAB(avgColor);
+console.log(`LAB-based contrasting color to rgb(${avgColor.join(",")}): rgb(${contrastingColor.join(",")})`);
+const rgb1 = `rgb(${avgColor.join(",")})`;
+const rgb2 = `rgb(${contrastingColor.join(",")})`;
+console.log(`LAB-based contrasting color to %c${rgb1}%c: %c${rgb2}`, `background:${rgb1}`, "", `background:${rgb2}`);
+
+
+
+
+// Convert sRGB to XYZ (helper functions)
+function rgbToXyz(r, g, b) {
+    const linearize = (value) => {
+        value /= 255;
+        return value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+    };
+
+    r = linearize(r);
+    g = linearize(g);
+    b = linearize(b);
+
+    const x = r * 0.4124564 + g * 0.3575761 + b * 0.1804375;
+    const y = r * 0.2126729 + g * 0.7151522 + b * 0.0721750;
+    const z = r * 0.0193339 + g * 0.1191920 + b * 0.9503041;
+
+    return { x, y, z };
+}
+
+// Convert XYZ to LAB
+function xyzToLab(x, y, z) {
+    const refX = 0.95047; // Reference white D65
+    const refY = 1.00000;
+    const refZ = 1.08883;
+
+    x /= refX;
+    y /= refY;
+    z /= refZ;
+
+    const f = (value) => (value > 0.008856 ? Math.pow(value, 1 / 3) : (7.787 * value) + (16 / 116));
+
+    return {
+        l: (116 * f(y)) - 16,
+        a: 500 * (f(x) - f(y)),
+        b: 200 * (f(y) - f(z)),
+    };
+}
+
+// Convert LAB back to XYZ
+function labToXyz(l, a, b) {
+    const refX = 0.95047;
+    const refY = 1.00000;
+    const refZ = 1.08883;
+
+    const fy = (l + 16) / 116;
+    const fx = a / 500 + fy;
+    const fz = fy - b / 200;
+
+    const x = refX * (fx > 0.206893 ? Math.pow(fx, 3) : (fx - 16 / 116) / 7.787);
+    const y = refY * (fy > 0.206893 ? Math.pow(fy, 3) : (fy - 16 / 116) / 7.787);
+    const z = refZ * (fz > 0.206893 ? Math.pow(fz, 3) : (fz - 16 / 116) / 7.787);
+
+    return { x, y, z };
+}
+
+// Convert XYZ back to RGB
+function xyzToRgb(x, y, z) {
+    const r = x * 3.2404542 - y * 1.5371385 - z * 0.4985314;
+    const g = -x * 0.9692660 + y * 1.8760108 + z * 0.0415560;
+    const b = x * 0.0556434 - y * 0.2040259 + z * 1.0572252;
+
+    const delinearize = (value) => {
+        return value <= 0.0031308 ? value * 12.92 : 1.055 * Math.pow(value, 1 / 2.4) - 0.055;
+    };
+
+    return [
+        Math.round(Math.max(0, Math.min(1, delinearize(r))) * 255),
+        Math.round(Math.max(0, Math.min(1, delinearize(g))) * 255),
+        Math.round(Math.max(0, Math.min(1, delinearize(b))) * 255),
+    ];
+}
+
+// Calculate contrasting color in LAB
+function OLDgetContrastingColorLAB(rgb) {
+    // Step 1: Convert RGB to LAB
+    const { x, y, z } = rgbToXyz(rgb[0], rgb[1], rgb[2]);
+    const { l, a, b } = xyzToLab(x, y, z);
+
+    // Step 2: Adjust Lightness for contrast
+    const newL = l < 50 ? 85 : 15; // Make light colors dark, dark colors light
+
+    // Step 3: Optionally tweak 'a' and 'b' for additional chromatic contrast (e.g., increase saturation)
+    const newA = a;
+    const newB = b;
+
+    // Step 4: Convert back to RGB
+    const { x: newX, y: newY, z: newZ } = labToXyz(newL, newA, newB);
+    return xyzToRgb(newX, newY, newZ);
+}
+
+// Example Usage
+// const avgColor = [100, 150, 200]; // Replace with your calculated avgColor
+// const contrastingColor = getContrastingColorLAB(avgColor);
+// console.log(`LAB-based contrasting color: rgb(${contrastingColor.join(",")})`);
+
+
+
+function OLDrgbToXyz(r, g, b) {
+    // Normalize RGB values
+    r = linearize(r / 255);
+    g = linearize(g / 255);
+    b = linearize(b / 255);
+
+    // Convert to XYZ using the transformation matrix
+    const x = r * 0.4124564 + g * 0.3575761 + b * 0.1804375;
+    const y = r * 0.2126729 + g * 0.7151522 + b * 0.0721750;
+    const z = r * 0.0193339 + g * 0.1191920 + b * 0.9503041;
+
+    return { x, y, z };
+}
+
+function OLDxyzToLab(x, y, z) {
+    const refX = 0.95047; // Reference white D65
+    const refY = 1.00000;
+    const refZ = 1.08883;
+
+    x /= refX;
+    y /= refY;
+    z /= refZ;
+
+    const f = (value) => (value > 0.008856 ? Math.pow(value, 1 / 3) : (7.787 * value) + 16 / 116);
+
+    return {
+        l: (116 * f(y)) - 16,
+        a: 500 * (f(x) - f(y)),
+        b: 200 * (f(y) - f(z))
+    };
+}
+
+export function calculateAvgColorLab(imageData) {
+    const data = imageData.data;
+    let totalL = 0, totalA = 0, totalB = 0;
+
+    const totalPixels = data.length / 4;
+
+    for (let i = 0; i < data.length; i += 4) {
+        const { x, y, z } = rgbToXyz(data[i], data[i + 1], data[i + 2]);
+        const { l, a, b } = xyzToLab(x, y, z);
+
+        totalL += l;
+        totalA += a;
+        totalB += b;
+    }
+
+    // Average the LAB values
+    const avgL = totalL / totalPixels;
+    const avgA = totalA / totalPixels;
+    const avgB = totalB / totalPixels;
+
+    return { l: avgL, a: avgA, b: avgB };
+}
+
+// Example Usage:
+// const avgLabColor = calculateAvgColorLab(imageData);
+// console.log(`Average LAB color: L=${avgLabColor.l}, a=${avgLabColor.a}, b=${avgLabColor.b}`);
