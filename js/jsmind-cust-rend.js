@@ -1842,6 +1842,10 @@ export class CustomRenderer4jsMind {
                         // bgValue = bgBlob;
                         // debugger;
                         const fgInp = divFgRadios.querySelector("input:checked");
+                        if (!fgInp) {
+                            debugger;
+                            return;
+                        }
                         const fgId = fgInp.id;
                         let fgColor;
                         switch (fgId) {
