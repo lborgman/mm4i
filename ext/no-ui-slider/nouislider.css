@@ -368,6 +368,10 @@
     background-color: var(--mdc-theme-primary, #6200ee);
     border-color: var(--mdc-theme-primary, #6200ee);
 }
+.noUi-horizontal .noUi-connects {
+    background-color: var(--mdc-theme-primary, #6200ee);
+    opacity: 0.5;
+}
 
 .noUi-target {
     background: transparent;

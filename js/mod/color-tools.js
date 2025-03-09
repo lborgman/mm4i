@@ -304,7 +304,7 @@ export async function getDataForTextOnImage(srcImg) {
             // const brightness = parseFloat(avgBrightness.toFixed(1));
             const brightness = Math.round(avgBrightness);
 
-            debugger;
+            // debugger;
             const avgColorLAB = calculateAvgColorLab(imageData);
             // const avgColorXYZ = labToXyz(avgColorLAB.l, avgColorLAB.a, avgColorLAB.b);
             const avgColorXYZ = labToXyz(avgColorLAB);

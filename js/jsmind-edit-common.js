@@ -606,7 +606,7 @@ export async function applyShapeEtcBg(bgName, bgValue, bgTheme, eltJmnode) {
             break;
         case "bg-choice-img-clipboard":
             let objectUrl;
-            let blob, blurValue, isDark;
+            let blob, blurValue, isDark, fgColor;
             blob = bgValue;
             blurValue = 9;
             isDark = false; // Default to black text
@@ -615,6 +615,7 @@ export async function applyShapeEtcBg(bgName, bgValue, bgTheme, eltJmnode) {
                 blob = bgValue.blob;
                 blurValue = bgValue.blur;
                 isDark = bgValue.isDark;
+                fgColor = bgValue.fgColor;
                 // debugger;
             }
             objectUrl = URL.createObjectURL(blob);
@@ -625,6 +626,7 @@ export async function applyShapeEtcBg(bgName, bgValue, bgTheme, eltJmnode) {
             eltJmnode.classList.remove("node-theme-dark");
             eltJmnode.classList.remove("node-theme-light");
             eltJmnode.classList.remove("node-theme-mixed");
+            eltJmnode.style.color = fgColor || "red";
             break;
         default:
             throw Error(`Not impl yet: ${bgName}`)

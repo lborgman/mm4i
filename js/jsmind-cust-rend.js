@@ -1404,6 +1404,8 @@ export class CustomRenderer4jsMind {
                 "background-repeat": "no-repeat",
                 "background-position": "center",
                 "background-image": `url(${src})`,
+                // "min-width": "100px",
+                // "width": "100px",
             };
             applyBgCssValue(divImgPreview, cssBgValue);
             // radChoiceLink.disabled = false;
@@ -1473,22 +1475,20 @@ export class CustomRenderer4jsMind {
                 "Close"
             );
         }));
+        const divImgPreviewContainer = mkElt("div", undefined, divImgPreview);
+        divImgPreviewContainer.style = `
+            min-width: 100px;
+            width: 100px;
+        `;
         const divLink = mkElt("div", undefined, [
             mkElt("div", undefined, [`Link to image on the web. `, btnNote,]),
             tfImageUrl,
-            mkElt("div", undefined, divImgPreview)
+            // mkElt("div", undefined, divImgPreview)
+            divImgPreviewContainer
         ]);
 
         const divClipboardImage = mkElt("div");
         divClipboardImage.id = "div-clipboard-image";
-        divClipboardImage.style = `
-            width: 100px;
-            aspect-ratio: 1 / 1;
-            background-repeat: no-repeat;
-            background-size: contain;
-            background-position: center;
-            background-color: black;
-        `;
         const btnClipboard = modMdc.mkMDCbutton("Clipboard", "raised");
         btnClipboard.addEventListener("click", errorHandlerAsyncEvent(async () => {
             const added = await getBgFromClipboard(divClipboardImage);
@@ -1531,11 +1531,12 @@ export class CustomRenderer4jsMind {
         const divInfoAcc = mkElt("div", undefined,
             "You can make node text more visible by blurring the image and choose text color."
         );
-        const { eltSlider: eltSliderBlur, slider: sliderBlur } = await modMdc.mkMDCslider(0, 5, 1, 1, "blur", onSliderChange, onSliderInput, false);
+        const { eltSlider: eltSliderBlur, slider: sliderBlur } = await modMdc.mkMDCslider(0, 5, 0, undefined, "blur", onSliderChange, onSliderInput, false);
         // const sliderBlur = slider;
         // const eltSlider = await modMdc.mkMDCslider(0, 5, 1, 1, "blur", onSliderChange, onSliderInput, true);
 
         const divFgAccColor = mkElt("div");
+        divFgAccColor.style.overflowWrap = "anywhere";
 
         const inpBlack = mkElt("input", { type: "radio", name: "black-or-white", id: "black-text" })
         const lblBlack = mkElt("label", undefined, [inpBlack, "black"]);
@@ -1560,22 +1561,33 @@ export class CustomRenderer4jsMind {
         `;
 
         // const divBlur = mkElt("div", undefined, [tfBlur, eltSlider]);
+        const sliderBlurContainer = mkElt("div", undefined, [
+            "Blur:",
+            eltSliderBlur,
+        ]);
+        sliderBlurContainer.style = `
+            NOdisplay: flex;
+            NOgap: 10px;
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            NOoutline: 1px dotted red;
+        `;
+
         const divBlur = mkElt("div", undefined, [
-            divInfoAcc, eltSliderBlur,
+            divInfoAcc,
+            // eltSliderBlur,
+            sliderBlurContainer,
             // divFgRadios,
             divText,
             divFgAccColor,
         ]);
-        // modColorTools
-        divBlur.style = `
-            width: "100%";
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        `;
+        divBlur.id = "div-from-clipboard-blur";
         // debugger;
+        divImgPreviewContainer.appendChild(divClipboardImage);
         const divFromClipboard = mkElt("div", undefined, [
-            divClipboardImage, divBlur,
+            // divClipboardImage,
+            divImgPreviewContainer,
+            divBlur,
         ]);
         divFromClipboard.style = `
             display: flex;
@@ -1827,7 +1839,7 @@ export class CustomRenderer4jsMind {
                             });
                         }
                         // bgValue = bgBlob;
-                        debugger;
+                        // debugger;
                         const fgInp = divFgRadios.querySelector("input:checked");
                         const fgId = fgInp.id;
                         let fgColor;

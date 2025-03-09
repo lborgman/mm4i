@@ -818,24 +818,21 @@ export async function mkMDCslider(min, max, now, step, label, onChange, onInput,
             start: now,
             range: { min, max },
             step
-
-            /*
-            start: 50, // Initial value
-            range: {
-                min: 0,
-                max: 100, // Adjust range as needed
-            }
-            */
         });
         console.log({ slider });
         slider.on("change", (values, handle) => {
             console.log(`Final value for handle ${handle} is: ${values[handle]}`);
-            // console.log({ onChange });
             onChange(values[handle]);
         });
-        const eltMdcKnob = eltSlider.querySelector("div.mdc-slider__thumb-knob");
-        eltMdcKnob.style.display = "none";
-        return {eltSlider, slider}
+        const eltMdcThumb = eltSlider.querySelector("div.mdc-slider__thumb");
+        eltMdcThumb.remove();
+        const eltMdcInput = eltSlider.querySelector("input.mdc-slider__input");
+        eltMdcInput.remove();
+        const eltMdcTrack = eltSlider.querySelector("div.mdc-slider__track");
+        eltMdcTrack.remove();
+        const eltMdcTicks = eltSlider.querySelector("div.mdc-slider__tick-marks");
+        eltMdcTicks?.remove();
+        return { eltSlider, slider }
     }
     return eltSlider;
 }
