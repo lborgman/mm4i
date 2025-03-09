@@ -1331,7 +1331,8 @@ export class CustomRenderer4jsMind {
             modJsEditCommon.checkShapeEtcBgObj(currentShapeEtc);
             applyCurrentToCopied();
         }
-        const debounceApplyCurrentBgToCopied = debounce(ApplyCurrentBgToCopied, 2000);
+        // const debounceApplyCurrentBgToCopied = debounce(ApplyCurrentBgToCopied, 2000);
+        const debounceApplyCurrentBgToCopied = debounce(ApplyCurrentBgToCopied, 300);
 
 
         function setBgChoiceThis(eltChoice) {
