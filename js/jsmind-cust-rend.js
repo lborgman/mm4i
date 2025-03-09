@@ -1062,7 +1062,7 @@ export class CustomRenderer4jsMind {
                                 inpBlack.checked = true;
                             }
                             const inpColor = mkElt("input", { type: "radio", name: "black-or-white", id: "colored-text" })
-                            inpColor.style.color = darkBg.contrastColor;
+                            lblColor.style.color = darkBg.contrastColor;
                             inpColor.dataset.color = darkBg.contrastColor;
                             const lblColor = mkElt("label", undefined, [
                                 inpColor,
