@@ -1064,7 +1064,11 @@ export class CustomRenderer4jsMind {
                             const inpColor = mkElt("input", { type: "radio", name: "black-or-white", id: "colored-text" })
                             inpColor.style.color = darkBg.contrastColor;
                             inpColor.dataset.color = darkBg.contrastColor;
-                            const lblColor = mkElt("label", undefined, [inpColor, "colored"]);
+                            const lblColor = mkElt("label", undefined, [
+                                inpColor,
+                                // "colored"
+                                darkBg.contrastColor
+                            ]);
                             divFgRadios.appendChild(lblColor);
                         })();
 
