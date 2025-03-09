@@ -169,6 +169,7 @@ export function standardizeColorTo6Hex(strColor) {
         switch (colorIn) {
             case "black":
             case "rgb(0,0,0)":
+            case "#000000":
                 break;
             default:
                 const msg = `standardizeColorTo6Hex: ${strColor} => ${ctx.fillStyle}`;
