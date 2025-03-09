@@ -1052,14 +1052,20 @@ export class CustomRenderer4jsMind {
                         sliderBlur.set(blurVal);
 
                         (async () => {
-                            const darkBg = await modColorTools.isImageDark(objectUrl);
+                            const darkBg = await modColorTools.getDataForTextOnImage(objectUrl);
                             console.log({ darkBg });
                             divFgAccColor.textContent = `darkBg: ${JSON.stringify(darkBg)}`;
+                            divFgRadios.style.backgroundColor = darkBg.avgHexColor;
                             if (darkBg.isDark) {
                                 inpWhite.checked = true;
                             } else {
                                 inpBlack.checked = true;
                             }
+                            const inpColor = mkElt("input", { type: "radio", name: "black-or-white", id: "colored-text" })
+                            inpColor.style.color = darkBg.contrastColor;
+                            inpColor.dataset.color = darkBg.contrastColor;
+                            const lblColor = mkElt("label", undefined, [inpColor, "colored"]);
+                            divFgRadios.appendChild(lblColor);
                         })();
 
                         const d = rad.closest("div.bg-choice");
@@ -1531,18 +1537,33 @@ export class CustomRenderer4jsMind {
 
         const divFgAccColor = mkElt("div");
 
-        const inpBlack = mkElt("input", {type:"radio", name:"black-or-white", id:"black-text"})
-        const lblBlack = mkElt("label", undefined, [inpBlack, "black text"]);
-        const inpWhite = mkElt("input", {type:"radio", name:"black-or-white", id:"white-text"})
-        const lblWhite = mkElt("label", undefined, [inpWhite, "white text"]);
+        const inpBlack = mkElt("input", { type: "radio", name: "black-or-white", id: "black-text" })
+        const lblBlack = mkElt("label", undefined, [inpBlack, "black"]);
+        lblBlack.style.color = "black";
+        const inpWhite = mkElt("input", { type: "radio", name: "black-or-white", id: "white-text" })
+        const lblWhite = mkElt("label", undefined, [inpWhite, "white"]);
+        lblWhite.style.color = "white";
         const divFgRadios = mkElt("div", undefined, [
             lblBlack, lblWhite
         ]);
+        divFgRadios.style = `
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+        `;
+        const divText = mkElt("div", undefined, [
+            divFgRadios
+        ]);
+        divText.style = `
+            display: flex;
+            gap: 5px;
+        `;
 
         // const divBlur = mkElt("div", undefined, [tfBlur, eltSlider]);
         const divBlur = mkElt("div", undefined, [
             divInfoAcc, eltSliderBlur,
-            divFgRadios,
+            // divFgRadios,
+            divText,
             divFgAccColor,
         ]);
         // modColorTools
@@ -1806,7 +1827,26 @@ export class CustomRenderer4jsMind {
                             });
                         }
                         // bgValue = bgBlob;
-                        bgValue = { blob: bgBlob, blur: blurVal };
+                        debugger;
+                        const fgInp = divFgRadios.querySelector("input:checked");
+                        const fgId = fgInp.id;
+                        let fgColor;
+                        switch (fgId) {
+                            case "white-text":
+                                fgColor = "white";
+                                break;
+                            case "black-text":
+                                fgColor = "black";
+                                break;
+                            case "colored-text":
+                                fgColor = "red";
+                                fgColor = fgInp.dataset.color;
+                                break;
+                            default:
+                                throw Error(`Bad fgId: ${fgId}`);
+                        }
+
+                        bgValue = { blob: bgBlob, blur: blurVal, fgColor };
                     }
 
                     break;
@@ -1923,7 +1963,7 @@ export class CustomRenderer4jsMind {
                         const blob = blobOut;
                         const objectUrl = URL.createObjectURL(blob);
 
-                        const darkBg = await modColorTools.isImageDark(objectUrl);
+                        const darkBg = await modColorTools.getDataForTextOnImage(objectUrl);
                         console.log({ darkBg });
                         divFgAccColor.textContent = `darkBg: ${JSON.stringify(darkBg)}`;
 
@@ -1936,6 +1976,7 @@ export class CustomRenderer4jsMind {
                             modJsEditCommon.mkJmnodeBgObj("bg-choice-img-clipboard", blob);
                         requestSetStateBtnSave();
                         toDiv.style.backgroundImage = `url("${objectUrl}")`;
+                        // const arrRgb = modColorTools.calculateAvgColorLab(imageData);
                         toDiv.scrollIntoView({
                             behavior: "smooth",
                             block: "nearest"
