@@ -1416,11 +1416,26 @@ export class CustomRenderer4jsMind {
             if (!added) return;
             setBgNodeChoiceValid(bgChoiceImgClipboard, true);
             const currentBgName = divBgChoices.querySelector("input[name=bg-choice]:checked")?.id;
-            console.log({ currentChoice: currentBgName });
+            console.log({ currentBgName });
             // debugger;
             if (currentBgName == "bg-choice-img-clipboard") {
-                // debugger;
                 const bgValue = await getBgValueFromElt(currentBgName);
+                const objTextContrast = await modColorTools.getDataForTextOnImage(bgValue.blob);
+                console.log({ objTextContrast });
+                const b = objTextContrast.blackContrast;
+                const w = objTextContrast.whiteContrast;
+                const c = objTextContrast.coloredContrast;
+                let best = "black";
+                if (b < Math.max(w, c)) {
+                    best = "white";
+                    if (w < c) { best = "colored"; }
+                }
+                console.log({ best });
+                // divFgAccColor
+                const inpBest = divFgRadios.querySelector(`#${best}-text`);
+                inpBest.checked = true;
+                applyTextToPreviewImage(inpBest);
+                
                 currentShapeEtc.background = modJsEditCommon.mkJmnodeBgObj(currentBgName, bgValue)
                 debounceApplyCurrentBgToCopied();
             }
@@ -1923,7 +1938,7 @@ export class CustomRenderer4jsMind {
 
                         const darkBg = await modColorTools.getDataForTextOnImage(objectUrl);
                         console.log({ darkBg });
-                        divFgAccColor.textContent = `darkBg: ${JSON.stringify(darkBg)}`;
+                        divFgAccColor.textContent = `darkBg: ${JSON.stringify(darkBg, undefined, 4)}`;
 
                         // clipImage.url = url;
                         clipImage.blob = blob;

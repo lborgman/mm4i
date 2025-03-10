@@ -254,7 +254,7 @@ export async function getDataForTextOnImage(srcImg) {
     const img = document.createElement("img");
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const res = new Promise((resolve, _reject) => {
+    const res = new Promise((resolve, reject) => {
 
         img.onload = () => {
             // debugger;
@@ -312,12 +312,12 @@ export async function getDataForTextOnImage(srcImg) {
             const avgHexColor = standardizeColorTo6Hex(avgRgbColor);
             const contrastColorRGB = getContrastingColorLAB(avgHexColor);
             const contrastColor = rgbToHEX(contrastColorRGB);
-            const coloredContrast = contrastRatio(avgColorRGB, contrastColorRGB);
+            const coloredContrast = contrastRatio(avgColorRGB, contrastColorRGB).toFixed(1);
             console.log({ colorContrast: coloredContrast });
             // debugger;
 
-            const whiteContrast = contrastRatio(avgColorRGB, { r: 255, g: 255, b: 255 });
-            const blackContrast = contrastRatio(avgColorRGB, { r: 0, g: 0, b: 0 });
+            const whiteContrast = contrastRatio(avgColorRGB, { r: 255, g: 255, b: 255 }).toFixed(1);
+            const blackContrast = contrastRatio(avgColorRGB, { r: 0, g: 0, b: 0 }).toFixed(1);
 
             resolve({
                 isDark, brightness,
@@ -329,7 +329,17 @@ export async function getDataForTextOnImage(srcImg) {
                 blackContrast,
             });
         }
-        img.src = srcImg;
+        img.addEventListener("error", (evt) => {
+            console.error("Could not load", { srcImg, evt });
+            reject("Could not load srcImg");
+        });
+        if (typeof srcImg == "string") {
+            img.src = srcImg;
+        } else {
+            if (!(srcImg instanceof Blob)) throw Error("Expected image blob");
+            const objecturl = URL.createObjectURL(srcImg)
+            img.src = objecturl;
+        }
     });
     return res;
 }
