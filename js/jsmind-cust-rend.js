@@ -1393,9 +1393,9 @@ export class CustomRenderer4jsMind {
                 const w = objTextContrast.whiteContrast;
                 const c = objTextContrast.coloredContrast;
                 let best = "black";
-                if (b < Math.max(w, c)) {
+                if (b > Math.max(w, c)) {
                     best = "white";
-                    if (w < c) { best = "colored"; }
+                    if (w > c) { best = "colored"; }
                 }
                 console.log({ best });
                 // divFgAccColor
