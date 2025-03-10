@@ -118,51 +118,6 @@ export class CustomRenderer4jsMind {
         applyMindmapGlobals(elt, globals);
     }
 
-    /*
-    addProvider(objProv) {
-        if (!(objProv instanceof providerDetails)) { throw Error("Not object of class providerDetails"); }
-        this.#providers[objProv.name] = objProv;
-        console.log("Providers:", this.#providers);
-    }
-    getProviderNames() { return Object.keys(this.#providers); }
-    getProviderLongName(providerShortName) {
-        const provDet = this.#providers[providerShortName];
-        return provDet.longName;
-    }
-    getRecLink(key, provider) {
-        const provDet = this.#providers[provider];
-        return provDet.getRecLink(key);
-    }
-    getCustomRec(key, provider) {
-        return this.#providers[provider].getRec(key);
-    }
-    showCustomRec(key, provider) {
-        this.#providers[provider].showRec(key);
-    }
-
-    customData2jsmindTopic(customKey, customProvider) {
-        const eltCustom = mkElt("div");
-        const objCustom = {
-            key: customKey,
-            provider: customProvider // FIX-ME:
-        }
-        eltCustom.dataset.jsmindCustom = JSON.stringify(objCustom);
-        return eltCustom.outerHTML;
-    }
-    jsmindTopic2customElt(strEltCustom) {
-        const divParse = mkElt("div");
-        divParse.innerHTML = strEltCustom;
-        const eltCustom = (divParse.firstElementChild);
-
-        const strCustom = eltCustom.dataset.jsmindCustom;
-        if (typeof strCustom == "undefined") throw Error("strCustom is undefined");
-        const objCustom = JSON.parse(strCustom);
-        const customImage = theCustomRenderer.getLinkRendererImage(objCustom.provider);
-        eltCustom.style.backgroundImage = `url(${customImage})`;
-        eltCustom.classList.add("jsmind-custom-image");
-        return eltCustom;
-    }
-    */
 
 
     getLinkRendererImage(providerName) {
@@ -1036,8 +991,8 @@ export class CustomRenderer4jsMind {
 
                         const divClipboardImage = document.getElementById("div-clipboard-image");
                         if (!divClipboardImage) throw Error("Could not find #div-cliboard-image");
-                        divClipboardImage.style.backgroundImage = `url("${objectUrl}")`;
-                        divClipboardImage.style.filter = blur;
+                        divClipboardImageBg.style.backgroundImage = `url("${objectUrl}")`;
+                        divClipboardImageBg.style.filter = blur;
 
                         // inpBlur.value = blurVal;
                         sliderBlur.set(blurVal);
@@ -1399,8 +1354,18 @@ export class CustomRenderer4jsMind {
             justify-content: center;
             align-items: center;
         `;
+        const divClipboardImageBg = mkElt("div");
+        divClipboardImageBg.style = `
+            position: absolute;
+            top: 0px;
+            bottom: 0px;
+            left: 0px;
+            right: 0px;
+            background-size: cover;
+        `;
 
-        const divClipboardImage = mkElt("div", undefined, divClipboardImageText);
+
+        const divClipboardImage = mkElt("div", undefined, [divClipboardImageBg, divClipboardImageText]);
         divClipboardImage.id = "div-clipboard-image";
         const divImgPreviewContainer = mkElt("div", undefined, divClipboardImage);
         divImgPreviewContainer.style = `
@@ -1411,12 +1376,14 @@ export class CustomRenderer4jsMind {
         // const temp = document.getElementById("div-clipboard-image-2") debugger;
         const btnClipboard = modMdc.mkMDCbutton("Clipboard", "raised");
         btnClipboard.addEventListener("click", errorHandlerAsyncEvent(async () => {
-            const added = await getBgFromClipboard(divClipboardImage);
+            const added = await getBgFromClipboard(divClipboardImageBg);
             console.log({ added });
             if (!added) return;
             setBgNodeChoiceValid(bgChoiceImgClipboard, true);
             const currentBgName = divBgChoices.querySelector("input[name=bg-choice]:checked")?.id;
             console.log({ currentBgName });
+            sliderBlur.set(0);
+            divClipboardImageBg.style.filter = null;
             // debugger;
             if (currentBgName == "bg-choice-img-clipboard") {
                 const bgValue = await getBgValueFromElt(currentBgName);
@@ -1435,7 +1402,7 @@ export class CustomRenderer4jsMind {
                 const inpBest = divFgRadios.querySelector(`#${best}-text`);
                 inpBest.checked = true;
                 applyTextToPreviewImage(inpBest);
-                
+
                 currentShapeEtc.background = modJsEditCommon.mkJmnodeBgObj(currentBgName, bgValue)
                 debounceApplyCurrentBgToCopied();
             }
@@ -1443,7 +1410,7 @@ export class CustomRenderer4jsMind {
         async function onSliderChange(val) {
             console.log("onSliderChange", val);
             const blur = val;
-            divClipboardImage.style.filter = `blur(${blur}px)`;
+            divClipboardImageBg.style.filter = `blur(${blur}px)`;
             const currentBgName = "bg-choice-img-clipboard";
             const bgValue = await getBgValueFromElt(currentBgName);
             currentShapeEtc.background = modJsEditCommon.mkJmnodeBgObj(currentBgName, bgValue)
@@ -2105,73 +2072,6 @@ export class CustomRenderer4jsMind {
         }
         */
 
-        /*
-        async function addBackupCustom(objCustom) {
-            const key = objCustom.key;
-            const provider = objCustom.provider;
-            const r = await getOurCustomRenderer();
-            const rec = await r.getCustomRec(key, provider);
-            const url = rec.url;
-            const title = rec.title;
-            const objBackup = { title, url };
-            const strBackup = JSON.stringify(objBackup);
-            detNodeChoiceCustom.dataset.backupCustom = strBackup;
-            // return rec;
-        }
-        */
-        /*
-        async function showCustomItem() {
-            if (detNodeChoiceCustom.dataset.jsmindCustom) {
-                const strCustom = detNodeChoiceCustom.dataset.jsmindCustom;
-                const objCopiedCustom = JSON.parse(strCustom);
-                // const eltCustomLink = mkElt("div", { class: "jsmind-ednode-custom-link" });
-                const key = objCopiedCustom.key;
-                const provider = objCopiedCustom.provider;
-                const r = await getOurCustomRenderer();
-                // const providerName = r.getProviderLongName(provider);
-                const rec = await r.getCustomRec(key, provider);
-
-                const divTitle = document.getElementById("ednode-cust-title");
-                if (!divTitle) throw Error("Could not find ednode-cust-title");
-                divTitle.style.lineHeight = "normal";
-                divTitle.textContent = rec.title;
-
-                if (rec.images) {
-                    const bgBlob = rec.images[0];
-                    const urlBlob = URL.createObjectURL(bgBlob);
-                    const urlBg = `url(${urlBlob})`;
-                    const divBgImage = mkElt("div");
-                    divBgImage.style.width = "80px";
-                    divBgImage.style.height = "50px";
-                    divBgImage.style.backgroundSize = "cover";
-                    divBgImage.style.backgroundImage = urlBg;
-                    // divBgImage.style.backgroundColor = "red";
-                    // const divImage = mkElt("p", undefined, divBgImage);
-                    // divShow.appendChild(divImage);
-                    const divImage = document.getElementById("ednode-cust-image");
-                    if (!divImage) throw Error("Could not find #ednode-cust-image");
-                    divImage.textContent = "";
-                    divImage.appendChild(divBgImage);
-                }
-            } else {
-                setTimeout(() => {
-                    const divTitle = document.getElementById("ednode-cust-title");
-                    divTitle.textContent = "(No custom item selected.)";
-                    const divImage = document.getElementById("ednode-cust-image");
-                    divImage.textContent = "";
-                }, 1000); 
-            }
-        }
-        */
-
-        // if (copiedWasCustom) {
-        // detNodeChoiceCustom.dataset.jsmindCustom = initCustomTopic;
-        // setTimeout(() => { detNodeChoiceCustom.scrollIntoView(); }, 500);
-        // onAnyCtrlChangeNode();
-        // }
-        // showCustomItem();
-
-        // if (strCopiedCustom) { divContent.classList.add("custom-node"); }
 
 
 
