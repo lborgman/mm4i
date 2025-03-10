@@ -359,12 +359,12 @@ export function getContrastingColorLAB(strColor) {
     const newL = l < 50 ? 85 : 15; // Make light colors dark, dark colors light
 
     // Step 3: Adjust Chromaticity for distinct contrast
-    const newA = -a; // Invert chromaticity
-    const newB = -b; // Invert chromaticity
+    let newA = -a; // Invert chromaticity
+    let newB = -b; // Invert chromaticity
 
     // (Optional): Amplify chromaticity for more vibrancy
-    // const newA = a * 1.5;
-    // const newB = b * 1.5;
+    newA = a * 1.5;
+    newB = b * 1.5;
 
     // Step 4: Convert back to RGB
     const newXyz = labToXyz({ l: newL, a: newA, b: newB });
