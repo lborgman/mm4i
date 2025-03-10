@@ -853,7 +853,7 @@ export class CustomRenderer4jsMind {
 
 
         initialShapeEtc.temp = initialTempData;
-        console.log({ copiedShapeEtc, node_copied_data, initialTempData });
+        // console.log({ copiedShapeEtc, node_copied_data, initialTempData });
 
         const currentShapeEtc = JSON.parse(JSON.stringify(initialShapeEtc));
         // blob was erased, get it back:
@@ -1312,12 +1312,15 @@ export class CustomRenderer4jsMind {
         const pContrast = mkElt("p");
         async function checkColorContrast() {
             const modContrast = await importFc4i("acc-colors");
-            const contrast = modContrast.colorContrast(inpFgColor.value, inpBgColor.value);
-            console.warn("checkColorContrast", contrast);
+            const fg = inpFgColor.value;
+            const bg = inpBgColor.value;
+            // const contrast = modContrast.colorContrast(inpFgColor.value, inpBgColor.value);
+            const contrast = modContrast.colorContrast(fg, bg);
             if (contrast > 4.5) {
                 pContrast.textContent = "Color contrast is ok.";
                 pContrast.style.color = "";
             } else {
+                console.warn("checkColorContrast, is low", { contrast, fg, bg });
                 pContrast.textContent = `Color contrast is low: ${contrast.toFixed(1)}.`;
                 pContrast.style.color = "red";
             }
@@ -1698,8 +1701,8 @@ export class CustomRenderer4jsMind {
         divBgChoices.addEventListener("input", errorHandlerAsyncEvent(async evt => {
             evt.stopPropagation();
             evt.stopImmediatePropagation();
-            console.log("hej input");
-            console.log(evt);
+            // console.log("hej input");
+            // console.log(evt);
             const target = evt.target;
             if (target.name == "bg-choice") {
                 const bgName = target.id;
@@ -2453,7 +2456,7 @@ export class CustomRenderer4jsMind {
 
         // let n = 0;
         // jsmind-ednode-parts
-        console.log({ divEdnodeParts, divEdnodeCopied });
+        // console.log({ divEdnodeParts, divEdnodeCopied });
         function onThumbMove(evts) {
             // const target = evts.target;
             const evt = evts[0] || evts;

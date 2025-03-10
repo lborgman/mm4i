@@ -1945,8 +1945,6 @@ export async function pageSetup() {
 
     // addScrollIntoViewOnSelect(jmDisplayed);
     addScrollIntoViewOnSelect();
-    // easyMDE-h
-    // const modEasyMDEhelpers = await importFc4i("easyMDE-helpers");
     const modToastUIhelpers = await importFc4i("toast-ui-helpers");
     modToastUIhelpers.setupSearchNodes({
         searchNodeFun: jsmindSearchNodes,
@@ -2119,7 +2117,7 @@ function getJmnodesFromJm(jmDisplayed) {
 
 function initialUpdateCustomAndShapes(jmDisplayed) {
     setTimeout(() => {
-        console.log("initialUpdateCustomAndShapes (in setTimeout fun)");
+        // console.log("initialUpdateCustomAndShapes (in setTimeout fun)");
         addDebugLog("initialUpdateCustomAndShapes (in setTimeout fun)");
         const eltJmnodes = getJmnodesFromJm(jmDisplayed);
         [...eltJmnodes.getElementsByTagName("jmnode")].forEach(async eltJmnode => {

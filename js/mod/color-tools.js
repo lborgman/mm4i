@@ -106,7 +106,7 @@ export function computeMixed(frontColor, backColor) {
 
 export function getBackgroundColorAtPoint(x, y, eltTop = undefined) {
     const arrElts = document.elementsFromPoint(x, y);
-    console.log({ arrElts });
+    // console.log({ arrElts });
     // Look for eltTop
     let arrOurElts = [...arrElts];
     if (eltTop) {
@@ -118,7 +118,7 @@ export function getBackgroundColorAtPoint(x, y, eltTop = undefined) {
             }
         }
     }
-    console.log({ arrOurElts });
+    // console.log({ arrOurElts });
     const arrColorFiltered = arrOurElts.map(elt => {
         const st = getComputedStyle(elt);
         const stOpacity = st.opacity;
@@ -130,23 +130,23 @@ export function getBackgroundColorAtPoint(x, y, eltTop = undefined) {
         const opacity = stOpacity * rgbaOpacity;
         if (opacity == 0) return;
         const backgroundImage = st.backgroundImage;
-        console.log({ stOpacity, rgbaOpacity, opacity, backgroundColor, arrRgba, backgroundImage });
+        // console.log({ stOpacity, rgbaOpacity, opacity, backgroundColor, arrRgba, backgroundImage });
         arrRgba[3] = 255 * opacity;
         const rgba = arrToRgba(arrRgba);
         // return rgba;
         return { rgba, elt };
     })
         .filter(val => val != undefined);
-    console.log({ arrColorFiltered });
+    // console.log({ arrColorFiltered });
     let nonTransColor = arrColorFiltered.pop().rgba;
-    console.log({ nonTransColor });
+    // console.log({ nonTransColor });
     let transColorObj = arrColorFiltered.pop();
     while (transColorObj) {
         console.log({ transColorObj });
         nonTransColor = computeMixed(transColorObj.rgba, nonTransColor);
         transColorObj = arrColorFiltered.pop();
     }
-    console.log({ nonTransColor });
+    // console.log({ nonTransColor });
     return nonTransColor;
 }
 
@@ -357,11 +357,8 @@ export function getContrastingColorLAB(strColor) {
 // Example Usage:
 const avgColor = "red"
 const contrastingColor = getContrastingColorLAB(avgColor);
-// console.log(`LAB-based contrasting color to rgb(${avgColor.join(",")}): rgb(${contrastingColor.join(",")})`);
-console.log(`LAB-based contrasting color to ${avgColor}): rgb(${contrastingColor})`);
-// const rgb1 = `rgb(${avgColor.join(",")})`;
+// console.log(`LAB-based contrasting color to ${avgColor}): rgb(${contrastingColor})`);
 const rgb1 = JSON.stringify(avgColor);
-// const rgb2 = `rgb(${contrastingColor.join(",")})`;
 const rgb2 = JSON.stringify(contrastingColor);
 console.log(`LAB-based contrasting color to %c${rgb1}%c: %c${rgb2}`, `background:${rgb1}`, "", `background:${rgb2}`);
 
