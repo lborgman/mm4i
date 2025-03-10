@@ -157,7 +157,7 @@ export function getBackgroundColorAtPoint(x, y, eltTop = undefined) {
 // https://stackoverflow.com/questions/1573053/javascript-function-to-convert-color-names-to-hex-codes/47355187#47355187
 // https://issues.chromium.org/issues/401731818
 export function standardizeColorTo6Hex(strColor) {
-    console.log(">>> standardizeColorTo6Hex IN", { strColor });
+    // console.log(">>> standardizeColorTo6Hex IN", { strColor });
     const colorIn = strColor.trim().replaceAll(" ", "");
     // console.log("Input length:", strColor.length);
     // console.log("Input char codes:", [...strColor].map(c => String.fromCharCode(c.charCodeAt(0))));
@@ -172,16 +172,12 @@ export function standardizeColorTo6Hex(strColor) {
             case "#000000":
                 break;
             default:
-                const msg = `standardizeColorTo6Hex: ${strColor} => ${ctx.fillStyle}`;
+                const msg = `standardizeColorTo6Hex, bad color?: ${strColor} => ${ctx.fillStyle}`;
                 console.error(msg);
-                if (strColor.startsWith("rgb(")) {
-                    colorOut = rgbStringToHex(strColor);
-                } else {
-                    throw Error(msg);
-                }
+                throw Error(msg);
         }
     }
-    console.log(">>> standardizeColorTo6Hex OUT", colorOut);
+    // console.log(">>> standardizeColorTo6Hex OUT", colorOut);
     return colorOut;
 }
 // export function to6HexColor(color) { return standardizeColorTo6Hex(color); }

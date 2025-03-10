@@ -490,7 +490,7 @@ const jmnodesBgNames = [
     "bg-choice-none",
     "bg-choice-pattern",
     "bg-choice-color",
-    "bg-choice-img-link",
+    // "bg-choice-img-link",
     "bg-choice-img-clipboard",
 ];
 export function checkJmnodesBgName(bgName) {
@@ -600,10 +600,7 @@ export async function applyShapeEtcBg(bgName, bgValue, bgTheme, eltJmnode) {
             const color = bgValue;
             eltBg.style.backgroundColor = color;
             break;
-        case "bg-choice-img-link":
-            const url = bgValue;
-            eltBg.style.backgroundImage = `url("${url}")`;
-            break;
+        // case "bg-choice-img-link": const url = bgValue; eltBg.style.backgroundImage = `url("${url}")`; break;
         case "bg-choice-img-clipboard":
             let objectUrl;
             let blob, blurValue, isDark, fgColor;

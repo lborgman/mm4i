@@ -1017,59 +1017,60 @@ export class CustomRenderer4jsMind {
                     inpBgColor.value = modColorTools.standardizeColorTo6Hex(bgVal);
                     detBgColor.open = true;
                     break;
-                case "bg-choice-img-link":
-                    debugger; // eslint-disable-line no-debugger
-                    console.log({ detLink, divLink, tfImageUrl });
-                    const funFocusLink = () => {
-                        setTimeout(() => tfImageUrl.focus(), 500);
-                    }
-                    document.addEventListener("scrollend", funFocusLink, { once: true });
-                    // url(...)
-                    inpImageUrl.value = cssVal.trim().slice(4, -1);
-                    divImgPreview.style.backgroundImage = cssVal;
-                    detLink.open = true;
-                    break;
                 case "bg-choice-img-clipboard":
-                    // clipImage
                     {
-                        let blob, blurVal;
+                        let blob, blurVal, fgColor;
                         blob = bgVal;
                         blurVal = "9";
                         // New format?
                         if (bgVal.blob) {
                             blob = bgVal.blob;
                             blurVal = bgVal.blur;
+                            // debugger;
+                            fgColor = bgVal.fgColor;
                         }
                         const blur = `blur(${blurVal}px)`;
                         clipImage.blob = blob;
                         const objectUrl = URL.createObjectURL(blob);
                         setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+
                         const divClipboardImage = document.getElementById("div-clipboard-image");
                         if (!divClipboardImage) throw Error("Could not find #div-cliboard-image");
                         divClipboardImage.style.backgroundImage = `url("${objectUrl}")`;
                         divClipboardImage.style.filter = blur;
-                        inpBlur.value = blurVal;
+
+                        // inpBlur.value = blurVal;
                         sliderBlur.set(blurVal);
 
                         (async () => {
+                            // debugger;
                             const darkBg = await modColorTools.getDataForTextOnImage(objectUrl);
                             console.log({ darkBg });
                             divFgAccColor.textContent = `darkBg: ${JSON.stringify(darkBg)}`;
                             divFgRadios.style.backgroundColor = darkBg.avgHexColor;
-                            if (darkBg.isDark) {
-                                inpWhite.checked = true;
-                            } else {
-                                inpBlack.checked = true;
-                            }
+                            // if (darkBg.isDark) { inpWhite.checked = true; } else { inpBlack.checked = true; }
                             const inpColor = mkElt("input", { type: "radio", name: "black-or-white", id: "colored-text" })
                             inpColor.dataset.color = darkBg.contrastColor;
+                            const contrastColor = darkBg.contrastColor;
                             const lblColor = mkElt("label", undefined, [
                                 inpColor,
-                                // "colored"
-                                darkBg.contrastColor
+                                contrastColor
                             ]);
-                            lblColor.style.color = darkBg.contrastColor;
+                            lblColor.style.color = contrastColor;
                             divFgRadios.appendChild(lblColor);
+                            let idText = "colored-text";
+                            switch (fgColor) {
+                                case "black":
+                                    idText = "black-text";
+                                    break;
+                                case "white":
+                                    idText = "white-text";
+                                    break;
+                            }
+                            const inpTextChoice = document.getElementById(idText);
+                            if (!inpTextChoice) throw Error(`Could not find #${idText}`);
+                            inpTextChoice.checked = true;
+                            // if (contrastColor != fgColor) { debugger; }
                         })();
 
                         const d = rad.closest("div.bg-choice");
@@ -1380,120 +1381,31 @@ export class CustomRenderer4jsMind {
 
         const bgChoiceNone = mkBgChoice("bg-choice-none", "No special");
         setBgNodeChoiceValid(bgChoiceNone, true);
-        const radChoiceNone = bgChoiceNone.querySelector("#bg-choice-none");
-        // radChoiceLink = divChoices.querySelector("#bg-choice-img-link");
+        // const radChoiceNone = bgChoiceNone.querySelector("#bg-choice-none");
 
-        const inpImageUrl = modMdc.mkMDCtextFieldInput(undefined, "url");
-        const tfImageUrl = modMdc.mkMDCtextField("Image link", inpImageUrl);
+        const divImgPreviewText = mkElt("div", undefined, "TEMP");
+        divImgPreviewText.style = `
+            position: absolute;
+            top: 0px;
+            bottom: 0px;
+            left: 0px;
+            right: 0px;
+            background: transparent;
+            color: red;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        `;
 
-        const divImgPreview = mkElt("div");
-        divImgPreview.classList.add("jmnode-bg");
-        divImgPreview.style.height = 100;
-        divImgPreview.style.width = 100;
-        // divImgPreview.style.backgroundColor = "lightgray";
-        // divImgPreview.style.backgroundSize = "contain";
-        // divImgPreview.style.backgroundRepeat = "no-repeat";
-        // divImgPreview.style.backgroundPosition = "center";
-
-        let radChoiceLink;
-
-        const imgPreview = new Image();
-        imgPreview.onload = () => {
-            const src = imgPreview.src;
-            console.log("onload", src);
-            // divImgPreview.style.backgroundImage = `url(${src})`;
-            // divImgPreview.style.backgroundColor = "lightgray";
-            const cssBgValue = {
-                "background-color": "lightgray",
-                "background-size": "cover",
-                "background-repeat": "no-repeat",
-                "background-position": "center",
-                "background-image": `url(${src})`,
-                // "min-width": "100px",
-                // "width": "100px",
-            };
-            applyBgCssValue(divImgPreview, cssBgValue);
-            // radChoiceLink.disabled = false;
-            debounceApplyCurrentBgToCopied();
-        };
-        imgPreview.onerror = (evt) => {
-            const src = imgPreview.src;
-            const wasValid = inpImageUrl.checkValidity();
-            // There is no info in evt.
-            console.log("onerror", wasValid, src, evt);
-            if (!wasValid) return;
-            // divImgPreview.style.backgroundColor = "red";
-            // divImgPreview.style.backgroundImage = "none";
-            const cssBgValue = {
-                "background-color": "red",
-            };
-            applyBgCssValue(divImgPreview, cssBgValue);
-            modMdc.setValidityMDC(inpImageUrl, "Not an image");
-            badImgLinkUrl();
-            debounceApplyCurrentBgToCopied();
-        };
-        function badImgLinkUrl() {
-            // radChoiceLink.disabled = true;
-            radChoiceNone.checked = true;
-        }
-        const checkImageUrl = async () => {
-            console.log("checkImageUrl");
-            // FIX-ME: debounce
-            // radChoiceLink.disabled = true;
-            // const targ = evt.target;
-            const maybeUrl = inpImageUrl.value.trim();
-            console.log({ maybeUrl });
-            if (maybeUrl == "") {
-                modMdc.setValidityMDC(inpImageUrl, "");
-                badImgLinkUrl();
-                divImgPreview.style.backgroundColor = "lightgray";
-                divImgPreview.style.backgroundImage = "none";
-                return;
-            }
-            const isValid = modTools.isValidUrl(maybeUrl);
-            if (true == isValid) {
-                radChoiceLink.checked = true;
-                // radChoiceLink.disabled = false;
-                modMdc.setValidityMDC(inpImageUrl, "");
-                imgPreview.src = maybeUrl;
-            } else {
-                divImgPreview.style.backgroundColor = "yellow";
-                divImgPreview.style.backgroundImage = "none";
-                const wasValid = inpImageUrl.checkValidity();
-                modMdc.setValidityMDC(inpImageUrl, `Not a link (${modTools.getUrllNotValidMsg(isValid)})`);
-                badImgLinkUrl();
-                if (!wasValid) return;
-                imgPreview.src = "";
-            }
-        }
-        const debounceCheckImageUrl = debounce(checkImageUrl, 1500);
-        inpImageUrl.addEventListener("input", errorHandlerAsyncEvent(async () => {
-            debounceCheckImageUrl();
-        }));
-        const btnNote = modMdc.mkMDCiconButton("info", "Test info");
-        btnNote.style.verticalAlign = "top";
-        btnNote.style.marginTop = "-10px";
-        btnNote.addEventListener("click", errorHandlerAsyncEvent(async () => {
-            modMdc.mkMDCdialogAlert(
-                `This might not work because using the image is prevented.
-                If however you can see the image below it does work.`,
-                "Close"
-            );
-        }));
-        const divImgPreviewContainer = mkElt("div", undefined, divImgPreview);
+        const divClipboardImage = mkElt("div", undefined, divImgPreviewText);
+        divClipboardImage.id = "div-clipboard-image";
+        const divImgPreviewContainer = mkElt("div", undefined, divClipboardImage);
         divImgPreviewContainer.style = `
             min-width: 100px;
             width: 100px;
         `;
-        const divLink = mkElt("div", undefined, [
-            mkElt("div", undefined, [`Link to image on the web. `, btnNote,]),
-            tfImageUrl,
-            // mkElt("div", undefined, divImgPreview)
-            divImgPreviewContainer
-        ]);
 
-        const divClipboardImage = mkElt("div");
-        divClipboardImage.id = "div-clipboard-image";
+        // const temp = document.getElementById("div-clipboard-image-2") debugger;
         const btnClipboard = modMdc.mkMDCbutton("Clipboard", "raised");
         btnClipboard.addEventListener("click", errorHandlerAsyncEvent(async () => {
             const added = await getBgFromClipboard(divClipboardImage);
@@ -1510,18 +1422,6 @@ export class CustomRenderer4jsMind {
                 debounceApplyCurrentBgToCopied();
             }
         }));
-        // const sli
-        // async function mkSlider4shapeEtc(pathShEtc, eltCont, min, max, defaultVal, step, title, funChgThis) {
-        // const inpBlur = mkElt("input", { type: "number", max: 5, min: 0, step: 0.5, value: 0 });
-        const inpBlur = modMdc.mkMDCtextFieldInput(undefined, "number");
-        inpBlur.style.width = "80px";
-        inpBlur.addEventListener("input", _evt => {
-            const blur = inpBlur.value;
-            console.log("inpBlur", blur);
-            divClipboardImage.style.filter = `blur(${blur}px)`;
-        });
-        // const tfBlur = modMdc.mkMDCtextFieldOutlined("Blur", inpBlur);
-        // const lblBlur = mkElt("label", undefined, ["Blur: ", inpBlur]);
         async function onSliderChange(val) {
             console.log("onSliderChange", val);
             const blur = val;
@@ -1534,7 +1434,7 @@ export class CustomRenderer4jsMind {
         function onSliderInput(val) { console.log("onSliderInput", val); }
 
         const divInfoAcc = mkElt("div", undefined,
-            "You can make node text more visible by blurring the image and choose text color."
+            "You can make node text more readable both by text color and by blurring the image."
         );
         const { eltSlider: eltSliderBlur, slider: sliderBlur } = await modMdc.mkMDCslider(0, 5, 0, undefined, "blur", onSliderChange, onSliderInput, false);
         // const sliderBlur = slider;
@@ -1557,10 +1457,10 @@ export class CustomRenderer4jsMind {
             gap: 10px;
             padding: 10px;
         `;
-        const divText = mkElt("div", undefined, [
+        const divFgText = mkElt("div", undefined, [
             divFgRadios
         ]);
-        divText.style = `
+        divFgText.style = `
             display: flex;
             gap: 5px;
         `;
@@ -1579,18 +1479,15 @@ export class CustomRenderer4jsMind {
         `;
 
         const divBlur = mkElt("div", undefined, [
-            divInfoAcc,
-            // eltSliderBlur,
+            divFgText,
             sliderBlurContainer,
-            // divFgRadios,
-            divText,
+            divInfoAcc,
             divFgAccColor,
         ]);
         divBlur.id = "div-from-clipboard-blur";
         // debugger;
         divImgPreviewContainer.appendChild(divClipboardImage);
         const divFromClipboard = mkElt("div", undefined, [
-            // divClipboardImage,
             divImgPreviewContainer,
             divBlur,
         ]);
@@ -1603,6 +1500,7 @@ export class CustomRenderer4jsMind {
             btnClipboard,
             divFromClipboard
         ]);
+
 
 
         const divImgPatternPreview = mkElt("div");
@@ -1712,6 +1610,7 @@ export class CustomRenderer4jsMind {
 
 
 
+        /*
         const detLink = mkElt("details", undefined, [
             mkElt("summary", undefined, "Edit link"),
             divLink
@@ -1724,6 +1623,7 @@ export class CustomRenderer4jsMind {
                 }
             }, 100);
         });
+        */
         const detClipboard = mkElt("details", undefined, [
             mkElt("summary", undefined, "Add clipboard image"),
             divClipboard
@@ -1742,8 +1642,8 @@ export class CustomRenderer4jsMind {
             }, 1000);
         });
 
-        const bgChoiceImgLink = mkBgChoice("bg-choice-img-link", "Link image", detLink);
-        setBgNodeChoiceValid(bgChoiceImgLink, false);
+        // const bgChoiceImgLink = mkBgChoice("bg-choice-img-link", "Link image", detLink);
+        // setBgNodeChoiceValid(bgChoiceImgLink, false);
 
         const bgChoiceImgClipboard = mkBgChoice("bg-choice-img-clipboard", "Clipboard image", detClipboard);
         setBgNodeChoiceValid(bgChoiceImgClipboard, false);
@@ -1758,8 +1658,8 @@ export class CustomRenderer4jsMind {
             bgChoiceImgClipboard,
             bgChoicePattern,
         ]);
-        radChoiceLink = divBgChoices.querySelector("#bg-choice-img-link");
-        console.log({ radChoiceLink });
+        // radChoiceLink = divBgChoices.querySelector("#bg-choice-img-link");
+        // console.log({ radChoiceLink });
         setBgChoiceThis(bgChoiceNone);
         divBgChoices.addEventListener("input", errorHandlerAsyncEvent(async evt => {
             evt.stopPropagation();
@@ -1817,9 +1717,7 @@ export class CustomRenderer4jsMind {
                 case "bg-choice-color":
                     bgValue = inpBgColor.value.trim();
                     break;
-                case "bg-choice-img-link":
-                    bgValue = inpImageUrl.value.trim();
-                    break;
+                // case "bg-choice-img-link": bgValue = inpImageUrl.value.trim(); break;
                 case "bg-choice-pattern":
                     bgValue = taImgPattern.value.trim();
                     break;
