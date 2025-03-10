@@ -129,7 +129,7 @@ export function getBackgroundColorAtPoint(x, y, eltTop = undefined) {
         // if (rgbaOpacity == 0) return;
         const opacity = stOpacity * rgbaOpacity;
         if (opacity == 0) return;
-        const backgroundImage = st.backgroundImage;
+        // const backgroundImage = st.backgroundImage;
         // console.log({ stOpacity, rgbaOpacity, opacity, backgroundColor, arrRgba, backgroundImage });
         arrRgba[3] = 255 * opacity;
         const rgba = arrToRgba(arrRgba);
@@ -312,12 +312,21 @@ export async function getDataForTextOnImage(srcImg) {
             const avgHexColor = standardizeColorTo6Hex(avgRgbColor);
             const contrastColorRGB = getContrastingColorLAB(avgHexColor);
             const contrastColor = rgbToHEX(contrastColorRGB);
+            const coloredContrast = contrastRatio(avgColorRGB, contrastColorRGB);
+            console.log({ colorContrast: coloredContrast });
+            // debugger;
+
+            const whiteContrast = contrastRatio(avgColorRGB, { r: 255, g: 255, b: 255 });
+            const blackContrast = contrastRatio(avgColorRGB, { r: 0, g: 0, b: 0 });
 
             resolve({
                 isDark, brightness,
                 // avgColorLAB, avgColorXYZ, avgColorRGB, avgRgbColor,
                 avgHexColor,
                 contrastColor,
+                coloredContrast,
+                whiteContrast,
+                blackContrast,
             });
         }
         img.src = srcImg;
@@ -531,6 +540,42 @@ export function calculateAvgColorLab(imageData) {
 // Example Usage:
 // const avgLabColor = calculateAvgColorLab(imageData);
 // console.log(`Average LAB color: L=${avgLabColor.l}, a=${avgLabColor.a}, b=${avgLabColor.b}`);
+
+/*
+  From Microsoft Copilot
+  Here's a simple JavaScript function to calculate the contrast ratio between two colors.
+  The function takes two colors in RGB format and computes their
+  contrast ratio according to the WCAG (Web Content Accessibility Guidelines):
+*/
+export function getLuminance(objRGB) {
+    const { r, g, b } = objRGB;
+    let channel = [r, g, b].map(value => {
+        value /= 255; // Convert to a fraction
+        return value <= 0.03928 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * channel[0] + 0.7152 * channel[1] + 0.0722 * channel[2];
+}
+export function contrastRatio(objRGB1, objRGB2) {
+    const { r1, g1, b1 } = objRGB1;
+    const { r2, g2, b2 } = objRGB2;
+
+    // const lum1 = getLuminance(r1, g1, b1);
+    const lum1 = getLuminance(objRGB1);
+    // const lum2 = getLuminance(r2, g2, b2);
+    const lum2 = getLuminance(objRGB2);
+
+    // L1 is the brighter luminance, L2 is the dimmer one
+    const brighter = Math.max(lum1, lum2);
+    const dimmer = Math.min(lum1, lum2);
+
+    return (brighter + 0.05) / (dimmer + 0.05);
+}
+
+// Example usage
+const color1 = [255, 255, 255]; // White
+const color2 = [0, 0, 0];       // Black
+
+console.log("Contrast Ratio:", contrastRatio(color1, color2));
 
 
 function assertNumber(n) { if (Number.isNaN(n)) { throw Error(`Not a number: ${n}`); } }

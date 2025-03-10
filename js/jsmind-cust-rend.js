@@ -1044,14 +1044,14 @@ export class CustomRenderer4jsMind {
 
                         (async () => {
                             // debugger;
-                            const darkBg = await modColorTools.getDataForTextOnImage(objectUrl);
-                            console.log({ darkBg });
-                            divFgAccColor.textContent = `darkBg: ${JSON.stringify(darkBg)}`;
-                            divFgRadios.style.backgroundColor = darkBg.avgHexColor;
+                            const objTextImage = await modColorTools.getDataForTextOnImage(objectUrl);
+                            console.log({ objTextImage });
+                            divFgAccColor.textContent = `objTextImage: ${JSON.stringify(objTextImage, undefined, 4)}`;
+                            divFgRadios.style.backgroundColor = objTextImage.avgHexColor;
                             // if (darkBg.isDark) { inpWhite.checked = true; } else { inpBlack.checked = true; }
                             const inpColor = mkElt("input", { type: "radio", name: "black-or-white", id: "colored-text" })
-                            inpColor.dataset.color = darkBg.contrastColor;
-                            const contrastColor = darkBg.contrastColor;
+                            inpColor.dataset.color = objTextImage.contrastColor;
+                            const contrastColor = objTextImage.contrastColor;
                             const lblColor = mkElt("label", undefined, [
                                 inpColor,
                                 contrastColor
@@ -1445,6 +1445,7 @@ export class CustomRenderer4jsMind {
 
         const divFgAccColor = mkElt("div");
         divFgAccColor.style.overflowWrap = "anywhere";
+        divFgAccColor.style.whiteSpace = "pre";
 
         const inpBlack = mkElt("input", { type: "radio", name: "black-or-white", id: "black-text" })
         const lblBlack = mkElt("label", undefined, [inpBlack, "black"]);
