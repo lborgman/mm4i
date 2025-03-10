@@ -1070,7 +1070,7 @@ export class CustomRenderer4jsMind {
                             const inpTextChoice = document.getElementById(idText);
                             if (!inpTextChoice) throw Error(`Could not find #${idText}`);
                             inpTextChoice.checked = true;
-                            // if (contrastColor != fgColor) { debugger; }
+                            applyTextToPreviewImage(inpTextChoice);
                         })();
 
                         const d = rad.closest("div.bg-choice");
@@ -1383,8 +1383,8 @@ export class CustomRenderer4jsMind {
         setBgNodeChoiceValid(bgChoiceNone, true);
         // const radChoiceNone = bgChoiceNone.querySelector("#bg-choice-none");
 
-        const divImgPreviewText = mkElt("div", undefined, "TEMP");
-        divImgPreviewText.style = `
+        const divClipboardImageText = mkElt("div", undefined, "TEMP");
+        divClipboardImageText.style = `
             position: absolute;
             top: 0px;
             bottom: 0px;
@@ -1397,7 +1397,7 @@ export class CustomRenderer4jsMind {
             align-items: center;
         `;
 
-        const divClipboardImage = mkElt("div", undefined, divImgPreviewText);
+        const divClipboardImage = mkElt("div", undefined, divClipboardImageText);
         divClipboardImage.id = "div-clipboard-image";
         const divImgPreviewContainer = mkElt("div", undefined, divClipboardImage);
         divImgPreviewContainer.style = `
@@ -1457,6 +1457,12 @@ export class CustomRenderer4jsMind {
             gap: 10px;
             padding: 10px;
         `;
+        divFgRadios.addEventListener("change", evt => {
+            if (evt.target.name != "black-or-white") throw Error("evt.target.name != black-or-white");
+            // console.log(evt.target.id);
+            const target = evt.target;
+            applyTextToPreviewImage(target);
+        })
         const divFgText = mkElt("div", undefined, [
             divFgRadios
         ]);
@@ -1464,6 +1470,34 @@ export class CustomRenderer4jsMind {
             display: flex;
             gap: 5px;
         `;
+
+        function applyTextToPreviewImage(inpradioTextChoice) {
+            console.log({ inpradioTextChoice });
+            const tn = inpradioTextChoice.tagName;
+            // debugger;
+            if (tn != "INPUT") throw Error(`Expected tagName "INPUT", got "${tn}"`);
+            const type = inpradioTextChoice.type;
+            if (type != "radio") throw Error(`Expected type "radio", got "${type}"`);
+            let color;
+            const textChoiceId = inpradioTextChoice.id;
+            switch (textChoiceId) {
+                case "white-text":
+                    color = "white";
+                    break;
+                case "black-text":
+                    color = "black";
+                    break;
+                case "colored-text":
+                    color = "FIX-ME";
+                    const parent = inpradioTextChoice.parentElement;
+                    color = parent.textContent;
+                    break;
+                default:
+                    throw Error(`Unknown textChoice.id: ${inpradioTextChoice.id}`);
+            }
+            divClipboardImageText.style.color = color;
+            divClipboardImageText.textContent = color;
+        }
 
         // const divBlur = mkElt("div", undefined, [tfBlur, eltSlider]);
         const sliderBlurContainer = mkElt("div", undefined, [
