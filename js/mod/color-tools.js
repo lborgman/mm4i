@@ -199,13 +199,14 @@ function rgbStringToHex(rgbStr) {
 
 /**
  * 
- * @param {ObjectRGB} rgb 
+ * @param {ObjectRGB} objRGB 
  * @returns {string}
  */
-function rgbToHEX(rgb) {
-    const { r, g, b } = rgb;
+function RGBtoHEX(objRGB) {
+    assertObjectColor(objRGB);
+    const { R, G, B } = objRGB;
     const hex = n => n.toString(16).padStart(2, "0");
-    return `#${hex(r)}${hex(g)}${hex(b)}`;
+    return `#${hex(R)}${hex(G)}${hex(B)}`;
 }
 
 // debugger;
@@ -304,14 +305,14 @@ export async function getDataForTextOnImage(srcImg) {
             // debugger;
             const avgColorLAB = calculateAvgColorLab(imageData);
             // const avgColorXYZ = labToXyz(avgColorLAB.l, avgColorLAB.a, avgColorLAB.b);
-            const avgColorXYZ = labToXyz(avgColorLAB);
-            const avgColorRGB = xyzToRgb(avgColorXYZ);
+            const avgColorXYZ = CEILabToXYZ(avgColorLAB);
+            const avgColorRGB = XYZtoRGB(avgColorXYZ);
             // rgbtohex
             // const avgRgbColor = `rbg(${avgColorRGB.join(",")})`;
             const avgRgbColor = `rgb(${avgColorRGB.r}, ${avgColorRGB.g}, ${avgColorRGB.b})`;
             const avgHexColor = standardizeColorTo6Hex(avgRgbColor);
-            const contrastColorRGB = getContrastingColorLAB(avgHexColor);
-            const contrastColor = rgbToHEX(contrastColorRGB);
+            const contrastColorRGB = getCEILabContrastRGB(avgHexColor);
+            const contrastColor = RGBtoHEX(contrastColorRGB);
             const coloredContrast = contrastRatio(avgColorRGB, contrastColorRGB).toFixed(1);
             console.log({ colorContrast: coloredContrast });
             // debugger;
@@ -347,100 +348,121 @@ export async function getDataForTextOnImage(srcImg) {
 
 /*** Color contrast using CIE-LAB */
 // hexto
-export function getContrastingColorLAB(strColor) {
+export function getCEILabContrastRGB(strColor) {
+    if (strColor == "red") debugger;
     const hexColor = standardizeColorTo6Hex(strColor);
     const objRGB = hexToRGB(hexColor);
 
     // Step 1: Convert RGB to LAB
-    const xyz = rgbToXyz(objRGB);
-    const { l, a, b } = xyzToLab(xyz);
+    const objXYZ = RGBtoXYZ(objRGB);
+    const objCEILab = XYZtoCEILab(objXYZ);
+    const { L, a, b } = objCEILab;
 
     // Step 2: Adjust Lightness for contrast
-    const newL = l < 50 ? 85 : 15; // Make light colors dark, dark colors light
+    const newL = L < 50 ? 85 : 15; // Make light colors dark, dark colors light
 
     // Step 3: Adjust Chromaticity for distinct contrast
     let newA = -a; // Invert chromaticity
     let newB = -b; // Invert chromaticity
 
     // (Optional): Amplify chromaticity for more vibrancy
-    newA = a * 1.5;
-    newB = b * 1.5;
+    // newA = a * 1.5;
+    // newB = b * 1.5;
 
     // Step 4: Convert back to RGB
-    const newXyz = labToXyz({ l: newL, a: newA, b: newB });
-    return xyzToRgb(newXyz);
+    const newXYZ = CEILabToXYZ({ L: newL, a: newA, b: newB });
+    return XYZtoRGB(newXYZ);
 }
 
 
 
 // Example Usage:
-const avgColor = "red"
-const contrastingColor = getContrastingColorLAB(avgColor);
+const strColor = "red"
+const contrastingColor = getCEILabContrastRGB(strColor);
 // console.log(`LAB-based contrasting color to ${avgColor}): rgb(${contrastingColor})`);
-const rgb1 = JSON.stringify(avgColor);
-const rgb2 = JSON.stringify(contrastingColor);
-console.log(`LAB-based contrasting color to %c${rgb1}%c: %c${rgb2}`, `background:${rgb1}`, "", `background:${rgb2}`);
+// const rgb1 = JSON.stringify(avgColor);
+// const rgb2 = JSON.stringify(contrastingColor);
+const hex2 = RGBtoHEX(contrastingColor);
+console.log(`LAB-based contrasting color to %c${strColor}%c: %c${hex2}`, `background:${strColor}`, "", `background:${hex2}`);
 
 
 
 function hexToRGB(strHex) {
-    const r = getHexR(strHex);
-    const g = getHexG(strHex);
-    const b = getHexB(strHex);
-    return { r, g, b };
+    const R = getHexR(strHex);
+    const G = getHexG(strHex);
+    const B = getHexB(strHex);
+    return { R, G, B };
 }
 
 // Convert sRGB to XYZ (helper functions)
 /**
  * 
- * @param {ObjectRGB} rgb 
+ * @param {ObjectRGB} objRGB 
  * @returns {ObjectXYZ} 
  */
-function rgbToXyz(rgb) {
-    const { r, g, b } = rgb;
+function RGBtoXYZ(objRGB) {
+    assertObjectColor(objRGB);
+    const { R, G, B } = objRGB;
+
+    // Removes gamma encoding, independent of illumination (like D65)
     const linearize = (value) => {
         value /= 255;
         return value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
     };
 
-    const rL = linearize(r);
-    const gL = linearize(g);
-    const bL = linearize(b);
+    const rL = linearize(R);
+    const gL = linearize(G);
+    const bL = linearize(B);
 
-    const x = rL * 0.4124564 + gL * 0.3575761 + bL * 0.1804375;
-    const y = rL * 0.2126729 + gL * 0.7151522 + bL * 0.0721750;
-    const z = rL * 0.0193339 + gL * 0.1191920 + bL * 0.9503041;
+    // Assumes D65
+    const X = rL * 0.4124564 + gL * 0.3575761 + bL * 0.1804375;
+    const Y = rL * 0.2126729 + gL * 0.7151522 + bL * 0.0721750;
+    const Z = rL * 0.0193339 + gL * 0.1191920 + bL * 0.9503041;
 
-    return { x, y, z };
+    return { X, Y, Z };
 }
 
 // Convert XYZ to LAB
 /**
  * 
- * @param {ObjectXYZ} xyz
- * @returns {ObjectLAB}
+ * @param {ObjectXYZ} objXYZ
+ * @returns {ObjectCEILab}
  */
-function xyzToLab(xyz) {
-    const { x, y, z } = xyz
-    const refX = 0.95047; // Reference white D65
+function XYZtoCEILab(objXYZ) {
+    const { X, Y, Z } = objXYZ
+
+    // This step assumes D65
+    // Called "normalize XYZ" and should be used when converting to LAB
+    const refX = 0.95047;
     const refY = 1.00000;
     const refZ = 1.08883;
+    const xr = X / refX;
+    const yr = Y / refY;
+    const zr = Z / refZ;
 
-    const xr = x / refX;
-    const yr = y / refY;
-    const zr = z / refZ;
 
     const f = (value) => (value > 0.008856 ? Math.pow(value, 1 / 3) : (7.787 * value) + (16 / 116));
 
-    return {
-        l: (116 * f(yr)) - 16,
-        a: 500 * (f(xr) - f(yr)),
-        b: 200 * (f(yr) - f(zr)),
-    };
+    const fxr = f(xr);
+    const fyr = f(yr);
+    const fzr = f(zr);
+
+    const L = (116 * fyr) - 16;
+    const a = 500 * (fxr - fyr);
+    const b = 200 * (fyr - fzr);
+    // L, a, b are used for CEILAB
+    return { L, a, b }
+    /*
+return {
+    l: (116 * f(yr)) - 16,
+    a: 500 * (f(xr) - f(yr)),
+    b: 200 * (f(yr) - f(zr)),
+};
+    */
 }
 
 /**
- * @typedef {Object} ObjectLAB
+ * @typedef {Object} ObjectCEILab
  * @property {number} l
  * @property {number} a
  * @property {number} b
@@ -463,54 +485,57 @@ function xyzToLab(xyz) {
 // Convert LAB back to XYZ
 /**
  * 
- * @param {ObjectLAB} objLab 
+ * @param {ObjectCEILab} objLab 
  * @returns {ObjectXYZ}
  */
-function labToXyz(objLab) {
-    assertObject(objLab);
-    const { l, a, b } = objLab;
+function CEILabToXYZ(objLab) {
+    assertObjectColor(objLab);
+    const { L, a, b } = objLab;
     const refX = 0.95047;
     const refY = 1.00000;
     const refZ = 1.08883;
 
-    const fy = (l + 16) / 116;
+    const fy = (L + 16) / 116;
     const fx = a / 500 + fy;
     const fz = fy - b / 200;
 
-    const x = refX * (fx > 0.206893 ? Math.pow(fx, 3) : (fx - 16 / 116) / 7.787);
-    const y = refY * (fy > 0.206893 ? Math.pow(fy, 3) : (fy - 16 / 116) / 7.787);
-    const z = refZ * (fz > 0.206893 ? Math.pow(fz, 3) : (fz - 16 / 116) / 7.787);
+    const X = refX * (fx > 0.206893 ? Math.pow(fx, 3) : (fx - 16 / 116) / 7.787);
+    const Y = refY * (fy > 0.206893 ? Math.pow(fy, 3) : (fy - 16 / 116) / 7.787);
+    const Z = refZ * (fz > 0.206893 ? Math.pow(fz, 3) : (fz - 16 / 116) / 7.787);
 
-    return { x, y, z };
+    return { X, Y, Z };
 }
 
 // Convert XYZ back to RGB
 /**
  * 
- * @param {ObjectXYZ} objXyz 
+ * @param {ObjectXYZ} objXYZ 
  * @returns {ObjectRGB}
  */
-function xyzToRgb(objXyz) {
-    const { x, y, z } = objXyz;
-    const rRaw = x * 3.2404542 - y * 1.5371385 - z * 0.4985314;
-    const gRaw = -x * 0.9692660 + y * 1.8760108 + z * 0.0415560;
-    const bRaw = x * 0.0556434 - y * 0.2040259 + z * 1.0572252;
+function XYZtoRGB(objXYZ) {
+    assertObjectColor(objXYZ);
+    const { X, Y, Z } = objXYZ;
+    const rRaw = X * 3.2404542 - Y * 1.5371385 - Z * 0.4985314;
+    const gRaw = -X * 0.9692660 + Y * 1.8760108 + Z * 0.0415560;
+    const bRaw = X * 0.0556434 - Y * 0.2040259 + Z * 1.0572252;
 
     const delinearize = (value) => {
         return value <= 0.0031308 ? value * 12.92 : 1.055 * Math.pow(value, 1 / 2.4) - 0.055;
     };
 
-    /*
-    return [
-        Math.round(Math.max(0, Math.min(1, delinearize(r))) * 255),
-        Math.round(Math.max(0, Math.min(1, delinearize(g))) * 255),
-        Math.round(Math.max(0, Math.min(1, delinearize(b))) * 255),
-    ];
-    */
-    const r = Math.round(Math.max(0, Math.min(1, delinearize(rRaw))) * 255);
-    const g = Math.round(Math.max(0, Math.min(1, delinearize(gRaw))) * 255);
-    const b = Math.round(Math.max(0, Math.min(1, delinearize(bRaw))) * 255);
-    return { r, g, b }
+    const rLin = delinearize(rRaw);
+    const gLin = delinearize(gRaw);
+    const bLin = delinearize(bRaw);
+
+    const rClamped = Math.max(0, Math.min(1, rLin));
+    const gClamped = Math.max(0, Math.min(1, gLin));
+    const bClamped = Math.max(0, Math.min(1, bLin));
+
+    const R = Math.round(rClamped * 255);
+    const G = Math.round(gClamped * 255);
+    const B = Math.round(bClamped * 255);
+
+    return { R, G, B }
 }
 
 // Calculate contrasting color in LAB
@@ -531,10 +556,10 @@ export function calculateAvgColorLab(imageData) {
     const totalPixels = data.length / 4;
 
     for (let i = 0; i < data.length; i += 4) {
-        const { x, y, z } = rgbToXyz({ r: data[i], g: data[i + 1], b: data[i + 2] });
-        const { l, a, b } = xyzToLab({ x, y, z });
+        const { x, y, z } = RGBtoXYZ({ r: data[i], g: data[i + 1], b: data[i + 2] });
+        const { L, a, b } = XYZtoCEILab({ x, y, z });
 
-        totalL += l;
+        totalL += L;
         totalA += a;
         totalB += b;
     }
@@ -558,20 +583,19 @@ export function calculateAvgColorLab(imageData) {
   contrast ratio according to the WCAG (Web Content Accessibility Guidelines):
 */
 export function getLuminance(objRGB) {
-    const { r, g, b } = objRGB;
-    let channel = [r, g, b].map(value => {
+    assertObjectColor(objRGB);
+    const { R, G, B } = objRGB;
+    let channel = [R, G, B].map(value => {
         value /= 255; // Convert to a fraction
         return value <= 0.03928 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
     });
     return 0.2126 * channel[0] + 0.7152 * channel[1] + 0.0722 * channel[2];
 }
 export function contrastRatio(objRGB1, objRGB2) {
-    const { r1, g1, b1 } = objRGB1;
-    const { r2, g2, b2 } = objRGB2;
+    assertObjectColor(objRGB1);
+    assertObjectColor(objRGB2);
 
-    // const lum1 = getLuminance(r1, g1, b1);
     const lum1 = getLuminance(objRGB1);
-    // const lum2 = getLuminance(r2, g2, b2);
     const lum2 = getLuminance(objRGB2);
 
     // L1 is the brighter luminance, L2 is the dimmer one
@@ -582,14 +606,30 @@ export function contrastRatio(objRGB1, objRGB2) {
 }
 
 // Example usage
-const color1 = [255, 255, 255]; // White
-const color2 = [0, 0, 0];       // Black
+const color1 = { R: 255, G: 255, B: 255 }; // White
+const color2 = { R: 0, G: 0, B: 0 };       // Black
 
 console.log("Contrast Ratio:", contrastRatio(color1, color2));
 
 
 function assertNumber(n) { if (Number.isNaN(n)) { throw Error(`Not a number: ${n}`); } }
-function assertObject(obj) {
+function assertObjectColor(obj) {
     const tofObj = typeof obj;
     if (tofObj != "object") { throw Error(`Not an object: ${tofObj}`); }
+    if (Array.isArray(obj)) { throw Error(`obj is array: ${JSON.stringify(obj)}`); }
+    const keys = Object.keys(obj);
+    const kl = keys.length;
+    if (kl != 3) throw Error(`Expected 3 keys, but got ${kl}`);
+    const strKeys = keys.join("");
+    if (!["XYZ", "RGB", "Lab"].includes(strKeys)) {
+        console.error(`Not recognized: "${strKeys}`);
+        debugger;
+    }
+    const values = Object.values(obj);
+    values.forEach(v => {
+        if (Number.isNaN(v)) {
+            console.error("NaN in ", obj);
+            debugger;
+        }
+    })
 }
