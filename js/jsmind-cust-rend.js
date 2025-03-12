@@ -1003,7 +1003,6 @@ export class CustomRenderer4jsMind {
                             console.log({ objTextImage });
                             divFgAccColor.textContent = `objTextImage: ${JSON.stringify(objTextImage, undefined, 4)}`;
                             divFgRadios.style.backgroundColor = objTextImage.avgHexColor;
-                            // if (darkBg.isDark) { inpWhite.checked = true; } else { inpBlack.checked = true; }
                             const inpColor = mkElt("input", { type: "radio", name: "black-or-white", id: "colored-text" })
                             inpColor.dataset.color = objTextImage.contrastColor;
                             const contrastColor = objTextImage.contrastColor;
@@ -1392,11 +1391,21 @@ export class CustomRenderer4jsMind {
                 const b = objTextContrast.blackContrast;
                 const w = objTextContrast.whiteContrast;
                 const c = objTextContrast.coloredContrast;
+                const arrBWC = [
+                    { contrast: b, color: "black" },
+                    { contrast: w, color: "white" },
+                    { contrast: c, color: "colored" }
+                ];
+                arrBWC.sort((a, b) => b.contrast - a.contrast);
+                let best = arrBWC[0].color;
+                console.log({ arrBWC });
+                /*
                 let best = "black";
                 if (b > Math.max(w, c)) {
                     best = "white";
                     if (w > c) { best = "colored"; }
                 }
+                */
                 console.log({ best });
                 // divFgAccColor
                 const inpBest = divFgRadios.querySelector(`#${best}-text`);

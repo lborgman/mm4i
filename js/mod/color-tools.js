@@ -157,10 +157,7 @@ export function getBackgroundColorAtPoint(x, y, eltTop = undefined) {
 // https://stackoverflow.com/questions/1573053/javascript-function-to-convert-color-names-to-hex-codes/47355187#47355187
 // https://issues.chromium.org/issues/401731818
 export function standardizeColorTo6Hex(strColor) {
-    // console.log(">>> standardizeColorTo6Hex IN", { strColor });
-    const colorIn = strColor.trim().replaceAll(" ", "");
-    // console.log("Input length:", strColor.length);
-    // console.log("Input char codes:", [...strColor].map(c => String.fromCharCode(c.charCodeAt(0))));
+    const colorIn = strColor.replaceAll(" ", "");
     const ctx = document.createElement('canvas').getContext('2d');
     if (!ctx) { throw Error("Could not get canvas 2d"); }
     ctx.fillStyle = strColor;
@@ -169,21 +166,28 @@ export function standardizeColorTo6Hex(strColor) {
         switch (colorIn) {
             case "black":
             case "rgb(0,0,0)":
+            case "hsl(0deg,0%,0%)":
             case "#000000":
+            case "#000":
                 break;
             default:
                 const msg = `standardizeColorTo6Hex, bad color?: ${strColor} => ${ctx.fillStyle}`;
                 console.error(msg);
-                throw Error(msg);
+            // throw Error(msg); // FIX-ME:
         }
     }
-    // console.log(">>> standardizeColorTo6Hex OUT", colorOut);
+    if (!colorOut.startsWith("#")) {
+        if (colorOut.startsWith("rgba")) {
+            const msg = `Colors with transparency converted to rgba: ${strColor} -> ${colorOut}`;
+            console.error(msg);
+            // throw Error(msg); // FIX-ME:
+        }
+    }
     return colorOut;
 }
-// export function to6HexColor(color) { return standardizeColorTo6Hex(color); }
-// const st1 = standardizeColorTo6Hex("rbg(10, 10, 10)"); console.log({ st1 });
 
-// Workaround for the issue above:
+/*
+// no longer needed
 function rgbStringToHex(rgbStr) {
     const rgbRegex = /^rgb\s*\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/i;
     const match = rgbStr.match(rgbRegex);
@@ -196,6 +200,7 @@ function rgbStringToHex(rgbStr) {
 
     return `#${[r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("")}`;
 }
+*/
 
 /**
  * 
@@ -303,22 +308,25 @@ export async function getDataForTextOnImage(srcImg) {
             const brightness = Math.round(avgBrightness);
 
             // debugger;
-            const avgColorLAB = calculateAvgColorLab(imageData);
+            const avgColorLAB = calculateAvgColorCEILab(imageData);
             // const avgColorXYZ = labToXyz(avgColorLAB.l, avgColorLAB.a, avgColorLAB.b);
             const avgColorXYZ = CEILabToXYZ(avgColorLAB);
             const avgColorRGB = XYZtoRGB(avgColorXYZ);
             // rgbtohex
             // const avgRgbColor = `rbg(${avgColorRGB.join(",")})`;
-            const avgRgbColor = `rgb(${avgColorRGB.r}, ${avgColorRGB.g}, ${avgColorRGB.b})`;
+            const avgRgbColor = `rgb(${avgColorRGB.R}, ${avgColorRGB.G}, ${avgColorRGB.B})`;
             const avgHexColor = standardizeColorTo6Hex(avgRgbColor);
-            const contrastColorRGB = getCEILabContrastRGB(avgHexColor);
+            const contrastColorRGB = getCEILabContrastingRGB(avgHexColor);
             const contrastColor = RGBtoHEX(contrastColorRGB);
-            const coloredContrast = contrastRatio(avgColorRGB, contrastColorRGB).toFixed(1);
-            console.log({ colorContrast: coloredContrast });
+            // const coloredContrast = contrastRatio(avgColorRGB, contrastColorRGB).toFixed(1);
+            const coloredContrast = contrastDeltaERgb(avgColorRGB, contrastColorRGB).toFixed(1);
+            console.log({ coloredContrast });
             // debugger;
 
-            const whiteContrast = contrastRatio(avgColorRGB, { r: 255, g: 255, b: 255 }).toFixed(1);
-            const blackContrast = contrastRatio(avgColorRGB, { r: 0, g: 0, b: 0 }).toFixed(1);
+            // const whiteContrast = contrastRatio(avgColorRGB, { R: 255, G: 255, B: 255 }).toFixed(1);
+            const whiteContrast = contrastDeltaERgb(avgColorRGB, { R: 255, G: 255, B: 255 }).toFixed(1);
+            // const blackContrast = contrastRatio(avgColorRGB, { R: 0, G: 0, B: 0 }).toFixed(1);
+            const blackContrast = contrastDeltaERgb(avgColorRGB, { R: 0, G: 0, B: 0 }).toFixed(1);
 
             resolve({
                 isDark, brightness,
@@ -347,16 +355,16 @@ export async function getDataForTextOnImage(srcImg) {
 
 
 /*** Color contrast using CIE-LAB */
-// hexto
-export function getCEILabContrastRGB(strColor) {
-    if (strColor == "red") debugger;
+let logRed = false;
+export function getCEILabContrastingRGB(strColor) {
+    if (strColor == "red") { logRed = true; }
     const hexColor = standardizeColorTo6Hex(strColor);
-    const objRGB = hexToRGB(hexColor);
+    const objRGBin = hexToRGB(hexColor);
 
     // Step 1: Convert RGB to LAB
-    const objXYZ = RGBtoXYZ(objRGB);
-    const objCEILab = XYZtoCEILab(objXYZ);
-    const { L, a, b } = objCEILab;
+    const objXYZin = RGBtoXYZ(objRGBin);
+    const objCEILabIn = XYZtoCEILab(objXYZin);
+    const { L, a, b } = objCEILabIn;
 
     // Step 2: Adjust Lightness for contrast
     const newL = L < 50 ? 85 : 15; // Make light colors dark, dark colors light
@@ -364,26 +372,57 @@ export function getCEILabContrastRGB(strColor) {
     // Step 3: Adjust Chromaticity for distinct contrast
     let newA = -a; // Invert chromaticity
     let newB = -b; // Invert chromaticity
+    newA = a; // Don't invert chromaticity
+    newB = b; // Don't invert chromaticity
 
     // (Optional): Amplify chromaticity for more vibrancy
     // newA = a * 1.5;
     // newB = b * 1.5;
 
     // Step 4: Convert back to RGB
-    const newXYZ = CEILabToXYZ({ L: newL, a: newA, b: newB });
-    return XYZtoRGB(newXYZ);
+    const objXYZout = CEILabToXYZ({ L: newL, a: newA, b: newB });
+    // return XYZtoRGB(objXYZout);
+    const objRGBout = XYZtoRGB(objXYZout);
+    if (logRed) {
+        console.log("getCEILabContrastingRGB",
+            { strColor, objRGBin, objXYZin, objCEILabIn, objXYZout, objRGBout });
+        // debugger;
+    }
+    logRed = false;
+    return objRGBout
+}
+export function getCEILabContrastingHEX(strColor) {
+    const objRGB = getCEILabContrastingRGB(strColor);
+    return RGBtoHEX(objRGB);
 }
 
 
 
+
 // Example Usage:
-const strColor = "red"
-const contrastingColor = getCEILabContrastRGB(strColor);
-// console.log(`LAB-based contrasting color to ${avgColor}): rgb(${contrastingColor})`);
-// const rgb1 = JSON.stringify(avgColor);
-// const rgb2 = JSON.stringify(contrastingColor);
-const hex2 = RGBtoHEX(contrastingColor);
-console.log(`LAB-based contrasting color to %c${strColor}%c: %c${hex2}`, `background:${strColor}`, "", `background:${hex2}`);
+const strColor = "red";
+const hexIn = standardizeColorTo6Hex(strColor);
+const rgbRed = hexToRGB(hexIn);
+const contrastingRedRGB = getCEILabContrastingRGB(strColor);
+const hexOut = RGBtoHEX(contrastingRedRGB);
+const ctColor = contrastRatio(rgbRed, contrastingRedRGB)
+// const ctColor2 = contrastRatio(contrastingRedRGB, rgbRed);
+const hexBlack = "#000000";
+const rgbBlack = hexToRGB(hexBlack);
+const ctBlack = contrastRatio(rgbRed, rgbBlack);
+const hexWhite = "#ffffff";
+const rgbWhite = hexToRGB(hexWhite);
+const ctWhite = contrastRatio(rgbRed, rgbWhite);
+const hexCopilot = "#00e0ff";
+const rgbCopilot = hexToRGB(hexCopilot);
+const ctCopilot = contrastRatio(rgbRed, rgbCopilot);
+console.log(
+    `LAB-based contrasting color to %c${strColor}%c: %c${hexOut}`,
+    `background:${hexIn}`,
+    "",
+    `background:${hexOut}`,
+    { ctCopilot, ctColor, ctBlack, ctWhite }
+);
 
 
 
@@ -403,23 +442,30 @@ function hexToRGB(strHex) {
 function RGBtoXYZ(objRGB) {
     assertObjectColor(objRGB);
     const { R, G, B } = objRGB;
+    // let log = false; if (R == 255 && G == 0 && B == 0) { log = true; }
 
     // Removes gamma encoding, independent of illumination (like D65)
     const linearize = (value) => {
-        value /= 255;
+        // value /= 255;
         return value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
     };
 
-    const rL = linearize(R);
-    const gL = linearize(G);
-    const bL = linearize(B);
+    const rNorm = R / 255;
+    const gNorm = G / 255;
+    const bNorm = B / 255;
+
+    const rL = linearize(rNorm);
+    const gL = linearize(gNorm);
+    const bL = linearize(bNorm);
 
     // Assumes D65
     const X = rL * 0.4124564 + gL * 0.3575761 + bL * 0.1804375;
     const Y = rL * 0.2126729 + gL * 0.7151522 + bL * 0.0721750;
     const Z = rL * 0.0193339 + gL * 0.1191920 + bL * 0.9503041;
+    const objXYZ = { X, Y, Z };
+    if (logRed) { console.log("RGBtoXYZ", { R, rL, G, gL, B, bL, objXYZ }); }
 
-    return { X, Y, Z };
+    return objXYZ
 }
 
 // Convert XYZ to LAB
@@ -447,18 +493,13 @@ function XYZtoCEILab(objXYZ) {
     const fyr = f(yr);
     const fzr = f(zr);
 
+    // Names L, a, b are used by CEILAB
     const L = (116 * fyr) - 16;
     const a = 500 * (fxr - fyr);
     const b = 200 * (fyr - fzr);
-    // L, a, b are used for CEILAB
-    return { L, a, b }
-    /*
-return {
-    l: (116 * f(yr)) - 16,
-    a: 500 * (f(xr) - f(yr)),
-    b: 200 * (f(yr) - f(zr)),
-};
-    */
+    const objLab = { L, a, b }
+    if (logRed) console.log("XYZtoCEILab", { X, xr, fxr, Y, yr, fyr, Z, zr, fzr, objLab });
+    return objLab;
 }
 
 /**
@@ -549,15 +590,16 @@ function XYZtoRGB(objXYZ) {
 
 
 
-export function calculateAvgColorLab(imageData) {
+export function calculateAvgColorCEILab(imageData) {
     const data = imageData.data;
     let totalL = 0, totalA = 0, totalB = 0;
 
     const totalPixels = data.length / 4;
 
     for (let i = 0; i < data.length; i += 4) {
-        const { x, y, z } = RGBtoXYZ({ r: data[i], g: data[i + 1], b: data[i + 2] });
-        const { L, a, b } = XYZtoCEILab({ x, y, z });
+        // const { x, y, z } = RGBtoXYZ({ R: data[i], G: data[i + 1], B: data[i + 2] });
+        const objXYZ = RGBtoXYZ({ R: data[i], G: data[i + 1], B: data[i + 2] });
+        const { L, a, b } = XYZtoCEILab(objXYZ);
 
         totalL += L;
         totalA += a;
@@ -569,7 +611,7 @@ export function calculateAvgColorLab(imageData) {
     const avgA = totalA / totalPixels;
     const avgB = totalB / totalPixels;
 
-    return { l: avgL, a: avgA, b: avgB };
+    return { L: avgL, a: avgA, b: avgB };
 }
 
 // Example Usage:
@@ -612,7 +654,58 @@ const color2 = { R: 0, G: 0, B: 0 };       // Black
 console.log("Contrast Ratio:", contrastRatio(color1, color2));
 
 
-function assertNumber(n) { if (Number.isNaN(n)) { throw Error(`Not a number: ${n}`); } }
+// Function to calculate Delta E (CIE76) perceptual color difference
+function calculateDeltaElab(objLAB1, objLAB2) {
+    assertObjectColor(objLAB1);
+    assertObjectColor(objLAB2);
+
+    // lab1 and lab2 are objects with properties { L, a, b }
+    const deltaL = objLAB2.L - objLAB1.L;
+    const deltaA = objLAB2.a - objLAB1.a;
+    const deltaB = objLAB2.b - objLAB1.b;
+
+    // Delta E formula
+    const deltaE = Math.sqrt(deltaL ** 2 + deltaA ** 2 + deltaB ** 2);
+    return deltaE;
+}
+// Example usage
+const redLAB = { L: 53.24, a: 80.09, b: 67.20 };       // LAB values for red
+const cyanLAB = { L: 91.11, a: -48.08, b: -14.14 };    // LAB values for cyan
+const deltaE = calculateDeltaElab(redLAB, cyanLAB);
+console.log("Delta E between red and cyan:", deltaE);
+
+export function contrastDeltaERgb(objRGB1, objRGB2) {
+    const lab1 = toLab(objRGB1);
+    const lab2 = toLab(objRGB2);
+    return calculateDeltaElab(lab1, lab2);
+    function toLab(objRGB) {
+        // const hex = standardizeColorTo6Hex(strColor);
+        // const objRGB = hexToRGB(hex);
+        const objXYZ = RGBtoXYZ(objRGB);
+        const objLab = XYZtoCEILab(objXYZ);
+        return objLab;
+    }
+}
+export function contrastDeltaEStr(strColor1, strColor2) {
+    const lab1 = toLab(strColor1);
+    const lab2 = toLab(strColor2);
+    return calculateDeltaElab(lab1, lab2);
+    function toLab(strColor) {
+        const hex = standardizeColorTo6Hex(strColor);
+        const objRGB = hexToRGB(hex);
+        const objXYZ = RGBtoXYZ(objRGB);
+        const objLab = XYZtoCEILab(objXYZ);
+        return objLab;
+    }
+}
+// Test it
+const deltaEstr = contrastDeltaEStr("red", "cyan");
+console.log(`%cDelta E between "red" and "cyan:"`, "background:yellow; color:black;", { deltaEstr });
+
+
+
+
+// function assertNumber(n) { if (Number.isNaN(n)) { throw Error(`Not a number: ${n}`); } }
 function assertObjectColor(obj) {
     const tofObj = typeof obj;
     if (tofObj != "object") { throw Error(`Not an object: ${tofObj}`); }
