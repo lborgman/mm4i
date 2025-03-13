@@ -503,7 +503,7 @@ export function mkJmnodeBgObj(bgName, bgValue) {
         case "bg-choice-none":
             break;
         case "bg-choice-color":
-            bgTheme = modColorTools.isDark(bgValue) ? "dark" : "light";
+            bgTheme = modColorTools.isDarkBG(bgValue) ? "dark" : "light";
             break;
         default:
             bgTheme = "mixed";
@@ -603,15 +603,15 @@ export async function applyShapeEtcBg(bgName, bgValue, bgTheme, eltJmnode) {
         // case "bg-choice-img-link": const url = bgValue; eltBg.style.backgroundImage = `url("${url}")`; break;
         case "bg-choice-img-clipboard":
             let objectUrl;
-            let blob, blurValue, isDark, fgColor;
+            let blob, blurValue, isDarkBG, fgColor;
             blob = bgValue;
             blurValue = 9;
-            isDark = false; // Default to black text
+            isDarkBG = false; // Default to black text
             // New format?
             if (bgValue.blob) {
                 blob = bgValue.blob;
                 blurValue = bgValue.blur;
-                isDark = bgValue.isDark;
+                isDarkBG = bgValue.isDarkBG;
                 fgColor = bgValue.fgColor;
                 // debugger;
             }

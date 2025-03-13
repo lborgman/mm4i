@@ -225,7 +225,7 @@ function RGBtoHEX(objRGB) {
 // https://codepen.io/davidhalford/pen/AbKBNr
 // Named getxCorrectTextColor there
 export function getBlackOrWhiteTextColor(bgColor) {
-    return (isDark(bgColor)) ? "#ffffff" : "#000000";
+    return (isDarkBG(bgColor)) ? "#ffffff" : "#000000";
 }
 
 function getHexR(h) { return parseInt((cutHex(h)).substring(0, 2), 16) }
@@ -233,7 +233,7 @@ function getHexG(h) { return parseInt((cutHex(h)).substring(2, 4), 16) }
 function getHexB(h) { return parseInt((cutHex(h)).substring(4, 6), 16) }
 function cutHex(h) { return (h.charAt(0) == "#") ? h.substring(1, 7) : h }
 
-export function isDark(bgColor) {
+export function isDarkBG(bgColor) {
 
     /*
         From this W3C document: http://www.w3.org/TR/AERT#color-contrast
@@ -302,8 +302,8 @@ export async function getDataForTextOnImage(srcImg) {
             }
             const avgBrightness = totalBrightness / (data.length / 4);
             // avgBrightness < 128 ? 'white' : 'black';
-            const isDark = avgBrightness < 128;
-            console.log({ avgBrightness, isDark });
+            const isDarkBG = avgBrightness < 128;
+            console.log({ avgBrightness, isDarkBG });
             // const brightness = parseFloat(avgBrightness.toFixed(1));
             const brightness = Math.round(avgBrightness);
 
@@ -329,7 +329,7 @@ export async function getDataForTextOnImage(srcImg) {
             const blackContrast = contrastDeltaERgb(avgColorRGB, { R: 0, G: 0, B: 0 }).toFixed(1);
 
             resolve({
-                isDark, brightness,
+                isDarkBG, brightness,
                 // avgColorLAB, avgColorXYZ, avgColorRGB, avgRgbColor,
                 avgHexColor,
                 contrastColor,
@@ -355,9 +355,24 @@ export async function getDataForTextOnImage(srcImg) {
 
 
 /*** Color contrast using CIE-LAB */
-let logRed = false;
+let logClrCnvTest = false;
+const stLogClrCnv = "font-size:18px; background:yellow; color:red; padding:1px 3px;";
+function startLogClrCnvTest(hexColor) {
+    if (!hexColor.startsWith("#")) throw Error(`Not a hex format color: "${hexColor}`);
+    logClrCnvTest = true;
+    consoleLogRedTest(`>>> Start color conversion test%c ${hexColor} `, `background:${hexColor}; font-size:20px; padding:4px;`, hexColor);
+}
+function stopLogClrCnvTest() {
+    consoleLogRedTest(`<<< Stop color conversion test`);
+    logClrCnvTest = false;
+}
+function consoleLogRedTest(...args) {
+    if (!logClrCnvTest) return;
+    const styledArg = `%c${args[0]}`;
+    console.log(styledArg, stLogClrCnv, ...args.slice(1));
+}
+
 export function getCEILabContrastingRGB(strColor) {
-    if (strColor == "red") { logRed = true; }
     const hexColor = standardizeColorTo6Hex(strColor);
     const objRGBin = hexToRGB(hexColor);
 
@@ -383,12 +398,15 @@ export function getCEILabContrastingRGB(strColor) {
     const objXYZout = CEILabToXYZ({ L: newL, a: newA, b: newB });
     // return XYZtoRGB(objXYZout);
     const objRGBout = XYZtoRGB(objXYZout);
-    if (logRed) {
-        console.log("getCEILabContrastingRGB",
+
+    const oldLogRedTest = logClrCnvTest;
+    if (isBlackOrWhite(hexColor)) logClrCnvTest = false;
+    if (logClrCnvTest) {
+        console.log("%cgetCEILabContrastingRGB", stLogClrCnv,
             { strColor, objRGBin, objXYZin, objCEILabIn, objXYZout, objRGBout });
-        // debugger;
     }
-    logRed = false;
+    logClrCnvTest = oldLogRedTest;
+
     return objRGBout
 }
 export function getCEILabContrastingHEX(strColor) {
@@ -400,29 +418,51 @@ export function getCEILabContrastingHEX(strColor) {
 
 
 // Example Usage:
-const strColor = "red";
-const hexIn = standardizeColorTo6Hex(strColor);
-const rgbRed = hexToRGB(hexIn);
-const contrastingRedRGB = getCEILabContrastingRGB(strColor);
-const hexOut = RGBtoHEX(contrastingRedRGB);
-const ctColor = contrastRatio(rgbRed, contrastingRedRGB)
-// const ctColor2 = contrastRatio(contrastingRedRGB, rgbRed);
-const hexBlack = "#000000";
-const rgbBlack = hexToRGB(hexBlack);
-const ctBlack = contrastRatio(rgbRed, rgbBlack);
-const hexWhite = "#ffffff";
-const rgbWhite = hexToRGB(hexWhite);
-const ctWhite = contrastRatio(rgbRed, rgbWhite);
-const hexCopilot = "#00e0ff";
-const rgbCopilot = hexToRGB(hexCopilot);
-const ctCopilot = contrastRatio(rgbRed, rgbCopilot);
-console.log(
-    `LAB-based contrasting color to %c${strColor}%c: %c${hexOut}`,
-    `background:${hexIn}`,
-    "",
-    `background:${hexOut}`,
-    { ctCopilot, ctColor, ctBlack, ctWhite }
-);
+// const strColor = "red";
+// const hexIn = standardizeColorTo6Hex(strColor);
+// const rgbRed = hexToRGB(hexIn);
+// const contrastingRedRGB = getCEILabContrastingRGB(strColor);
+// const hexOut = RGBtoHEX(contrastingRedRGB);
+// const ctColor = contrastRatio(rgbRed, contrastingRedRGB)
+
+startLogClrCnvTest("#38483a");
+contrastTest("#38483a");
+stopLogClrCnvTest();
+
+function contrastTest(hexTest) {
+    const rgbTest = hexToRGB(hexTest);
+
+    const hexBlack = "#000000";
+    const rgbBlack = hexToRGB(hexBlack);
+    const ctBlack = contrastRatio(rgbTest, rgbBlack);
+    const ctceilabBlack = contrastDeltaERgb(rgbTest, rgbBlack);
+
+    const hexWhite = "#ffffff";
+    const rgbWhite = hexToRGB(hexWhite);
+    const ctWhite = contrastRatio(rgbTest, rgbWhite);
+    const ctceilabWhite = contrastDeltaERgb(rgbTest, rgbWhite);
+
+    // CEILab contrasting
+    const hexContrasting = getCEILabContrastingHEX(hexTest);
+    const rgbContrasting = hexToRGB(hexContrasting);
+    const ctContrasting = contrastRatio(rgbTest, rgbContrasting);
+    const ctceilabContrasting = contrastDeltaERgb(rgbTest, rgbContrasting)
+
+    const objContrasts =
+    {
+        ctBlack, ctceilabBlack,
+        ctWhite, ctceilabWhite,
+        hexContrasting,
+        ctContrasting, ctceilabContrasting,
+    };
+
+    consoleLogRedTest(
+        `Contrast checks`,
+        "before",
+        objContrasts,
+        "after",
+    );
+}
 
 
 
@@ -442,17 +482,28 @@ function hexToRGB(strHex) {
 function RGBtoXYZ(objRGB) {
     assertObjectColor(objRGB);
     const { R, G, B } = objRGB;
-    // let log = false; if (R == 255 && G == 0 && B == 0) { log = true; }
 
     // Removes gamma encoding, independent of illumination (like D65)
-    const linearize = (value) => {
-        // value /= 255;
-        return value <= 0.04045 ? value / 12.92 : Math.pow((value + 0.055) / 1.055, 2.4);
+    const linearize = (xNorm) => {
+        const myLin = xNorm <= 0.04045 ? xNorm / 12.92 : Math.pow((xNorm + 0.055) / 1.055, 2.4);
+        let xLinear;
+        if (xNorm <= 0.04045) {
+            xLinear = xNorm / 12.92;
+        } else {
+            xLinear = Math.pow((xNorm + 0.055) / 1.055, 2.4);
+        }
+        if (myLin != xLinear) debugger;
+        return xLinear;
     };
 
-    const rNorm = R / 255;
-    const gNorm = G / 255;
-    const bNorm = B / 255;
+    // const rNorm = R / 255;
+    const rNorm = 0.2196;
+
+    // const gNorm = G / 255;
+    const gNorm = 0.2824;
+
+    // const bNorm = B / 255;
+    const bNorm = 0.2275;
 
     const rL = linearize(rNorm);
     const gL = linearize(gNorm);
@@ -463,7 +514,11 @@ function RGBtoXYZ(objRGB) {
     const Y = rL * 0.2126729 + gL * 0.7151522 + bL * 0.0721750;
     const Z = rL * 0.0193339 + gL * 0.1191920 + bL * 0.9503041;
     const objXYZ = { X, Y, Z };
-    if (logRed) { console.log("RGBtoXYZ", { R, rL, G, gL, B, bL, objXYZ }); }
+
+    const oldLogRedTest = logClrCnvTest;
+    if (isBlackOrWhite(objRGB)) logClrCnvTest = false;
+    if (logClrCnvTest) { console.log("%cRGBtoXYZ", stLogClrCnv, { R, rL, G, gL, B, bL, objXYZ }); }
+    logClrCnvTest = oldLogRedTest;
 
     return objXYZ
 }
@@ -498,7 +553,19 @@ function XYZtoCEILab(objXYZ) {
     const a = 500 * (fxr - fyr);
     const b = 200 * (fyr - fzr);
     const objLab = { L, a, b }
-    if (logRed) console.log("XYZtoCEILab", { X, xr, fxr, Y, yr, fyr, Z, zr, fzr, objLab });
+
+    // const oldLogRedTest = logRedTest;
+    // if (isBlackOrWhite(hexColor)) logRedTest = false;
+    if (logClrCnvTest) {
+        const objRGB = XYZtoRGB(objXYZ);
+        const oldLogRedTest = logClrCnvTest;
+        if (isBlackOrWhite(objRGB)) logClrCnvTest = false;
+        if (logClrCnvTest) {
+            console.log("%cXYZtoCEILab", stLogClrCnv, { X, xr, fxr, Y, yr, fyr, Z, zr, fzr, objLab });
+        }
+        logClrCnvTest = oldLogRedTest;
+
+    }
     return objLab;
 }
 
@@ -669,10 +736,12 @@ function calculateDeltaElab(objLAB1, objLAB2) {
     return deltaE;
 }
 // Example usage
-const redLAB = { L: 53.24, a: 80.09, b: 67.20 };       // LAB values for red
-const cyanLAB = { L: 91.11, a: -48.08, b: -14.14 };    // LAB values for cyan
-const deltaE = calculateDeltaElab(redLAB, cyanLAB);
-console.log("Delta E between red and cyan:", deltaE);
+if (false) {
+    const redLAB = { L: 53.24, a: 80.09, b: 67.20 };       // LAB values for red
+    const cyanLAB = { L: 91.11, a: -48.08, b: -14.14 };    // LAB values for cyan
+    const deltaE = calculateDeltaElab(redLAB, cyanLAB);
+    console.log("Delta E between red and cyan:", deltaE);
+}
 
 export function contrastDeltaERgb(objRGB1, objRGB2) {
     const lab1 = toLab(objRGB1);
@@ -699,8 +768,10 @@ export function contrastDeltaEStr(strColor1, strColor2) {
     }
 }
 // Test it
-const deltaEstr = contrastDeltaEStr("red", "cyan");
-console.log(`%cDelta E between "red" and "cyan:"`, "background:yellow; color:black;", { deltaEstr });
+if (false) {
+    const deltaEstr = contrastDeltaEStr("red", "cyan");
+    console.log(`%cDelta E between "red" and "cyan:"`, "background:yellow; color:black;", { deltaEstr });
+}
 
 
 
@@ -725,4 +796,12 @@ function assertObjectColor(obj) {
             debugger;
         }
     })
+}
+function isBlackOrWhite(color) {
+    let strColor = color;
+    if (typeof color != "string") {
+        strColor = RGBtoHEX(color);
+    }
+    if (!strColor.startsWith("#")) throw Error(`Color "${strColor}" is not in hex format`);
+    return ["#000000", "#ffffff"].includes(strColor);
 }
