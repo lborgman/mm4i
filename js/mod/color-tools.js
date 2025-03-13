@@ -1,5 +1,14 @@
+// @ts-check
+const COLOR_TOOLS_VER = "0.0.7";
+if (window["logConsoleHereIs"]) window["logConsoleHereIs"](`here is color-tools.js, module, ${COLOR_TOOLS_VER}`);
+if (document.currentScript) { throw "color-tools.js is not loaded as module"; }
+
+// const mkElt = window["mkElt"];
+// const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
+// const importFc4i = window["importFc4i"];
+
 // https://stackoverflow.com/questions/1573053/javascript-function-to-convert-color-names-to-hex-codes/47355187#47355187
-const color_convert = function () {
+const OLDcolor_convert = function () {
     var pub = {}, canvas, context;
     canvas = document.createElement('canvas');
     canvas.height = 1;
@@ -426,7 +435,7 @@ export function getCEILabContrastingHEX(strColor) {
 // const ctColor = contrastRatio(rgbRed, contrastingRedRGB)
 
 startLogClrCnvTest("#38483a");
-contrastTest("#38483a");
+// contrastTest("#38483a");
 stopLogClrCnvTest();
 
 function contrastTest(hexTest) {
@@ -715,10 +724,9 @@ export function contrastRatio(objRGB1, objRGB2) {
 }
 
 // Example usage
-const color1 = { R: 255, G: 255, B: 255 }; // White
-const color2 = { R: 0, G: 0, B: 0 };       // Black
-
-console.log("Contrast Ratio:", contrastRatio(color1, color2));
+// const color1 = { R: 255, G: 255, B: 255 }; // White
+// const color2 = { R: 0, G: 0, B: 0 };       // Black
+// console.log("Contrast Ratio:", contrastRatio(color1, color2));
 
 
 // Function to calculate Delta E (CIE76) perceptual color difference

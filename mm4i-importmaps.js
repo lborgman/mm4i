@@ -80,6 +80,9 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
         // "no-ui-slider": "https://raw.githubusercontent.com/leongersen/noUiSlider/refs/heads/master/dist/nouislider.mjs",
         // "no-ui-slider": "https://cdn.jsdelivr.net/gh/leongersen/noUiSlider@master/dist/nouislider.mjs",
         "no-ui-slider": "./ext/no-ui-slider/nouislider.mjs",
+
+        // new
+        "stairs": "./js/mod/stairs.js",
     };
 
     const isImporting = {};
