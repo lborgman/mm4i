@@ -88,7 +88,10 @@ export class CustomRenderer4jsMind {
     setJmOptions(jmOptions) { this.THEjmOptions = jmOptions; }
     getJmOptions() { return this.THEjmOptions; }
     getMindmapName() {
-        const root_node = this.THEjmDisplayed.get_root();
+        const mm = this.THEjmDisplayed;
+        if (!mm) return;
+        // const root_node = this.THEjmDisplayed.get_root();
+        const root_node = mm.get_root();
         return root_node.topic;
     }
     getEltRoot() {

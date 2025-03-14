@@ -1752,8 +1752,14 @@ export async function pageSetup() {
             modMMhelpers.createAndShowNewMindmap("./mm4i.html");
         }
         const liCreateMindmap = mkMenuItem("Create Mindmap", createMindMap);
+
         const liEditMindmap = mkMenuItem("Edit Mindmap", dialogEditMindmap, "Dblclick");
         if (!document.querySelector("jmnode")) { liEditMindmap.setAttribute("inert", ""); }
+
+        const modStairs = await importFc4i("stairs");
+        const liMindmapStairs = mkMenuItem("Mindmap stairs", modStairs.dialogStairs);
+        if (!document.querySelector("jmnode")) { liMindmapStairs.setAttribute("inert", ""); }
+
         const liMindmapsA = mkMenuItemA("List Mindmaps", "./mm4i.html");
 
 
@@ -1917,6 +1923,7 @@ export async function pageSetup() {
             modMdc.mkMDCmenuItemSeparator(),
             liCreateMindmap,
             liEditMindmap,
+            liMindmapStairs,
             liMindmapsA,
             modMdc.mkMDCmenuItemSeparator(),
         ];

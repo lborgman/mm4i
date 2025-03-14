@@ -14,6 +14,8 @@ export async function dialogStairs() {
     console.log({ modMdc, modCustRend });
     const r = await modCustRend.getOurCustomRenderer();
     const nameMM = r.getMindmapName();
+    if (!nameMM) return;
+
     // console.log({ ourStairs }); debugger;
     const divOurStairs = mkElt("div");
     divOurStairs.style = `
