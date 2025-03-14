@@ -7,8 +7,42 @@ if (document.currentScript) { throw "color-tools.js is not loaded as module"; }
 // const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 // const importFc4i = window["importFc4i"];
 
+
+/**
+ * @typedef {Object} ObjectCEILab
+ * @property {number} L
+ * @property {number} a
+ * @property {number} b
+*/
+
+/**
+ * @typedef {Object} ObjectXYZ
+ * @property {number} X
+ * @property {number} Y
+ * @property {number} Z
+*/
+
+/**
+ * @typedef {Object} ObjectRGB
+ * @property {number} R
+ * @property {number} G
+ * @property {number} B
+*/
+
+/**
+ * @typedef {Object} ObjectRGBA
+ * @property {number} R
+ * @property {number} G
+ * @property {number} B
+ * @property {number} A
+*/
+
+
+
 // https://stackoverflow.com/questions/1573053/javascript-function-to-convert-color-names-to-hex-codes/47355187#47355187
-const OLDcolor_convert = function () {
+const color_convert = function () {
+    console.warn("color_convert");
+    // debugger;
     var pub = {}, canvas, context;
     canvas = document.createElement('canvas');
     canvas.height = 1;
@@ -75,29 +109,50 @@ const OLDcolor_convert = function () {
     return pub;
 }();
 
-export function toRgba(color) {
+function toRgba(color) {
+    // debugger;
     const res = color_convert.to_rgba(color);
     if (res == "rgba(-1,-1,-1,-1)") throw Error(`Invalid color ${color}`);
     return res;
 }
-export function toRgbaArr(color) {
+function toRgbaArr(color) {
+    // debugger;
     const tofColor = typeof color;
     if (tofColor != "string") throw Error(`Expected "string", got "${tofColor}"`);
     const res = color_convert.to_rgba_array(color);
     if (res.join(",") == "-1,-1,-1,-1") throw Error(`Invalid color ${color}`);
     return res;
 }
-export function arrToRgba(arrColor) {
+function arrToRgba(arrColor) {
+    // debugger;
     const a = arrColor;
     return `rgba(${a[0]},${a[1]},${a[2]},${a[3] / 255})`;
 }
-export function toHex6(color) {
+function OLDtoHex6(color) {
     const res = color_convert.to_hex(color);
     return res;
 }
 
+
 // https://stackoverflow.com/questions/47022484/in-js-find-the-color-as-if-it-had-0-5-opacity-on-a-white-background
 export function computeMixed(frontColor, backColor) {
+    console.warn("computeMixed", frontColor, backColor);
+    const objFrontRGBA = computeStyleColorToRGBA(frontColor);
+    const objBackRGBA = computeStyleColorToRGBA(backColor);
+    console.log({ objFrontRGBA, objBackRGBA });
+
+    if (objBackRGBA.A != 255) {
+        throw Error(`Background must be opaque: ${backColor}`);
+    }
+    if (objFrontRGBA.A == 255) { return objFrontRGBA; }
+    const alfaFront = objFrontRGBA.A / 255;
+    const newComponentF = (frontComp, backComp) => Math.floor(frontComp * alfaFront + backComp * (1 - alfaFront));
+    const objRes = {};
+    "RGB".split("").forEach(i => { objRes[i] = newComponentF(objFrontRGBA[i], objBackRGBA[i]) });
+    const strRgb = RGB2rgb(objRes);
+    console.log({ objRes, strRgb });
+    // debugger;
+
     const arrBackColor = color_convert.to_rgba_array(backColor);
     if (arrBackColor[3] != 255) {
         throw Error(`Background must be opaque: ${backColor}`);
@@ -106,13 +161,36 @@ export function computeMixed(frontColor, backColor) {
     if (arrFrontColor[3] == 255) { return toRgba(frontColor); }
 
     const alphaFront = arrFrontColor[3] / 255;
-    // newComponent = floor(oldComponent x alpha + backgroundComponent x (1 - alpha)) 
     const newComponent = (frontComp, backComp) => Math.floor(frontComp * alphaFront + backComp * (1 - alphaFront));
     const arrRes = [];
     [0, 1, 2].forEach(i => { arrRes[i] = newComponent(arrFrontColor[i], arrBackColor[i]) });
-    return `rgb(${arrRes.join(",")})`;
+    const res = `rgb(${arrRes.join(",")})`;
+    console.log(res);
+    debugger;
+    return res;
 }
 
+/**
+ * Colors returned from getComputedStyle can have 3 different formats
+ * according to Gemini AI.
+ * 
+ * @param {string} strColor 
+ * @return {ObjectRGBA}
+ */
+export function computeStyleColorToRGBA(strColor) {
+    if (strColor == "transparent") {
+        return { R: 0, G: 0, B: 0, A: 0 }
+    }
+    if (strColor.startsWith("rgb(")) {
+        const v = strColor.slice(4, -1).split(",").map(Number);
+        return { R: v[0], G: v[1], B: v[2], A: 1 }
+    }
+    if (strColor.startsWith("rgba(")) {
+        const v = strColor.slice(5, -1).split(",").map(Number);
+        return { R: v[0], G: v[1], B: v[2], A: v[3] }
+    }
+    throw Error(`Unexpected color from getComputedStyle: "${strColor}"`);
+}
 export function getBackgroundColorAtPoint(x, y, eltTop = undefined) {
     const arrElts = document.elementsFromPoint(x, y);
     // console.log({ arrElts });
@@ -216,11 +294,28 @@ function rgbStringToHex(rgbStr) {
  * @param {ObjectRGB} objRGB 
  * @returns {string}
  */
-function RGBtoHEX(objRGB) {
+function RGBtoHEX6(objRGB) {
     assertObjectColor(objRGB);
     const { R, G, B } = objRGB;
     const hex = n => n.toString(16).padStart(2, "0");
     return `#${hex(R)}${hex(G)}${hex(B)}`;
+}
+function RGB2rgb(objRGB) {
+    assertObjectColor(objRGB);
+    const { R, G, B } = objRGB;
+    return `rgb(${R},${G},${B})`;
+}
+
+function RGBAtoHEX8(objRGBA) {
+    assertObjectColor(objRGBA);
+    const { R, G, B, A } = objRGBA;
+    const hex = n => n.toString(16).padStart(2, "0");
+    return `#${hex(R)}${hex(G)}${hex(B)}${hex(A)}`;
+}
+function RGBA2rgba(objRGBA) {
+    assertObjectColor(objRGBA);
+    const { R, G, B, A } = objRGBA;
+    return `rgba(${R},${G},${B},${A})`;
 }
 
 // debugger; // eslint-disable-line no-debugger
@@ -326,7 +421,7 @@ export async function getDataForTextOnImage(srcImg) {
             const avgRgbColor = `rgb(${avgColorRGB.R}, ${avgColorRGB.G}, ${avgColorRGB.B})`;
             const avgHexColor = standardizeColorTo6Hex(avgRgbColor);
             const contrastColorRGB = getCEILabContrastingRGB(avgHexColor);
-            const contrastColor = RGBtoHEX(contrastColorRGB);
+            const contrastColor = RGBtoHEX6(contrastColorRGB);
             // const coloredContrast = contrastRatio(avgColorRGB, contrastColorRGB).toFixed(1);
             const coloredContrast = contrastDeltaERgb(avgColorRGB, contrastColorRGB).toFixed(1);
             console.log({ coloredContrast });
@@ -420,7 +515,7 @@ export function getCEILabContrastingRGB(strColor) {
 }
 export function getCEILabContrastingHEX(strColor) {
     const objRGB = getCEILabContrastingRGB(strColor);
-    return RGBtoHEX(objRGB);
+    return RGBtoHEX6(objRGB);
 }
 
 
@@ -578,26 +673,6 @@ function XYZtoCEILab(objXYZ) {
     return objLab;
 }
 
-/**
- * @typedef {Object} ObjectCEILab
- * @property {number} l
- * @property {number} a
- * @property {number} b
-*/
-
-/**
- * @typedef {Object} ObjectXYZ
- * @property {number} x
- * @property {number} y
- * @property {number} z
-*/
-
-/**
- * @typedef {Object} ObjectRGB
- * @property {number} r
- * @property {number} g
- * @property {number} b
-*/
 
 // Convert LAB back to XYZ
 /**
@@ -791,9 +866,9 @@ function assertObjectColor(obj) {
     if (Array.isArray(obj)) { throw Error(`obj is array: ${JSON.stringify(obj)}`); }
     const keys = Object.keys(obj);
     const kl = keys.length;
-    if (kl != 3) throw Error(`Expected 3 keys, but got ${kl}`);
+    if (![3, 4].includes(kl)) throw Error(`Expected 3 or 4 keys, but got ${kl}`);
     const strKeys = keys.join("");
-    if (!["XYZ", "RGB", "Lab"].includes(strKeys)) {
+    if (!["XYZ", "RGB", "RGBA", "Lab"].includes(strKeys)) {
         console.error(`Not recognized: "${strKeys}`);
         debugger; // eslint-disable-line no-debugger
     }
@@ -808,7 +883,7 @@ function assertObjectColor(obj) {
 function isBlackOrWhite(color) {
     let strColor = color;
     if (typeof color != "string") {
-        strColor = RGBtoHEX(color);
+        strColor = RGBtoHEX6(color);
     }
     if (!strColor.startsWith("#")) throw Error(`Color "${strColor}" is not in hex format`);
     return ["#000000", "#ffffff"].includes(strColor);
