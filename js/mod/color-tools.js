@@ -223,7 +223,7 @@ function RGBtoHEX(objRGB) {
     return `#${hex(R)}${hex(G)}${hex(B)}`;
 }
 
-// debugger;
+// debugger; // eslint-disable-line no-debugger
 // console.log("workaround test:", rgbStringToHex("rgb(140, 124, 111)")); // Outputs: "#8c7c6f"
 
 
@@ -265,14 +265,14 @@ export function isDarkBG(bgColor) {
 
 
 export async function getDataForTextOnImage(srcImg) {
-    // debugger;
+    // debugger; // eslint-disable-line no-debugger
     const img = document.createElement("img");
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     const res = new Promise((resolve, reject) => {
 
         img.onload = () => {
-            // debugger;
+            // debugger; // eslint-disable-line no-debugger
             const imgWidth = img.width;
             const imgHeight = img.height;
 
@@ -316,7 +316,7 @@ export async function getDataForTextOnImage(srcImg) {
             // const brightness = parseFloat(avgBrightness.toFixed(1));
             const brightness = Math.round(avgBrightness);
 
-            // debugger;
+            // debugger; // eslint-disable-line no-debugger
             const avgColorLAB = calculateAvgColorCEILab(imageData);
             // const avgColorXYZ = labToXyz(avgColorLAB.l, avgColorLAB.a, avgColorLAB.b);
             const avgColorXYZ = CEILabToXYZ(avgColorLAB);
@@ -330,7 +330,7 @@ export async function getDataForTextOnImage(srcImg) {
             // const coloredContrast = contrastRatio(avgColorRGB, contrastColorRGB).toFixed(1);
             const coloredContrast = contrastDeltaERgb(avgColorRGB, contrastColorRGB).toFixed(1);
             console.log({ coloredContrast });
-            // debugger;
+            // debugger; // eslint-disable-line no-debugger
 
             // const whiteContrast = contrastRatio(avgColorRGB, { R: 255, G: 255, B: 255 }).toFixed(1);
             const whiteContrast = contrastDeltaERgb(avgColorRGB, { R: 255, G: 255, B: 255 }).toFixed(1);
@@ -501,7 +501,7 @@ function RGBtoXYZ(objRGB) {
         } else {
             xLinear = Math.pow((xNorm + 0.055) / 1.055, 2.4);
         }
-        if (myLin != xLinear) debugger;
+        if (myLin != xLinear) debugger; // eslint-disable-line no-debugger
         return xLinear;
     };
 
@@ -795,13 +795,13 @@ function assertObjectColor(obj) {
     const strKeys = keys.join("");
     if (!["XYZ", "RGB", "Lab"].includes(strKeys)) {
         console.error(`Not recognized: "${strKeys}`);
-        debugger;
+        debugger; // eslint-disable-line no-debugger
     }
     const values = Object.values(obj);
     values.forEach(v => {
         if (Number.isNaN(v)) {
             console.error("NaN in ", obj);
-            debugger;
+            debugger; // eslint-disable-line no-debugger
         }
     })
 }

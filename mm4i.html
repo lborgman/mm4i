@@ -846,10 +846,19 @@
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
         modJsEditCommon.basicInit4jsmind();
         modJsEditCommon.pageSetup();
-        // const aboutLink = makeAbsLink("./about");
         const aboutLink = makeAbsLink("https://lborgman.github.io/mm4i/");
         modJsEditCommon.addToPageMenu("About", aboutLink);
-        // })();
+
+        // FIX-ME:
+        {
+            const u = new URL(window.location.href);
+            if (u.hostname == "localhost") {
+                setTimeout(async () => {
+                    const modStairs = await importFc4i("stairs");
+                    modStairs.dialogStairs();
+                }, 1000);
+            }
+        }
     </script>
 
 </body>

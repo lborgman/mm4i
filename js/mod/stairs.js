@@ -4,7 +4,7 @@ window["logConsoleHereIs"](`here is stairs.js, module, ${STAIRS_VER}`);
 if (document.currentScript) { throw "stairs.js is not loaded as module"; }
 
 const mkElt = window["mkElt"];
-const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
+// const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 const importFc4i = window["importFc4i"];
 
 const modMdc = await importFc4i("util-mdc");
@@ -13,8 +13,49 @@ const modCustRend = await importFc4i("jsmind-cust-rend");
 export async function dialogStairs() {
     console.log({ modMdc, modCustRend });
     const r = await modCustRend.getOurCustomRenderer();
-    const nameMindmap = r.getMindmapName();
-    // debugger;
+    const nameMM = r.getMindmapName();
+    // console.log({ ourStairs }); debugger;
+    const divOurStairs = mkElt("div");
+    divOurStairs.style = `
+        display: flex;
+        flex-direction: column;
+        NOgap: 10px;
+        margin-left: 20px;
+    `;
+    refreshListing();
+    function refreshListing() {
+        divOurStairs.textContent = "";
+        const ourStairs = getStairs(nameMM);
+        if (ourStairs.length == 0) {
+            divOurStairs.textContent = "There are no stairs for this mindmap.";
+            return;
+        }
+        ourStairs.forEach(obj => {
+            const nameStair = obj.nameStair;
+            const strVal = obj.strStair;
+            const btnName = modMdc.mkMDCbutton(nameStair);
+            btnName.title = `Display stair "${nameStair}"`;
+            const btnDelete = modMdc.mkMDCiconButton("delete_forever", `Delete stair "${nameStair}"`);
+            btnDelete.addEventListener("click", evt => {
+                evt.stopPropagation();
+                console.log("delete stair", nameStair);
+                deleteStair(nameMM, nameStair);
+                refreshListing();
+            });
+            const divEntry = mkElt("div", undefined, [btnName, btnDelete]);
+            divEntry.style = `
+            display: grid;
+            grid-template-columns: 100px 40px;
+            gap: 10px;
+        `;
+            divEntry.dataset.nameStair = name;
+            divEntry.dataset.strStair = strVal;
+            divOurStairs.appendChild(divEntry);
+            divOurStairs.appendChild(divEntry);
+        });
+    }
+
+    // debugger; // eslint-disable-line no-debugger
     const divNotReady = mkElt("p", undefined, "Not ready!");
     divNotReady.style = `
         background: red;
@@ -22,7 +63,7 @@ export async function dialogStairs() {
         color: yellow;
     `;
 
-    const eltTitle = mkElt("h2", undefined, `Mindmap "${nameMindmap}" stairs`);
+    const eltTitle = mkElt("h2", undefined, `Mindmap "${nameMM}" stairs`);
     eltTitle.style = `
         display: flex;
         gap: 20px;
@@ -97,23 +138,14 @@ export async function dialogStairs() {
         `;
         btnSave.addEventListener("click", evt => {
             evt.stopPropagation();
-            const key = `${nameMindmap}---${nameStair}`;
-            console.log({ key });
             // renumber
             const arrStairN = getEltsStairN();
             const arrJmnode = arrStairN.map(elt => elt.closest("jmnode"));
             console.log({ arrJmnode });
-            const arrIds = arrJmnode.map(elt => elt?.getAttribute("nodeid"));
-            console.log({ arrIds });
-            const value = JSON.stringify(arrIds);
-            localStorage.setItem(key, value);
-            let keys = Object.keys(localStorage);
-            for (let key of keys) {
-                console.log(`${key}: ${localStorage.getItem(key)}`);
-            }
-            debugger;
-            alert("not implemented yet");
+            const arrIds = arrJmnode.map(elt => elt?.getAttribute("nodeid")); console.log({ arrIds });
+            saveStair(nameMM, nameStair, arrIds);
         });
+
         btnCancel.addEventListener("click", evt => {
             evt.stopPropagation();
             // alert("not implemented yet");
@@ -121,7 +153,7 @@ export async function dialogStairs() {
         });
         btnRenumber.addEventListener("click", evt => {
             evt.stopPropagation();
-            // debugger;
+            // debugger; // eslint-disable-line no-debugger
             const arrStairN = getEltsStairN();
             let n = 0;
             arrStairN.forEach(elt => {
@@ -181,7 +213,9 @@ export async function dialogStairs() {
             if (eltsJmnode.length == 0) {
                 const eltsStepMark = arrElts.filter(elt => elt.classList.contains("stair-mark"));
                 if (eltsStepMark.length == 0) return;
-                if (eltsStepMark.length > 1) { debugger; }
+                if (eltsStepMark.length > 1) {
+                    debugger; // eslint-disable-line no-debugger
+                }
                 const eltStepMark = eltsStepMark[0];
                 const eltJmnode = eltStepMark.closest("jmnode");
                 if (!eltJmnode) throw Error("Did not find <jmnode> from .stair-mark");
@@ -190,7 +224,9 @@ export async function dialogStairs() {
 
             // console.log({ eltsJmnode });
             if (eltsJmnode.length == 0) return;
-            if (eltsJmnode.length > 1) { debugger; }
+            if (eltsJmnode.length > 1) {
+                debugger; // eslint-disable-line no-debugger
+            }
             const eltJmnode = eltsJmnode[0];
             // console.log({ eltJmnode });
             updateStairMark(eltJmnode);
@@ -226,6 +262,41 @@ export async function dialogStairs() {
         divNotReady,
         eltTitle,
         divName,
+        divOurStairs,
     ]);
     modMdc.mkMDCdialogAlert(body, "Close");
+}
+
+
+
+function saveStair(nameMindmap, nameStair, arrIds) {
+    const key = `${nameMindmap}---${nameStair}`; console.log({ key });
+    const value = JSON.stringify(arrIds);
+    localStorage.setItem(key, value);
+}
+function deleteStair(nameMindmap, nameStair) {
+    const key = `${nameMindmap}---${nameStair}`; console.log({ key });
+    localStorage.removeItem(key);
+}
+
+/**
+ * 
+ * @param {string} nameMindMap 
+ */
+function getStairs(nameMindMap) {
+    let keys = Object.keys(localStorage);
+    const arrStairs = [];
+    const lenName = nameMindMap.length;
+    for (let key of keys) {
+        const val = localStorage.getItem(key);
+        console.log(`${key}: ${val}`);
+        if (key.startsWith(`${nameMindMap}---`)) {
+            const strStair = localStorage.getItem(key);
+            const nameStair = key.slice(lenName + 3);
+            const objStair = { nameStair, strStair };
+            arrStairs.push(objStair);
+            // FIX-ME: sort
+        }
+    }
+    return arrStairs;
 }
