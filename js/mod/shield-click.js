@@ -14,7 +14,8 @@ addShieldClick(eltPE, handleClick);
 */
 const msClick = 250;
 export function addShieldClick(eltShield, handleClick, getResendElt) {
-    let toPE;
+    let toDown;
+    let toCursor;
     function clonePointerEvent(evt, newTarget) {
         const need = [
             "bubbles", "cancelable", "composed",
@@ -53,19 +54,27 @@ export function addShieldClick(eltShield, handleClick, getResendElt) {
         eltsHere = document.elementsFromPoint(evt.clientX, evt.clientY);
         const clonedEvt = clonePointerEvent(evt);
 
-        toPE = setTimeout(() => {
+        clearTimeout(toCursor);
+        toDown = setTimeout(() => {
             console.log("resend pointerdown");
-            document.body.addEventListener("pointerup", evt => {
-                console.log("body up");
-                eltShield.style.pointerEvents = "auto";
-                clearTimeout(toPE);
-                const elt = getResendElt(eltsHere);
-                const clonedEvt = clonePointerEvent(evt, elt);
-                elt.dispatchEvent(clonedEvt);
-            }, { once: true });
-            eltShield.style.pointerEvents = "none";
             const elt = getResendElt(eltsHere);
-            elt?.dispatchEvent(clonedEvt);
+            if (elt) {
+                eltShield.style.pointerEvents = "none";
+                document.body.addEventListener("pointerup", evt => {
+                    console.log("body up");
+                    eltShield.style.pointerEvents = "auto";
+                    clearTimeout(toDown);
+                    const elt = getResendElt(eltsHere);
+                    if (!elt) return;
+                    const clonedEvt = clonePointerEvent(evt, elt);
+                    elt.dispatchEvent(clonedEvt);
+                }, { once: true });
+                elt.dispatchEvent(clonedEvt);
+                toCursor = setTimeout(() => {
+                    const st = getComputedStyle(elt);
+                    eltShield.style.cursor = st.cursor;
+                }, 200);
+            }
         }, msClick);
     });
     eltShield.addEventListener("click", evt => {

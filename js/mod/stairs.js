@@ -151,7 +151,6 @@ export async function dialogStairs() {
 
         btnCancel.addEventListener("click", evt => {
             evt.stopPropagation();
-            // alert("not implemented yet");
             stopEdit();
         });
         btnRenumber.addEventListener("click", evt => {
@@ -276,6 +275,14 @@ export async function dialogStairs() {
         function stopEdit() {
             arrDcs.forEach(dcs => { dcs.display = null; dcs.opacity = 1; });
             eltEditShield.remove();
+            clearStairMarks();
+        }
+        function clearStairMarks() {
+            const arrMiddle = getEltsStairN();
+            arrMiddle.forEach(eltM => {
+                const eltMark = eltM.closest(".stair-mark");
+                eltMark?.remove();
+            });
         }
     }
 
