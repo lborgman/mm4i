@@ -83,6 +83,7 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
 
         // new
         "stairs": "./js/mod/stairs.js",
+        "shield-click": "./js/mod/shield-click.js",
     };
 
     const isImporting = {};

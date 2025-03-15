@@ -9,6 +9,7 @@ const importFc4i = window["importFc4i"];
 
 const modMdc = await importFc4i("util-mdc");
 const modCustRend = await importFc4i("jsmind-cust-rend");
+const modShieldClick = await importFc4i("shield-click");
 
 export async function dialogStairs() {
     console.log({ modMdc, modCustRend });
@@ -206,33 +207,48 @@ export async function dialogStairs() {
                 pointer-events: auto;
                 NOpointer-events: none;
             `;
+        /*
         eltEditShield.addEventListener("pointerdown", evt => {
             evt.stopImmediatePropagation();
+            shieldPointerDown(evt);
+        });
+        */
+        modShieldClick.addShieldClick(eltEditShield, shieldPointerDown, getJsmindInner);
+        function getJsmindInner(eltsHere) {
+            const elts = eltsHere.filter(elt => elt.classList.contains("jsmind-inner"));
+            return elts[0];
+        }
+        function shieldPointerDown(evt) {
             // console.log("pointer-down eltShield");
             const arrElts = document.elementsFromPoint(evt.clientX, evt.clientY);
             // console.log({ arrElts });
             let eltsJmnode = arrElts.filter(elt => elt.tagName == "JMNODE");
             if (eltsJmnode.length == 0) {
                 const eltsStepMark = arrElts.filter(elt => elt.classList.contains("stair-mark"));
-                if (eltsStepMark.length == 0) return;
                 if (eltsStepMark.length > 1) {
                     debugger; // eslint-disable-line no-debugger
                 }
-                const eltStepMark = eltsStepMark[0];
-                const eltJmnode = eltStepMark.closest("jmnode");
-                if (!eltJmnode) throw Error("Did not find <jmnode> from .stair-mark");
-                eltsJmnode = [eltJmnode];
+                if (eltsStepMark.length > 0) {
+                    const eltStepMark = eltsStepMark[0];
+                    const eltJmnode = eltStepMark.closest("jmnode");
+                    if (!eltJmnode) throw Error("Did not find <jmnode> from .stair-mark");
+                    eltsJmnode = [eltJmnode];
+                }
             }
 
             // console.log({ eltsJmnode });
-            if (eltsJmnode.length == 0) return;
             if (eltsJmnode.length > 1) {
                 debugger; // eslint-disable-line no-debugger
             }
-            const eltJmnode = eltsJmnode[0];
-            // console.log({ eltJmnode });
-            updateStairMark(eltJmnode);
-        });
+            if (eltsJmnode.length > 0) {
+                const eltJmnode = eltsJmnode[0];
+                updateStairMark(eltJmnode);
+                return;
+            }
+            const eltsJsmindInner = arrElts.filter(elt => elt.classList.contains("jsmind-inner"));
+            const eltJsmindInner = eltsJsmindInner[0];
+            // resend
+        }
         function updateStairMark(eltJmnode) {
             const oldMark = eltJmnode.querySelector(".stair-mark");
             if (oldMark) { oldMark.remove(); return; }
@@ -251,10 +267,14 @@ export async function dialogStairs() {
         startEdit();
         function startEdit() {
             arrDcs.forEach(dcs => { dcs.opacity = 0; });
+            // arrDialogContainer.forEach(cnt => { })
+            setTimeout(() => {
+                arrDcs.forEach(dcs => { dcs.display = "none"; });
+            }, 1 * 1000);
             document.body.appendChild(eltEditShield);
         }
         function stopEdit() {
-            arrDcs.forEach(dcs => { dcs.opacity = 1; });
+            arrDcs.forEach(dcs => { dcs.display = null; dcs.opacity = 1; });
             eltEditShield.remove();
         }
     }

@@ -1302,7 +1302,9 @@ export async function pageSetup() {
         const eltScroll = jmnodes.closest("div.jsmind-zoom-move");
         funStopScroll = startGrabMove(eltScroll);
     });
-    modFsm.fsm.hook_exit("c_Move", () => { if (funStopScroll) funStopScroll(); });
+    modFsm.fsm.hook_exit("c_Move", () => {
+        if (funStopScroll) funStopScroll();
+    });
 
     modFsm.fsm.post_hook_entry("c_Dblclick", () => { dialogEditMindmap(); });
     modFsm.fsm.post_hook_entry("n_Dblclick", async (hookData) => {
