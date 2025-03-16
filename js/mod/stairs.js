@@ -12,6 +12,7 @@ const modCustRend = await importFc4i("jsmind-cust-rend");
 const modShieldClick = await importFc4i("shield-click");
 
 export async function dialogStairs() {
+    let theDialog;
     console.log({ modMdc, modCustRend });
     const r = await modCustRend.getOurCustomRenderer();
     const nameMM = r.getMindmapName();
@@ -22,8 +23,9 @@ export async function dialogStairs() {
     divOurStairs.style = `
         display: flex;
         flex-direction: column;
-        NOgap: 10px;
+        gap: 10px;
         margin-left: 20px;
+        margin-right: 20px;
     `;
     refreshListing();
     function refreshListing() {
@@ -36,24 +38,91 @@ export async function dialogStairs() {
         ourStairs.forEach(obj => {
             const nameStair = obj.nameStair;
             const strVal = obj.strStair;
-            const btnName = modMdc.mkMDCbutton(nameStair);
-            btnName.title = `Display stair "${nameStair}"`;
+            // const btnName = modMdc.mkMDCbutton(nameStair);
+            const spanName = mkElt("span", undefined, nameStair);
+            spanName.style = `
+                background: orange;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                font-weight: bold;
+            `;
+            const btnView = modMdc.mkMDCiconButton("visibility", `Show stair "${nameStair}"`)
+            const btnEdit = modMdc.mkMDCiconButton("edit", `Edit stair "${nameStair}"`)
             const btnDelete = modMdc.mkMDCiconButton("delete_forever", `Delete stair "${nameStair}"`);
-            btnDelete.addEventListener("click", evt => {
+            btnView.addEventListener("click", async evt => {
+                evt.stopPropagation();
+                console.log("view stair", nameStair);
+                theDialog.mdc.close();
+
+                clearStairMarks();
+                addOurMarks();
+                addControl();
+
+                function addControl() {
+                    const idControl = "stair-marks-control";
+                    const oldControl = document.getElementById(idControl);
+                    oldControl?.remove();
+                    const btnClose = modMdc.mkMDCiconButton("close");
+                    const eltInfoStair = mkElt("span", undefined, `Stair marks "${nameStair}"`);
+                    eltInfoStair.style = `
+                        display: flex;
+                        flex-wrap: wrap;
+                        align-content: center;
+                        padding: 0px 8px;
+                    `;
+                    const divControl = mkElt("div", undefined, [
+                        eltInfoStair,
+                        btnClose,
+                    ]);
+                    divControl.style = `
+                        position: fixed;
+                        right: 0px;
+                        top: 50px;
+                        background-color: deepskyblue;
+                        color: midnightblue;
+                        border-radius: 6px;
+                        border: 1px solid currentColor;
+                        display: flex;
+                    `;
+                    btnClose.addEventListener("click", evt => {
+                        evt.stopPropagation();
+                        clearStairMarks();
+                        divControl.remove();
+                    });
+                    document.body.appendChild(divControl);
+                }
+
+                function addOurMarks() {
+                    const arrIds = getStair(nameMM, nameStair);
+                    const qsa = document.querySelectorAll("jmnodes jmnode")
+                    qsa.forEach(eltJmnode => {
+                        const nodeid = eltJmnode.getAttribute("nodeid");
+                        const pos = arrIds.indexOf(nodeid);
+                        if (pos > -1) {
+                            addStairMark(eltJmnode, pos + 1);
+                        }
+                    });
+                }
+            });
+            btnDelete.addEventListener("click", async evt => {
                 evt.stopPropagation();
                 console.log("delete stair", nameStair);
+                const answer = await modMdc.mkMDCdialogConfirm(`Delete stair "${nameStair}"`, "Yes", "Cancel");
+                debugger;
+                if (!answer) return;
                 deleteStair(nameMM, nameStair);
                 refreshListing();
             });
-            const divEntry = mkElt("div", undefined, [btnName, btnDelete]);
+            const divEntry = mkElt("div", undefined, [spanName, btnView, btnEdit, btnDelete]);
             divEntry.style = `
-            display: grid;
-            grid-template-columns: 100px 40px;
-            gap: 10px;
+              display: grid;
+              grid-template-columns: 1fr 40px 40px 40px;
+              NOgap: 10px;
         `;
             divEntry.dataset.nameStair = name;
             divEntry.dataset.strStair = strVal;
-            divOurStairs.appendChild(divEntry);
+            // divOurStairs.appendChild(divEntry);
             divOurStairs.appendChild(divEntry);
         });
     }
@@ -106,12 +175,6 @@ export async function dialogStairs() {
     let nStep = 0;
     function editStair(nameStair) {
         console.log("editStair", nameStair);
-        const arrDialogContainer = [...document.querySelectorAll(".mdc-dialog__container")];
-        const arrDcs = arrDialogContainer.map(elt => elt.style);
-        arrDcs.forEach(dcs => {
-            dcs.transitionProperty = "opacity";
-            dcs.transitionDuration = "1s";
-        });
 
         const eltShieldTitle = mkElt("span", undefined, `Edit stair ${nameStair}`);
         eltShieldTitle.style = `
@@ -151,7 +214,7 @@ export async function dialogStairs() {
 
         btnCancel.addEventListener("click", evt => {
             evt.stopPropagation();
-            stopEdit();
+            removeShield();
         });
         btnRenumber.addEventListener("click", evt => {
             evt.stopPropagation();
@@ -248,41 +311,61 @@ export async function dialogStairs() {
             const eltJsmindInner = eltsJsmindInner[0];
             // resend
         }
+
         function updateStairMark(eltJmnode) {
             const oldMark = eltJmnode.querySelector(".stair-mark");
             if (oldMark) { oldMark.remove(); return; }
-            const btnLeft = mkElt("div", { class: "stair-mark-left" }, "<");
-            const eltMiddle = mkElt("div", { class: "stair-mark-middle" }, "N");
-            const btnRight = mkElt("div", { class: "stair-mark-right" }, ">");
-            const newMark = mkElt("div", { class: "stair-mark" }, [btnLeft, eltMiddle, btnRight]);
-            eltJmnode.appendChild(newMark);
-            eltMiddle.textContent = `${++nStep}`;
-            if (nStep == 1) {
-                btnLeft.textContent = "|";
-                newMark.style.fontSize = "22px";
-            }
+            ++nStep;
+            addStairMark(eltJmnode, nStep);
         }
 
-        startEdit();
-        function startEdit() {
+        addShield();
+        function getDialogStyles() {
+            const arrDialogContainer = [...document.querySelectorAll(".mdc-dialog__container")];
+            const arrDcs = arrDialogContainer.map(elt => elt.style);
+            return arrDcs;
+        }
+        function addShield() {
+            const arrDcs = getDialogStyles();
+            arrDcs.forEach(dcs => {
+                dcs.transitionProperty = "opacity";
+                dcs.transitionDuration = "1s";
+            });
             arrDcs.forEach(dcs => { dcs.opacity = 0; });
-            // arrDialogContainer.forEach(cnt => { })
             setTimeout(() => {
                 arrDcs.forEach(dcs => { dcs.display = "none"; });
             }, 1 * 1000);
             document.body.appendChild(eltEditShield);
         }
-        function stopEdit() {
+        function removeShield() {
+            const arrDcs = getDialogStyles();
             arrDcs.forEach(dcs => { dcs.display = null; dcs.opacity = 1; });
             eltEditShield.remove();
-            clearStairMarks();
+            // clearStairMarks();
         }
-        function clearStairMarks() {
-            const arrMiddle = getEltsStairN();
-            arrMiddle.forEach(eltM => {
-                const eltMark = eltM.closest(".stair-mark");
-                eltMark?.remove();
-            });
+    }
+    function clearStairMarks() {
+        // debugger;
+        const qsa = document.querySelectorAll("jmnodes jmnode div.stair-mark");
+        qsa.forEach(mark => mark.remove());
+        return;
+        const arrMiddle = getEltsStairN();
+        arrMiddle.forEach(eltM => {
+            const eltMark = eltM.closest(".stair-mark");
+            eltMark?.remove();
+        });
+    }
+
+    function addStairMark(eltJmnode, nStep) {
+        const btnLeft = mkElt("div", { class: "stair-mark-left" }, "<");
+        const eltMiddle = mkElt("div", { class: "stair-mark-middle" }, "N");
+        const btnRight = mkElt("div", { class: "stair-mark-right" }, ">");
+        const newMark = mkElt("div", { class: "stair-mark" }, [btnLeft, eltMiddle, btnRight]);
+        eltJmnode.appendChild(newMark);
+        eltMiddle.textContent = `${nStep}`;
+        if (nStep == 1) {
+            btnLeft.textContent = "|";
+            newMark.style.fontSize = "22px";
         }
     }
 
@@ -293,7 +376,8 @@ export async function dialogStairs() {
         divName,
         divOurStairs,
     ]);
-    modMdc.mkMDCdialogAlert(body, "Close");
+    theDialog = await modMdc.mkMDCdialog(body);
+    debugger;
 }
 
 
@@ -306,6 +390,12 @@ function saveStair(nameMindmap, nameStair, arrIds) {
 function deleteStair(nameMindmap, nameStair) {
     const key = `${nameMindmap}---${nameStair}`; console.log({ key });
     localStorage.removeItem(key);
+}
+function getStair(nameMindmap, nameStair) {
+    const key = `${nameMindmap}---${nameStair}`; console.log({ key });
+    const str = localStorage.getItem(key);
+    const val = JSON.parse(str);
+    return val;
 }
 
 /**
