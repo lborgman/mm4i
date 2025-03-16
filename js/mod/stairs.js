@@ -45,14 +45,14 @@ export async function dialogStairs() {
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
-                font-weight: bold;
+                NOfont-weight: bold;
+                font-size: 1.5rem;
             `;
             const btnView = modMdc.mkMDCiconButton("visibility", `Show stair "${nameStair}"`)
             const btnEdit = modMdc.mkMDCiconButton("edit", `Edit stair "${nameStair}"`)
             const btnDelete = modMdc.mkMDCiconButton("delete_forever", `Delete stair "${nameStair}"`);
             btnView.addEventListener("click", async evt => {
                 evt.stopPropagation();
-                console.log("view stair", nameStair);
                 theDialog.mdc.close();
 
                 clearStairMarks();
@@ -63,8 +63,8 @@ export async function dialogStairs() {
                     const idControl = "stair-marks-control";
                     const oldControl = document.getElementById(idControl);
                     oldControl?.remove();
-                    const btnClose = modMdc.mkMDCiconButton("close");
-                    const eltInfoStair = mkElt("span", undefined, `Stair marks "${nameStair}"`);
+                    const btnClose = modMdc.mkMDCiconButton("close", "Hide stair");
+                    const eltInfoStair = mkElt("span", undefined, `Stair "${nameStair}"`);
                     eltInfoStair.style = `
                         display: flex;
                         flex-wrap: wrap;
@@ -105,11 +105,13 @@ export async function dialogStairs() {
                     });
                 }
             });
+            btnEdit.addEventListener("click", evt => {
+                evt.stopPropagation();
+                alert("not ready");
+            });
             btnDelete.addEventListener("click", async evt => {
                 evt.stopPropagation();
-                console.log("delete stair", nameStair);
                 const answer = await modMdc.mkMDCdialogConfirm(`Delete stair "${nameStair}"`, "Yes", "Cancel");
-                debugger;
                 if (!answer) return;
                 deleteStair(nameMM, nameStair);
                 refreshListing();
@@ -135,26 +137,35 @@ export async function dialogStairs() {
         color: yellow;
     `;
 
-    const eltTitle = mkElt("h2", undefined, `Mindmap "${nameMM}" stairs`);
+    // const eltTitle = mkElt("h2", undefined, `Mindmap "${nameMM}" stairs`);
+    const eltTitle = mkElt("h2", undefined, [
+        "Stairs for mindmap ", mkElt("i", undefined, nameMM),
+    ]);
     eltTitle.style = `
-        display: flex;
-        gap: 20px;
+        position: relative;
+        margin-bottom: 40px;
     `;
 
     const eltIcon = modMdc.mkMDCicon("add");
     const btnFab = modMdc.mkMDCfab(eltIcon, "Create new stair", true);
     eltTitle.appendChild(btnFab);
+    btnFab.style = `
+        position: absolute;
+        right: 0px;
+        top: 20px;
+    `;
 
     const inpName = modMdc.mkMDCtextFieldInput();
     const tfName = modMdc.mkMDCtextField("New stair's name", inpName);
     const btnNameContinue = modMdc.mkMDCbutton("Add", "raised");
-    const divName = mkElt("div", undefined, [
+    const divName = mkElt("p", undefined, [
         tfName,
         btnNameContinue,
     ]);
     divName.style = `
         display: none;
         gap: 10px;
+        margin-bottom: 30px;
     `;
 
     btnFab.addEventListener("click", evt => {
@@ -376,8 +387,9 @@ export async function dialogStairs() {
         divName,
         divOurStairs,
     ]);
-    theDialog = await modMdc.mkMDCdialog(body);
-    debugger;
+    const btnClose = modMdc.mkMDCdialogButton("Close", "close", true);
+    const eltActions = modMdc.mkMDCdialogActions([btnClose]);
+    theDialog = await modMdc.mkMDCdialog(body, eltActions);
 }
 
 
