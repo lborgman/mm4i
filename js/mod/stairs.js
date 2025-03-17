@@ -241,6 +241,7 @@ export async function dialogStairs() {
         background: yellow;
         padding: 10px;
         color: yellow;
+        color: black;
     `;
 
     // const eltTitle = mkElt("h2", undefined, `Mindmap "${nameMM}" stairs`);
