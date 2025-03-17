@@ -53,9 +53,6 @@ export async function dialogStairs() {
         return parseInt(strStep);
     }
     function addStairControlEdit(nameStair) {
-        const idControl = "stair-marks-control";
-        const oldControl = document.getElementById(idControl);
-        oldControl?.remove();
         const btnPrev = modMdc.mkMDCiconButton("arrow_back_ios_new");
         btnPrev.id = "prev-stair-step";
         btnPrev.addEventListener("click", async evt => {
@@ -92,7 +89,7 @@ export async function dialogStairs() {
             btnSave,
             btnClose,
         ]);
-        divControl.id = idControl;
+        divControl.id = vieweditControlId;
         btnClose.addEventListener("click", evt => {
             evt.stopPropagation();
             exitEditOrView();
@@ -102,9 +99,6 @@ export async function dialogStairs() {
     }
 
     function addStairControlView(nameStair) {
-        const idControl = "stair-marks-control";
-        const oldControl = document.getElementById(idControl);
-        oldControl?.remove();
         const btnPrev = modMdc.mkMDCiconButton("arrow_back_ios_new");
         btnPrev.id = "prev-stair-step";
         // btnPrev.inert = true;
@@ -153,7 +147,7 @@ export async function dialogStairs() {
             btnNext,
             btnClose,
         ]);
-        divControl.id = idControl;
+        divControl.id = vieweditControlId;
         btnClose.addEventListener("click", evt => {
             evt.stopPropagation();
             exitEditOrView();
@@ -305,12 +299,12 @@ export async function dialogStairs() {
         }
     }
 
-    const editShieldId = "stair-view-edit-shield";
-    const controlShieldId = "stair-view-edit-control";
+    const vieweditShieldId = "stair-view-edit-shield";
+    const vieweditControlId = "stair-view-edit-control";
     function exitEditOrView() {
-        const shield = document.getElementById(editShieldId);
+        const shield = document.getElementById(vieweditShieldId);
         shield?.remove();
-        const control = document.getElementById(controlShieldId);
+        const control = document.getElementById(vieweditControlId);
         control?.remove();
         clearStairMarks();
     }
@@ -318,7 +312,7 @@ export async function dialogStairs() {
         exitEditOrView();
         addOurMarks(nameStair);
         const eltEditShield = mkElt("div", undefined,);
-        eltEditShield.id = editShieldId;
+        eltEditShield.id = vieweditShieldId;
         document.body.appendChild(eltEditShield);
         addStairControlEdit(nameStair);
         theDialog.mdc.close();
