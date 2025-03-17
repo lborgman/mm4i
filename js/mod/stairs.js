@@ -187,6 +187,7 @@ export async function dialogStairs() {
             divOurStairs.textContent = "There are no stairs for this mindmap.";
             return;
         }
+        ourStairs.sort((a, b) => { return a.nameStair.localeCompare(b.nameStair); });
         ourStairs.forEach(obj => {
             const nameStair = obj.nameStair;
             const strVal = obj.strStair;
