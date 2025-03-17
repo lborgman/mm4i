@@ -781,16 +781,28 @@
             display: flex;
             flex-wrap: wrap;
             align-content: center;
-            padding: 0px 8px;
+            padding: 0px 4px 0px 8px;
         }
 
         #stair-marks-control>span {
-            background: red;
-            margin: 0px;
+            /* background: red; */
+            /* margin: 0px; */
+            padding-right: 10px;
             height: inherit;
             display: flex;
             align-content: center;
             flex-wrap: wrap;
+        }
+
+        #stair-view-edit-shield {
+            position: fixed;
+            top: 0px;
+            left: 0px;
+            bottom: 0px;
+            right: 0px;
+            z-index: 9999;
+            background-color: rgba(25, 25, 112, 0.4);
+            pointer-events: none;
         }
     </style>
 

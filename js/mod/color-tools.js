@@ -209,24 +209,27 @@ export function getBackgroundColorAtPoint(x, y, eltTop = undefined) {
     const arrColorFiltered = arrOurElts.map(elt => {
         const st = getComputedStyle(elt);
         const stOpacity = st.opacity;
-        // if (stOpacity == 0) return;
         const backgroundColor = st.backgroundColor;
-        const arrRgba = toRgbaArr(backgroundColor);
-        const rgbaOpacity = arrRgba[3] / 255;
-        // if (rgbaOpacity == 0) return;
-        const opacity = stOpacity * rgbaOpacity;
+
+        const objRGBA = colorToRGBA(backgroundColor);
+
+        const opacity = stOpacity * objRGBA.A;
         if (opacity == 0) return;
+
         // const backgroundImage = st.backgroundImage;
         // console.log({ stOpacity, rgbaOpacity, opacity, backgroundColor, arrRgba, backgroundImage });
-        arrRgba[3] = 255 * opacity;
-        const rgba = arrToRgba(arrRgba);
-        // return rgba;
-        return { rgba, elt };
+
+        objRGBA.A = 255 * opacity;
+
+        return { RGBA: objRGBA, elt };
     })
         .filter(val => val != undefined);
-    // console.log({ arrColorFiltered });
-    let nonTransColor = arrColorFiltered.pop().rgba;
+
+    // let nonTransColor = arrColorFiltered.pop().rgba;
+    let nonTransColor = arrColorFiltered.pop().RGBA;
     // console.log({ nonTransColor });
+    return nonTransColor; // FIX-ME:
+
     let transColorObj = arrColorFiltered.pop();
     while (transColorObj) {
         console.log({ transColorObj });
@@ -240,6 +243,36 @@ export function getBackgroundColorAtPoint(x, y, eltTop = undefined) {
 // https://css-tricks.com/converting-color-spaces-in-javascript/
 // function RGBToHex(rgb) { return standardizeColorTo6Hex(rgb); }
 
+/**
+ * This should handle all formats returned in chromium browser
+ * by getComputedStyle(elt).backgroundColor
+ *  
+ * @param {string} color 
+ * @returns {ObjectRGBA}
+ */
+export function colorToRGBA(color) {
+    const tofColor = typeof color;
+    if (tofColor != "string") throw Error(`Expected color to be string, but got "${tofColor}"`);
+    const strIn = color.replaceAll(" ", "");
+    if (strIn == "transparent") return { R: 0, G: 0, B: 0, A: 0 }
+    if (strIn.startsWith("#")) {
+        switch (strIn.length) {
+            case 7:
+                const obj7 = hexToRGB(obj7);
+                obj7.A = 1;
+                return obj7;
+            default:
+                throw Error(`Can only handle hex 6 format, but got "{strIn}"`)
+        }
+    }
+    if (strIn.startsWith("rgba(")) {
+        return rgba2RGBA(strIn);
+    }
+    const hex = standardizeColorTo6Hex(strIn);
+    const objH = hexToRGB(hex);
+    objH.A = 1;
+    return objH;
+}
 
 // https://stackoverflow.com/questions/1573053/javascript-function-to-convert-color-names-to-hex-codes/47355187#47355187
 // https://issues.chromium.org/issues/401731818
@@ -300,22 +333,35 @@ function RGBtoHEX6(objRGB) {
     const hex = n => n.toString(16).padStart(2, "0");
     return `#${hex(R)}${hex(G)}${hex(B)}`;
 }
+function RGBAtoHEX8(objRGBA) {
+    assertObjectColor(objRGBA);
+    const { R, G, B, A } = objRGBA;
+    const hex = n => n.toString(16).padStart(2, "0");
+    const a = Math.floor(A * 255);
+    return `#${hex(R)}${hex(G)}${hex(B)}${hex(a)}`;
+}
 function RGB2rgb(objRGB) {
     assertObjectColor(objRGB);
     const { R, G, B } = objRGB;
     return `rgb(${R},${G},${B})`;
 }
 
-function RGBAtoHEX8(objRGBA) {
-    assertObjectColor(objRGBA);
-    const { R, G, B, A } = objRGBA;
-    const hex = n => n.toString(16).padStart(2, "0");
-    return `#${hex(R)}${hex(G)}${hex(B)}${hex(A)}`;
-}
 function RGBA2rgba(objRGBA) {
     assertObjectColor(objRGBA);
     const { R, G, B, A } = objRGBA;
     return `rgba(${R},${G},${B},${A})`;
+}
+function rgba2RGBA(strRgba) {
+    // const m = /^rgba\((.+?),(.+?),(.+?),(.+?)\)$/.exec("rgba(0,1,2,0.5)");
+    const m = /^rgba\((.+?),(.+?),(.+?),(.+?)\)$/.exec(strRgba);
+    if (m == null) throw Error(`string does not look like an rgba() color: "${strRgba}`);
+    const R = parseInt(m[1]);
+    const G = parseInt(m[2]);
+    const B = parseInt(m[3]);
+    const A = parseFloat(m[4]);
+    const objRGBA = { R, G, B, A }
+    assertObjectColor(objRGBA);
+    return objRGBA;
 }
 
 // debugger; // eslint-disable-line no-debugger
@@ -878,7 +924,20 @@ function assertObjectColor(obj) {
             console.error("NaN in ", obj);
             debugger; // eslint-disable-line no-debugger
         }
-    })
+    });
+    const { R, G, B, A } = obj;
+    if (R != undefined) {
+        const assert255 = (n) => {
+            if (!Number.isInteger(n)) throw Error(`Not an integer: ${n}`);
+            if (n < 0) throw Error(`${n} < 0`);
+            if (n > 255) throw Error(`${n} > 255`);
+        }
+        assert255(R);
+        assert255(G);
+        assert255(B);
+        if (A < 0) throw Error(`A: ${A} < 0`);
+        if (A > 1) throw Error(`A: ${n} > 1`);
+    }
 }
 function isBlackOrWhite(color) {
     let strColor = color;
