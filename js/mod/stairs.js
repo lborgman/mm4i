@@ -95,10 +95,7 @@ export async function dialogStairs() {
         divControl.id = idControl;
         btnClose.addEventListener("click", evt => {
             evt.stopPropagation();
-            // clearStairMarks();
-            divControl.remove();
-            const shield = document.getElementById(editShieldId);
-            shield?.remove();
+            exitEditOrView();
             viewStair(nameStair);
         });
         document.body.appendChild(divControl);
@@ -159,8 +156,7 @@ export async function dialogStairs() {
         divControl.id = idControl;
         btnClose.addEventListener("click", evt => {
             evt.stopPropagation();
-            clearStairMarks();
-            divControl.remove();
+            exitEditOrView();
         });
         document.body.appendChild(divControl);
     }
@@ -310,8 +306,16 @@ export async function dialogStairs() {
     }
 
     const editShieldId = "stair-view-edit-shield";
+    const controlShieldId = "stair-view-edit-control";
+    function exitEditOrView() {
+        const shield = document.getElementById(editShieldId);
+        shield?.remove();
+        const control = document.getElementById(controlShieldId);
+        control?.remove();
+        clearStairMarks();
+    }
     function editStair(nameStair) {
-        // clearStairMarks();
+        exitEditOrView();
         addOurMarks(nameStair);
         const eltEditShield = mkElt("div", undefined,);
         eltEditShield.id = editShieldId;
@@ -363,18 +367,11 @@ export async function dialogStairs() {
     }
 
     function clearStairMarks() {
-        // debugger;
         const qsa = document.querySelectorAll("jmnodes jmnode div.stair-mark");
         qsa.forEach(mark => mark.remove());
-        return;
-        const arrMiddle = getEltsStairN();
-        arrMiddle.forEach(eltM => {
-            const eltMark = eltM.closest(".stair-mark");
-            eltMark?.remove();
-        });
     }
     function addOurMarks(nameStair) {
-        clearStairMarks();
+        // clearStairMarks();
         const eltJmnodes = document.querySelector("jmnodes")
         if (!eltJmnodes) throw Error("Could not find <jmnodes>");
         const arrIds = getStair(nameMM, nameStair);
