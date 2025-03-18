@@ -98,7 +98,7 @@ export async function dialogStairs() {
                     saveStair(nameMM, nameStair);
                     modMdc.mkMDCsnackbar("Saved stair");
                     // I think there is a chromium bug here. Test waiting 1 second.
-                    alert("saved");
+                    // alert("saved");
                     await modTools.waitSeconds(1);
                 }
             }
@@ -126,8 +126,8 @@ export async function dialogStairs() {
         async function stepPrevNext(forward) {
             const currentStep = await getCurrentStep();
             console.log({ currentStep });
-            const objStair = getCurrentObjStairMarks();
-            const arrSteps = Object.keys(objStair).map(strStep => parseInt(strStep));
+            const objStairMarks = getCurrentObjStairMarks();
+            const arrSteps = Object.keys(objStairMarks).map(strStep => parseInt(strStep));
             if (forward) {
                 const maxStep = Math.max(...arrSteps);
                 if (maxStep == currentStep) {
@@ -143,7 +143,7 @@ export async function dialogStairs() {
             }
             const idxCurrent = arrSteps.indexOf(currentStep);
             const toStep = arrSteps[idxCurrent + (forward ? 1 : -1)];
-            const toMark = objStair[toStep];
+            const toMark = objStairMarks[toStep];
             const toJmnode = toMark.closest("jmnode");
             const toNodeid = toJmnode.getAttribute("nodeid");
             const jmDisplayed = await getJmDisplayed();
@@ -343,12 +343,12 @@ export async function dialogStairs() {
         function bodyClickHandler(evt) {
             evt.stopPropagation();
             const arrElts = document.elementsFromPoint(evt.clientX, evt.clientY);
-            console.log({ arrElts });
+            // console.log({ arrElts });
             let eltsJmnode = arrElts.filter(elt => elt.tagName == "JMNODE");
-            console.log({ eltsJmnode });
+            // console.log({ eltsJmnode });
             if (eltsJmnode.length == 0) {
                 const eltsStepMark = arrElts.filter(elt => elt.classList.contains("stair-mark"));
-                console.log({ eltsStepMark });
+                // console.log({ eltsStepMark });
                 if (eltsStepMark.length > 1) {
                     debugger; // eslint-disable-line no-debugger
                 }
@@ -359,7 +359,7 @@ export async function dialogStairs() {
                     eltsJmnode = [eltJmnode];
                 }
             }
-            console.log("finale", { eltsJmnode });
+            // console.log("finale", { eltsJmnode });
 
             if (eltsJmnode.length > 1) {
                 debugger; // eslint-disable-line no-debugger
@@ -367,10 +367,10 @@ export async function dialogStairs() {
             if (eltsJmnode.length > 0) {
                 const eltJmnode = eltsJmnode[0];
                 // const arrN = getCurrentStairSteps();
-                const objStair = getCurrentObjStairMarks();
-                const arrStepN = Object.keys(objStair).map(k => parseInt(k));
-                const getNewStepNum = Math.max(0, ...arrStepN) + 1;
-                updateStairMark(eltJmnode, getNewStepNum);
+                const objStairMarks = getCurrentObjStairMarks();
+                const arrStepN = Object.keys(objStairMarks).map(k => parseInt(k));
+                const newStepNum = Math.max(0, ...arrStepN) + 1;
+                updateStairMark(eltJmnode, newStepNum);
                 return;
             }
 
@@ -437,22 +437,26 @@ function getCurrentObjStairMarks() {
     if (!eltJmnodes) throw Error("Could not find <jmnodes>");
     const obj = {};
     eltJmnodes.querySelectorAll(".stair-mark").forEach(eltStairMark => {
-        console.log({ eltStairMark });
+        // console.log({ eltStairMark });
         const strStepN = eltStairMark.getAttribute("stair-step-n");
         if (strStepN == null) throw Error(`eltStairMark does not have attribute "step-stair-n"`)
         const stepN = parseInt(strStepN);
         obj[stepN] = eltStairMark;
     });
-    console.log({ obj });
+    // console.log({ obj });
     return obj;
 }
 
+/** @typedef {number|"root"} nodeid */
 
-
+/**
+ * 
+ * @returns {nodeid[]}
+ */
 function screenStair() {
-    const objMarks = getCurrentObjStairMarks();
-    const arrNodeid = Object.keys(objMarks).sort().map(key => {
-        const eltMark = objMarks[key];
+    const objStairMarks = getCurrentObjStairMarks();
+    const arrNodeid = Object.keys(objStairMarks).sort().map(key => {
+        const eltMark = objStairMarks[key];
         const eltJmnode = eltMark.closest("jmnode");
         const nodeId = eltJmnode.getAttribute("nodeid");
         return nodeId;
@@ -466,10 +470,19 @@ function screenStair() {
  * @param {string} nameStair 
  */
 function saveStair(nameMindmap, nameStair) {
-    const key = `${nameMindmap}---${nameStair}`; console.log({ key });
-    const arrIds = screenStair();
-    const value = JSON.stringify(arrIds);
+    console.warn("saveStair", { nameMindmap, nameStair });
+    const key = `${nameMindmap}---${nameStair}`;
+    // console.log({ key });
+    const arrJmNodeid = screenStair();
+    const value = JSON.stringify(arrJmNodeid);
     localStorage.setItem(key, value);
+
+    const valShow = JSON.stringify(arrJmNodeid, undefined, 4);
+    modMdc.mkMDCdialogAlert(
+        mkElt("div", undefined, [
+            mkElt("h2", undefined, "saveStair"),
+            mkElt("pre", undefined, valShow),
+        ]));
 }
 
 /**
@@ -489,7 +502,8 @@ function deleteStair(nameMindmap, nameStair) {
  * @returns {[any]} 
  */
 function getStair(nameMindmap, nameStair) {
-    const key = `${nameMindmap}---${nameStair}`; console.log({ key });
+    const key = `${nameMindmap}---${nameStair}`;
+    // console.log({ key });
     const str = localStorage.getItem(key);
     if (!str) throw Error(`Could not find saved stair "${key}"`);
     const val = JSON.parse(str);

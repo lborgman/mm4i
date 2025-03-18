@@ -2299,7 +2299,7 @@ export function mkHeightExpander(eltContent) {
 function checkIsHeightExpander(divExpander) {
     const tellError = (msg) => {
         console.error(msg);
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         throw Error(msg)
     }
     if (!divExpander.classList.contains("height-expander")) {
