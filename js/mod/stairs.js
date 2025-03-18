@@ -73,7 +73,6 @@ export async function dialogStairs() {
             evt.stopPropagation();
             saveStair(nameMM, nameStair);
             modMdc.mkMDCsnackbar(`Saved stair "${nameStair}"`);
-
         })
         const btnCloseEdit = modMdc.mkMDCiconButton("close", "Cancel");
         const eltInfoStair = mkElt("span", undefined, `Edit stair "${nameStair}"`);
@@ -98,6 +97,8 @@ export async function dialogStairs() {
                 if (save) {
                     saveStair(nameMM, nameStair);
                     modMdc.mkMDCsnackbar("Saved stair");
+                    // I think there is a chromium bug here. Test waiting 1 second.
+                    modTools.waitSeconds(1);
                 }
             }
             document.body.removeEventListener("click", bodyClickHandler);
