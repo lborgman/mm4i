@@ -44,7 +44,8 @@ export async function dialogStairs() {
         console.log({ selected_node });
         if (!selected_node) return 0;
         // const selectedElt = getDOMeltFromNode(selectedNode); // FIX-ME:
-        const selectedElt = jsMind.my_get_DOM_element_from_node(selected_node)
+        const jsMind = window["jsMind"];
+        const selectedElt = jsMind.my_get_DOM_element_from_node(selected_node);
         console.log({ selectedElt });
         if (!selectedElt) return 0;
         const eltMark = selectedElt.querySelector(".stair-mark");
@@ -70,14 +71,7 @@ export async function dialogStairs() {
         const btnSave = modMdc.mkMDCiconButton("save", "Save stair");
         btnSave.addEventListener("click", evt => {
             evt.stopPropagation();
-            const objMarks = getCurrentObjStairMarks();
-            const arrNodeid = Object.keys(objMarks).sort().map(key => {
-                const eltMark = objMarks[key];
-                const eltJmnode = eltMark.closest("jmnode");
-                const nodeId = eltJmnode.getAttribute("nodeid");
-                return nodeId;
-            });
-            saveStair(nameMM, nameStair, arrNodeid);
+            saveStair(nameMM, nameStair);
             modMdc.mkMDCsnackbar(`Saved stair "${nameStair}"`);
 
         })
@@ -91,8 +85,21 @@ export async function dialogStairs() {
             btnCloseEdit,
         ]);
         divControl.id = vieweditControlId;
-        btnCloseEdit.addEventListener("click", evt => {
+        btnCloseEdit.addEventListener("click", async evt => {
             evt.stopPropagation();
+            const stairScreen = screenStair();
+            const stairSaved = getStair(nameMM, nameStair);
+            const isSaved = JSON.stringify(stairSaved) == JSON.stringify(stairScreen);
+            console.log({ isSaved });
+            if (!isSaved) {
+                const body = mkElt("p", undefined, "Save changes?");
+                const save = await modMdc.mkMDCdialogConfirm(body, "Yes", "No");
+                console.log({ save });
+                if (save) {
+                    saveStair(nameMM, nameStair);
+                    modMdc.mkMDCsnackbar("Saved stair");
+                }
+            }
             document.body.removeEventListener("click", bodyClickHandler);
             exitEditOrView();
             viewStair(nameStair);
@@ -155,21 +162,6 @@ export async function dialogStairs() {
             exitEditOrView();
         });
         document.body.appendChild(divControl);
-    }
-
-    function getCurrentObjStairMarks() {
-        const eltJmnodes = document.querySelector("jmnodes");
-        if (!eltJmnodes) throw Error("Could not find <jmnodes>");
-        const obj = {};
-        eltJmnodes.querySelectorAll(".stair-mark").forEach(eltStairMark => {
-            console.log({ eltStairMark });
-            const strStepN = eltStairMark.getAttribute("stair-step-n");
-            if (strStepN == null) throw Error(`eltStairMark does not have attribute "step-stair-n"`)
-            const stepN = parseInt(strStepN);
-            obj[stepN] = eltStairMark;
-        });
-        console.log({ obj });
-        return obj;
     }
 
     function refreshListing() {
@@ -322,15 +314,6 @@ export async function dialogStairs() {
             return;
         }
         addStairControlView(nameStair);
-
-        function computeStairMinMax(nameStair) {
-            const arrIds = getStair(nameMM, nameStair);
-            const minStep = Math.min(...arrIds);
-            const maxStep = Math.max(...arrIds);
-            const objMinMax = { minStep, maxStep };
-            console.log(objMinMax);
-            return objMinMax;
-        }
     }
 
     const vieweditShieldId = "stair-view-edit-shield";
@@ -381,12 +364,10 @@ export async function dialogStairs() {
             }
             if (eltsJmnode.length > 0) {
                 const eltJmnode = eltsJmnode[0];
-                // const eltJmnodes = eltJmnode.closest("jmnodes");
                 // const arrN = getCurrentStairSteps();
-                // const getNewStepNum = Math.max(0, ...arrN) + 1;
                 const objStair = getCurrentObjStairMarks();
-                const arrN = Object.keys(objStair)
-                const getNewStepNum = Math.max(0, ...arrN) + 1;
+                const arrStepN = Object.keys(objStair).map(k => parseInt(k));
+                const getNewStepNum = Math.max(0, ...arrStepN) + 1;
                 updateStairMark(eltJmnode, getNewStepNum);
                 return;
             }
@@ -449,19 +430,66 @@ export async function dialogStairs() {
 }
 
 
+function getCurrentObjStairMarks() {
+    const eltJmnodes = document.querySelector("jmnodes");
+    if (!eltJmnodes) throw Error("Could not find <jmnodes>");
+    const obj = {};
+    eltJmnodes.querySelectorAll(".stair-mark").forEach(eltStairMark => {
+        console.log({ eltStairMark });
+        const strStepN = eltStairMark.getAttribute("stair-step-n");
+        if (strStepN == null) throw Error(`eltStairMark does not have attribute "step-stair-n"`)
+        const stepN = parseInt(strStepN);
+        obj[stepN] = eltStairMark;
+    });
+    console.log({ obj });
+    return obj;
+}
 
-function saveStair(nameMindmap, nameStair, arrIds) {
+
+
+function screenStair() {
+    const objMarks = getCurrentObjStairMarks();
+    const arrNodeid = Object.keys(objMarks).sort().map(key => {
+        const eltMark = objMarks[key];
+        const eltJmnode = eltMark.closest("jmnode");
+        const nodeId = eltJmnode.getAttribute("nodeid");
+        return nodeId;
+    });
+    return arrNodeid;
+}
+
+/**
+ * 
+ * @param {string} nameMindmap 
+ * @param {string} nameStair 
+ */
+function saveStair(nameMindmap, nameStair) {
     const key = `${nameMindmap}---${nameStair}`; console.log({ key });
+    const arrIds = screenStair();
     const value = JSON.stringify(arrIds);
     localStorage.setItem(key, value);
 }
+
+/**
+ * 
+ * @param {string} nameMindmap 
+ * @param {string} nameStair 
+ */
 function deleteStair(nameMindmap, nameStair) {
     const key = `${nameMindmap}---${nameStair}`; console.log({ key });
     localStorage.removeItem(key);
 }
+
+/**
+ * 
+ * @param {string} nameMindmap 
+ * @param {string} nameStair 
+ * @returns {[any]} 
+ */
 function getStair(nameMindmap, nameStair) {
     const key = `${nameMindmap}---${nameStair}`; console.log({ key });
     const str = localStorage.getItem(key);
+    if (!str) throw Error(`Could not find saved stair "${key}"`);
     const val = JSON.parse(str);
     return val;
 }
@@ -488,16 +516,3 @@ function getStairs(nameMindMap) {
     return arrStairs;
 }
 
-function OLDgetCurrentStairSteps() {
-    const eltJmnodes = document.querySelector("jmnodes")
-    if (!eltJmnodes) throw Error("Could not find <jmnodes>");
-    const arrStairN = [...eltJmnodes.querySelectorAll(".stair-mark")];
-    const arrN = arrStairN.map(elt => {
-        const str = elt.getAttribute("stair-step-n");
-        if (str == null) throw Error(`Did not find attribute "stair-step-mark"`);
-        const int = parseInt(str);
-        return int;
-    });
-    arrN.sort();
-    return arrN;
-}
