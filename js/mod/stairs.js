@@ -98,7 +98,7 @@ export async function dialogStairs() {
                     saveStair(nameMM, nameStair);
                     modMdc.mkMDCsnackbar("Saved stair");
                     // I think there is a chromium bug here. Test waiting 1 second.
-                    modTools.waitSeconds(1);
+                    await modTools.waitSeconds(1);
                 }
             }
             document.body.removeEventListener("click", bodyClickHandler);
