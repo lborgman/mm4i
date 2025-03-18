@@ -341,9 +341,11 @@ export async function dialogStairs() {
         const control = document.getElementById(vieweditControlId);
         control?.remove();
         clearStairMarks();
+        document.body.classList.remove("editing-stair");
     }
     function editStair(nameStair) {
         exitEditOrView();
+        document.body.classList.add("editing-stair");
         addOurMarks(nameStair);
         const eltEditShield = mkElt("div", undefined,);
         eltEditShield.id = vieweditShieldId;
