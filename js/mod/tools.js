@@ -2292,13 +2292,38 @@ export function toggleCollapsibleDiv(divExpandible) {
 */
 
 export function mkHeightExpander(eltContent) {
-    const divExpanderContent = mkElt("div", {class:"height-expander-content"}, eltContent);
-    const divExpander= mkElt("div", {class:"height-expander"}, divExpanderContent);
+    const divExpanderContent = mkElt("div", { class: "height-expander-content" }, eltContent);
+    const divExpander = mkElt("div", { class: "height-expander" }, divExpanderContent);
     return divExpander;
 }
+function checkIsHeightExpander(divExpander) {
+    const tellError = (msg) => {
+        console.error(msg);
+        debugger;
+        throw Error(msg)
+    }
+    if (!divExpander.classList.contains("height-expander")) {
+        tellError('divExpander does not have class ".height-expander"');
+    }
+    const children = divExpander.children;
+    const len = children.length;
+    if (len != 1) {
+        tellError(`divExpander should have 1 child, but have ${len}`);
+    }
+    const divExpanderContent = divExpander.firstElementChild;
+    if (!divExpanderContent.classList.contains("height-expander-content")) {
+        tellError('divExpanderContent does not have class ".height-expander-content"');
+    }
+}
 export function expandHeightExpander(divExpander) {
+    checkIsHeightExpander(divExpander);
+    divExpander.classList.add("expanded");
+}
+export function collapseHeightExpander(divExpander) {
+    checkIsHeightExpander(divExpander);
     divExpander.classList.add("expanded");
 }
 export function toggleHeightExpander(divExpander) {
+    checkIsHeightExpander(divExpander);
     divExpander.classList.toggle("expanded");
 }
