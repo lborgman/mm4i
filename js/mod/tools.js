@@ -2241,3 +2241,64 @@ function test_binarySearch() {
     res.push(binarySearch(arrUse, 14.6, funCompare));
     console.log("%ctest_binarySearch", stLog, res);
 }
+
+
+/*
+// This was originally from Gemini AI. Totally unusable!
+export function mkCollapsibleDiv(divContent) {
+    const divCollapsibleContent = mkElt("div", undefined, divContent);
+    divCollapsibleContent.classList.add("collapsible-content");
+    const divExpandible = mkElt("div", undefined, divCollapsibleContent);
+    divExpandible.classList.add("collapsible");
+    return divExpandible;
+}
+function checkCollapsibleDiv(divCollapsible) {
+    if (!divCollapsible.classList.contains("collapsible")) {
+        const msg = `divCollapsible.classList does not include "collapsible"`;
+        console.error(msg, { divExpandible: divCollapsible });
+        throw Error(msg);
+    }
+    const children = [...divCollapsible.children];
+    if (children.length == 0) {
+        const msg = "divCollapsible.children is empty";
+        console.error(msg, { divExpandible: divCollapsible });
+        throw Error(msg);
+    }
+    if (children.length > 1) {
+        const msg = `divCollapsible should have just one element child, but has ${children.length}`;
+        console.error(msg, { divExpandible: divCollapsible });
+        throw Error(msg);
+    }
+    const divCollapsibleContent = children[0];
+    if (!divCollapsibleContent.classList.contains("collapsible-content")) {
+        const msg = `divCollapsibleContent.classList does not include "collapsible"`;
+        console.error(msg, { divCollapsibleContent });
+        throw Error(msg);
+    }
+
+}
+export function expandCollapsibleDiv(divCollapsible) {
+    checkCollapsibleDiv(divCollapsible);
+    divCollapsible.classList.add("expanded");
+}
+export function collapseCollapsibleDiv(divCollapsible) {
+    checkCollapsibleDiv(divCollapsible);
+    divCollapsible.classList.remove("expanded");
+}
+export function toggleCollapsibleDiv(divExpandible) {
+    checkCollapsibleDiv(divExpandible);
+    divExpandible.classList.toggle("expanded");
+}
+*/
+
+export function mkHeightExpander(eltContent) {
+    const divExpanderContent = mkElt("div", {class:"height-expander-content"}, eltContent);
+    const divExpander= mkElt("div", {class:"height-expander"}, divExpanderContent);
+    return divExpander;
+}
+export function expandHeightExpander(divExpander) {
+    divExpander.classList.add("expanded");
+}
+export function toggleHeightExpander(divExpander) {
+    divExpander.classList.toggle("expanded");
+}

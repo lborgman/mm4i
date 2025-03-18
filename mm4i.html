@@ -748,7 +748,9 @@
             width: unset;
         }
         */
-
+    </style>
+    <style>
+        /* Mindmap Stairs */
         div.stair-mark {
             position: absolute;
             top: -20px;
@@ -767,6 +769,7 @@
             display: flex;
             gap: 5px;
         }
+
         div.stair-mark-first {
             font-size: 30px !important;
         }
@@ -808,6 +811,51 @@
             pointer-events: none;
         }
     </style>
+    <style>
+        /* Collapsible height divs */
+        /*
+        div.collapsible {
+            height: 0;
+            overflow: hidden;
+            transition: height 3s ease-in-out;
+        }
+
+        div.collapsible-content {
+            content-visibility: hidden;
+            transition: height 3s ease-in-out;
+        }
+
+        div.collapsible.expanded {
+            height: auto;
+        }
+
+        div.collapsible.expanded div.collapsible-content {
+            content-visibility: visible;
+        }
+        */
+
+
+        .height-expander {
+            display: grid;
+            grid-template-rows: 0fr;
+            overflow: hidden;
+            transition: grid-template-rows 1s;
+        }
+
+        .height-expander-content {
+            min-height: 0;
+            transition: visibility 1s;
+            visibility: hidden;
+        }
+
+        .height-expander.expanded {
+            grid-template-rows: 1fr;
+        }
+
+        .height-expander.expanded .height-expander-content {
+            visibility: visible;
+        }
+    </style>
 
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind@0.5/es6/jsmind.js"></script> -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind/es6/jsmind.js"></script> -->
@@ -822,7 +870,7 @@
 </head>
 
 <body class="NOno-test-items">
-    <div id="PWA-version">(temp ver 1.103)</div>
+    <div id="PWA-version">(temp ver 1.104)</div>
 
     <!-- <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script> -->
     <!-- <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.js"></script> -->

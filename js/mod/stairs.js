@@ -7,9 +7,10 @@ const mkElt = window["mkElt"];
 // const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 const importFc4i = window["importFc4i"];
 
+const modTools = await importFc4i("toolsJs");
 const modMdc = await importFc4i("util-mdc");
 const modCustRend = await importFc4i("jsmind-cust-rend");
-const modShieldClick = await importFc4i("shield-click");
+// const modShieldClick = await importFc4i("shield-click");
 
 export async function dialogStairs() {
     let theDialog;
@@ -226,7 +227,7 @@ export async function dialogStairs() {
     }
 
     // debugger; // eslint-disable-line no-debugger
-    const divNotReady = mkElt("p", undefined, "Nearly ready...");
+    const divNotReady = mkElt("p", undefined, "It might be almost ready...");
     divNotReady.style = `
         background: red;
         background: yellow;
@@ -241,16 +242,47 @@ export async function dialogStairs() {
     ]);
     eltTitle.style = `
         position: relative;
-        margin-bottom: 40px;
+        margin-bottom: 50px;
     `;
 
-    const eltIcon = modMdc.mkMDCicon("add");
-    const btnFab = modMdc.mkMDCfab(eltIcon, "Create new stair", true);
-    eltTitle.appendChild(btnFab);
-    btnFab.style = `
+    const divInfo = mkElt("div", undefined, [
+        mkElt("p", undefined, `
+            Mindmap stairs are path you define between nodes.
+            You can define several stairs.
+            You give each of them a name.
+            `),
+        mkElt("p", undefined, `
+            The stairs are shown as step numbers added to the nodes contained in the stair.
+            `),
+        mkElt("p", undefined, `
+            You edit a stair by just clicking the nodes you want (or do not want) in the stair.
+            The steps are added in the order you click the nodes.
+            `),
+    ]);
+    // const divInfoCollapsible = modTools.mkCollapsibleDiv(divInfo);
+    const divInfoCollapsible = modTools.mkHeightExpander(divInfo);
+    const btnInfo = modMdc.mkMDCiconButton("info_i");
+    // const eltIconInfo = modMdc.mkMDCicon("info_i");
+    // const btnInfo = modMdc.mkMDCfab(eltIconInfo, "What is a stair here?", true);
+    eltTitle.appendChild(btnInfo);
+    btnInfo.style = `
         position: absolute;
+        top: 24px;
+        right: 60px;
+        color: blue;
+    `;
+    btnInfo.addEventListener("click", evt => {
+        evt.stopPropagation();
+        modTools.toggleHeightExpander(divInfoCollapsible);
+    })
+
+    const eltIcon = modMdc.mkMDCicon("add");
+    const btnFabAdd = modMdc.mkMDCfab(eltIcon, "Create new stair", true);
+    eltTitle.appendChild(btnFabAdd);
+    btnFabAdd.style = `
+        position: absolute;
+        top: 24px;
         right: 0px;
-        top: 20px;
     `;
 
     const inpName = modMdc.mkMDCtextFieldInput();
@@ -261,16 +293,18 @@ export async function dialogStairs() {
         btnNameAdd,
     ]);
     divName.style = `
-        display: none;
+        display: flex;
         gap: 10px;
         margin-bottom: 30px;
     `;
+    const divNameExpander = modTools.mkHeightExpander(divName);
 
-    btnFab.addEventListener("click", evt => {
+    btnFabAdd.addEventListener("click", evt => {
         evt.stopPropagation();
-        if (divName.style.display == "flex") { divName.style.display = "none"; return; }
-        divName.style.display = "flex";
-        setTimeout(() => inpName.focus(), 500);
+        // if (divName.style.display == "flex") { divName.style.display = "none"; return; }
+        // divName.style.display = "flex";
+        // setTimeout(() => inpName.focus(), 500);
+        modTools.toggleHeightExpander(divNameExpander);
     });
     btnNameAdd.addEventListener("click", evt => {
         evt.stopPropagation();
@@ -398,7 +432,9 @@ export async function dialogStairs() {
     const body = mkElt("div", undefined, [
         divNotReady,
         eltTitle,
-        divName,
+        divInfoCollapsible,
+        // divName,
+        divNameExpander,
         divOurStairs,
     ]);
     const btnClose = modMdc.mkMDCdialogButton("Close", "close", true);
