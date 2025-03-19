@@ -342,8 +342,9 @@ export async function dialogStairs() {
 
         theDialog.mdc.close();
         function bodyClickHandler(evt) {
-            // evt.stopPropagation();
-            evt.stopImmediatePropagation();
+            evt.stopPropagation();
+            console.warn("bodyClickHandler");
+            // evt.stopImmediatePropagation();
             const arrElts = document.elementsFromPoint(evt.clientX, evt.clientY);
             // console.log({ arrElts });
             let eltsJmnode = arrElts.filter(elt => elt.tagName == "JMNODE");
@@ -482,12 +483,14 @@ function saveStair(nameMindmap, nameStair) {
     const value = JSON.stringify(arrJmNodeid);
     localStorage.setItem(key, value);
 
+    /*
     const valShow = JSON.stringify(arrJmNodeid, undefined, 4);
     modMdc.mkMDCdialogAlert(
         mkElt("div", undefined, [
             mkElt("h2", undefined, "saveStair"),
             mkElt("pre", undefined, valShow),
         ]));
+    */
 }
 
 /**
