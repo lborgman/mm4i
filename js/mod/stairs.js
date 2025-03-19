@@ -85,7 +85,8 @@ export async function dialogStairs() {
         ]);
         divControl.id = vieweditControlId;
         btnCloseEdit.addEventListener("click", async evt => {
-            evt.stopPropagation();
+            // evt.stopPropagation();
+            evt.stopImmediatePropagation();
             const stairScreen = screenStair();
             const stairSaved = getStair(nameMM, nameStair);
             const isSaved = JSON.stringify(stairSaved) == JSON.stringify(stairScreen);
@@ -341,7 +342,8 @@ export async function dialogStairs() {
 
         theDialog.mdc.close();
         function bodyClickHandler(evt) {
-            evt.stopPropagation();
+            // evt.stopPropagation();
+            evt.stopImmediatePropagation();
             const arrElts = document.elementsFromPoint(evt.clientX, evt.clientY);
             // console.log({ arrElts });
             let eltsJmnode = arrElts.filter(elt => elt.tagName == "JMNODE");
@@ -359,7 +361,7 @@ export async function dialogStairs() {
                     eltsJmnode = [eltJmnode];
                 }
             }
-            // console.log("finale", { eltsJmnode });
+            console.log("bodyClickHandler finale", { eltsJmnode });
 
             if (eltsJmnode.length > 1) {
                 debugger; // eslint-disable-line no-debugger
@@ -436,7 +438,9 @@ function getCurrentObjStairMarks() {
     const eltJmnodes = document.querySelector("jmnodes");
     if (!eltJmnodes) throw Error("Could not find <jmnodes>");
     const obj = {};
-    eltJmnodes.querySelectorAll(".stair-mark").forEach(eltStairMark => {
+    const qsaStairMark = eltJmnodes.querySelectorAll(".stair-mark")
+    console.log({ qsaStairMark });
+    qsaStairMark.forEach(eltStairMark => {
         // console.log({ eltStairMark });
         const strStepN = eltStairMark.getAttribute("stair-step-n");
         if (strStepN == null) throw Error(`eltStairMark does not have attribute "step-stair-n"`)
@@ -455,6 +459,7 @@ function getCurrentObjStairMarks() {
  */
 function screenStair() {
     const objStairMarks = getCurrentObjStairMarks();
+    console.log({ objStairMarks });
     const arrNodeid = Object.keys(objStairMarks).sort().map(key => {
         const eltMark = objStairMarks[key];
         const eltJmnode = eltMark.closest("jmnode");

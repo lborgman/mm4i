@@ -1121,6 +1121,7 @@ export async function mkMDCdialog(body, eltActions, fullScreen) {
         mkElt("div", { class: "mdc-dialog__scrim" }),
     ]);
     if (fullScreen) dom.classList.add("mdc-dialog--fullscreen");
+    addStopClickPropagation(dom);
     document.body.appendChild(dom);
     dom.addEventListener("MDCDialog:closed", () => { dom.remove(); });
     const ret = { dom };
@@ -2571,4 +2572,12 @@ export function mkMDCprogressBar(label, min, max, now) {
     ]);
     elt.mdc = new mdc.linearProgress.MDCLinearProgress(elt);
     return elt;
+}
+
+function addStopClickPropagation(elt) {
+    elt.addEventListener("click", clickHandlerStopPropagation);
+}
+function clickHandlerStopPropagation(evt) {
+    console.log("clickHandlerStopPropagation", evt);
+    evt.stopPropagation();
 }
