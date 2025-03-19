@@ -14,7 +14,7 @@ const modCustRend = await importFc4i("jsmind-cust-rend");
 
 export async function dialogStairs() {
     let theDialog;
-    console.log({ modMdc, modCustRend });
+    // console.log({ modMdc, modCustRend });
     const r = await modCustRend.getOurCustomRenderer();
     const nameMM = r.getMindmapName();
     if (!nameMM) return;
@@ -41,12 +41,12 @@ export async function dialogStairs() {
         // const jmDisplayed = theCustomRenderer.THEjmDisplayed;
         const jmDisplayed = await getJmDisplayed();
         const selected_node = jmDisplayed?.get_selected_node();
-        console.log({ selected_node });
+        // console.log({ selected_node });
         if (!selected_node) return 0;
         // const selectedElt = getDOMeltFromNode(selectedNode); // FIX-ME:
         const jsMind = window["jsMind"];
         const selectedElt = jsMind.my_get_DOM_element_from_node(selected_node);
-        console.log({ selectedElt });
+        // console.log({ selectedElt });
         if (!selectedElt) return 0;
         const eltMark = selectedElt.querySelector(".stair-mark");
         if (!eltMark) return 0;
@@ -111,10 +111,10 @@ export async function dialogStairs() {
     }
 
     function addStairControlView(nameStair) {
-        const btnPrev = modMdc.mkMDCiconButton("arrow_back_ios_new");
+        const btnPrev = modMdc.mkMDCiconButton("arrow_back_ios_new", "Previous");
         btnPrev.id = "prev-stair-step";
         // btnPrev.inert = true;
-        const btnNext = modMdc.mkMDCiconButton("arrow_forward_ios");
+        const btnNext = modMdc.mkMDCiconButton("arrow_forward_ios", "Next");
         btnNext.id = "next-stair-step";
         btnPrev.addEventListener("click", async evt => {
             evt.stopPropagation();
@@ -126,7 +126,7 @@ export async function dialogStairs() {
         });
         async function stepPrevNext(forward) {
             const currentStep = await getCurrentStep();
-            console.log({ currentStep });
+            // console.log({ currentStep });
             const objStairMarks = getCurrentObjStairMarks();
             const arrSteps = Object.keys(objStairMarks).map(strStep => parseInt(strStep));
             if (forward) {
@@ -145,9 +145,58 @@ export async function dialogStairs() {
             const idxCurrent = arrSteps.indexOf(currentStep);
             const toStep = arrSteps[idxCurrent + (forward ? 1 : -1)];
             const toMark = objStairMarks[toStep];
+
+
             const toJmnode = toMark.closest("jmnode");
             const toNodeid = toJmnode.getAttribute("nodeid");
+            const eltZm = toJmnode.closest("div.jsmind-zoom-move");
+            window["toNodeid"] = toNodeid;
+            window["toJmnode"] = toJmnode;
+            window["zm"] = eltZm;
+            window["inner"] = toJmnode.closest("div.jsmind-inner");
+
             const jmDisplayed = await getJmDisplayed();
+            const bcrNode = toJmnode.getBoundingClientRect();
+            const styleZm = eltZm.style;
+            // const bcrZm = eltZm.getBoundingClientRect();
+            const currZmLeft = parseInt(styleZm.left);
+            const currZmTop = parseInt(styleZm.top);
+
+            let shiftZmLeft;
+            const currNodeLeft = bcrNode.left;
+            if (currNodeLeft < 0) { shiftZmLeft = -currNodeLeft + 20; }
+            const winW = window.innerWidth;
+            const currNodeRight = bcrNode.right;
+            if (currNodeRight > winW) { shiftZmLeft = winW - currNodeRight - 20; }
+
+            let shiftZmTop;
+            const currNodeTop = bcrNode.top;
+            const eltControl = document.getElementById("stair-view-edit-control");
+            let topLimit = 0;
+            if (eltControl) {
+                const bcrControl = eltControl.getBoundingClientRect();
+                topLimit = bcrControl.bottom;
+            }
+
+            if (currNodeTop < topLimit) { shiftZmTop = -currNodeTop + 30 + topLimit; }
+            const winH = window.innerHeight;
+            const currNodeBottom = bcrNode.bottom;
+            if (currNodeBottom > winH) { shiftZmTop = winH - currNodeBottom - 20; }
+
+            if ((shiftZmLeft != undefined) || (shiftZmTop != undefined)) {
+                const sec = 1;
+                styleZm.transition = `left ${sec}s, top ${sec}s`;
+                setTimeout(() => { styleZm.transition = null; }, (sec + 0.5) * 1000);
+                if (shiftZmLeft != undefined) {
+                    const goalZmLeft = currZmLeft + shiftZmLeft;
+                    styleZm.left = `${goalZmLeft}px`;
+                }
+                if (shiftZmTop != undefined) {
+                    const goalZmTop = currZmTop + shiftZmTop;
+                    styleZm.top = `${goalZmTop}px`;
+                }
+                // console.log({ goalZmLeft, currZmLeft, shiftZmLeft, currNodeLeft, winW })
+            }
             jmDisplayed.select_node(toNodeid);
         }
 
@@ -256,7 +305,7 @@ export async function dialogStairs() {
             `),
     ]);
     const divInfoCollapsible = modTools.mkHeightExpander(divInfo);
-    const btnInfo = modMdc.mkMDCiconButton("info_i");
+    const btnInfo = modMdc.mkMDCiconButton("info_i", "What is mindmap stairs?");
     // const eltIconInfo = modMdc.mkMDCicon("info_i");
     // const btnInfo = modMdc.mkMDCfab(eltIconInfo, "What is a stair here?", true);
     eltTitle.appendChild(btnInfo);
@@ -440,7 +489,7 @@ function getCurrentObjStairMarks() {
     if (!eltJmnodes) throw Error("Could not find <jmnodes>");
     const obj = {};
     const qsaStairMark = eltJmnodes.querySelectorAll(".stair-mark")
-    console.log({ qsaStairMark });
+    // console.log({ qsaStairMark });
     qsaStairMark.forEach(eltStairMark => {
         // console.log({ eltStairMark });
         const strStepN = eltStairMark.getAttribute("stair-step-n");
@@ -528,13 +577,12 @@ function getStairs(nameMindMap) {
     const lenName = nameMindMap.length;
     for (let key of keys) {
         const val = localStorage.getItem(key);
-        console.log(`${key}: ${val}`);
+        // console.log(`${key}: ${val}`);
         if (key.startsWith(`${nameMindMap}---`)) {
             const strStair = localStorage.getItem(key);
             const nameStair = key.slice(lenName + 3);
             const objStair = { nameStair, strStair };
             arrStairs.push(objStair);
-            // FIX-ME: sort
         }
     }
     return arrStairs;
