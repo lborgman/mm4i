@@ -29,27 +29,15 @@ export async function dialogStairs() {
         margin-right: 20px;
     `;
     refreshListing();
-    async function getJmDisplayed() {
-        const modCustRend = await importFc4i("jsmind-cust-rend");
-        const theCustomRenderer = await modCustRend.getOurCustomRenderer();
-        const jmDisplayed = theCustomRenderer.THEjmDisplayed;
-        return jmDisplayed;
-    }
     async function getCurrentStep() {
-        // const modCustRend = await importFc4i("jsmind-cust-rend");
-        // const theCustomRenderer = await modCustRend.getOurCustomRenderer();
-        // const jmDisplayed = theCustomRenderer.THEjmDisplayed;
         const jmDisplayed = await getJmDisplayed();
         const selected_node = jmDisplayed?.get_selected_node();
-        // console.log({ selected_node });
-        if (!selected_node) return 0;
-        // const selectedElt = getDOMeltFromNode(selectedNode); // FIX-ME:
+        if (!selected_node) return;
         const jsMind = window["jsMind"];
         const selectedElt = jsMind.my_get_DOM_element_from_node(selected_node);
-        // console.log({ selectedElt });
-        if (!selectedElt) return 0;
+        if (!selectedElt) return;
         const eltMark = selectedElt.querySelector(".stair-mark");
-        if (!eltMark) return 0;
+        if (!eltMark) return;
         const strStep = eltMark.getAttribute("stair-step-n");
         if (!strStep) throw Error("There is no attribute stair-step-n");
         return parseInt(strStep);
@@ -124,81 +112,7 @@ export async function dialogStairs() {
             evt.stopPropagation();
             stepPrevNext(true);
         });
-        async function stepPrevNext(forward) {
-            const currentStep = await getCurrentStep();
-            // console.log({ currentStep });
-            const objStairMarks = getCurrentObjStairMarks();
-            const arrSteps = Object.keys(objStairMarks).map(strStep => parseInt(strStep));
-            if (forward) {
-                const maxStep = Math.max(...arrSteps);
-                if (maxStep == currentStep) {
-                    modMdc.mkMDCsnackbar("At last step");
-                    return;
-                }
-            } else {
-                const minStep = Math.min(...arrSteps);
-                if (minStep == currentStep) {
-                    modMdc.mkMDCsnackbar("At first step");
-                    return;
-                }
-            }
-            const idxCurrent = arrSteps.indexOf(currentStep);
-            const toStep = arrSteps[idxCurrent + (forward ? 1 : -1)];
-            const toMark = objStairMarks[toStep];
 
-
-            const toJmnode = toMark.closest("jmnode");
-            const toNodeid = toJmnode.getAttribute("nodeid");
-            const eltZm = toJmnode.closest("div.jsmind-zoom-move");
-            window["toNodeid"] = toNodeid;
-            window["toJmnode"] = toJmnode;
-            window["zm"] = eltZm;
-            window["inner"] = toJmnode.closest("div.jsmind-inner");
-
-            const jmDisplayed = await getJmDisplayed();
-            const bcrNode = toJmnode.getBoundingClientRect();
-            const styleZm = eltZm.style;
-            // const bcrZm = eltZm.getBoundingClientRect();
-            const currZmLeft = parseInt(styleZm.left);
-            const currZmTop = parseInt(styleZm.top);
-
-            let shiftZmLeft;
-            const currNodeLeft = bcrNode.left;
-            if (currNodeLeft < 0) { shiftZmLeft = -currNodeLeft + 20; }
-            const winW = window.innerWidth;
-            const currNodeRight = bcrNode.right;
-            if (currNodeRight > winW) { shiftZmLeft = winW - currNodeRight - 20; }
-
-            let shiftZmTop;
-            const currNodeTop = bcrNode.top;
-            const eltControl = document.getElementById("stair-view-edit-control");
-            let topLimit = 0;
-            if (eltControl) {
-                const bcrControl = eltControl.getBoundingClientRect();
-                topLimit = bcrControl.bottom;
-            }
-
-            if (currNodeTop < topLimit) { shiftZmTop = -currNodeTop + 30 + topLimit; }
-            const winH = window.innerHeight;
-            const currNodeBottom = bcrNode.bottom;
-            if (currNodeBottom > winH) { shiftZmTop = winH - currNodeBottom - 20; }
-
-            if ((shiftZmLeft != undefined) || (shiftZmTop != undefined)) {
-                const sec = 1;
-                styleZm.transition = `left ${sec}s, top ${sec}s`;
-                setTimeout(() => { styleZm.transition = null; }, (sec + 0.5) * 1000);
-                if (shiftZmLeft != undefined) {
-                    const goalZmLeft = currZmLeft + shiftZmLeft;
-                    styleZm.left = `${goalZmLeft}px`;
-                }
-                if (shiftZmTop != undefined) {
-                    const goalZmTop = currZmTop + shiftZmTop;
-                    styleZm.top = `${goalZmTop}px`;
-                }
-                // console.log({ goalZmLeft, currZmLeft, shiftZmLeft, currNodeLeft, winW })
-            }
-            jmDisplayed.select_node(toNodeid);
-        }
 
         const btnCloseView = modMdc.mkMDCiconButton("close", "Hide stair");
         const eltInfoStair = mkElt("span", undefined, `Stair "${nameStair}"`);
@@ -366,6 +280,7 @@ export async function dialogStairs() {
             return;
         }
         addStairControlView(nameStair);
+        stepPrevNext(undefined);
     }
 
     const vieweditShieldId = "stair-view-edit-shield";
@@ -483,6 +398,98 @@ export async function dialogStairs() {
     theDialog = await modMdc.mkMDCdialog(body, eltActions);
 }
 
+async function getJmDisplayed() {
+    const modCustRend = await importFc4i("jsmind-cust-rend");
+    const theCustomRenderer = await modCustRend.getOurCustomRenderer();
+    const jmDisplayed = theCustomRenderer.THEjmDisplayed;
+    return jmDisplayed;
+}
+
+/**
+ * 
+ * @param {boolean|undefined} forward 
+ * @returns 
+ */
+async function stepPrevNext(forward) {
+    const objStairMarks = getCurrentObjStairMarks();
+    const arrSteps = Object.keys(objStairMarks).map(strStep => parseInt(strStep));
+
+    let toStep = arrSteps[0];
+    const currentStep = typeof forward == "boolean" ? await getCurrentStep() : undefined;
+    if (currentStep == undefined) {
+        modMdc.mkMDCsnackbar("Moved to first step in stair");
+    } else {
+        if (forward) {
+            const maxStep = Math.max(...arrSteps);
+            if (maxStep == currentStep) {
+                modMdc.mkMDCsnackbar("At last step");
+                return;
+            }
+        } else {
+            const minStep = Math.min(...arrSteps);
+            if (minStep == currentStep) {
+                modMdc.mkMDCsnackbar("At first step");
+                return;
+            }
+        }
+        const idxCurrent = arrSteps.indexOf(currentStep);
+        toStep = arrSteps[idxCurrent + (forward ? 1 : -1)];
+    }
+    const toMark = objStairMarks[toStep];
+
+
+    const toJmnode = toMark.closest("jmnode");
+    const toNodeid = toJmnode.getAttribute("nodeid");
+    const eltZm = toJmnode.closest("div.jsmind-zoom-move");
+    window["toNodeid"] = toNodeid;
+    window["toJmnode"] = toJmnode;
+    window["zm"] = eltZm;
+    window["inner"] = toJmnode.closest("div.jsmind-inner");
+
+    const jmDisplayed = await getJmDisplayed();
+    const bcrNode = toJmnode.getBoundingClientRect();
+    const styleZm = eltZm.style;
+    // const bcrZm = eltZm.getBoundingClientRect();
+    const currZmLeft = parseInt(styleZm.left);
+    const currZmTop = parseInt(styleZm.top);
+
+    let shiftZmLeft;
+    const currNodeLeft = bcrNode.left;
+    if (currNodeLeft < 0) { shiftZmLeft = -currNodeLeft + 20; }
+    const winW = window.innerWidth;
+    const currNodeRight = bcrNode.right;
+    if (currNodeRight > winW) { shiftZmLeft = winW - currNodeRight - 20; }
+
+    let shiftZmTop;
+    const currNodeTop = bcrNode.top;
+    const eltControl = document.getElementById("stair-view-edit-control");
+    let topLimit = 0;
+    if (eltControl) {
+        const bcrControl = eltControl.getBoundingClientRect();
+        topLimit = bcrControl.bottom;
+    }
+
+    if (currNodeTop < topLimit) { shiftZmTop = -currNodeTop + 30 + topLimit; }
+    const winH = window.innerHeight;
+    const currNodeBottom = bcrNode.bottom;
+    if (currNodeBottom > winH) { shiftZmTop = winH - currNodeBottom - 20; }
+
+    if ((shiftZmLeft != undefined) || (shiftZmTop != undefined)) {
+        const sec = 1;
+        styleZm.transition = `left ${sec}s, top ${sec}s`;
+        setTimeout(() => { styleZm.transition = null; }, (sec + 0.5) * 1000);
+        if (shiftZmLeft != undefined) {
+            const goalZmLeft = currZmLeft + shiftZmLeft;
+            styleZm.left = `${goalZmLeft}px`;
+        }
+        if (shiftZmTop != undefined) {
+            const goalZmTop = currZmTop + shiftZmTop;
+            styleZm.top = `${goalZmTop}px`;
+        }
+        // console.log({ goalZmLeft, currZmLeft, shiftZmLeft, currNodeLeft, winW })
+    }
+    jmDisplayed.select_node(toNodeid);
+}
 
 function getCurrentObjStairMarks() {
     const eltJmnodes = document.querySelector("jmnodes");
