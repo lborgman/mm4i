@@ -4,7 +4,7 @@ window["logConsoleHereIs"](`here is stairs.js, module, ${STAIRS_VER}`);
 if (document.currentScript) { throw "stairs.js is not loaded as module"; }
 
 const mkElt = window["mkElt"];
-// const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
+const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 const importFc4i = window["importFc4i"];
 
 const modTools = await importFc4i("toolsJs");
@@ -32,17 +32,17 @@ export async function dialogStairs() {
     function addStairControlEdit(nameStair, bodyClickHandler) {
         const btnPrev = modMdc.mkMDCiconButton("arrow_back_ios_new");
         btnPrev.id = "prev-stair-step";
-        btnPrev.addEventListener("click", async evt => {
+        btnPrev.addEventListener("click", errorHandlerAsyncEvent(async evt => {
             evt.stopPropagation();
             alert("not implemented here");
-        });
+        }));
         // btnPrev.inert = true;
         const btnNext = modMdc.mkMDCiconButton("arrow_forward_ios");
         btnNext.id = "next-stair-step";
-        btnNext.addEventListener("click", async evt => {
+        btnNext.addEventListener("click", errorHandlerAsyncEvent(async evt => {
             evt.stopPropagation();
             alert("not implemented here");
-        });
+        }));
         const btnSave = modMdc.mkMDCiconButton("save", "Save stair");
         btnSave.addEventListener("click", evt => {
             evt.stopPropagation();
@@ -59,7 +59,7 @@ export async function dialogStairs() {
             btnCloseEdit,
         ]);
         divControl.id = vieweditControlId;
-        btnCloseEdit.addEventListener("click", async evt => {
+        btnCloseEdit.addEventListener("click", errorHandlerAsyncEvent(async evt => {
             // evt.stopPropagation();
             evt.stopImmediatePropagation();
             const stairScreen = screenStair();
@@ -81,7 +81,7 @@ export async function dialogStairs() {
             document.body.removeEventListener("click", bodyClickHandler);
             exitEditOrView();
             viewStair(nameStair);
-        });
+        }));
         document.body.appendChild(divControl);
     }
 
@@ -91,10 +91,10 @@ export async function dialogStairs() {
         // btnPrev.inert = true;
         const btnNext = modMdc.mkMDCiconButton("arrow_forward_ios", "Next");
         btnNext.id = "next-stair-step";
-        btnPrev.addEventListener("click", async evt => {
+        btnPrev.addEventListener("click", errorHandlerAsyncEvent(async evt => {
             evt.stopPropagation();
             stepPrevNext(false);
-        });
+        }));
         btnNext.addEventListener("click", evt => {
             evt.stopPropagation();
             stepPrevNext(true);
@@ -141,24 +141,22 @@ export async function dialogStairs() {
             const btnView = modMdc.mkMDCiconButton("visibility", `Show stair "${nameStair}"`)
             const btnEdit = modMdc.mkMDCiconButton("edit", `Edit stair "${nameStair}"`)
             const btnDelete = modMdc.mkMDCiconButton("delete_forever", `Delete stair "${nameStair}"`);
-            btnView.addEventListener("click", async evt => {
+            btnView.addEventListener("click", errorHandlerAsyncEvent(async evt => {
                 evt.stopPropagation();
                 theDialog.mdc.close();
-
                 viewStair(nameStair);
-
-            });
+            }));
             btnEdit.addEventListener("click", evt => {
                 evt.stopPropagation();
                 editStair(nameStair);
             });
-            btnDelete.addEventListener("click", async evt => {
+            btnDelete.addEventListener("click", errorHandlerAsyncEvent(async evt => {
                 evt.stopPropagation();
                 const answer = await modMdc.mkMDCdialogConfirm(`Delete stair "${nameStair}"`, "Yes", "Cancel");
                 if (!answer) return;
                 deleteStair(nameMM, nameStair);
                 refreshListing();
-            });
+            }));
             const divEntry = mkElt("div", undefined, [spanName, btnView, btnEdit, btnDelete]);
             divEntry.style = `
               display: grid;
