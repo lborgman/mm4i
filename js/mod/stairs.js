@@ -29,19 +29,6 @@ export async function dialogStairs() {
         margin-right: 20px;
     `;
     refreshListing();
-    async function getCurrentStep() {
-        const jmDisplayed = await getJmDisplayed();
-        const selected_node = jmDisplayed?.get_selected_node();
-        if (!selected_node) return;
-        const jsMind = window["jsMind"];
-        const selectedElt = jsMind.my_get_DOM_element_from_node(selected_node);
-        if (!selectedElt) return;
-        const eltMark = selectedElt.querySelector(".stair-mark");
-        if (!eltMark) return;
-        const strStep = eltMark.getAttribute("stair-step-n");
-        if (!strStep) throw Error("There is no attribute stair-step-n");
-        return parseInt(strStep);
-    }
     function addStairControlEdit(nameStair, bodyClickHandler) {
         const btnPrev = modMdc.mkMDCiconButton("arrow_back_ios_new");
         btnPrev.id = "prev-stair-step";
@@ -403,6 +390,25 @@ async function getJmDisplayed() {
     const theCustomRenderer = await modCustRend.getOurCustomRenderer();
     const jmDisplayed = theCustomRenderer.THEjmDisplayed;
     return jmDisplayed;
+}
+
+/**
+ * Get the step number of the selected node.
+ * 
+ * @returns {Promise<number|undefined>}
+ */
+async function getCurrentStep() {
+    const jmDisplayed = await getJmDisplayed();
+    const selected_node = jmDisplayed?.get_selected_node();
+    if (!selected_node) return;
+    const jsMind = window["jsMind"];
+    const selectedElt = jsMind.my_get_DOM_element_from_node(selected_node);
+    if (!selectedElt) return;
+    const eltMark = selectedElt.querySelector(".stair-mark");
+    if (!eltMark) return;
+    const strStep = eltMark.getAttribute("stair-step-n");
+    if (!strStep) throw Error("There is no attribute stair-step-n");
+    return parseInt(strStep);
 }
 
 /**
