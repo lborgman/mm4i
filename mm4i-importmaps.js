@@ -91,7 +91,9 @@ const importFc4i_nocachenames = {};
 
     const isImporting = {};
 
-    const noCache = confirm("Use nochacheRandom() ?"); // FIX-ME: problem on github
+    // const noCache = confirm("Use nochacheRandom() ?"); // FIX-ME: problem on github
+    let noCache = false;
+    debugger;
 
     /**
      * 
