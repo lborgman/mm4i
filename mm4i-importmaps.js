@@ -91,6 +91,8 @@ const importFc4i_nocachenames = {};
 
     const isImporting = {};
 
+    const noCache = confirm("Use nochacheRandom() ?"); // FIX-ME: problem on github
+
     /**
      * 
      * @param {string} idOrLink 
@@ -165,7 +167,7 @@ const importFc4i_nocachenames = {};
             }
             ourImportLink = relUrl;
         }
-        const noCache = true; // FIX-ME: problem on github
+        // const noCache = true; // FIX-ME: problem on github
         if (noCache) {
             ////// This is for non-PWA.
             // Unfortunately there is no standard yet to discover if running as PWA.
