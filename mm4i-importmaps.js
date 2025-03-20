@@ -165,7 +165,7 @@ const importFc4i_nocachenames = {};
             }
             ourImportLink = relUrl;
         }
-        const noCache = true;
+        const noCache = false; // FIX-ME: problem on github
         if (noCache) {
             // This is for non-PWA.
             // Unfortunately there is no standard yet to discover if running as PWA.
