@@ -165,21 +165,28 @@ const importFc4i_nocachenames = {};
             }
             ourImportLink = relUrl;
         }
-        const noCache = false; // FIX-ME: problem on github
+        const noCache = true; // FIX-ME: problem on github
         if (noCache) {
-            // This is for non-PWA.
+            ////// This is for non-PWA.
             // Unfortunately there is no standard yet to discover if running as PWA.
-            let hrefNotCached = importFc4i_nocachenames[ourImportLink];
-            if (!hrefNotCached) {
-                console.log("%cimportFc4i avoid caching", "background:yellow; color:red;", ourImportLink);
-                const getRandomString = () => { return Math.random().toString(36).substring(2, 15) }
+            let objNotCached = importFc4i_nocachenames[ourImportLink];
+            if (!objNotCached) {
+                objNotCached = {};
+                console.log("%cimportFc4i new avoid caching", "background:yellow; color:red;", ourImportLink);
+                const getRandomString = () => {
+                    return encodeURIComponent(Math.random().toString(36).slice(2));
+                }
                 const urlNotCached = new URL(ourImportLink, window.location.origin);
                 urlNotCached.searchParams.set("nocacheRand", getRandomString());
-                hrefNotCached = urlNotCached.href;
-                importFc4i_nocachenames[ourImportLink] = hrefNotCached;
+                objNotCached.href = urlNotCached.href;
+                importFc4i_nocachenames[ourImportLink] = objNotCached;
+                const mod = await import(urlNotCached.href);
+                // There is no way to discover if a module has been imported so cache the module here:
+                objNotCached.mod = mod;
+            } else {
+                console.log("%cimportFc4i using old avoid caching", "background:white; color:red;", ourImportLink);
             }
-            const mod = await import(hrefNotCached);
-            return mod;
+            return objNotCached.mod;
         }
         isImporting[idOrLink] = getStackTrace();
         const mod = await import(ourImportLink);
