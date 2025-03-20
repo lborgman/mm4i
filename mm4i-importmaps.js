@@ -1,6 +1,9 @@
 // @ts-check
 const MM4I_IMPORTMAPS_VER = "0.2.6";
 window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
+
+const importFc4i_nocachenames = {};
+
 // https://github.com/WICG/import-maps/issues/92
 {
     // https://www.npmjs.com/package/three?activeTab=versions, Current Tags
@@ -161,6 +164,22 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
                 throw Error(`modId "${idOrLink}" is not known by importFc4i`);
             }
             ourImportLink = relUrl;
+        }
+        const noCache = true;
+        if (noCache) {
+            // This is for non-PWA.
+            // Unfortunately there is no standard yet to discover if running as PWA.
+            let hrefNotCached = importFc4i_nocachenames[ourImportLink];
+            if (!hrefNotCached) {
+                console.log("%cimportFc4i avoid caching", "background:yellow; color:red;", ourImportLink);
+                const getRandomString = () => { return Math.random().toString(36).substring(2, 15) }
+                const urlNotCached = new URL(ourImportLink, window.location.origin);
+                urlNotCached.searchParams.set("nocacheRand", getRandomString());
+                hrefNotCached = urlNotCached.href;
+                importFc4i_nocachenames[ourImportLink] = hrefNotCached;
+            }
+            const mod = await import(hrefNotCached);
+            return mod;
         }
         isImporting[idOrLink] = getStackTrace();
         const mod = await import(ourImportLink);
