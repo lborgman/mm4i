@@ -191,7 +191,8 @@ const importFc4i_nocachenames = {};
                 const getRandomString = () => {
                     return encodeURIComponent(Math.random().toString(36).slice(2));
                 }
-                const urlNotCached = new URL(ourImportLink, window.location.origin);
+                // const urlNotCached = new URL(ourImportLink, window.location.origin);
+                const urlNotCached = new URL(ourImportLink, noCacheBaseUrl);
                 urlNotCached.searchParams.set("nocacheRand", getRandomString());
                 objNotCached.href = urlNotCached.href;
                 importFc4i_nocachenames[ourImportLink] = objNotCached;
