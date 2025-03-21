@@ -479,6 +479,7 @@ async function stepPrevNext(forward) {
     if (currNodeBottom > winH) { shiftZmTop = winH - currNodeBottom - 20; }
 
     if ((shiftZmLeft != undefined) || (shiftZmTop != undefined)) {
+        alert("try scroll into view");
         const sec = 1;
         styleZm.transition = `left ${sec}s, top ${sec}s`;
         setTimeout(() => { styleZm.transition = null; }, (sec + 0.5) * 1000);
