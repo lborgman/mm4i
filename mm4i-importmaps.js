@@ -197,7 +197,10 @@ console.log({ baseUrl });
                 urlNotCached.searchParams.set("nocacheRand", getRandomString());
                 objNotCached.href = urlNotCached.href;
                 importFc4i_nocachenames[ourImportLink] = objNotCached;
-                const mod = await import(urlNotCached.href);
+            }
+            if (!objNotCached.mod) {
+                // const mod = await import(urlNotCached.href);
+                const mod = await import(objNotCached.href);
                 // There is no way to discover if a module has been imported so cache the module here:
                 objNotCached.mod = mod;
             } else {
