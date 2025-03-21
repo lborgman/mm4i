@@ -479,12 +479,15 @@ async function stepPrevNext(forward) {
     if (currNodeBottom > winH) { shiftZmTop = winH - currNodeBottom - 20; }
 
     if ((shiftZmLeft != undefined) || (shiftZmTop != undefined)) {
-        alert("try scroll into view");
         const sec = 1;
         styleZm.transition = `left ${sec}s, top ${sec}s`;
         setTimeout(() => { styleZm.transition = null; }, (sec + 0.5) * 1000);
         if (shiftZmLeft != undefined) {
+            alert("try scroll into view");
+            if (Number.isNaN(shiftZmLeft)) throw Error(`shiftZmLeft is NaN`);
+            if (Number.isNaN(currZmLeft)) throw Error(`currZmLeft is NaN`);
             const goalZmLeft = currZmLeft + shiftZmLeft;
+            if (Number.isNaN(goalZmLeft)) throw Error(`goalZmLeft is NaN`);
             styleZm.left = `${goalZmLeft}px`;
         }
         if (shiftZmTop != undefined) {
