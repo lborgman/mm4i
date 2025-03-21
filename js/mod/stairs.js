@@ -467,6 +467,8 @@ async function stepPrevNext(forward) {
     const winW = window.innerWidth;
     const currNodeRight = bcrNode.right;
     if (currNodeRight > winW) { shiftZmLeft = winW - currNodeRight - 20; }
+    if (shiftZmLeft && Number.isNaN(shiftZmLeft)) throw Error(`shiftZmLeft is NaN`);
+
 
     let shiftZmTop;
     const currNodeTop = bcrNode.top;
@@ -476,21 +478,18 @@ async function stepPrevNext(forward) {
         const bcrControl = eltControl.getBoundingClientRect();
         topLimit = bcrControl.bottom;
     }
-
     if (currNodeTop < topLimit) { shiftZmTop = -currNodeTop + 30 + topLimit; }
     const winH = window.innerHeight;
     const currNodeBottom = bcrNode.bottom;
     if (currNodeBottom > winH) { shiftZmTop = winH - currNodeBottom - 20; }
+    if (shiftZmTop && Number.isNaN(shiftZmTop)) throw Error(`shiftZmTop is NaN`);
 
     if ((shiftZmLeft != undefined) || (shiftZmTop != undefined)) {
         const sec = 1;
         styleZm.transition = `left ${sec}s, top ${sec}s`;
         setTimeout(() => { styleZm.transition = null; }, (sec + 0.5) * 1000);
         if (shiftZmLeft != undefined) {
-            // alert("try scroll into view");
-            if (Number.isNaN(shiftZmLeft)) throw Error(`shiftZmLeft is NaN`);
             const goalZmLeft = currZmLeft + shiftZmLeft;
-            if (Number.isNaN(goalZmLeft)) throw Error(`goalZmLeft is NaN`);
             styleZm.left = `${goalZmLeft}px`;
         }
         if (shiftZmTop != undefined) {
