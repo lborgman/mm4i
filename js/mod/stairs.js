@@ -485,7 +485,7 @@ async function stepPrevNext(forward) {
         if (shiftZmLeft != undefined) {
             alert("try scroll into view");
             if (Number.isNaN(shiftZmLeft)) throw Error(`shiftZmLeft is NaN`);
-            if (Number.isNaN(currZmLeft)) throw Error(`currZmLeft is NaN, (${styleZm.left})`);
+            if (Number.isNaN(currZmLeft)) throw Error(`currZmLeft is NaN, (styleZm.left:"${styleZm.left})"`);
             const goalZmLeft = currZmLeft + shiftZmLeft;
             if (Number.isNaN(goalZmLeft)) throw Error(`goalZmLeft is NaN`);
             styleZm.left = `${goalZmLeft}px`;
