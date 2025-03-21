@@ -3,6 +3,20 @@ const MM4I_IMPORTMAPS_VER = "0.2.6";
 window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
 
 const importFc4i_nocachenames = {};
+// const noCache = confirm("Use nochacheRandom() ?"); // FIX-ME: problem on github
+let noCache = false;
+const baseUrl = (() => {
+    const b = [...document.getElementsByTagName("base")][0]
+    if (b) {
+        const bHref = b.href;
+        const wlOrigin = window.location.origin;
+        console.log({ bHref, wlOrigin });
+        return bHref;
+    }
+    return window.location.origin;
+})();
+console.log({ baseUrl });
+// debugger;
 
 // https://github.com/WICG/import-maps/issues/92
 {
@@ -91,20 +105,6 @@ const importFc4i_nocachenames = {};
 
     const isImporting = {};
 
-    // const noCache = confirm("Use nochacheRandom() ?"); // FIX-ME: problem on github
-    let noCache = false;
-    const noCacheBaseUrl = (() => {
-        const b = [...document.getElementsByTagName("base")][0]
-        if (b) {
-            const bHref = b.href;
-            const wlOrigin = window.location.origin;
-            console.log({ bHref, wlOrigin });
-            return bHref;
-        }
-        return window.location.origin;
-    })();
-    console.log({ noCacheBaseUrl });
-    debugger;
 
     /**
      * 
@@ -178,7 +178,9 @@ const importFc4i_nocachenames = {};
                 console.error(`modId "${idOrLink}" is not known by importFc4i`);
                 throw Error(`modId "${idOrLink}" is not known by importFc4i`);
             }
+            // FIX-ME: Should baseUrl be used here already?
             ourImportLink = relUrl;
+            ourImportLink = new URL(relUrl, baseUrl);
         }
         // const noCache = true; // FIX-ME: problem on github
         if (noCache) {
@@ -192,7 +194,7 @@ const importFc4i_nocachenames = {};
                     return encodeURIComponent(Math.random().toString(36).slice(2));
                 }
                 // const urlNotCached = new URL(ourImportLink, window.location.origin);
-                const urlNotCached = new URL(ourImportLink, noCacheBaseUrl);
+                const urlNotCached = new URL(ourImportLink, baseUrl);
                 urlNotCached.searchParams.set("nocacheRand", getRandomString());
                 objNotCached.href = urlNotCached.href;
                 importFc4i_nocachenames[ourImportLink] = objNotCached;
