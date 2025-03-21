@@ -93,6 +93,17 @@ const importFc4i_nocachenames = {};
 
     // const noCache = confirm("Use nochacheRandom() ?"); // FIX-ME: problem on github
     let noCache = false;
+    const noCacheBaseUrl = (() => {
+        const b = [...document.getElementsByTagName("base")][0]
+        if (b) {
+            const bHref = b.href;
+            const wlOrigin = window.location.origin;
+            console.log({ bHref, wlOrigin });
+            return bHref;
+        }
+        return window.location.origin;
+    })();
+    console.log({ noCacheBaseUrl });
     debugger;
 
     /**
