@@ -456,7 +456,8 @@ async function stepPrevNext(forward) {
     // const bcrZm = eltZm.getBoundingClientRect();
     const currZmLeft = styleZm.left ? parseInt(styleZm.left) : 0;
     if (Number.isNaN(currZmLeft)) throw Error(`currZmLeft is NaN, (styleZm.left:"${styleZm.left})"`);
-    const currZmTop = parseInt(styleZm.top);
+    const currZmTop = styleZm.top ? parseInt(styleZm.top) : 0;
+    if (Number.isNaN(currZmTop)) throw Error(`currZmTop is NaN, (styleZm.top:"${styleZm.top})"`);
 
     const currNodeLeft = bcrNode.left;
     if (Number.isNaN(currNodeLeft)) throw Error(`currNodeLeft is NaN, (bcrNode.left:"${bcrNode.left})"`);
@@ -486,7 +487,7 @@ async function stepPrevNext(forward) {
         styleZm.transition = `left ${sec}s, top ${sec}s`;
         setTimeout(() => { styleZm.transition = null; }, (sec + 0.5) * 1000);
         if (shiftZmLeft != undefined) {
-            alert("try scroll into view");
+            // alert("try scroll into view");
             if (Number.isNaN(shiftZmLeft)) throw Error(`shiftZmLeft is NaN`);
             const goalZmLeft = currZmLeft + shiftZmLeft;
             if (Number.isNaN(goalZmLeft)) throw Error(`goalZmLeft is NaN`);
