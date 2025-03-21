@@ -1,6 +1,7 @@
 // @ts-check
 const STAIRS_VER = "0.0.1";
 window["logConsoleHereIs"](`here is stairs.js, module, ${STAIRS_VER}`);
+console.log(`%chere is stairs.js`, "font-size:30px;");
 if (document.currentScript) { throw "stairs.js is not loaded as module"; }
 
 const mkElt = window["mkElt"];
@@ -484,10 +485,15 @@ async function stepPrevNext(forward) {
     if (currNodeBottom > winH) { shiftZmTop = winH - currNodeBottom - 20; }
     if (shiftZmTop && Number.isNaN(shiftZmTop)) throw Error(`shiftZmTop is NaN`);
 
+    jmDisplayed.select_node(toNodeid);
     if ((shiftZmLeft != undefined) || (shiftZmTop != undefined)) {
         const sec = 1;
+        // FIX-ME: transition does not seem to take first time on Android.
+        //   Not sure how to fix it yet.
+        const msReset = 1000;
+
         styleZm.transition = `left ${sec}s, top ${sec}s`;
-        setTimeout(() => { styleZm.transition = null; }, (sec + 0.5) * 1000);
+        setTimeout(() => { styleZm.transition = ""; }, sec * 1000 + msReset);
         if (shiftZmLeft != undefined) {
             const goalZmLeft = currZmLeft + shiftZmLeft;
             styleZm.left = `${goalZmLeft}px`;
@@ -498,7 +504,6 @@ async function stepPrevNext(forward) {
         }
         // console.log({ goalZmLeft, currZmLeft, shiftZmLeft, currNodeLeft, winW })
     }
-    jmDisplayed.select_node(toNodeid);
 }
 
 function getCurrentObjStairMarks() {
