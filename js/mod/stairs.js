@@ -257,7 +257,7 @@ export async function dialogStairs() {
             inpName.focus();
             return;
         }
-        editStair(nameStair)
+        editStair(nameStair, true);
     });
     function viewStair(nameStair) {
         if (!addOurMarks(nameStair)) {
@@ -278,10 +278,10 @@ export async function dialogStairs() {
         clearStairMarks();
         document.body.classList.remove("editing-stair");
     }
-    function editStair(nameStair) {
+    function editStair(nameStair, isNew) {
         exitEditOrView();
         document.body.classList.add("editing-stair");
-        addOurMarks(nameStair);
+        if (!isNew) addOurMarks(nameStair);
         const eltEditShield = mkElt("div", undefined,);
         eltEditShield.id = vieweditShieldId;
         document.body.appendChild(eltEditShield);
@@ -571,9 +571,9 @@ function deleteStair(nameMindmap, nameStair) {
  */
 function getStair(nameMindmap, nameStair) {
     const key = `${nameMindmap}---${nameStair}`;
-    // console.log({ key });
     const str = localStorage.getItem(key);
-    if (!str) throw Error(`Could not find saved stair "${key}"`);
+    // if (!str) { console.error(`Could not find saved stair "${key}"`); throw Error(`Could not find saved stair "${key}"`); }
+    if (!str) return;
     const val = JSON.parse(str);
     return val;
 }
