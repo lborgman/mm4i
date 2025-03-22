@@ -23,7 +23,7 @@ if (noCache) {
         align-content: center;
         flex-wrap: wrap;
     `;
-        eltSlow.textContent = "Slow loading because develper debugging...";
+        eltSlow.textContent = "Slow loading because develper debugging is on for Mindmaps 4 Internet ...";
         document.body.appendChild(eltSlow);
         setTimeout(() => eltSlow.remove(), 4000);
     });
