@@ -3,7 +3,29 @@ const MM4I_IMPORTMAPS_VER = "0.2.6";
 window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
 
 const importFc4i_nocachenames = {};
-const noCache = true;
+const noCache = (() => {
+    const defaultNoCache = true;
+    const getPWADisplayMode = () => {
+        if (document.referrer.startsWith('android-app://'))
+            return 'twa';
+        if (window.matchMedia('(display-mode: browser)').matches)
+            return 'browser';
+        if (window.matchMedia('(display-mode: standalone)').matches)
+            return 'standalone';
+        if (window.matchMedia('(display-mode: minimal-ui)').matches)
+            return 'minimal-ui';
+        if (window.matchMedia('(display-mode: fullscreen)').matches)
+            return 'fullscreen';
+        if (window.matchMedia('(display-mode: window-controls-overlay)').matches)
+            return 'window-controls-overlay';
+
+        return 'unknown';
+    }
+    const displayMode = getPWADisplayMode();
+    if (displayMode == "browser") return defaultNoCache;
+    return false;
+})();
+
 if (noCache) {
     console.log("%cimportFc4i is avoiding browser caching", "background:yellow; color:red; font-size:18px;");
     document.addEventListener("DOMContentLoaded", evt => {
