@@ -6,6 +6,27 @@ const importFc4i_nocachenames = {};
 const noCache = true;
 if (noCache) {
     console.log("%cimportFc4i is avoiding browser caching", "background:yellow; color:red; font-size:18px;");
+    document.addEventListener("DOMContentLoaded", evt => {
+        const eltSlow = document.createElement("div");
+        eltSlow.style = `
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 9999;
+        width: 200px;
+        padding: 20px;
+        background: blue;
+        color: white;
+        border: 2px solid currentColor;
+        border-radius: 10px;
+        display: flex;
+        align-content: center;
+        flex-wrap: wrap;
+    `;
+        eltSlow.textContent = "Slow loading because develper debugging...";
+        document.body.appendChild(eltSlow);
+        setTimeout(() => eltSlow.remove(), 4000);
+    });
 }
 const baseUrl = (() => {
     const b = [...document.getElementsByTagName("base")][0]
