@@ -448,19 +448,27 @@ async function stepPrevNext(forward) {
     const toJmnode = toMark.closest("jmnode");
     const toNodeid = toJmnode.getAttribute("nodeid");
     const eltZm = toJmnode.closest("div.jsmind-zoom-move");
-    window["toNodeid"] = toNodeid;
-    window["toJmnode"] = toJmnode;
+    // window["toNodeid"] = toNodeid;
+    // window["toJmnode"] = toJmnode;
     window["zm"] = eltZm;
-    window["inner"] = toJmnode.closest("div.jsmind-inner");
+    // window["inner"] = toJmnode.closest("div.jsmind-inner");
+
+
+    const styleZm = eltZm.style;
+
+    if (!styleZm.left) styleZm.left = "0px";
+    // const currZmLeft = styleZm.left ? parseInt(styleZm.left) : 0;
+    const currZmLeft = parseInt(styleZm.left);
+    if (Number.isNaN(currZmLeft)) throw Error(`currZmLeft is NaN, (styleZm.left:"${styleZm.left})"`);
+
+    if (!styleZm.top) styleZm.top = "0px";
+    // const currZmTop = styleZm.top ? parseInt(styleZm.top) : 0;
+    const currZmTop = parseInt(styleZm.top);
+    if (Number.isNaN(currZmTop)) throw Error(`currZmTop is NaN, (styleZm.top:"${styleZm.top})"`);
 
     const jmDisplayed = await getJmDisplayed();
     const bcrNode = toJmnode.getBoundingClientRect();
-    const styleZm = eltZm.style;
     // const bcrZm = eltZm.getBoundingClientRect();
-    const currZmLeft = styleZm.left ? parseInt(styleZm.left) : 0;
-    if (Number.isNaN(currZmLeft)) throw Error(`currZmLeft is NaN, (styleZm.left:"${styleZm.left})"`);
-    const currZmTop = styleZm.top ? parseInt(styleZm.top) : 0;
-    if (Number.isNaN(currZmTop)) throw Error(`currZmTop is NaN, (styleZm.top:"${styleZm.top})"`);
 
     const currNodeLeft = bcrNode.left;
     if (Number.isNaN(currNodeLeft)) throw Error(`currNodeLeft is NaN, (bcrNode.left:"${bcrNode.left})"`);
@@ -495,11 +503,13 @@ async function stepPrevNext(forward) {
         // console.log(`styleZm.transition before: "${styleZm.transition}", left: "${styleZm.left}"`);
         styleZm.transition = `left ${sec}s, top ${sec}s`;
         if (styleZm.left == "") {
-            // console.log("SETTING left 0px");
-            styleZm.left = "0px";
-            await modTools.wait4mutations(eltZm, undefined, { attributes: true }, 1000);
+            throw Error(`styleZm.left is ""`);
+            // styleZm.left = "0px";
+            // await modTools.wait4mutations(eltZm, undefined, { attributes: true }, 1000);
         }
-        // console.log("styleZm", styleZm.transition);
+        if (styleZm.top == "") {
+            throw Error(`styleZm.top is ""`);
+        }
         if (shiftZmLeft != undefined) {
             const goalZmLeft = currZmLeft + shiftZmLeft;
             styleZm.left = `${goalZmLeft}px`;
