@@ -2327,3 +2327,19 @@ export function toggleHeightExpander(divExpander) {
     checkIsHeightExpander(divExpander);
     divExpander.classList.toggle("expanded");
 }
+
+
+export function getCssTransforms(elt) {
+    const style = getComputedStyle(elt);
+    const transform = style.transform;
+    let x = 0, y = 0, scale = 1;
+    if (transform !== "none") {
+        const matrix = new DOMMatrixReadOnly(transform);
+        // console.log({ matrix });
+        scale = matrix.m11;
+        x = matrix.m41;
+        y = matrix.m42;
+    }
+    return { scale, x, y }
+}
+

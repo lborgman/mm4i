@@ -26,27 +26,12 @@ const distance = (event) => {
     return Math.hypot(event.touches[0].pageX - event.touches[1].pageX, event.touches[0].pageY - event.touches[1].pageY);
 };
 
-// FIX-ME: move to tools.js
-export function getCssTransforms(elt) {
-    const style = getComputedStyle(elt);
-    const transform = style.transform;
-    let x = 0, y = 0, scale = 1;
-    if (transform !== "none") {
-        const matrix = new DOMMatrixReadOnly(transform);
-        // console.log({ matrix });
-        scale = matrix.m11;
-        x = matrix.m41;
-        y = matrix.m42;
-    }
-    return { scale, x, y }
-}
-
 export function pinchZoom(element) {
     let scaleI;
     let xI;
     let yI;
     function getTransformsI() {
-        const transforms = getCssTransforms(element);
+        const transforms = modTools.getCssTransforms(element);
         scaleI = transforms.scale;
         xI = transforms.x;
         yI = transforms.y;
@@ -111,7 +96,7 @@ export function pinchZoom(element) {
  * @param {number} amount 
  */
 function changeScale(elt, amount) {
-    const transforms = getCssTransforms(elt);
+    const transforms = modTools.getCssTransforms(elt);
     const oldScale = transforms.scale;
     let scale = oldScale * amount;
     if (amount < 1 && oldScale > 1) scale = Math.max(1, scale);
