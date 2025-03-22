@@ -410,6 +410,8 @@ async function getCurrentStep() {
     return parseInt(strStep);
 }
 
+let tmrResetTransition;
+
 /**
  * 
  * @param {boolean|undefined} forward 
@@ -488,12 +490,16 @@ async function stepPrevNext(forward) {
     jmDisplayed.select_node(toNodeid);
     if ((shiftZmLeft != undefined) || (shiftZmTop != undefined)) {
         const sec = 1;
-        // FIX-ME: transition does not seem to take first time on Android.
-        //   Not sure how to fix it yet.
-        const msReset = 1000;
+        const msReset = 100;
 
+        // console.log(`styleZm.transition before: "${styleZm.transition}", left: "${styleZm.left}"`);
         styleZm.transition = `left ${sec}s, top ${sec}s`;
-        setTimeout(() => { styleZm.transition = ""; }, sec * 1000 + msReset);
+        if (styleZm.left == "") {
+            // console.log("SETTING left 0px");
+            styleZm.left = "0px";
+            await modTools.wait4mutations(eltZm, undefined, { attributes: true }, 1000);
+        }
+        // console.log("styleZm", styleZm.transition);
         if (shiftZmLeft != undefined) {
             const goalZmLeft = currZmLeft + shiftZmLeft;
             styleZm.left = `${goalZmLeft}px`;
@@ -502,7 +508,8 @@ async function stepPrevNext(forward) {
             const goalZmTop = currZmTop + shiftZmTop;
             styleZm.top = `${goalZmTop}px`;
         }
-        // console.log({ goalZmLeft, currZmLeft, shiftZmLeft, currNodeLeft, winW })
+        clearTimeout(tmrResetTransition);
+        tmrResetTransition = setTimeout(() => { styleZm.transition = ""; }, sec * 1000 + msReset);
     }
 }
 
