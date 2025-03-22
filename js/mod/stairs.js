@@ -447,79 +447,70 @@ async function stepPrevNext(forward) {
 
     const toJmnode = toMark.closest("jmnode");
     const toNodeid = toJmnode.getAttribute("nodeid");
-    const eltZm = toJmnode.closest("div.jsmind-zoom-move");
-    // window["toNodeid"] = toNodeid;
-    // window["toJmnode"] = toJmnode;
-    window["zm"] = eltZm;
-    // window["inner"] = toJmnode.closest("div.jsmind-inner");
-
-
-    const styleZm = eltZm.style;
-
-    if (!styleZm.left) styleZm.left = "0px";
-    // const currZmLeft = styleZm.left ? parseInt(styleZm.left) : 0;
-    const currZmLeft = parseInt(styleZm.left);
-    if (Number.isNaN(currZmLeft)) throw Error(`currZmLeft is NaN, (styleZm.left:"${styleZm.left})"`);
-
-    if (!styleZm.top) styleZm.top = "0px";
-    // const currZmTop = styleZm.top ? parseInt(styleZm.top) : 0;
-    const currZmTop = parseInt(styleZm.top);
-    if (Number.isNaN(currZmTop)) throw Error(`currZmTop is NaN, (styleZm.top:"${styleZm.top})"`);
-
     const jmDisplayed = await getJmDisplayed();
-    const bcrNode = toJmnode.getBoundingClientRect();
-    // const bcrZm = eltZm.getBoundingClientRect();
-
-    const currNodeLeft = bcrNode.left;
-    if (Number.isNaN(currNodeLeft)) throw Error(`currNodeLeft is NaN, (bcrNode.left:"${bcrNode.left})"`);
-
-    let shiftZmLeft;
-    if (currNodeLeft < 0) { shiftZmLeft = -currNodeLeft + 20; }
-    const winW = window.innerWidth;
-    const currNodeRight = bcrNode.right;
-    if (currNodeRight > winW) { shiftZmLeft = winW - currNodeRight - 20; }
-    if (shiftZmLeft && Number.isNaN(shiftZmLeft)) throw Error(`shiftZmLeft is NaN`);
-
-
-    let shiftZmTop;
-    const currNodeTop = bcrNode.top;
-    const eltControl = document.getElementById("stair-view-edit-control");
-    let topLimit = 0;
-    if (eltControl) {
-        const bcrControl = eltControl.getBoundingClientRect();
-        topLimit = bcrControl.bottom;
-    }
-    if (currNodeTop < topLimit) { shiftZmTop = -currNodeTop + 30 + topLimit; }
-    const winH = window.innerHeight;
-    const currNodeBottom = bcrNode.bottom;
-    if (currNodeBottom > winH) { shiftZmTop = winH - currNodeBottom - 20; }
-    if (shiftZmTop && Number.isNaN(shiftZmTop)) throw Error(`shiftZmTop is NaN`);
-
     jmDisplayed.select_node(toNodeid);
-    if ((shiftZmLeft != undefined) || (shiftZmTop != undefined)) {
-        const sec = 1;
-        const msReset = 100;
 
-        // console.log(`styleZm.transition before: "${styleZm.transition}", left: "${styleZm.left}"`);
-        styleZm.transition = `left ${sec}s, top ${sec}s`;
-        if (styleZm.left == "") {
-            throw Error(`styleZm.left is ""`);
-            // styleZm.left = "0px";
-            // await modTools.wait4mutations(eltZm, undefined, { attributes: true }, 1000);
+    moveIntoView(toJmnode);
+    function moveIntoView(toJmnode) {
+        const eltZm = toJmnode.closest("div.jsmind-zoom-move");
+        window["zm"] = eltZm;
+
+
+        const styleZm = eltZm.style;
+
+        if (!styleZm.left) styleZm.left = "0px";
+        const currZmLeft = parseInt(styleZm.left);
+        if (Number.isNaN(currZmLeft)) throw Error(`currZmLeft is NaN, (styleZm.left:"${styleZm.left})"`);
+
+        if (!styleZm.top) styleZm.top = "0px";
+        const currZmTop = parseInt(styleZm.top);
+        if (Number.isNaN(currZmTop)) throw Error(`currZmTop is NaN, (styleZm.top:"${styleZm.top})"`);
+
+        const bcrNode = toJmnode.getBoundingClientRect();
+
+        const currNodeLeft = bcrNode.left;
+        if (Number.isNaN(currNodeLeft)) throw Error(`currNodeLeft is NaN, (bcrNode.left:"${bcrNode.left})"`);
+
+        let shiftZmLeft;
+        if (currNodeLeft < 0) { shiftZmLeft = -currNodeLeft + 20; }
+        const winW = window.innerWidth;
+        const currNodeRight = bcrNode.right;
+        if (currNodeRight > winW) { shiftZmLeft = winW - currNodeRight - 20; }
+        if (shiftZmLeft && Number.isNaN(shiftZmLeft)) throw Error(`shiftZmLeft is NaN`);
+
+
+        let shiftZmTop;
+        const currNodeTop = bcrNode.top;
+        const eltControl = document.getElementById("stair-view-edit-control");
+        let topLimit = 0;
+        if (eltControl) {
+            const bcrControl = eltControl.getBoundingClientRect();
+            topLimit = bcrControl.bottom;
         }
-        if (styleZm.top == "") {
-            throw Error(`styleZm.top is ""`);
+        if (currNodeTop < topLimit) { shiftZmTop = -currNodeTop + 30 + topLimit; }
+        const winH = window.innerHeight;
+        const currNodeBottom = bcrNode.bottom;
+        if (currNodeBottom > winH) { shiftZmTop = winH - currNodeBottom - 20; }
+        if (shiftZmTop && Number.isNaN(shiftZmTop)) throw Error(`shiftZmTop is NaN`);
+
+        if ((shiftZmLeft != undefined) || (shiftZmTop != undefined)) {
+            const sec = 1;
+            const msReset = 100;
+
+            styleZm.transition = `left ${sec}s, top ${sec}s`;
+            if (styleZm.left == "") { throw Error(`styleZm.left is ""`); }
+            if (styleZm.top == "") { throw Error(`styleZm.top is ""`); }
+            if (shiftZmLeft != undefined) {
+                const goalZmLeft = currZmLeft + shiftZmLeft;
+                styleZm.left = `${goalZmLeft}px`;
+            }
+            if (shiftZmTop != undefined) {
+                const goalZmTop = currZmTop + shiftZmTop;
+                styleZm.top = `${goalZmTop}px`;
+            }
+            clearTimeout(tmrResetTransition);
+            tmrResetTransition = setTimeout(() => { styleZm.transition = ""; }, sec * 1000 + msReset);
         }
-        if (shiftZmLeft != undefined) {
-            const goalZmLeft = currZmLeft + shiftZmLeft;
-            styleZm.left = `${goalZmLeft}px`;
-        }
-        if (shiftZmTop != undefined) {
-            const goalZmTop = currZmTop + shiftZmTop;
-            styleZm.top = `${goalZmTop}px`;
-        }
-        clearTimeout(tmrResetTransition);
-        tmrResetTransition = setTimeout(() => { styleZm.transition = ""; }, sec * 1000 + msReset);
     }
 }
 
