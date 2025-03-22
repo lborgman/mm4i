@@ -1248,9 +1248,9 @@ export async function pageSetup() {
     if (!eltContainer) throw Error("Could not find jsmind container");
     const eltInner = eltContainer?.querySelector("div.jsmind-inner");
     if (!eltInner) throw Error("Could not find div.jsmind-inner");
-    if (!eltInner.closest("div.jsmind-zoom-move")) {
+    if (!eltInner.closest("div.zoom-move")) {
         const eltZoomMove = document.createElement("div");
-        eltZoomMove.classList.add("jsmind-zoom-move");
+        eltZoomMove.classList.add("zoom-move");
         // @ts-ignore
         eltZoomMove.style = `
                 position: relative;
@@ -1299,7 +1299,7 @@ export async function pageSetup() {
         if (eltJmnode && (!eltJmnode.classList.contains("root"))) throw Error("eltJmnode in c_Move");
         funStopScroll = undefined;
         const jmnodes = getJmnodesFromJm(jmDisplayed);
-        const eltScroll = jmnodes.closest("div.jsmind-zoom-move");
+        const eltScroll = jmnodes.closest("div.zoom-move");
         funStopScroll = startGrabMove(eltScroll);
     });
     modFsm.fsm.hook_exit("c_Move", () => {
@@ -1330,7 +1330,7 @@ export async function pageSetup() {
     const eltJmnodes = getJmnodesFromJm(jmDisplayed);
 
     const modMoveHelp = await importFc4i("move-help");
-    const eltScroll = eltJmnodes.closest("div.jsmind-zoom-move");
+    const eltScroll = eltJmnodes.closest("div.zoom-move");
     const eltShow = eltJmnodes.closest("div.jsmind-inner");
     instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60, eltShow);
 

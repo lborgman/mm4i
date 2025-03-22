@@ -131,7 +131,7 @@ export async function setupFsmListeners(eltFsm) {
 
 
     // We need another layer to handle zoom/move:
-    if (!eltInner.closest("div.jsmind-zoom-move")) { throw Error("Closest div.jsmind-zoom-move not found"); }
+    if (!eltInner.closest("div.zoom-move")) { throw Error("Closest div.zoom-move not found"); }
 
 
 

@@ -452,7 +452,7 @@ async function stepPrevNext(forward) {
 
     moveIntoView(toJmnode);
     function moveIntoView(toJmnode) {
-        const eltZm = toJmnode.closest("div.jsmind-zoom-move");
+        const eltZm = toJmnode.closest("div.zoom-move");
         window["zm"] = eltZm;
 
 
