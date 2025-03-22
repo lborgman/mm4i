@@ -10,14 +10,12 @@ const debounceDisplayZoomed = modTools.debounce(displayZoomed);
 
 // const touchesPositions = undefined;
 
+/*
 export function start(evt) {
     const touchLen = evt.touches.length;
     if (touchLen != 2) throw Error(`touchLen == ${touchLen}`);
-
-    // requestAnimationFrame(requestCheckPointerHandleMove);
 }
-
-// "pointermove"
+*/
 
 
 ///// https://apex.oracle.com/pls/apex/vmorneau/r/pinch-and-zoom/pinch-and-zoom-js
@@ -28,16 +26,14 @@ const distance = (event) => {
     return Math.hypot(event.touches[0].pageX - event.touches[1].pageX, event.touches[0].pageY - event.touches[1].pageY);
 };
 
+// FIX-ME: move to tools.js
 export function getCssTransforms(elt) {
     const style = getComputedStyle(elt);
     const transform = style.transform;
     let x = 0, y = 0, scale = 1;
     if (transform !== "none") {
         const matrix = new DOMMatrixReadOnly(transform);
-        console.log({ matrix });
-        // if (matrix.m22 != 1) throw Error(`matrix.m22 == ${matrix.m22}`);
-        // if (matrix.m33 != 1) throw Error(`matrix.m33 == ${matrix.m33}`);
-        // if (matrix.m44 != 1) throw Error(`matrix.m44 == ${matrix.m44}`);
+        // console.log({ matrix });
         scale = matrix.m11;
         x = matrix.m41;
         y = matrix.m42;

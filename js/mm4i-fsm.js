@@ -116,9 +116,9 @@ export function getPointerType(evt) {
 }
 
 export async function setupFsmListeners(eltFsm) {
-    const modZoom = await importFc4i("zoom");
-    modZoom.pinchZoom(eltFsm);
-    const zoomButtons = modZoom.mkZoomButtons(eltFsm, "horizontal");
+    const modZoomMove = await importFc4i("zoom-move");
+    modZoomMove.pinchZoom(eltFsm);
+    const zoomButtons = modZoomMove.mkZoomButtons(eltFsm, "horizontal");
     zoomButtons.id = "mm4i-zoom-buttons";
     document.body.appendChild(zoomButtons);
 
@@ -131,19 +131,7 @@ export async function setupFsmListeners(eltFsm) {
 
 
     // We need another layer to handle zoom/move:
-    if (!eltInner.closest("div.jsmind-zoom-move")) {
-        throw Error("div.jsmind-zoom-move should already have been added");
-        const eltZoomMove = document.createElement("div");
-        eltZoomMove.classList.add("jsmind-zoom-move");
-        // @ts-ignore
-        eltZoomMove.style = `
-            position: relative;
-            outline: 4px dotted black;
-        `;
-        eltInner.remove();
-        eltZoomMove.appendChild(eltInner);
-        eltContainer.appendChild(eltZoomMove);
-    }
+    if (!eltInner.closest("div.jsmind-zoom-move")) { throw Error("Closest div.jsmind-zoom-move not found"); }
 
 
 
@@ -288,10 +276,6 @@ outline: 4px groove ${F};
         }
         console.log("eltFsm, touchstart", len, evt, "touches:", touches, "changed:", changedTouches);
         actionWithErrorCheck("start2", evt);
-        // const modZoom = await importFc4i("zoom");
-        // console.log({ modZoom });
-        // pinZoom = pinZoom || new modZoom.default(eltFsm);
-        // pinZoom.enable();
     }));
     eltFsm.addEventListener("touchend", evt => {
         // const touches = evt.touches;

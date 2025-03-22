@@ -3,8 +3,10 @@ const MM4I_IMPORTMAPS_VER = "0.2.6";
 window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
 
 const importFc4i_nocachenames = {};
-// const noCache = confirm("Use nochacheRandom() ?"); // FIX-ME: problem on github
-let noCache = true;
+const noCache = true;
+if (noCache) {
+    console.log("%cimportFc4i is avoiding browser caching", "background:yellow; color:red; font-size:18px;");
+}
 const baseUrl = (() => {
     const b = [...document.getElementsByTagName("base")][0]
     if (b) {
@@ -87,7 +89,7 @@ console.log({ baseUrl });
         "mm4i-fsm": "./js/mm4i-fsm.js",
         // "viz-js": "https://cdn.jsdelivr.net/npm/viz-js@latest/dist/jssm.es6.mjs",
         "viz-js": "./ext/viz-js/viz-standalone.mjs",
-        "zoom": "./js/mod/zoom.js",
+        "zoom-move": "./js/mod/zoom-move.js",
         "rd-parser": "./js/mod/rd-parser.js",
         "grammar-search": "./js/mod/grammar-search.js",
         // "no-ui-slider": "https://cdn.jsdelivr.net/npm/nouislider/distribute/nouislider.min.js",
@@ -189,7 +191,7 @@ console.log({ baseUrl });
             let objNotCached = importFc4i_nocachenames[ourImportLink];
             if (!objNotCached) {
                 objNotCached = {};
-                console.log("%cimportFc4i new avoid caching", "background:yellow; color:red;", ourImportLink);
+                // console.log("%cimportFc4i new avoid caching", "background:yellow; color:red;", ourImportLink);
                 const getRandomString = () => {
                     return encodeURIComponent(Math.random().toString(36).slice(2));
                 }
