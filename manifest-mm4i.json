@@ -1,0 +1,26 @@
+{
+    "short_name": "Mindmaps 4 Internet",
+    "name": "Mindmaps 4 Internet",
+    "description": "Mindmaps that run in your web browser",
+    "icons": [
+        {
+            "src": "./img/mm4i.svg",
+            "type": "image/svg+xml",
+            "sizes": "any",
+            "purpose": "any"
+        }
+    ],
+    "start_url": "/mm4i.html",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "olive",
+    "theme_color": "olive",
+    "categories": [
+        "education",
+        "productivity",
+        "utilities"
+    ],
+    "dir": "ltr",
+    "lang": "en",
+    "orientation": "portrait"
+}

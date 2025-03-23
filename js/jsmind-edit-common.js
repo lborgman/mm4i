@@ -1184,11 +1184,18 @@ export async function pageSetup() {
         const sp = new URLSearchParams(location.search);
         if (sp.size == 0) return true;
         const arrParNames = [...sp.keys()].sort();
+        const allowed = ["mindmap","nodehits","cachemodules"];
+        for (const p of arrParNames) {
+            if (!allowed.includes(p)) {
+                debugger;
+                alert(`Invalid parameter: "${p}"`);
+                return false;
+            }
+        }
+        return true;
         const strParNames = JSON.stringify(arrParNames);
-        // console.log({ strParNames });
         if (strParNames == '["mindmap"]') return true;
-        // if (strParNames == '["maxConf","requiredTags","searchFor"]') return true;
-        if (strParNames == '["mindmap","nodehits","provider"]') return true;
+        if (strParNames == '["mindmap","nodehits","cacheEs6Modules"]') return true;
         debugger; // eslint-disable-line no-debugger
         alert("invalid params: " + strParNames);
         return false;

@@ -45,7 +45,7 @@ workbox.setConfig({
     debug: false
 });
 
-importScripts("src/js/umd/idb.js");
+importScripts("js/umd/idb.js");
 // importScripts("src/js/db-fc4i.js");
 // console.log("%cservice-worker.js after import workbox-sw.js, idb.js and db-fc4i.js", logColors);
 logConsole("After import workbox-sw.js, idb.js and db-fc4i.js");
