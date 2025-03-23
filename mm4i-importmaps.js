@@ -47,7 +47,8 @@ if (noCache) {
     `;
         eltSlow.textContent = "Slow loading because develper debugging is on for Mindmaps 4 Internet ...";
         document.body.appendChild(eltSlow);
-        setTimeout(() => eltSlow.remove(), 4000);
+        const msRemoveSlow = window.location.hostname == "localhost" ? 1000 : 4000;
+        setTimeout(() => eltSlow.remove(), msRemoveSlow);
     });
 }
 const baseUrl = (() => {

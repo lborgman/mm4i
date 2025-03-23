@@ -1082,11 +1082,8 @@ export async function pageSetup() {
         });
         btnJsmindSearch = modMdc.mkMDCiconButton("search", "Search", 40);
         btnJsmindSearch.id = "jsmind-search-button";
-        ;
         btnJsmindSearch.classList.add("jsmind-actions");
-        // jsMindContainer.appendChild(btnJsmindSearch);
         jsMindContainer.appendChild(divJsmindSearch);
-        divJsmindSearch.appendChild(btnJsmindSearch);
         btnJsmindSearch.addEventListener("click", evt => {
             // console.log("btnJsmindSearch");
             evt.stopPropagation();
@@ -1111,6 +1108,18 @@ export async function pageSetup() {
                 divHits?.classList.add("display-none");
             }
         });
+
+        const btnJsmindStair = modMdc.mkMDCiconButton("route", "Stair paths", 40);
+        btnJsmindStair.id = "jsmind-stair-button";
+        btnJsmindStair.addEventListener("click", errorHandlerAsyncEvent(async evt => {
+            evt.stopPropagation();
+            // "mindmap stairs" 
+            const modStairs = await importFc4i("stairs");
+            modStairs.dialogStairs();
+        }));
+
+        divJsmindSearch.appendChild(btnJsmindStair);
+        divJsmindSearch.appendChild(btnJsmindSearch);
 
         const btnCloseProvHits = modMdc.mkMDCiconButton("clear", "Clear search hits");
         btnCloseProvHits.classList.add("icon-button-sized");
