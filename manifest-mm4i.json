@@ -10,7 +10,7 @@
             "purpose": "any"
         }
     ],
-    "start_url": "./mm4i/mm4i.html?cachemodules",
+    "start_url": "./mm4i.html?cachemodules",
     "scope": "./mm4i",
     "display": "standalone",
     "background_color": "olive",
