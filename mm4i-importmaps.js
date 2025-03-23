@@ -34,8 +34,8 @@ if (noCache) {
         const eltSlow = document.createElement("div");
         eltSlow.style = `
         position: fixed;
-        top: 10px;
-        left: 10px;
+        top: 70px;
+        left: 20px;
         z-index: 9999;
         width: 200px;
         padding: 20px;
