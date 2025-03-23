@@ -10,8 +10,8 @@
             "purpose": "any"
         }
     ],
-    "start_url": "/mm4i.html",
-    "scope": "/",
+    "start_url": "./mm4i/mm4i.html",
+    "scope": "./mm4i",
     "display": "standalone",
     "background_color": "olive",
     "theme_color": "olive",
