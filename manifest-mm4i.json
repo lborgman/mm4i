@@ -14,7 +14,7 @@
     "scope": "./",
     "display": "standalone",
     "background_color": "olive",
-    "theme_color": "olive",
+    "theme_color": "deepskyblue",
     "categories": [
         "education",
         "productivity",
