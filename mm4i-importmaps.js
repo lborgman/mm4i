@@ -4,6 +4,7 @@ window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
 
 const importFc4i_nocachenames = {};
 const noCache = (() => {
+    return false;
     const sp = new URLSearchParams(location.search);
     return !sp.has("cachemodules");
     const defaultNoCache = true;

@@ -164,6 +164,9 @@ export function mkEltLinkMindmapA(topic, mkey, mhits, provider) {
     const absLink = makeAbsLink(URL_MINDMAPS_PAGE);
     const url = new URL(absLink);
     url.searchParams.set("mindmap", mkey);
+    if (!noCache) {
+        url.searchParams.set("cachemodules", "");
+    }
     if (mhits) {
         url.searchParams.set("provider", provider);
         const hits = mhits.map(h => h.id);

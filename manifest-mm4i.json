@@ -11,7 +11,7 @@
         }
     ],
     "start_url": "./mm4i.html?cachemodules",
-    "scope": "./mm4i",
+    "scope": "./",
     "display": "standalone",
     "background_color": "olive",
     "theme_color": "olive",
