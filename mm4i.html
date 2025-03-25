@@ -2,6 +2,7 @@
 <html lang="en">
 
 <head>
+    <!-- https://blog.pixelfreestudio.com/how-to-implement-lazy-loading-in-pwas/ -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -105,10 +106,14 @@
     <link rel="stylesheet" href="./ext/jsmind/jsmind-mm4i.css" />
     <link rel="stylesheet" href="./css/jsmind-edit.css">
 
-    <link rel="stylesheet" href="./ext/no-ui-slider/nouislider.css" />
+    <!-- <link rel="stylesheet" href="./ext/no-ui-slider/nouislider.css" /> -->
+    <link rel="preload" href="./ext/no-ui-slider/nouislider.css" as="style"
+        onload="this.onload=null; this.rel='stylesheet'" />
 
     <!-- <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" /> -->
-    <link rel="stylesheet" href="./ext/toast-ui/editor/3.2.2.css" />
+    <!-- <link rel="stylesheet" href="./ext/toast-ui/editor/3.2.2.css" /> -->
+    <link rel="preload" href="./ext/toast-ui/editor/3.2.2.css" as="style"
+        onload="this.onload=null; this.rel='stylesheet'" />
 
     <style>
         #jsmind-search-div {
