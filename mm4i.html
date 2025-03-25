@@ -85,7 +85,11 @@
     <!-- for MWC, https://github.com/material-components/material-web -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+
+    <!-- <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet"> -->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="preload" as="style"
+        onload="this.onload=null; this.rel='stylesheet'">
+
     <!-- <link href="https://fonts.googleapis.com/css?family=Material+Icons&amp;display=block" rel="stylesheet"> -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link rel="stylesheet"
@@ -913,7 +917,7 @@
 </head>
 
 <body class="NOno-test-items show-stair-button">
-    <div id="both-versions"><span id="PWA-version"></span> <span style="color:white;">0.05</span></div>
+    <div id="both-versions"><span id="PWA-version"></span> <span style="color:white;">0.06</span></div>
 
     <!-- <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script> -->
     <!-- <script src="https://uicdn.toast.com/editor/3.2.2/toastui-react-editor-all.js"></script> -->
