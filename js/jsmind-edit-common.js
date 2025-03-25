@@ -1184,7 +1184,7 @@ export async function pageSetup() {
         const sp = new URLSearchParams(location.search);
         if (sp.size == 0) return true;
         const arrParNames = [...sp.keys()].sort();
-        const allowed = ["mindmap","nodehits","cachemodules"];
+        const allowed = ["mindmap", "nodehits", "cachemodules"];
         for (const p of arrParNames) {
             if (!allowed.includes(p)) {
                 debugger;
@@ -2577,11 +2577,41 @@ async function showDebugJssmState(currState) {
     elt.style.cursor = "pointer";
     elt.style.pointerEvents = "all";
     elt.title = "Click to show fsm jssm";
+    elt.asked = "no";
     elt.addEventListener("click", errorHandlerAsyncEvent(async evt => {
         evt.preventDefault();
         evt.stopPropagation();
         evt.stopImmediatePropagation();
 
+        // debugger;
+        switch (elt.asked) {
+            case "no":
+                {
+                    const body = mkElt("div", undefined, [
+                        mkElt("h2", undefined, "For developers only"),
+                        mkElt("p", undefined, `
+                        I used this for debugging during developing some diffucult part of this app.
+                        It may be quite useful,
+                        but you will probably not have any use of it if you are not
+                        developing web pages with complicated inputs.
+                        `),
+                    ]);
+                    const answer = await modMdc.mkMDCdialogConfirm(body, "Show", "Cancel");
+                    // debugger;
+                    elt.asked = answer;
+                    if (!answer) {
+                        elt.parentElement.style.display = "none";
+                        return;
+                    }
+                }
+                break;
+            case false:
+                return;
+            case true:
+                break;
+            default:
+                throw Error(`elt.asked was "${elt.asked}"`);
+        }
         // markLatestStates();
 
         eltSmallGraph = eltSmallGraph || mkEltSmallGraph();
