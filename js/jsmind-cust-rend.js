@@ -19,7 +19,6 @@ const wait4mutations = modTools.wait4mutations;
 const modMMhelpers = await importFc4i("mindmap-helpers");
 const modMdc = await importFc4i("util-mdc");
 const modColorTools = await importFc4i("color-tools");
-// const modEasyMDEhelpers = await importFc4i("easyMDE-helpers");
 const modToastUIhelpers = await importFc4i("toast-ui-helpers");
 
 // This creates a loop:
@@ -685,7 +684,6 @@ export class CustomRenderer4jsMind {
         }, 1);
 
         function somethingToSaveNotes() {
-            // return easyMDE.value().trimEnd() != initialVal;
             if (!toastNotesEditor) throw Error(`toastNotesEditor is ${toastNotesEditor}`);
             return toastNotesEditor.getMarkdown().trimEnd() != initialVal;
         }
