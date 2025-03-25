@@ -13,7 +13,8 @@
 	  stroke="rgba(0,0,0,0.1)" stroke-width="0.5" />
 	<!-- <g color="saddlebrown" transform="scale(0.9) translate(30 -8)"> -->
 	<!-- <g color="saddlebrown" transform="translate(10 -28)"> -->
-	<g color="saddlebrown" transform="scale(1.00) translate(35 -19)">
+	<!-- <g color="saddlebrown" transform="scale(1.00) translate(35 -19)"> -->
+	<g color="violet" transform="scale(1.00) translate(35 -19)">
 		<path fill="currentcolor" d="
 			M134.1,40.9
 			v10.9
