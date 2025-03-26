@@ -1082,6 +1082,7 @@ export async function pageSetup() {
         });
         btnJsmindSearch = modMdc.mkMDCiconButton("search", "Search", 40);
         btnJsmindSearch.id = "jsmind-search-button";
+        // btnJsmindSearch.inert = true; // FIX-ME: maybe not?
         btnJsmindSearch.classList.add("jsmind-actions");
         jsMindContainer.appendChild(divJsmindSearch);
         btnJsmindSearch.addEventListener("click", evt => {
@@ -1111,6 +1112,7 @@ export async function pageSetup() {
 
         const btnJsmindStair = modMdc.mkMDCiconButton("route", "Stair paths", 40);
         btnJsmindStair.id = "jsmind-stair-button";
+        // btnJsmindStair.inert = true; // FIX-ME: mabye not?
         btnJsmindStair.addEventListener("click", errorHandlerAsyncEvent(async evt => {
             evt.stopPropagation();
             // "mindmap stairs" 
@@ -1258,6 +1260,16 @@ export async function pageSetup() {
 
     const nowBefore = Date.now();
     jmDisplayed = await displayMindMap(mind, usedOptJmDisplay);
+
+    /*
+    const btnStair = document.getElementById("jsmind-stair-button");
+    if (!btnStair) throw Error(`Did not find "#jsmind-stair-button"`);
+    btnStair.inert = false;
+
+    const btnSearch = document.getElementById("jsmind-search-button");
+    if (!btnSearch) throw Error(`Did not find "#jsmind-search-button"`);
+    btnSearch.inert = false;
+    */
 
     // We need another layer to handle zoom/move:
     const eltContainer = document.getElementById(usedOptJmDisplay.container);
