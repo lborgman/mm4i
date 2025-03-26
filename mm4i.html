@@ -517,16 +517,18 @@
         /* #PWA-version { */
         #both-versions {
             position: fixed;
-            top: 0px;
+            top: 44px;
+            left: 2px;
             z-index: 5;
-            left: 120px;
             height: 40px;
             display: flex;
+            gap: 10px;
             align-items: center;
             padding-left: 8px;
             padding-right: 8px;
-            background-color: olive;
-            background-color: red;
+            background-color: rgba(0,0,0,0.1);
+            border: 1px solid rgba(0,0,0,0.15);
+            border-radius: 10px;
         }
 
         .mm4i-context-menu {
@@ -917,7 +919,7 @@
 </head>
 
 <body class="NOno-test-items show-stair-button">
-    <div id="both-versions"><span id="PWA-version"></span> <span style="color:white;">0.07</span></div>
+    <div id="both-versions"><span id="PWA-version"></span> <span style="color:rgb(80,0,0);">0.07</span></div>
 
     <!-- <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script> -->
     <!-- <script src="https://uicdn.toast.com/editor/3.2.2/toastui-react-editor-all.js"></script> -->

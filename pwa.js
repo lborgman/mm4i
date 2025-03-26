@@ -290,7 +290,7 @@ function addVersionDialog(theEltVersion) {
     if (!theEltVersion) return;
     if (theEltVersion.classList.contains("PWA-version-dialog")) return;
     theEltVersion.classList.add("PWA-version-dialog");
-    theEltVersion.title = "Show versions details";
+    theEltVersion.title = "Show PWA versions details";
     theEltVersion.addEventListener("click", evt => {
         evt.stopPropagation();
         const aPwsJs = mkElt("a", { href: import.meta.url, target: "_blank" }, "pwa.js");
