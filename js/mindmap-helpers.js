@@ -26,16 +26,15 @@ async function DBsaveNowThisMindmap(jmDisplayed) {
 function getNextMindmapKey() { return "mm-" + new Date().toISOString(); }
 
 export function showMindmap(key) {
-    // const url = new URL(linkMindmapsPage, location);
-    // const url = new URL( URL_MINDMAPS_PAGE , location);
     const absLink = makeAbsLink(URL_MINDMAPS_PAGE);
     const url = new URL(absLink);
     url.searchParams.set("mindmap", key);
-    // location.href = url; // FIX-ME:
-    location.href = url.href; // FIX-ME:
+    location.href = url.href; 
 }
 
-export async function createAndShowNewMindmap(linkMindmapsPage) {
+// export async function createAndShowNewMindmap(linkMindmapsPage) {
+export async function createAndShowNewMindmap() {
+    if (arguments.length != 0) throw Error("This function should no longer have a parameter");
     const jsMindMap = await dialogCreateMindMap();
     if (!jsMindMap) return;
     const keyName = jsMindMap.meta.name;
@@ -160,7 +159,6 @@ export async function getMindmapsHits(customKey) {
 }
 
 export function mkEltLinkMindmapA(topic, mkey, mhits, provider) {
-    // const url = new URL(URL_MINDMAPS_PAGE, location);
     const absLink = makeAbsLink(URL_MINDMAPS_PAGE);
     const url = new URL(absLink);
     url.searchParams.set("mindmap", mkey);
@@ -302,27 +300,6 @@ export async function dialogAdded2CustomClipboard(objAdded) {
     function closeDialog() { dlg.mdc.close(); }
 }
 
-/*
-async function dialogCustomPaste2Mindmap() {
-    const arrCopied4Mindmap = fetchJsmindCopied4Mindmap();
-    if (!arrCopied4Mindmap) debugger; // eslint-disable-line no-debugger
-    const objCopied4Mindmap = arrCopied4Mindmap[0];
-    let info;
-    if (objCopied4Mindmap) {
-        const warn = mkElt("p", undefined, [
-            "This functionality is beeing changed!"
-        ]);
-        warn.style.background = "red";
-
-        info = mkElt("div");
-        info.appendChild(warn);
-
-        const divNewPaste = await mkDivOneCustomClip(objCopied4Mindmap);
-        info.appendChild(divNewPaste);
-    }
-    dialogMindMaps(info);
-}
-*/
 
 
 

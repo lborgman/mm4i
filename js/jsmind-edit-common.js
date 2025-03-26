@@ -1195,9 +1195,11 @@ export async function pageSetup() {
             const arrMaps = await dbMindmaps.DBgetAllMindmaps()
             debugger;
             if (arrMaps.length == 0) {
-                await modMMhelpers.createAndShowNewMindmap("./mm4i.html");
+                // await modMMhelpers.createAndShowNewMindmap("./mm4i.html");
+                await modMMhelpers.createAndShowNewMindmap();
             } else {
-                dialogMindMaps(location.pathname);
+                // dialogMindMaps(location.pathname);
+                dialogMindMaps();
             }
         }
         return;
@@ -1620,8 +1622,8 @@ export async function pageSetup() {
         // https://html2canvas.hertzen.com/getting-started.html
 
         const createMindMap = () => {
-            // modMMhelpers.createAndShowNewMindmap(linkMindmapsPage)
-            modMMhelpers.createAndShowNewMindmap("./mm4i.html");
+            // modMMhelpers.createAndShowNewMindmap("./mm4i.html");
+            modMMhelpers.createAndShowNewMindmap();
         }
         const liCreateMindmap = mkMenuItem("Create Mindmap", createMindMap);
 
@@ -2069,9 +2071,10 @@ function scrollNodeIntoView(node) {
 }
 
 
-export async function dialogMindMaps(linkMindmapsPage, info, arrMindmapsHits, provider) {
-    const toLink = typeof linkMindmapsPage;
-    if (toLink !== "string") throw Error(`urlHtml typeof should be string, got ${toLink}`);
+// async function dialogMindMaps(NOlinkMindmapsPage, info, arrMindmapsHits, provider) {
+async function dialogMindMaps(info, arrMindmapsHits, provider) {
+    // const toLink = typeof linkMindmapsPage;
+    // if (toLink !== "string") throw Error(`urlHtml typeof should be string, got ${toLink}`);
     // const eltA = funMkEltLinkMindmap(topic, m.key, m.hits);
     const funMkEltLinkMindmap =
         // (topic, mKey, mHits, provider) => modMMhelpers.mkEltLinkMindmapA(linkMindmapsPage, topic, mKey, mHits, provider);
@@ -2141,7 +2144,8 @@ export async function dialogMindMaps(linkMindmapsPage, info, arrMindmapsHits, pr
     if (showNew) {
         const liNew = modMdc.mkMDCmenuItem("New mindmap");
         liNew.addEventListener("click", errorHandlerAsyncEvent(async () => {
-            await modMMhelpers.createAndShowNewMindmap(linkMindmapsPage);
+            // await modMMhelpers.createAndShowNewMindmap(linkMindmapsPage);
+            await modMMhelpers.createAndShowNewMindmap();
         }));
         // arrLiMenu.push(liNew);
 
@@ -2149,8 +2153,8 @@ export async function dialogMindMaps(linkMindmapsPage, info, arrMindmapsHits, pr
         const eltIcon = modMdc.mkMDCicon("add");
         const btnFab = modMdc.mkMDCfab(eltIcon, "Create new mindmap", true);
         btnFab.addEventListener("click", errorHandlerAsyncEvent(async () => {
-            // await createAndShowNewMindmapFc4i();
-            await modMMhelpers.createAndShowNewMindmap(linkMindmapsPage);
+            // await modMMhelpers.createAndShowNewMindmap(linkMindmapsPage);
+            await createAndShowNewMindmapFc4i();
         }));
         btnFab.style.marginLeft = "40px";
         eltTitle.appendChild(btnFab);
@@ -2178,7 +2182,8 @@ export async function dialogFindInMindMaps(key, provider) {
     }
     const info = mkElt("p", undefined, "Found in these mindmaps:");
     // Fix-me: path??
-    dialogMindMaps("/mm4i.html", info, arrMindmapsHits, provider);
+    // dialogMindMaps("/mm4i.html", info, arrMindmapsHits, provider);
+    dialogMindMaps(info, arrMindmapsHits, provider);
 }
 
 

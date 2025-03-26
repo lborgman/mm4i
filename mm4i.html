@@ -924,7 +924,12 @@
 </head>
 
 <body class="NOno-test-items show-stair-button">
-    <div id="both-versions"><span id="PWA-version"></span> <span style="color:rgb(80,0,0);">0.07</span></div>
+    <div id="both-versions">
+        <span id="PWA-version"></span>
+        <span style="color:rgb(80,0,0);">0.07</span>
+        <!-- 
+        -->
+    </div>
 
     <!-- <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script> -->
     <!-- <script src="https://uicdn.toast.com/editor/3.2.2/toastui-react-editor-all.js"></script> -->
@@ -989,6 +994,14 @@
         modJsEditCommon.pageSetup();
         const aboutLink = makeAbsLink("https://lborgman.github.io/mm4i/");
         modJsEditCommon.addToPageMenu("About", aboutLink);
+
+        const eltBoth = document.getElementById("both-versions");
+        const btnCloseBV = modMdc.mkMDCiconButton("close", "Remove version info");
+        eltBoth.appendChild(btnCloseBV);
+        btnCloseBV.addEventListener("click", evt => {
+            evt.stopPropagation();
+            eltBoth.remove();
+        });
 
         // FIX-ME:
         {
