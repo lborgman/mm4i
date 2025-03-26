@@ -1216,7 +1216,14 @@ export async function pageSetup() {
         if (funMindmapsDialog) {
             funMindmapsDialog();
         } else {
-            dialogMindMaps(location.pathname);
+            const dbMindmaps = await importFc4i("db-mindmaps");
+            const arrMaps = await dbMindmaps.DBgetAllMindmaps()
+            debugger;
+            if (arrMaps.length == 0) {
+                await modMMhelpers.createAndShowNewMindmap("./mm4i.html");
+            } else {
+                dialogMindMaps(location.pathname);
+            }
         }
         return;
     }
