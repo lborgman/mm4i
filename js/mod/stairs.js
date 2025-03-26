@@ -122,7 +122,7 @@ export async function dialogStairs() {
         divOurStairs.textContent = "";
         const ourStairs = getStairs(nameMM);
         if (ourStairs.length == 0) {
-            divOurStairs.textContent = "There are no stairs for this mindmap.";
+            divOurStairs.textContent = "You have not created any stair paths for this mindmap.";
             return;
         }
         ourStairs.sort((a, b) => { return a.nameStair.localeCompare(b.nameStair); });
@@ -183,7 +183,9 @@ export async function dialogStairs() {
 
     // const eltTitle = mkElt("h2", undefined, `Mindmap "${nameMM}" stairs`);
     const eltTitle = mkElt("h2", undefined, [
-        "Stairs for mindmap ", mkElt("i", undefined, nameMM),
+        "Stair paths for mindmap",
+        mkElt("br"),
+        mkElt("i", undefined, nameMM),
     ]);
     eltTitle.style = `
         position: relative;
@@ -211,8 +213,9 @@ export async function dialogStairs() {
     eltTitle.appendChild(btnInfo);
     btnInfo.style = `
         position: absolute;
-        top: 24px;
-        right: 60px;
+        NOtop: 24px;
+        bottom: -45px;
+        right: 50px;
         color: blue;
     `;
     btnInfo.addEventListener("click", evt => {
@@ -225,7 +228,8 @@ export async function dialogStairs() {
     eltTitle.appendChild(btnFabAdd);
     btnFabAdd.style = `
         position: absolute;
-        top: 24px;
+        NOtop: 24px;
+        bottom: -40px;
         right: 0px;
     `;
 
@@ -372,7 +376,7 @@ export async function dialogStairs() {
 
 
     const body = mkElt("div", undefined, [
-        divNotReady,
+        // divNotReady,
         eltTitle,
         divInfoCollapsible,
         // divName,

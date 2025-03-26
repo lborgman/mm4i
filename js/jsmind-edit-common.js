@@ -244,13 +244,6 @@ const divJsmindSearch = mkElt("div", { id: "jsmind-search-div" });
 
 
 let theCustomRenderer;
-/*
-async function setCustomRenderer() {
-    if (theCustomRenderer) return;
-    const modCustRend = await importFc4i("jsmind-cust-rend");
-    theCustomRenderer = await modCustRend.getOurCustomRenderer();
-}
-*/
 
 async function getCustomRenderer() {
     if (!theCustomRenderer) {
@@ -410,11 +403,8 @@ let posPointHandle;
 // https://javascript.info/pointer-events
 /*
  * 
- * @param {PointerEvent} evt 
- * 
  * @return {EventListenerOrEventListenerObject}
  */
-
 function requestCheckPointerHandleMove() {
     try {
         if (!pointHandle.stateMoving()) return;
@@ -427,22 +417,12 @@ function requestCheckPointerHandleMove() {
     requestAnimationFrame(requestCheckPointerHandleMove);
 }
 let eltJmnodeFrom;
-/*
-function jmnodeFromPoint(cX, cY) {
-    // console.log({ cX, cY });
-    const eltsHere = document.elementsFromPoint(cX, cY);
-    const eltJmnode = eltsHere.filter(e => { return e.tagName == "JMNODE"; })[0];
-    return eltJmnode
-}
-*/
 let eltOverJmnode;
 let movePointHandleProblem = false;
 let im = 0;
 function movePointHandle() {
     if (movePointHandleProblem) return;
     const savedPointerPos = modTools.getSavedPointerPos();
-    // const clientX = savedPointerPos.clientX;
-    // const clientY = savedPointerPos.clientY;
     const clientX = savedPointerPos.clientX;
     const clientY = savedPointerPos.clientY;
     if (isNaN(clientX) || isNaN(clientY)) {
@@ -1038,8 +1018,6 @@ export async function pageSetup() {
     const inpSearch = mkElt("input", { type: "search", placeholder: "Search nodes", id: "jsmind-inp-node-search" });
     const tfSearch = inpSearch;
 
-    // FIX-ME: I don't think we can have providers here?
-    // const eltProvHits = mkElt("div", { id: "provider-hits" });
     const divSearchInputs = mkElt("div", { id: "jsmind-search-inputs" }, [
         tfSearch // , eltProvHits
     ]);
@@ -1082,7 +1060,6 @@ export async function pageSetup() {
         });
         btnJsmindSearch = modMdc.mkMDCiconButton("search", "Search", 40);
         btnJsmindSearch.id = "jsmind-search-button";
-        // btnJsmindSearch.inert = true; // FIX-ME: maybe not?
         btnJsmindSearch.classList.add("jsmind-actions");
         jsMindContainer.appendChild(divJsmindSearch);
         btnJsmindSearch.addEventListener("click", evt => {
@@ -1112,10 +1089,8 @@ export async function pageSetup() {
 
         const btnJsmindStair = modMdc.mkMDCiconButton("route", "Stair paths", 40);
         btnJsmindStair.id = "jsmind-stair-button";
-        // btnJsmindStair.inert = true; // FIX-ME: mabye not?
         btnJsmindStair.addEventListener("click", errorHandlerAsyncEvent(async evt => {
             evt.stopPropagation();
-            // "mindmap stairs" 
             const modStairs = await importFc4i("stairs");
             modStairs.dialogStairs();
         }));
@@ -1268,15 +1243,6 @@ export async function pageSetup() {
     const nowBefore = Date.now();
     jmDisplayed = await displayMindMap(mind, usedOptJmDisplay);
 
-    /*
-    const btnStair = document.getElementById("jsmind-stair-button");
-    if (!btnStair) throw Error(`Did not find "#jsmind-stair-button"`);
-    btnStair.inert = false;
-
-    const btnSearch = document.getElementById("jsmind-search-button");
-    if (!btnSearch) throw Error(`Did not find "#jsmind-search-button"`);
-    btnSearch.inert = false;
-    */
 
     // We need another layer to handle zoom/move:
     const eltContainer = document.getElementById(usedOptJmDisplay.container);
@@ -1369,72 +1335,6 @@ export async function pageSetup() {
     const eltShow = eltJmnodes.closest("div.jsmind-inner");
     instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60, eltShow);
 
-    // Windows
-    /*
-    eltJmnodes.addEventListener("dblclick", evt => {
-        // FIX-ME: there is no .eventType - is this a bug?
-        // if ((evt.eventType != "mouse") && (evt.eventType != "pen")) return;
-        if ((evt.type != "mouse") && (evt.type != "pen")) return;
-        if (!(evt instanceof MouseEvent)) return;
-        evt.preventDefault();
-        evt.stopPropagation();
-        evt.stopImmediatePropagation();
-        render.mindmapDblclick(evt);
-    });
-    */
-    // Android
-    /*
-    const jmnodesLastTouchend = {
-        ms: 0,
-        clientX: -1,
-        clientY: -1,
-    }
-    */
-    /*
-    eltJmnodes.addEventListener("NOtouchend", (evt) => {
-        // if (evt.eventType != "touch") throw Error(`"touchend", but eventType:${evt.eventType}`);
-        if (evt.type != "touchend") throw Error(`"touchend", but event.type:${evt.type}`);
-        const currentTime = Date.now();
-        const msTouchLength = currentTime - jmnodesLastTouchend.ms;
-
-        let touchDistance = 0;
-        let clientX = evt.clientX;
-        let clientY = evt.clientY;
-        if (clientX == undefined) {
-            const touches = evt.touches || evt.changedTouches;
-            if (!touches) throw Error(`touches is undefined`);
-            // if (!Array.isArray(touches)) throw Error(`touches is not array`);
-            if (touches.length == 0) throw Error(`touches.length == 0`);
-            const touch = touches[0] || touches.item(0);
-            if (!touch) throw Error(`touch is undefined`);
-            clientX = touch.clientX;
-            clientY = touch.clientY;
-            const dX = jmnodesLastTouchend.clientX - clientX;
-            const dY = jmnodesLastTouchend.clientY - clientY;
-            touchDistance = Math.sqrt(dX * dX + dY * dY);
-            if (isNaN(touchDistance)) {
-                const msg = `
-            touchDistance isNaN, dX:${dX}, dY:${dY}
-            evt.type:${evt.type}
-            evt.clientX:${evt.clientX}
-            evt.clientY:${evt.clientY}
-            jmnodesLastTouchend.clientX:${jmnodesLastTouchend.clientX}
-            `;
-
-                throw Error(msg);
-            }
-        }
-        if (msTouchLength < 500 && msTouchLength > 0 && touchDistance < 10) {
-            render.mindmapDblclick(evt);
-            jmnodesLastTouchend.ms = 0;
-            jmnodesLastTouchend.clientX = -1;
-            jmnodesLastTouchend.clientY = -1;
-        }
-        jmnodesLastTouchend.ms = currentTime;
-        jmnodesLastTouchend.clientX = evt.clientX;
-        jmnodesLastTouchend.clientY = evt.clientY;
-    });
-    */
 
 
     render.applyThisMindmapGlobals();
@@ -1646,45 +1546,6 @@ export async function pageSetup() {
     }
 
 
-    /*
-    // This was a way to make a longpress.
-    // Not used any more. Use jssm instead.
-    let msDelayContextMenu = 0;
-    jsMindContainer.addEventListener("NOtouchmove", evt => {
-        // evt.preventDefault();
-        evt.stopPropagation();
-        stopContextMenu();
-    });
-    jsMindContainer.addEventListener("NOtouchstart", evt => {
-        const jmnode = targetIsJmnode(evt);
-        if (jmnode) {
-            evt.stopPropagation();
-            msDelayContextMenu = 1000;
-            jmDisplayed.select_node(jmnode);
-        }
-    });
-    jsMindContainer.addEventListener("NOcontextmenu", evt => {
-        if (targetIsJmnode(evt)) {
-            evt.preventDefault();
-            if (!(evt instanceof PointerEvent)) { throw Error("not PointerEvent"); }
-            // if (!(evt.clientX && evt.clientY)) { throw Error("evt does not have position"); }
-            const x = `${evt.clientX}`;
-            const y = `${evt.clientY}`;
-            restartDisplayContextMenu(evt.target, x, y);
-        }
-    });
-
-    function stopContextMenu() { restartDisplayContextMenu(); }
-    const restartDisplayContextMenu = (() => {
-        let tmr;
-        return (forElt, x, y) => {
-            clearTimeout(tmr);
-            if (forElt === undefined) return;
-            const doDisplay = () => displayContextMenu(forElt, x, y);
-            tmr = setTimeout(doDisplay, msDelayContextMenu);
-        }
-    })();
-    */
 
 
     function markMenuItemOnClick(evt) {
@@ -1722,32 +1583,6 @@ export async function pageSetup() {
         if (bottom < 0) divMenu.style.top = parseInt(divMenu.style.top) + bottom;
         divMenu.style.opacity = 1;
     }
-    /*
-    async function displayContextMenu(forElt, left, top) {
-        // const divMenu = await mkDivContextMenu();
-        const divMenu = await mkPageMenu();
-        // divMenu.id = "mm4i-page-menu";
-        document.body.appendChild(divMenu);
-        divMenu.forElt = forElt;
-        // Set values in integer, read them as ..px
-        if (left) divMenu.style.left = left;
-        if (top) divMenu.style.top = top;
-        divMenu.style.opacity = 0;
-        divMenu.style.display = "block";
-        const compStyle = getComputedStyle(divMenu);
-
-        const right = parseInt(compStyle.right);
-        // console.log({ right });
-        // FIX-ME: This is fragile. Chrome tries to wrap the menu.
-        if (right <= 0) divMenu.style.left = parseInt(divMenu.style.left) + right - 30;
-
-        const bottom = parseInt(compStyle.bottom);
-        // console.log({ bottom });
-        if (bottom < 0) divMenu.style.top = parseInt(divMenu.style.top) + bottom;
-
-        divMenu.style.opacity = 1;
-    }
-    */
 
     async function dialogEditMindmap() {
         const modCustRend = await importFc4i("jsmind-cust-rend");
@@ -1794,7 +1629,7 @@ export async function pageSetup() {
         if (!document.querySelector("jmnode")) { liEditMindmap.setAttribute("inert", ""); }
 
         const modStairs = await importFc4i("stairs");
-        const liMindmapStairs = mkMenuItem("Mindmap stairs", modStairs.dialogStairs);
+        const liMindmapStairs = mkMenuItem("Mindmap stair paths", modStairs.dialogStairs);
         if (!document.querySelector("jmnode")) { liMindmapStairs.setAttribute("inert", ""); }
 
         const liMindmapsA = mkMenuItemA("List Mindmaps", "./mm4i.html");
@@ -2090,31 +1925,6 @@ export async function pageSetup() {
     // https://javascript.info/bezier-curve
 
 
-    /*
-    async function convertPlainJmnode2ProviderLink(eltJmnode, jmOwner, objCustomCopied) {
-        if (eltJmnode.tagName != "JMNODE") throw Error("Not <jmnode>");
-
-        const provider = objCustomCopied.provider;
-        if (!(await getCustomRenderer()).getProviderNames().includes(provider)) throw Error(`Provider ${provider} is unknown`);
-        const providerKey = objCustomCopied.key;
-
-        const strJsmindTopic = (await getCustomRenderer()).customData2jsmindTopic(providerKey, provider);
-
-        console.log("eltJmnode", eltJmnode, strJsmindTopic);
-        if (jmOwner) {
-            const node_id = jsMind.my_get_nodeID_from_DOM_element(eltJmnode);
-            jmOwner.update_node(node_id, strJsmindTopic);
-            jmOwner.set_node_background_image(node_id, undefined, 150, 100);
-        } else {
-            const s = eltJmnode.style;
-            s.height = s.height || "140px";
-            s.width = s.width || "140px";
-            const eltCustom = (await getCustomRenderer()).jsmindTopic2customElt(strJsmindTopic);
-            eltJmnode.appendChild(eltCustom);
-            (await getCustomRenderer()).updateJmnodeFromCustom(eltJmnode, jmOwner);
-        }
-    }
-    */
 }
 
 function hasTouchEvents() {
@@ -2293,32 +2103,6 @@ export async function dialogMindMaps(linkMindmapsPage, info, arrMindmapsHits, pr
             default:
                 throw Error(`Unknown mindmap format: ${j.format}`);
         }
-        // console.log({ m, key, j, name });
-        // let name = topic;
-        /*
-        if (topic.startsWith("<")) {
-            // FIX-ME: use DOMParser? It may be synchronous.
-            // https://stackoverflow.com/questions/63869394/parse-html-as-a-plain-text-via-javascript
-            const elt = document.createElement("div");
-            elt.innerHTML = topic;
-            // const txt = elt.textContent;
-            // name = txt;
-            const child1 = elt.firstElementChild;
-            // @ts-ignore
-            const strCustom = child1.dataset.jsmindCustom;
-            if (strCustom) {
-                // console.log({ txt, strCustom })
-                // ourCustomRenderer
-                const objCustom = JSON.parse(strCustom);
-                topic = (async () => {
-                    const key = objCustom.key;
-                    const provider = objCustom.provider;
-                    const keyRec = await (await modCustRend.getOurCustomRenderer()).getCustomRec(key, provider);
-                    return keyRec.title;
-                })();
-            }
-        }
-        */
         return { key, topic, hits };
     });
     const arrPromLiMenu = arrToShow.map(async m => {
