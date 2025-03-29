@@ -1095,8 +1095,95 @@ export async function pageSetup() {
             modStairs.dialogStairs();
         }));
 
+        const btnSyncMm = modMdc.mkMDCiconButton("sync_alt", "Sync mindmaps to your devices", 40);
+        btnSyncMm.addEventListener("click", async evt => {
+            evt.stopPropagation();
+
+            const modRxdbSetup = await importFc4i("rxdb-setup");
+            // debugger;
+            const ver = modRxdbSetup.getVersion();
+            console.log({ m: modRxdbSetup, ver });
+            const notReady = mkElt("p", undefined, "Not ready yet");
+            notReady.style = `color: red; font-size: 1.5rem; background: yellow; padding: 10px;`;
+
+            const divInfo = mkElt("div", undefined, [
+                mkElt("p", undefined, `
+                    Here you can sync your mindmaps between your devices.
+                `),
+                mkElt("p", undefined, [
+                    mkElt("b", undefined, "Note: "),
+                    `Your mindmaps is only stored on your devices. 
+                    (No server is handling your mindmaps data.)`,
+                ]),
+            ]);
+            const divInfoCollapsible = modTools.mkHeightExpander(divInfo);
+            const btnInfo = modMdc.mkMDCiconButton("info_i", "What does mindmap sync mean?");
+
+            const eltTitle = mkElt("h2", undefined, "Mindmap sync");
+            eltTitle.style.position = "relative";
+            eltTitle.appendChild(btnInfo);
+            btnInfo.style = `
+                position: absolute;
+                bottom: -14px;
+                right: 14px;
+                color: blue;
+            `;
+            btnInfo.addEventListener("click", evt => {
+                evt.stopPropagation();
+                modTools.toggleHeightExpander(divInfoCollapsible);
+            });
+
+            const sumTechnical = mkElt("summary", undefined, "How is sync done?");
+            const detTechnical =
+                mkElt("details", undefined, [
+                    sumTechnical,
+                    mkElt("p", undefined, `
+                        Mindmap sync is done using the WebRTC protocol. 
+                        This means that you can share your mindmaps with other devices using the same browser.
+                        The sync keys are used to identify your devices. 
+                        You can use the same key on multiple devices or different keys on different devices.`
+                    ),
+                ]);
+            detTechnical.style = `
+                    background-color: skyblue;
+                    color: blue;
+                    padding: 10px;
+                    border-radius: 5px;
+                    margin: 0px 0px 0px 20px;
+                    `;
+
+
+
+            const sumIds = mkElt("summary", undefined, "Sync keys");
+            const detIds = mkElt("details", undefined, [
+                sumIds,
+                detTechnical,
+            ]);
+
+            // const iconReplicate = modMdc.mkMDCicon("sync_alt", "Sync devices", 40);
+            const iconReplicate = modMdc.mkMDCicon("sync_alt");
+            const btnReplicate = modMdc.mkMDCbutton("Sync devices", "outlined", iconReplicate);
+            btnReplicate.title = "Sync your mindmaps between your devices";
+            btnReplicate.addEventListener("click", async (evt) => {
+                evt.stopPropagation();
+                debugger;
+                const replicationPool = await modRxdbSetup.replicateMindmaps();
+                replicationPool.error$.subscribe(err => console.error('WebRTC Error:', err));
+            });
+            const body = mkElt("div", undefined, [
+                notReady,
+                eltTitle,
+                divInfoCollapsible,
+                detIds,
+                btnReplicate,
+            ])
+            await modMdc.mkMDCdialogAlert(body);
+        });
+
+
         divJsmindSearch.appendChild(btnJsmindStair);
         divJsmindSearch.appendChild(btnJsmindSearch);
+        if (location.hostname == "localhost") divJsmindSearch.appendChild(btnSyncMm);
 
         const btnCloseProvHits = modMdc.mkMDCiconButton("clear", "Clear search hits");
         btnCloseProvHits.classList.add("icon-button-sized");

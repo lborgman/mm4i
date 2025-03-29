@@ -921,6 +921,21 @@
     <!-- <script src="./ext/jsmind/chrome-src-jsmind.draggable-node.js"></script> -->
 
     <!-- <script src="./src/js/mindmap-helpers.js"></script> -->
+
+
+    <!-- 
+    // Importmap for rxdb etc
+     <script type="importmap">
+        {
+            "imports": {
+                "rxdb/plugins/core": "./ext/rxdb/plugins/core/index.mjs",
+                "rxdb/plugins/dev-mode": "./ext/rxdb/plugins/dev-mode",
+                "rxdb/plugins/storage-dexie": "./rxdb/dist/esm/plugins/storage-dexie",
+                "rxdb/plugins/validate-ajv": "./rxdb/dist/esm/plugins/validate-ajv"
+            }
+        }
+     </script>
+    -->
 </head>
 
 <body class="NOno-test-items show-stair-button">
@@ -996,12 +1011,10 @@
         modJsEditCommon.addToPageMenu("About", aboutLink);
 
         const eltBoth = document.getElementById("both-versions");
+        eltBoth.addEventListener("click", evt => { evt.stopPropagation(); });
         const btnCloseBV = modMdc.mkMDCiconButton("close", "Remove version info");
         eltBoth.appendChild(btnCloseBV);
-        btnCloseBV.addEventListener("click", evt => {
-            evt.stopPropagation();
-            eltBoth.remove();
-        });
+        btnCloseBV.addEventListener("click", evt => { evt.stopPropagation(); eltBoth.remove(); });
 
         // FIX-ME:
         {
@@ -1014,6 +1027,11 @@
             }
         }
     </script>
+    <!-- 
+    <script type="module">
+        import { addRxPlugin, createRxDatabase } from './rxdb/plugins/core';
+    </script>
+     -->
 
 </body>
 

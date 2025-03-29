@@ -150,6 +150,9 @@ console.log({ baseUrl });
         // new
         "stairs": "./js/mod/stairs.js",
         "shield-click": "./js/mod/shield-click.js",
+
+        // "rxdb-setup": "./js/mod/rxdb-setup.js",
+        "rxdb-setup": "/rxdb-setup-esbuild.js",
     };
 
     const isImporting = {};
