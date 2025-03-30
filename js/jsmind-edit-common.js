@@ -1102,13 +1102,34 @@ export async function pageSetup() {
             const modRxdbSetup = await importFc4i("rxdb-setup");
             const secretKeyMinLength = 8;
             const keySecretKey = "mm4i-webrct-secret-key";
+            const keyRoomKey = "mm4i-webrct-room-key";
             // debugger;
             const ver = modRxdbSetup.getVersion();
             console.log({ m: modRxdbSetup, ver });
             const notReady = mkElt("p", undefined, "Not ready yet");
             notReady.style = `color: red; font-size: 1.5rem; background: yellow; padding: 10px;`;
 
-            const divInfo = mkElt("div", undefined, [
+
+            const sumTechnical = mkElt("summary", undefined, "How is sync done?");
+            const detTechnical = mkElt("details", undefined, [
+                sumTechnical,
+                mkElt("p", undefined, `
+                        Mindmap sync is done using the WebRTC protocol. 
+                        This means that you can share your mindmaps with other devices using the same browser.
+                        The sync keys are used to identify your devices. 
+                        You can use the same key on multiple devices or different keys on different devices.`
+                ),
+            ]);
+            detTechnical.style = `
+                    background-color: skyblue;
+                    color: blue;
+                    padding: 10px;
+                    border-radius: 5px;
+                    NOmargin: 0px 0px 0px 20px;
+            `;
+
+
+            const divInfo = mkElt("div", { class: "mdc-card" }, [
                 mkElt("p", undefined, `
                     Here you can sync your mindmaps between your devices.
                 `),
@@ -1117,7 +1138,13 @@ export async function pageSetup() {
                     `Your mindmaps is only stored on your devices. 
                     (No server is handling your mindmaps data.)`,
                 ]),
+                detTechnical,
             ]);
+            divInfo.style = `
+                background-color: blue;
+                color: white;
+                padding: 10px;
+            `;
             const divInfoCollapsible = modTools.mkHeightExpander(divInfo);
             const btnInfo = modMdc.mkMDCiconButton("info_i", "What does mindmap sync mean?");
 
@@ -1135,29 +1162,7 @@ export async function pageSetup() {
                 modTools.toggleHeightExpander(divInfoCollapsible);
             });
 
-            const sumTechnical = mkElt("summary", undefined, "How is sync done?");
-            const detTechnical =
-                mkElt("details", undefined, [
-                    sumTechnical,
-                    mkElt("p", undefined, `
-                        Mindmap sync is done using the WebRTC protocol. 
-                        This means that you can share your mindmaps with other devices using the same browser.
-                        The sync keys are used to identify your devices. 
-                        You can use the same key on multiple devices or different keys on different devices.`
-                    ),
-                ]);
-            detTechnical.style = `
-                    background-color: skyblue;
-                    color: blue;
-                    padding: 10px;
-                    border-radius: 5px;
-                    margin: 0px 0px 0px 20px;
-                    `;
 
-
-            // const inpMdcRoom = modMdc.mkMDCtextFieldInput();
-            // const tfRoom = modMdc.mkMDCtextFieldOutlined("Room", inpMdcRoom);
-            // tfRoom.style.width = "200px";
 
             const inpRoom = mkElt("input", { type: "text" });
             inpRoom.style = `
@@ -1166,6 +1171,11 @@ export async function pageSetup() {
                 border-radius: 5px;
                 padding: 4px;
             `;
+            inpRoom.addEventListener("input", (evt) => {
+                evt.stopPropagation();
+                saveRoomKey();
+                checkSyncKeys();
+            });
             const lblRoom = mkElt("label", undefined, ["Room: ", inpRoom]);
             lblRoom.style = `
                 display: grid;
@@ -1183,9 +1193,6 @@ export async function pageSetup() {
                 lblRoom
             ]);
 
-            // const inpMdcSecret = modMdc.mkMDCtextFieldInput();
-            // const tfSecret = modMdc.mkMDCtextFieldOutlined("Encryption key", inpMdcSecret);
-            // tfSecret.style.width = "200px";
 
             const inpSecret = mkElt("input", { type: "text" });
             inpSecret.style = `
@@ -1197,6 +1204,35 @@ export async function pageSetup() {
                 background-color: black;
                 color: red;
             `;
+
+            inpSecret.addEventListener("input", (evt) => {
+                evt.stopPropagation();
+                checkSyncKeys();
+            });
+            function checkSyncKeys() {
+                let valid = true;
+                const passkey = inpSecret.value.trim();
+                const { strength } = getPasskeyStrength(passkey);
+                if (strength < 3) {
+                    // document.body.classList.remove("sync-keys-valid");
+                    // return;
+                    valid = false;
+                }
+                const room = inpRoom.value.trim();
+                if (room.length == 0) {
+                    // document.body.classList.remove("sync-keys-valid");
+                    // return;
+                    valid = false;
+                }
+                if (valid) {
+                    document.body.classList.add("sync-keys-valid");
+                    btnReplicate.inert = false;
+                } else {
+                    document.body.classList.remove("sync-keys-valid");
+                    btnReplicate.inert = true;
+                }
+            }
+
             // const btnGenerate = modMdc.mkMDCiconButton("vpn_key", "Generate random passkey", 40);
             const btnGenerate = modMdc.mkMDCiconButton("enhanced_encryption", "Generate random passkey", 40);
             btnGenerate.addEventListener("click", async (evt) => {
@@ -1207,7 +1243,8 @@ export async function pageSetup() {
                 ]);
                 const answer = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel");
                 if (!answer) return;
-                const newKey = generateRobustRandomAsciiString(secretKeyMinLength);
+                // const newKey = generateRobustRandomAsciiString(secretKeyMinLength);
+                const newKey = generateRobustRandomAsciiString(16);
                 inpSecret.value = newKey;
                 getAndShowStrength(newKey);
                 saveSecretKey();
@@ -1230,23 +1267,40 @@ export async function pageSetup() {
                     clearSecretKey();
                     return;
                 }
-                debugger; // eslint-disable-line no-debugger
+                // debugger; // eslint-disable-line no-debugger
                 saveSecretKey();
+                checkSyncKeys();
             });
-            getSecretKey();
+
+            // let inpRoom;
+            // let keyRoomKey;
+            function saveRoomKey() {
+                const room = inpRoom.value.trim();
+                localStorage.setItem(keyRoomKey, room);
+            }
+            function getRoomKey() {
+                const room = localStorage.getItem(keyRoomKey);
+                if (room == null) return;
+                inpRoom.value = room;
+            }
+            function clearRoomKey() {
+                localStorage.removeItem(keyRoomKey);
+            }
+
             function saveSecretKey() {
                 const passkey = inpSecret.value.trim();
                 localStorage.setItem(keySecretKey, passkey);
             }
             function getSecretKey() {
                 const passkey = localStorage.getItem(keySecretKey);
-                debugger;
                 if (passkey == null) return;
                 inpSecret.value = passkey;
             }
             function clearSecretKey() {
                 localStorage.removeItem(keySecretKey);
             }
+
+
             function getAndShowStrength(passkey) {
                 const eltProgress = prgStrength;
                 const { strength, tips } = getPasskeyStrength(passkey);
@@ -1344,19 +1398,28 @@ export async function pageSetup() {
                 divStrength,
             ]);
 
-            const sumIds = mkElt("summary", undefined, "Sync keys");
-            const detIds = mkElt("details", undefined, [
-                sumIds,
+            const spanSumKeysValid = mkElt("span", undefined, "Sync keys (valid)");
+            spanSumKeysValid.id = "mm4i-sumkeys-valid";
+            const spanSumKeysInvalid = mkElt("span", undefined, "Sync keys (invalid)");
+            spanSumKeysInvalid.id = "mm4i-sumkeys-invalid";
+            const spanSumKeys = mkElt("span", undefined, [spanSumKeysInvalid, spanSumKeysValid]);
+            // const sumKeys = mkElt("summary", undefined, "Sync keys");
+            const sumKeys = mkElt("summary", undefined, spanSumKeys);
+            const detKeys = mkElt("details", { class: "mdc-card" }, [
+                sumKeys,
                 mkElt("p", undefined,
                     mkElt("b", undefined, `These keys must be the same on all devices you want to sync with.`)),
                 divRoom,
                 divSecret,
-                detTechnical,
             ]);
+            detKeys.style = `
+                background-color: orange;
+                padding: 10px;
+            `;
 
             // const iconReplicate = modMdc.mkMDCicon("sync_alt", "Sync devices", 40);
             const iconReplicate = modMdc.mkMDCicon("sync_alt");
-            const btnReplicate = modMdc.mkMDCbutton("Sync devices", "outlined", iconReplicate);
+            const btnReplicate = modMdc.mkMDCbutton("Sync devices", "raised", iconReplicate);
             btnReplicate.title = "Sync your mindmaps between your devices";
             btnReplicate.addEventListener("click", async (evt) => {
                 evt.stopPropagation();
@@ -1364,15 +1427,23 @@ export async function pageSetup() {
                 const replicationPool = await modRxdbSetup.replicateMindmaps();
                 replicationPool.error$.subscribe(err => console.error('WebRTC Error:', err));
             });
+            const divReplicate = mkElt("p", undefined, [
+                btnReplicate,
+            ]);
             const body = mkElt("div", undefined, [
                 notReady,
                 eltTitle,
                 divInfoCollapsible,
-                detIds,
-                btnReplicate,
+                divReplicate,
+                detKeys,
             ])
+            getSecretKey();
+            getRoomKey();
+            checkSyncKeys();
+
             await modMdc.mkMDCdialogAlert(body);
         });
+
 
 
         divJsmindSearch.appendChild(btnJsmindStair);

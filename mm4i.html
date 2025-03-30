@@ -531,8 +531,8 @@
             align-items: center;
             padding-left: 8px;
             padding-right: 8px;
-            background-color: rgba(0,0,0,0.1);
-            border: 1px solid rgba(0,0,0,0.15);
+            background-color: rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.15);
             border-radius: 10px;
         }
 
@@ -863,6 +863,24 @@
             z-index: 9999;
             background-color: rgba(25, 25, 112, 0.4);
             pointer-events: none;
+        }
+    </style>
+    <style>
+        /* sync  */
+        #mm4i-sumkeys-valid {
+            display: none;
+        }
+
+        #mm4i-sumkeys-invalid {
+            display: inline;
+        }
+
+        .sync-keys-valid #mm4i-sumkeys-valid {
+            display: inline;
+        }
+
+        .sync-keys-valid #mm4i-sumkeys-invalid {
+            display: none;
         }
     </style>
     <style>
