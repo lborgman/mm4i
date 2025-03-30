@@ -1100,6 +1100,8 @@ export async function pageSetup() {
             evt.stopPropagation();
 
             const modRxdbSetup = await importFc4i("rxdb-setup");
+            const secretKeyMinLength = 8;
+            const keySecretKey = "mm4i-webrct-secret-key";
             // debugger;
             const ver = modRxdbSetup.getVersion();
             console.log({ m: modRxdbSetup, ver });
@@ -1159,6 +1161,7 @@ export async function pageSetup() {
 
             const inpRoom = mkElt("input", { type: "text" });
             inpRoom.style = `
+                margin-left: 10px;
                 border: 1px solid grey;
                 border-radius: 5px;
                 padding: 4px;
@@ -1166,8 +1169,8 @@ export async function pageSetup() {
             const lblRoom = mkElt("label", undefined, ["Room: ", inpRoom]);
             lblRoom.style = `
                 display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
+                grid-template-columns: auto 1fr;
+                NOgap: 10px;
                 margin-top: 10px;
                 font-weight: 500;
                 font-style: italic;
@@ -1186,36 +1189,74 @@ export async function pageSetup() {
 
             const inpSecret = mkElt("input", { type: "text" });
             inpSecret.style = `
+                min-width: 20px;
+                margin-left: 10px;
                 border: 1px solid red;
                 border-radius: 5px;
                 padding: 4px;
                 background-color: black;
                 color: red;
             `;
-            const lblSecret = mkElt("label", undefined, ["Secret: ", inpSecret]);
+            // const btnGenerate = modMdc.mkMDCiconButton("vpn_key", "Generate random passkey", 40);
+            const btnGenerate = modMdc.mkMDCiconButton("enhanced_encryption", "Generate random passkey", 40);
+            btnGenerate.addEventListener("click", async (evt) => {
+                evt.stopPropagation();
+                const body = mkElt("div", undefined, [
+                    mkElt("p", undefined, `This will generate a strong random secret key. `),
+                    mkElt("p", undefined, `It will replace your current secret key. Do you want to continue?`),
+                ]);
+                const answer = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel");
+                if (!answer) return;
+                const newKey = generateRobustRandomAsciiString(secretKeyMinLength);
+                inpSecret.value = newKey;
+                getAndShowStrength(newKey);
+                saveSecretKey();
+                modMdc.mkMDCsnackbar("Updated secret key", 6000);
+            });
+            const lblSecret = mkElt("label", undefined, ["Secret: ", inpSecret, btnGenerate]);
             lblSecret.style = `
                 display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 10px;
+                grid-template-columns: auto 1fr auto;
+                align-items: center;
+                NOgap: 5px;
                 font-weight: 500;
                 font-style: italic;
             `;
             inpSecret.addEventListener("input", (evt) => {
                 evt.stopPropagation();
                 const passkey = inpSecret.value.trim();
-                getAndShowStrength(passkey);
-                function getAndShowStrength(passkey) {
-                    const eltProgress = prgStrength;
-                    const { strength, tips } = getPasskeyStrength(passkey);
-                    showStrength(strength, eltProgress);
-                    spanStrengthText.textContent = tips || "Good!";
+                const strength = getAndShowStrength(passkey);
+                if (strength < 3) {
+                    clearSecretKey();
+                    return;
                 }
-                // const { strength, tips } = getPasskeyStrength(passkey);
-                // showStrength(strength, eltProgress);
+                debugger; // eslint-disable-line no-debugger
+                saveSecretKey();
             });
+            getSecretKey();
+            function saveSecretKey() {
+                const passkey = inpSecret.value.trim();
+                localStorage.setItem(keySecretKey, passkey);
+            }
+            function getSecretKey() {
+                const passkey = localStorage.getItem(keySecretKey);
+                debugger;
+                if (passkey == null) return;
+                inpSecret.value = passkey;
+            }
+            function clearSecretKey() {
+                localStorage.removeItem(keySecretKey);
+            }
+            function getAndShowStrength(passkey) {
+                const eltProgress = prgStrength;
+                const { strength, tips } = getPasskeyStrength(passkey);
+                showStrength(strength, eltProgress);
+                spanStrengthText.textContent = tips || "Good!";
+                return strength;
+            }
             function showStrength(strength, eltProgress) {
                 // const percent = Math.round(strength * 100 / 3); // 3 = max strength
-                const percent = Math.round((strength+1) * 100 / 4); // 3 = max strength
+                const percent = Math.round((strength + 1) * 100 / 4); // 3 = max strength
                 eltProgress.value = percent;
                 let color = "red";
                 switch (strength) {
@@ -1266,6 +1307,21 @@ export async function pageSetup() {
                 }
                 return { strength, tips };
             }
+            function generateRobustRandomAsciiString(length) {
+                const values = new Uint32Array(length); // Use Uint32Array for better distribution
+                window.crypto.getRandomValues(values);
+                let asciiString = '';
+                const validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+                const validCharsLength = validChars.length;
+
+                for (let i = 0; i < length; i++) {
+                    asciiString += validChars[values[i] % validCharsLength];
+                }
+                return asciiString;
+            }
+
+            // const robustRandomAscii = generateRobustRandomAsciiString(32);
+            // console.log(robustRandomAscii);
 
             const spanStrengthText = mkElt("span");
             const prgStrength = mkElt("progress", { value: 0, max: 100 });
