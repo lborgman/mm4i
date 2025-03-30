@@ -1153,10 +1153,148 @@ export async function pageSetup() {
                     `;
 
 
+            // const inpMdcRoom = modMdc.mkMDCtextFieldInput();
+            // const tfRoom = modMdc.mkMDCtextFieldOutlined("Room", inpMdcRoom);
+            // tfRoom.style.width = "200px";
+
+            const inpRoom = mkElt("input", { type: "text" });
+            inpRoom.style = `
+                border: 1px solid grey;
+                border-radius: 5px;
+                padding: 4px;
+            `;
+            const lblRoom = mkElt("label", undefined, ["Room: ", inpRoom]);
+            lblRoom.style = `
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                margin-top: 10px;
+                font-weight: 500;
+                font-style: italic;
+            `;
+            const divRoom = mkElt("p", undefined, [
+                `Room name is used to announce syncing.
+                It should ideally be unique.`,
+                mkElt("br"),
+                // tfRoom
+                lblRoom
+            ]);
+
+            // const inpMdcSecret = modMdc.mkMDCtextFieldInput();
+            // const tfSecret = modMdc.mkMDCtextFieldOutlined("Encryption key", inpMdcSecret);
+            // tfSecret.style.width = "200px";
+
+            const inpSecret = mkElt("input", { type: "text" });
+            inpSecret.style = `
+                border: 1px solid red;
+                border-radius: 5px;
+                padding: 4px;
+                background-color: black;
+                color: red;
+            `;
+            const lblSecret = mkElt("label", undefined, ["Secret: ", inpSecret]);
+            lblSecret.style = `
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+                font-weight: 500;
+                font-style: italic;
+            `;
+            inpSecret.addEventListener("input", (evt) => {
+                evt.stopPropagation();
+                const passkey = inpSecret.value.trim();
+                getAndShowStrength(passkey);
+                function getAndShowStrength(passkey) {
+                    const eltProgress = prgStrength;
+                    const { strength, tips } = getPasskeyStrength(passkey);
+                    showStrength(strength, eltProgress);
+                    spanStrengthText.textContent = tips || "Good!";
+                }
+                // const { strength, tips } = getPasskeyStrength(passkey);
+                // showStrength(strength, eltProgress);
+            });
+            function showStrength(strength, eltProgress) {
+                // const percent = Math.round(strength * 100 / 3); // 3 = max strength
+                const percent = Math.round((strength+1) * 100 / 4); // 3 = max strength
+                eltProgress.value = percent;
+                let color = "red";
+                switch (strength) {
+                    case 0:
+                        color = "red";
+                        break;
+                    case 1:
+                        color = "orange";
+                        break;
+                    case 2:
+                        color = "yellow";
+                        break;
+                    case 3:
+                        color = "green";
+                        break;
+                }
+                eltProgress.style.accentColor = color;
+            }
+            function getPasskeyStrength(passkey) {
+                let strength = 0;
+                let tips;
+                if (passkey.length == 0) {
+                    strength = -1;
+                    tips = "Empty passkey";
+                    return { strength, tips };
+                }
+                if (passkey.length < 8) {
+                    tips = "Too short";
+                    strength = 0;
+                    return { strength, tips };
+                }
+                if (passkey.match(/[a-z]/) && passkey.match(/[A-Z]/)) {
+                    strength += 1;
+                } else {
+                    tips = tips || "Use lowercase/uppercase";
+                }
+                // Check for numbers
+                if (passkey.match(/\d/)) {
+                    strength += 1;
+                } else {
+                    tips = tips || "Include a number. ";
+                }
+                // Check for special characters
+                if (passkey.match(/[^a-zA-Z\d]/)) {
+                    strength += 1;
+                } else {
+                    tips = tips || "Include a special character. ";
+                }
+                return { strength, tips };
+            }
+
+            const spanStrengthText = mkElt("span");
+            const prgStrength = mkElt("progress", { value: 0, max: 100 });
+            prgStrength.style = `
+                width: 100%;
+            `;
+            const divStrength = mkElt("div", undefined, [prgStrength, spanStrengthText]);
+            divStrength.style = `
+                width: 100%;
+                NOmargin-top: 0px;
+            `;
+
+            const divSecret = mkElt("p", undefined, [
+                `The secret key is used to encrypt the transfer. `,
+                mkElt("br"),
+                mkElt("span", { style: "color:red;" }, "Keep it secret!"),
+                mkElt("br"),
+                // tfSecret
+                lblSecret,
+                divStrength,
+            ]);
 
             const sumIds = mkElt("summary", undefined, "Sync keys");
             const detIds = mkElt("details", undefined, [
                 sumIds,
+                mkElt("p", undefined,
+                    mkElt("b", undefined, `These keys must be the same on all devices you want to sync with.`)),
+                divRoom,
+                divSecret,
                 detTechnical,
             ]);
 

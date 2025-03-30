@@ -22115,17 +22115,31 @@ await ourDB.addCollections({
     }
   }
 });
-function replicateMindmaps() {
-  return replicateWebRTC({
-    collection: ourDB.mindmaps,
-    connectionHandlerCreator: getConnectionHandlerSimplePeer({}),
-    topic: "Mindmaps 4 Internet",
-    // <- set any app-specific room id here.
-    secret: "mXs8ya",
-    // Removed as it is not a valid property
-    pull: {},
-    push: {}
-  });
+async function replicateMindmaps(room, secret) {
+  const tofRoom = typeof room;
+  if (tofRoom !== "string") {
+    throw new Error(`room must be string, but has type "${tofRoom}"`);
+  }
+  const tofSecret = typeof secret;
+  if (tofSecret !== "string") {
+    throw new Error(`secret must be string, but has type "${tofSecret}"`);
+  }
+  try {
+    const replication = await replicateWebRTC({
+      collection: ourDB.mindmaps,
+      topic: room,
+      // <- set any app-specific room id here.
+      secret,
+      // Removed as it is not a valid property
+      connectionHandlerCreator: getConnectionHandlerSimplePeer({}),
+      pull: {},
+      push: {}
+    });
+    return replication;
+  } catch (err) {
+    console.error("Replication error:", err);
+    return null;
+  }
 }
 (function(global2) {
   if (!global2.process) {
@@ -22148,8 +22162,26 @@ function replicateMindmaps() {
     }
   });
 })(typeof window !== "undefined" ? window : global);
+var iceServers = [
+  { urls: "stun:stun.l.google.com:19302" },
+  { urls: "stun:stun.l.google.com:5349" },
+  { urls: "stun:stun1.l.google.com:3478" },
+  { urls: "stun:stun1.l.google.com:5349" },
+  { urls: "stun:stun2.l.google.com:19302" },
+  { urls: "stun:stun2.l.google.com:5349" },
+  { urls: "stun:stun3.l.google.com:3478" },
+  { urls: "stun:stun3.l.google.com:5349" },
+  { urls: "stun:stun4.l.google.com:19302" },
+  { urls: "stun:stun4.l.google.com:5349" }
+];
+function getOurICEServer() {
+  const n = 3;
+  const rec = iceServers[n];
+  return rec;
+}
 export {
   getDB,
+  getOurICEServer,
   getVersion,
   replicateMindmaps
 };
