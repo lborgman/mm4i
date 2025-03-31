@@ -882,6 +882,37 @@
         .sync-keys-valid #mm4i-sumkeys-invalid {
             display: none;
         }
+
+        #sum-sync-keys {
+            border-radius: 5px;
+            padding-left: 7px;
+            background-color: red;
+            color: yellow;
+
+        }
+
+        .sync-keys-valid #sum-sync-keys {
+            background-color: unset;
+            color: unset;
+        }
+
+
+        /* Browser supports interpolate-size */
+        @supports (interpolate-size: allow-keywords) {
+            ::details-content {
+                transition: height 0.9s ease, content-visibility 0.9s ease allow-discrete;
+                height: 0;
+                overflow: clip;
+            }
+
+            :root {
+                interpolate-size: allow-keywords;
+            }
+
+            [open]::details-content {
+                height: auto;
+            }
+        }
     </style>
     <style>
         /* Collapsible height divs */
@@ -959,7 +990,7 @@
 <body class="NOno-test-items show-stair-button">
     <div id="both-versions">
         <span id="PWA-version"></span>
-        <span style="color:rgb(80,0,0);">0.07</span>
+        <span style="color:rgb(80,0,0);">0.08</span>
         <!-- 
         -->
     </div>

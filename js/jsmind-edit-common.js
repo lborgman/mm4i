@@ -1398,25 +1398,32 @@ export async function pageSetup() {
                 divStrength,
             ]);
 
-            const spanSumKeysValid = mkElt("span", undefined, "Sync keys (valid)");
+            const spanSumKeysValid = mkElt("span", undefined, "Sync keys");
             spanSumKeysValid.id = "mm4i-sumkeys-valid";
-            const spanSumKeysInvalid = mkElt("span", undefined, "Sync keys (invalid)");
+            const spanSumKeysInvalid = mkElt("span", undefined, "Sync keys are invalid");
             spanSumKeysInvalid.id = "mm4i-sumkeys-invalid";
             const spanSumKeys = mkElt("span", undefined, [spanSumKeysInvalid, spanSumKeysValid]);
             // const sumKeys = mkElt("summary", undefined, "Sync keys");
             const sumKeys = mkElt("summary", undefined, spanSumKeys);
-            const detKeys = mkElt("details", { class: "mdc-card" }, [
-                sumKeys,
+            sumKeys.id = "sum-sync-keys";
+            const bodyKeys = mkElt("div", undefined, [
                 mkElt("p", undefined,
                     mkElt("b", undefined, `These keys must be the same on all devices you want to sync with.`)),
                 divRoom,
                 divSecret,
+            ]);
+            // const divKeysCollapsible = modTools.mkHeightExpander(bodyKeys);
+            const detKeys = mkElt("details", { class: "mdc-card" }, [
+                sumKeys,
+                bodyKeys,
+                // divKeysCollapsible,
             ]);
             detKeys.style = `
                 background-color: orange;
                 padding: 10px;
             `;
 
+            let replicationPool;
             // const iconReplicate = modMdc.mkMDCicon("sync_alt", "Sync devices", 40);
             const iconReplicate = modMdc.mkMDCicon("sync_alt");
             const btnReplicate = modMdc.mkMDCbutton("Sync devices", "raised", iconReplicate);
@@ -1424,19 +1431,82 @@ export async function pageSetup() {
             btnReplicate.addEventListener("click", async (evt) => {
                 evt.stopPropagation();
                 debugger;
-                const replicationPool = await modRxdbSetup.replicateMindmaps();
+                const room = `mm4i: ${inpRoom.value.trim()}`;
+                const passkey = inpSecret.value.trim();
+                replicationPool = await modRxdbSetup.replicateMindmaps(room, passkey);
                 replicationPool.error$.subscribe(err => console.error('WebRTC Error:', err));
+                btnStopReplicate.inert = false;
+                btnTestSync.inert = true;
+                btnReplicate.inert = true;
             });
+            const iconStop = modMdc.mkMDCicon("stop");
+            const btnStopReplicate = modMdc.mkMDCbutton("Stop", "raised", iconStop);
+            btnStopReplicate.title = "Stop sync";
+            btnStopReplicate.inert = true;
+            btnStopReplicate.addEventListener("click", async (evt) => {
+                evt.stopPropagation();
+                if (replicationPool) {
+                    await replicationPool.cancel();
+                    replicationPool = undefined;
+                    modMdc.mkMDCsnackbar("Stopped sync", 6000);
+                } else {
+                    modMdc.mkMDCsnackbar("No sync to stop", 6000);
+                }
+                btnStopReplicate.inert = true;
+                btnTestSync.inert = false;
+                btnReplicate.inert = false;
+            });
+
             const divReplicate = mkElt("p", undefined, [
                 btnReplicate,
+                btnStopReplicate,
             ]);
+            divReplicate.style = `
+                display: flex;
+                gap: 10px;
+            `;
+
+            const btnTestSync = modMdc.mkMDCbutton("Test sync", "raised");
+            btnTestSync.title = "Test sync";
+            btnTestSync.addEventListener("click", async (evt) => {
+                evt.stopPropagation();
+                const body = mkElt("div", undefined, [
+                    mkElt("p", undefined, `This is a test of the sync functionality. `),
+                    mkElt("p", undefined, `It will not affect your mindmap.`),
+                ]);
+                const answer = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel");
+                if (answer) {
+                    const room = "mm4i: test sync";
+                    const passkey = "test sync passkey";
+                    replicationPool = await modRxdbSetup.replicateMindmaps(room, passkey);
+                    replicationPool.error$.subscribe(err => console.error('WebRTC Error:', err));
+                    btnTestSync.inert = true;
+                    btnReplicate.inert = true;
+                    btnStopReplicate.inert = false;
+                    modMdc.mkMDCsnackbar("Started sync", 6000);
+                } else {
+                    modMdc.mkMDCsnackbar("Canceled sync", 6000);
+                }
+            });
+            const divTestSync = mkElt("p", undefined, [
+                mkElt("div", undefined, "Debugging sync"),
+                btnTestSync,
+            ]);
+            divTestSync.style = `
+                background-color: black;
+                color: white;
+                padding: 10px;
+            `;
+
             const body = mkElt("div", undefined, [
                 notReady,
                 eltTitle,
                 divInfoCollapsible,
                 divReplicate,
                 detKeys,
-            ])
+                divTestSync,
+            ]);
+
             getSecretKey();
             getRoomKey();
             checkSyncKeys();
