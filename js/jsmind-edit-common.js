@@ -1615,7 +1615,7 @@ export async function pageSetup() {
         } else {
             const dbMindmaps = await importFc4i("db-mindmaps");
             const arrMaps = await dbMindmaps.DBgetAllMindmaps()
-            debugger;
+            // debugger;
             if (arrMaps.length == 0) {
                 // await modMMhelpers.createAndShowNewMindmap("./mm4i.html");
                 await modMMhelpers.createAndShowNewMindmap();

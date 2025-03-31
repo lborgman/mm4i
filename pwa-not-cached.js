@@ -365,7 +365,8 @@ function mkSnackbar(msg, color, bgColor, left, bottom, msTime) {
 async function getWorkbox() {
     if (!instWorkbox) {
         // https://developer.chrome.com/docs/workbox/using-workbox-window
-        const urlWorkboxWindow = "https://storage.googleapis.com/workbox-cdn/releases/6.2.0/workbox-window.prod.mjs";
+        // https://www.npmjs.com/package/workbox-window
+        const urlWorkboxWindow = "https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-window.prod.mjs";
         const modWb = await import(urlWorkboxWindow);
         instWorkbox = new modWb.Workbox(ourUrlSW);
     }
