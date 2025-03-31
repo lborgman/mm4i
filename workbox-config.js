@@ -11,6 +11,7 @@ module.exports = {
 		// Exclude rxdb
 		'**/rxdb-setup.js',
 		'manifest-mm4i.json', 
+		'node_modules/**/*',
 	],
 	swSrc: 'sw-input.js',
 	swDest: 'sw-workbox.js',
