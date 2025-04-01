@@ -1518,7 +1518,8 @@ export async function pageSetup() {
 
         divJsmindSearch.appendChild(btnJsmindStair);
         divJsmindSearch.appendChild(btnJsmindSearch);
-        if (location.hostname == "localhost") divJsmindSearch.appendChild(btnSyncMm);
+        // if (location.hostname == "localhost") divJsmindSearch.appendChild(btnSyncMm);
+        divJsmindSearch.appendChild(btnSyncMm);
 
         const btnCloseProvHits = modMdc.mkMDCiconButton("clear", "Clear search hits");
         btnCloseProvHits.classList.add("icon-button-sized");
