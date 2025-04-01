@@ -9,7 +9,7 @@ module.exports = {
 	],
 	globIgnores: [
 		// Exclude rxdb
-		'**/rxdb-setup.js',
+		'**/rxdb-setup-esbuild.js',
 		'manifest-mm4i.json', 
 		'node_modules/**/*',
 	],
