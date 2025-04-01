@@ -31,7 +31,7 @@ const noCache = (() => {
 
 if (noCache) {
     console.log("%cimportFc4i is avoiding browser caching", "background:yellow; color:red; font-size:18px;");
-    document.addEventListener("DOMContentLoaded", evt => {
+    document.addEventListener("DOMContentLoaded", _evt => {
         const eltSlow = document.createElement("div");
         eltSlow.style = `
         position: fixed;
@@ -153,6 +153,7 @@ console.log({ baseUrl });
 
         // "rxdb-setup": "./js/mod/rxdb-setup.js",
         "rxdb-setup": "./rxdb-setup-esbuild.js",
+        "rxdb-mm4i": "./js/rxdb-mm4i.js",
     };
 
     const isImporting = {};

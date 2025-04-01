@@ -99,76 +99,14 @@ replicateWebRTC({
 
 
 
-// Browser implementation of process.nextTick() -- from Claude
-(function (global) {
-    // Create a process object if it doesn't exist
-    if (!global.process) {
-        global.process = {};
-    }
+// Skipped: Browser implementation of process.nextTick() -- from Claude
 
-    // Implementation using queueMicrotask (modern browsers)
-    global.process.nextTick = function (callback, ...args) {
-        if (typeof callback !== 'function') {
-            throw new TypeError('Callback must be a function');
-        }
+// From RxDB docs
+// @ts-ignore
+window.process = {
+    nextTick: (fn, ...args) => setTimeout(() => fn(...args)),
+};
 
-        // Try to use queueMicrotask if available (closest to Node.js behavior)
-        queueMicrotask(() => {
-            callback(...args);
-        });
-
-        return this; // For chaining
-    };
-
-    // Optional: Add a nextTickList property similar to Node.js
-    const nextTickQueue = [];
-    let nextTickScheduled = false;
-
-    // Expose the queue for debugging purposes
-    Object.defineProperty(global.process, '_nextTickQueue', {
-        get: function () {
-            return [...nextTickQueue];
-        }
-    });
-
-    // More advanced implementation if needed
-    /* 
-    global.process._nextTick = function(callback, ...args) {
-      nextTickQueue.push({ callback, args });
-      
-      if (!nextTickScheduled) {
-        nextTickScheduled = true;
-        
-        queueMicrotask(() => {
-          const queue = nextTickQueue.slice();
-          nextTickQueue.length = 0;
-          nextTickScheduled = false;
-          
-          for (const item of queue) {
-            try {
-              item.callback(...item.args);
-            } catch (err) {
-              console.error('Unhandled error in process.nextTick callback:', err);
-            }
-          }
-        });
-      }
-      
-      return this;
-    };
-    */
-
-})(typeof window !== 'undefined' ? window : global);
-
-// Usage example:
-/*
-process.nextTick(function(a, b) {
-  console.log('This runs in the next tick of the event loop');
-  console.log('Arguments:', a, b);
-}, 'hello', 'world');
- 
-console.log('This runs first');
-*/
 
 
 // ICE servers

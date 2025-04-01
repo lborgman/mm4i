@@ -22141,27 +22141,9 @@ async function replicateMindmaps(room, secret) {
     return null;
   }
 }
-(function(global2) {
-  if (!global2.process) {
-    global2.process = {};
-  }
-  global2.process.nextTick = function(callback, ...args) {
-    if (typeof callback !== "function") {
-      throw new TypeError("Callback must be a function");
-    }
-    queueMicrotask(() => {
-      callback(...args);
-    });
-    return this;
-  };
-  const nextTickQueue = [];
-  let nextTickScheduled = false;
-  Object.defineProperty(global2.process, "_nextTickQueue", {
-    get: function() {
-      return [...nextTickQueue];
-    }
-  });
-})(typeof window !== "undefined" ? window : global);
+window.process = {
+  nextTick: (fn, ...args) => setTimeout(() => fn(...args))
+};
 var iceServers = [
   { urls: "stun:stun.l.google.com:19302" },
   { urls: "stun:stun.l.google.com:5349" },

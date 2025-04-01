@@ -590,7 +590,7 @@ function deleteStair(nameMindmap, nameStair) {
  * 
  * @param {string} nameMindmap 
  * @param {string} nameStair 
- * @returns {[any]} 
+ * @returns {[any] | undefined} 
  */
 function getStair(nameMindmap, nameStair) {
     const key = `${nameMindmap}---${nameStair}`;
@@ -610,7 +610,7 @@ function getStairs(nameMindMap) {
     const arrStairs = [];
     const lenName = nameMindMap.length;
     for (let key of keys) {
-        const val = localStorage.getItem(key);
+        // const val = localStorage.getItem(key);
         // console.log(`${key}: ${val}`);
         if (key.startsWith(`${nameMindMap}---`)) {
             const strStair = localStorage.getItem(key);

@@ -91,6 +91,7 @@ async function broadcastToClients(msg) {
     }
 }
 
+/*
 async function shareTargetHandler(evt) {
     logStrongConsole("shareTargetHandler");
     logStrongConsole("shareTargetHandler", { evt }, evt.respondWith);
@@ -100,6 +101,7 @@ async function shareTargetHandler(evt) {
     // evt.respondWith(fetch("/share.html&text=dummytext&title=dummytitle&url=dummyurl"));
     // return;
 }
+*/
 
 
 async function checkToNotify(matchValues) {
