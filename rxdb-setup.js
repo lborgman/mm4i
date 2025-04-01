@@ -14,7 +14,8 @@ export function getVersion() { return `rxdb-setup.js ${RXDB_SETUP_VER}`; }
 import { addRxPlugin, createRxDatabase } from 'rxdb/plugins/core';
 import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
-import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
+// import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
+addRxPlugin(RxDBDevModePlugin); // FIX-ME: remove in production
 
 // create a database
 const ourDB = await createRxDatabase({
@@ -23,6 +24,7 @@ const ourDB = await createRxDatabase({
 });
 console.log(`%cAfter createRxDatabase`, styleLog, ourDB);
 // debugger;
+
 export function getDB() { return ourDB; }
 
 await ourDB.addCollections({
