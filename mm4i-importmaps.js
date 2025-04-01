@@ -152,7 +152,7 @@ console.log({ baseUrl });
         "shield-click": "./js/mod/shield-click.js",
 
         // "rxdb-setup": "./js/mod/rxdb-setup.js",
-        "rxdb-setup": "/rxdb-setup-esbuild.js",
+        "rxdb-setup": "./rxdb-setup-esbuild.js",
     };
 
     const isImporting = {};
