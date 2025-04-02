@@ -1,5 +1,5 @@
 // @ts-check
-const RXDB_SETUP_VER = "0.0.1";
+const RXDB_SETUP_VER = "0.0.01";
 window["logConsoleHereIs"](`here is rxdb-setup.js, module, ${RXDB_SETUP_VER}`);
 const styleLog = "background:red; color:white; font-size:20px; padding:5px;";
 console.log(`%chere is rxdb-setup.js`, styleLog);
@@ -19,6 +19,7 @@ import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
 addRxPlugin(RxDBDevModePlugin); // FIX-ME: remove in production
 
 import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
+// import { getRxStorageLocalstorage } from 'rxdb/plugins/storage-localstorage';
 import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
@@ -26,7 +27,7 @@ import addFormats from 'ajv-formats';
 
 
 // Create an AJV instance and add formats
-debugger;
+debugger; // eslint-disable-line no-debugger
 const ajv = new Ajv({
     strict: false,
     allErrors: true,
@@ -38,6 +39,7 @@ addFormats(ajv); // Adds support for "date-time" and other formats
 // Wrap Dexie storage with AJV schema validation
 const storage = wrappedValidateAjvStorage({
     storage: getRxStorageDexie(),
+    // storage: getRxStorageLocalstorage(),
 });
 const ourDB = await createRxDatabase({
     name: 'mm4i', // the name of the database
@@ -70,14 +72,14 @@ const mm4iSchemaLiteral = {
 Object.freeze(mm4iSchemaLiteral); // Freeze the schema object to prevent modifications
 // import { toTypedRxJsonSchema } from 'rxdb/plugins/validate-ajv';
 import { toTypedRxJsonSchema } from 'rxdb';
-debugger;
+debugger; // eslint-disable-line no-debugger
 const mm4iSchema = toTypedRxJsonSchema(mm4iSchemaLiteral);
 
 // Compile the schema
 const validate = ajv.compile(mm4iSchema);
 if (!validate) {
     console.log({ validate });
-    debugger;
+    debugger; // eslint-disable-line no-debugger
 }
 
 // Test validation
@@ -121,7 +123,7 @@ await ourDB.addCollections({
         schema: mm4iSchema,
     }
 });
-// debugger;
+// debugger; // eslint-disable-line no-debugger
 
 import {
     replicateWebRTC,

@@ -30173,7 +30173,7 @@ var RxWebRTCReplicationPool = /* @__PURE__ */ function() {
 }();
 
 // rxdb-setup.js
-var RXDB_SETUP_VER = "0.0.1";
+var RXDB_SETUP_VER = "0.0.01";
 window["logConsoleHereIs"](`here is rxdb-setup.js, module, ${RXDB_SETUP_VER}`);
 var styleLog = "background:red; color:white; font-size:20px; padding:5px;";
 console.log(`%chere is rxdb-setup.js`, styleLog);
@@ -30193,6 +30193,7 @@ var ajv2 = new import_ajv2.default({
 (0, import_ajv_formats.default)(ajv2);
 var storage = wrappedValidateAjvStorage({
   storage: getRxStorageDexie()
+  // storage: getRxStorageLocalstorage(),
 });
 var ourDB = await createRxDatabase({
   name: "mm4i",
