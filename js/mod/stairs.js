@@ -1,7 +1,7 @@
 // @ts-check
 const STAIRS_VER = "0.0.1";
 window["logConsoleHereIs"](`here is stairs.js, module, ${STAIRS_VER}`);
-console.log(`%chere is stairs.js`, "font-size:30px;");
+// console.log(`%chere is stairs.js`, "font-size:30px;");
 if (document.currentScript) { throw "stairs.js is not loaded as module"; }
 
 const mkElt = window["mkElt"];

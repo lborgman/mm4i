@@ -152,7 +152,8 @@ console.log({ baseUrl });
         "shield-click": "./js/mod/shield-click.js",
 
         // "rxdb-setup": "./js/mod/rxdb-setup.js",
-        "rxdb-setup": "./rxdb-setup-esbuild.js",
+        "rxdb-setup-esbuild": "./rxdb-setup-esbuild.js",
+        "rxdb-setup-webpack": "./rxdb-setup-webpack.js",
         "rxdb-mm4i": "./js/rxdb-mm4i.js",
     };
 

@@ -11,24 +11,94 @@ export function getVersion() { return `rxdb-setup.js ${RXDB_SETUP_VER}`; }
 // console.log({modCore});
 
 
-import { addRxPlugin, createRxDatabase } from 'rxdb/plugins/core';
+import { createRxDatabase } from 'rxdb';
+// import { createRxDatabase } from 'rxdb/plugins/core';
+
+import { addRxPlugin } from 'rxdb/plugins/core';
 import { RxDBDevModePlugin } from 'rxdb/plugins/dev-mode';
-import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
-// import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
 addRxPlugin(RxDBDevModePlugin); // FIX-ME: remove in production
 
+import { getRxStorageDexie } from 'rxdb/plugins/storage-dexie';
+import { wrappedValidateAjvStorage } from 'rxdb/plugins/validate-ajv';
+import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
+
+
+
+// Create an AJV instance and add formats
+debugger;
+const ajv = new Ajv({
+    strict: false,
+    allErrors: true,
+    formats: { 'date-time': true },
+}); // Disable strict mode
+addFormats(ajv); // Adds support for "date-time" and other formats
+
 // create a database
+// Wrap Dexie storage with AJV schema validation
+const storage = wrappedValidateAjvStorage({
+    storage: getRxStorageDexie(),
+});
 const ourDB = await createRxDatabase({
     name: 'mm4i', // the name of the database
-    storage: getRxStorageDexie()
+    // storage: getRxStorageDexie()
+    storage,
 });
 console.log(`%cAfter createRxDatabase`, styleLog, ourDB);
-// debugger;
 
 export function getDB() { return ourDB; }
 
+const mm4iSchemaLiteral = {
+    // title: 'mm4i schema',
+    title: 'mm4i',
+    description: 'mm4i schema',
+    version: 0,
+    primaryKey: 'id',
+    type: 'object',
+    properties: {
+        // id: { type: 'string', maxLength: 100 },
+        id: { type: 'string', maxLength: 100 },
+        text: { type: 'string' },
+        // isCompleted: { type: 'boolean' },
+        // createdAt: { type: 'string', format: 'date-time' },
+        // updatedAt: { type: 'string', format: 'date-time' },
+        // deletedAt: { type: ['string', 'null'], format: 'date-time' },
+    },
+    // required: ['id', 'text', 'isCompleted', 'createdAt', 'updatedAt']
+    required: ['id', 'text'],
+};
+Object.freeze(mm4iSchemaLiteral); // Freeze the schema object to prevent modifications
+// import { toTypedRxJsonSchema } from 'rxdb/plugins/validate-ajv';
+import { toTypedRxJsonSchema } from 'rxdb';
+debugger;
+const mm4iSchema = toTypedRxJsonSchema(mm4iSchemaLiteral);
+
+// Compile the schema
+const validate = ajv.compile(mm4iSchema);
+if (!validate) {
+    console.log({ validate });
+    debugger;
+}
+
+// Test validation
+// const validData = { createdAt: new Date().toISOString() }; // ISO date string
+const validData = {
+    id: '123', // Required primary key
+    text: 'Sample task',
+    isCompleted: false,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+};
+const invalidData = { createdAt: 'invalid-date' };
+
+const boolValid = validate(validData); // true
+console.log(boolValid, validate.errors); // true
+
+console.log(validate(invalidData)); // false
+
 await ourDB.addCollections({
     mindmaps: {
+        /*
         id: {
             type: 'string',
             maxLength: 100,
@@ -47,8 +117,11 @@ await ourDB.addCollections({
             },
             required: ['id', 'content', 'createdAt', 'updatedAt']
         },
+        */
+        schema: mm4iSchema,
     }
 });
+// debugger;
 
 import {
     replicateWebRTC,

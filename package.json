@@ -1,6 +1,12 @@
 {
   "dependencies": {
-    "rxdb": "^16.8.1",
-    "rxjs": "^7.8.2"
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
+    "rxdb": "^16.9.0",
+    "webpack": "^5.98.0"
+  },
+  "devDependencies": {
+    "webpack-cli": "^6.0.1",
+    "webpack-merge": "^6.0.1"
   }
 }

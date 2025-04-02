@@ -2578,6 +2578,6 @@ function addStopClickPropagation(elt) {
     elt.addEventListener("click", clickHandlerStopPropagation);
 }
 function clickHandlerStopPropagation(evt) {
-    console.log("clickHandlerStopPropagation", evt);
+    // console.log("clickHandlerStopPropagation", evt);
     evt.stopPropagation();
 }

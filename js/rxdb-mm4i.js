@@ -10,7 +10,9 @@ const importFc4i = window["importFc4i"];
 
 
 
-const modRxdbSetup = await importFc4i("rxdb-setup");
+const modRxdbSetup = await importFc4i("rxdb-setup-esbuild");
+// const modRxdbSetup = await importFc4i("rxdb-setup-webpack");
+
 const modTools = await importFc4i("toolsJs");
 const modMdc = await importFc4i("util-mdc");
 
@@ -427,4 +429,3 @@ export async function rxdbDialog() {
     await modMdc.mkMDCdialogAlert(body);
 
 }
-

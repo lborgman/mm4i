@@ -1101,7 +1101,6 @@ export async function pageSetup() {
             evt.stopPropagation();
 
             const modRxdbMm4i = await importFc4i("rxdb-mm4i");
-            debugger; // eslint-disable-line no-debugger
             modRxdbMm4i.rxdbDialog();
         });
 
