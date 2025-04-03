@@ -160,10 +160,8 @@ export async function replicateMindmaps(room, secret) {
                 console.log("%cisPeerValid", "background:yellow; color:black; font-size:20px;", peer);
                 return peer.id !== 'invalid-peer-id';
             },
-            peerOptions: {
-                // Custom peer options  
-                myPeerOptions: { me: "this is me" },
-            },
+            peerOptions: { myPeerOptions: { me: "this is peerOptions" }, },
+            answerOptions: { myAnswerOptions: { me: "this is answerOptions" }, },
             pull: {},
             push: {}
         });
