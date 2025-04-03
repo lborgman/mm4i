@@ -27,7 +27,7 @@ import addFormats from 'ajv-formats';
 
 
 // Create an AJV instance and add formats
-debugger; // eslint-disable-line no-debugger
+// debugger; // eslint-disable-line no-debugger
 const ajv = new Ajv({
     strict: false,
     allErrors: true,
@@ -72,7 +72,7 @@ const mm4iSchemaLiteral = {
 Object.freeze(mm4iSchemaLiteral); // Freeze the schema object to prevent modifications
 // import { toTypedRxJsonSchema } from 'rxdb/plugins/validate-ajv';
 import { toTypedRxJsonSchema } from 'rxdb';
-debugger; // eslint-disable-line no-debugger
+// debugger; // eslint-disable-line no-debugger
 const mm4iSchema = toTypedRxJsonSchema(mm4iSchemaLiteral);
 
 // Compile the schema
@@ -147,16 +147,22 @@ export async function replicateMindmaps(room, secret) {
         throw new Error(`secret must be string, but has type "${tofSecret}"`);
     }
 
+    debugger;
+
     try {
         const replication = await replicateWebRTC({
             collection: ourDB.mindmaps,
             topic: room, // <- set any app-specific room id here.
-            secret: secret, // Removed as it is not a valid property
+            // secret, // FIX-ME: Is it a valid property?
             connectionHandlerCreator: getConnectionHandlerSimplePeer({}),
             isPeerValid: async (peer) => {
                 // Custom validation logic
                 console.log("%cisPeerValid", "background:yellow; color:black; font-size:20px;", peer);
                 return peer.id !== 'invalid-peer-id';
+            },
+            peerOptions: {
+                // Custom peer options  
+                myPeerOptions: { me: "this is me" },
             },
             pull: {},
             push: {}

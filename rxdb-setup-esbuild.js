@@ -30184,7 +30184,6 @@ function getVersion() {
   return `rxdb-setup.js ${RXDB_SETUP_VER}`;
 }
 addRxPlugin(RxDBDevModePlugin);
-debugger;
 var ajv2 = new import_ajv2.default({
   strict: false,
   allErrors: true,
@@ -30225,7 +30224,6 @@ var mm4iSchemaLiteral = {
   required: ["id", "text"]
 };
 Object.freeze(mm4iSchemaLiteral);
-debugger;
 var mm4iSchema = toTypedRxJsonSchema(mm4iSchemaLiteral);
 var validate = ajv2.compile(mm4iSchema);
 if (!validate) {
@@ -30278,17 +30276,21 @@ async function replicateMindmaps(room, secret) {
   if (tofSecret !== "string") {
     throw new Error(`secret must be string, but has type "${tofSecret}"`);
   }
+  debugger;
   try {
     const replication = await replicateWebRTC({
       collection: ourDB.mindmaps,
       topic: room,
       // <- set any app-specific room id here.
-      secret,
-      // Removed as it is not a valid property
+      // secret, // FIX-ME: Is it a valid property?
       connectionHandlerCreator: getConnectionHandlerSimplePeer({}),
       isPeerValid: async (peer) => {
         console.log("%cisPeerValid", "background:yellow; color:black; font-size:20px;", peer);
         return peer.id !== "invalid-peer-id";
+      },
+      peerOptions: {
+        // Custom peer options  
+        myPeerOptions: { me: "this is me" }
       },
       pull: {},
       push: {}
