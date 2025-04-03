@@ -30287,7 +30287,7 @@ async function replicateMindmaps(room, secret) {
       // Removed as it is not a valid property
       connectionHandlerCreator: getConnectionHandlerSimplePeer({}),
       isPeerValid: async (peer) => {
-        console.log("%cisPeerValid", "background:yellow; font-size:20px;", peer);
+        console.log("%cisPeerValid", "background:yellow; color:black; font-size:20px;", peer);
         return peer.id !== "invalid-peer-id";
       },
       pull: {},

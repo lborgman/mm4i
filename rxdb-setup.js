@@ -155,7 +155,7 @@ export async function replicateMindmaps(room, secret) {
             connectionHandlerCreator: getConnectionHandlerSimplePeer({}),
             isPeerValid: async (peer) => {
                 // Custom validation logic
-                console.log("%cisPeerValid", "background:yellow; font-size:20px;", peer);
+                console.log("%cisPeerValid", "background:yellow; color:black; font-size:20px;", peer);
                 return peer.id !== 'invalid-peer-id';
             },
             pull: {},
