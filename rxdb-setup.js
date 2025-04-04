@@ -148,6 +148,19 @@ export async function replicateMindmaps(room, secret) {
     }
 
     debugger;
+    // https://github.com/pubkey/rxdb/issues/7054 - isPeerValid
+    // https://discord.com/channels/969553741705539624/994606235141800047/1357286417432318052
+    // https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/createAnswer
+    // https://www.npmjs.com/package/@thaunknown/simple-peer#usage
+
+    // https://www.perplexity.ai/search/javascript-rxdb-i-am-setting-u-EFzppnfVTIq1Ead5gke70A
+    // https://claude.ai/chat/5c792e4f-9ed8-4d58-b757-d8c058426f78
+
+    // https://rxdb.info/replication-webrtc.html
+    // https://rxdb.info/replication-websocket.html
+
+    // https://github.com/pubkey/rxdb/blob/master/orga/premium-tasks.md
+
 
     try {
         const replication = await replicateWebRTC({
