@@ -1100,8 +1100,8 @@ export async function pageSetup() {
         btnSyncMm.addEventListener("click", async evt => {
             evt.stopPropagation();
 
-            const modRxdbMm4i = await importFc4i("rxdb-mm4i");
-            modRxdbMm4i.rxdbDialog();
+            const modMm4iReplication = await importFc4i("mm4i-replication");
+            modMm4iReplication.replicationDialog();
         });
 
 

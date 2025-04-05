@@ -153,8 +153,11 @@ console.log({ baseUrl });
 
         // "rxdb-setup": "./js/mod/rxdb-setup.js",
         "rxdb-setup-esbuild": "./rxdb-setup-esbuild.js",
-        "rxdb-setup-webpack": "./rxdb-setup-webpack.js",
-        "rxdb-mm4i": "./js/rxdb-mm4i.js",
+        // "rxdb-setup-webpack": "./rxdb-setup-webpack.js",
+        // "rxdb-mm4i": "./js/rxdb-mm4i.js",
+        "mm4i-replication": "./js/mm4i-replication.js",
+        
+        "idb-replicator": "./js/mod/idb-replicator.js",
     };
 
     const isImporting = {};
