@@ -3,13 +3,22 @@
 // Partly from Grok
 
 // @ts-check
-console.log("signaling-server.mjs loaded");
+logInfo("signaling-server.mjs loaded");
+
+const msStarting = Date.now();
+// console.time("startup signaling server");
 
 import { WebSocketServer } from 'ws';
 import chalk from 'chalk';
+import os from 'os';
+
 const PORT = 3000;
+// const HOSTNAME = process.env.HOSTNAME || os.hostname() || 'localhost';
+// const HOSTNAME = process.env.HOSTNAME || 'localhost';
+const HOSTNAME = 'localhost';
 
 function logInfo(message) { console.log(chalk.bgBlue.white(` ${message} `)); }
+function logWarning(message) { console.log(chalk.bgYellow.black(` ${message} `)); }
 /**
  * @param {string} where 
  * @param {Error|string} error 
@@ -25,8 +34,10 @@ const wmapClientFirstMsg = new WeakMap();
 const wmapClientRoom = new WeakMap();
 const mapRoomClients = new Map(); // room -> Set of clients
 
+let wss;
 try {
-  const wss = new WebSocketServer({ port: PORT });
+  // const wss = new WebSocketServer({ port: PORT });
+  wss = new WebSocketServer({ port: PORT });
 
   wss.on('connection', (ws) => {
     // const ws = event.target;
@@ -84,8 +95,36 @@ try {
 
   wss.on('error', (event) => console.error('Server error:', event.message));
 
-  logInfo(`Signaling server running on ws://localhost:${PORT}`);
+  const msEnding = Date.now();
+  const msDiff = msEnding - msStarting;
+  // console.timeEnd("startup signaling server");
+  // logInfo(`Signaling server started (${msDiff}ms) on ws://localhost:${PORT}`);
+  logInfo(`Signaling server started (${msDiff}ms) on ws://${HOSTNAME}:${PORT}`);
 } catch (error) {
   console.error(error);
   logError("Server startup error:", error.message);
 }
+
+function closeServer() {
+  logWarning('Initiating server shutdown');
+  wss.clients.forEach((client) => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.close(1000, 'Server shutting down');
+    }
+  });
+  wss.close((error) => {
+    if (error) {
+      logError("Server close error:", error.message);
+    } else {
+      logInfo("Server closed successfully.");
+    }
+  });
+}
+function _closeServerWithDelay(seconds) {
+  logWarning(`Will close server after ${seconds} seconds)`);
+  setTimeout(() => {
+    logInfo(`Closing server now (already waited ${seconds} seconds)`);
+    closeServer();
+  }, 1000 * seconds);
+}
+_closeServerWithDelay(15);
