@@ -483,6 +483,7 @@ export async function replicationDialog() {
 
 function fromGrok() {
     // https://www.videosdk.live/developer-hub/webrtc/webrtc-signaling-server
+    // https://webrtc.org/getting-started/peer-connections
     // Configuration for STUN servers (works in browser)
     const configuration = {
         iceServers: [
@@ -549,6 +550,7 @@ function fromGrok() {
             // debugger; // eslint-disable-line no-debugger
             // Create new peer connection
             peerConnection = new RTCPeerConnection(configuration);
+            // debugger;
 
             // Handle ICE candidates
             peerConnection.onicecandidate = (event) => {
@@ -569,11 +571,13 @@ function fromGrok() {
             const offer = await peerConnection.createOffer();
             await peerConnection.setLocalDescription(offer);
 
+            /*
             console.log('Sending offer:', offer);
             signalingServer.send(JSON.stringify({
                 type: 'offer',
                 offer: offer
             }));
+            */
 
         } catch (error) {
             console.error('Error starting connection:', error);
@@ -648,6 +652,19 @@ function fromGrok() {
     signalingServer.addEventListener("open", () => {
         const strReadyState = getSignalingServerReadyState();
         console.log(`Open: signaling server, readyState: ${strReadyState}`);
+        // debugger;
+        const firstMsg = {
+            room: "test-room",
+            when: new Date().toISOString(),
+        }
+        // signalingServer.send("hi!" + Date().toString().slice(15, 25));
+        signalingServer.send(JSON.stringify(firstMsg));
+        /*
+        signalingServer.send(JSON.stringify({
+            type: 'init',
+            message: 'WebRTC connection established'
+        }));
+        */
         startConnection();
         // Optional: createDataChannel();
     });
