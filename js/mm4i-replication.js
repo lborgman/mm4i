@@ -355,7 +355,7 @@ export async function replicationDialog() {
         replicationPool = await modRxdbSetup.replicateMindmaps(room, passkey);
         replicationPool.error$.subscribe(err => { console.error('WebRTC Error:', err); });
         btnStopReplicate.inert = false;
-        btnTestSync.inert = true;
+        btnTestRxdbSync.inert = true;
         btnReplicate.inert = true;
     });
     const iconStop = modMdc.mkMDCicon("stop");
@@ -372,7 +372,7 @@ export async function replicationDialog() {
             modMdc.mkMDCsnackbar("No sync to stop", 6000);
         }
         btnStopReplicate.inert = true;
-        btnTestSync.inert = false;
+        btnTestRxdbSync.inert = false;
         btnReplicate.inert = false;
     });
 
@@ -385,9 +385,9 @@ export async function replicationDialog() {
     gap: 10px;
 `;
 
-    const btnTestSync = modMdc.mkMDCbutton("Test RxDB sync", "raised");
-    btnTestSync.title = "Test sync";
-    btnTestSync.addEventListener("click", async (evt) => {
+    const btnTestRxdbSync = modMdc.mkMDCbutton("Test RxDB sync", "raised");
+    btnTestRxdbSync.title = "Test sync";
+    btnTestRxdbSync.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         const body = mkElt("div", undefined, [
             mkElt("p", undefined, `This is a test of the RxDB sync functionality. `),
@@ -400,7 +400,7 @@ export async function replicationDialog() {
             const passkey = "test sync passkey";
             replicationPool = await modRxdbSetup.replicateMindmaps(room, passkey);
             replicationPool.error$.subscribe(err => console.error('WebRTC Error:', err));
-            btnTestSync.inert = true;
+            btnTestRxdbSync.inert = true;
             btnReplicate.inert = true;
             btnStopReplicate.inert = false;
             modMdc.mkMDCsnackbar("Started sync", 6000);
@@ -408,11 +408,11 @@ export async function replicationDialog() {
             modMdc.mkMDCsnackbar("Canceled sync", 6000);
         }
     });
-    const divTestSync = mkElt("p", undefined, [
+    const divTestRxdbSync = mkElt("p", undefined, [
         mkElt("div", undefined, "Debugging sync"),
-        btnTestSync,
+        btnTestRxdbSync,
     ]);
-    divTestSync.style = `
+    divTestRxdbSync.style = `
     background-color: black;
     color: white;
     padding: 10px;
@@ -468,7 +468,7 @@ export async function replicationDialog() {
         divInfoCollapsible,
         divReplicate,
         detKeys,
-        divTestSync,
+        // divTestRxdbSync,
         // mkElt("hr"), divIdbReplicator,
         mkElt("hr"), divGrok,
     ]);
@@ -481,7 +481,7 @@ export async function replicationDialog() {
 
 }
 
-function fromGrok() {
+async function fromGrok() {
     // https://www.videosdk.live/developer-hub/webrtc/webrtc-signaling-server
     // https://webrtc.org/getting-started/peer-connections
     // Configuration for STUN servers (works in browser)
@@ -500,8 +500,11 @@ function fromGrok() {
 
     // FIX-ME: Why is not this error handled??
     // const signalingServer = new WebSocket(urlSignaling);
-    let signalingServer;
+    // let signalingServer;
+
+
     // debugger;
+    /*
     try {
         signalingServer = new WebSocket(urlSignaling);
         console.log("signalingServer.on:", signalingServer.on);
@@ -510,7 +513,58 @@ function fromGrok() {
         console.error(msg, error);
         throw Error(msg);
     }
+    */
+
+    function connectWebSocket(urlSignaling) {
+        return new Promise((resolve, reject) => {
+            const signalingServer = new WebSocket(urlSignaling);
+
+            // signalingServer.onopen = function () {
+            signalingServer.addEventListener("open", function () {
+                console.log('Connection established');
+                resolve(signalingServer);  // Resolve the promise when the connection is successful
+            });
+
+            // signalingServer.onerror = function (event) {
+            signalingServer.addEventListener("error", function (event) {
+                console.error('WebSocket error:', event);
+                reject(new Error('WebSocket connection failed'));  // Reject the promise on error
+            });
+
+            // signalingServer.onclose = function (event) {
+            signalingServer.addEventListener("close", function (event) {
+                if (!event.wasClean) {
+                    console.error('Connection closed unexpectedly', event);
+                    reject(new Error('WebSocket connection closed unexpectedly'));  // Reject the promise if the connection closes unexpectedly
+                }
+            });
+        });
+    }
+
+    // Usage example with async/await
+    async function initiateConnection(urlSignaling) {
+        try {
+            // const urlSignaling = 'ws://your-server-url'; // replace with your WebSocket server URL
+            const signalingServer = await connectWebSocket(urlSignaling);  // Wait for the connection to be either opened or error out
+            console.log('WebSocket connection established:', signalingServer);
+            // Do something with the signalingServer if needed
+            return signalingServer;
+        } catch (error) {
+            console.error('Failed to connect:', error.message);
+        }
+    }
+
+    const signalingServer = await initiateConnection(urlSignaling);
+
+
+
+
     console.log("signalingServer:", { signalingServer });
+    if (!signalingServer) {
+        // alert("Could not connect to signaling server. Please check your connection.");
+        modMdc.mkMDCdialogAlert(`Could not connect to signaling server at ${urlSignaling}.`);
+        return;
+    }
 
     // Initialize peer connection
     let peerConnection;

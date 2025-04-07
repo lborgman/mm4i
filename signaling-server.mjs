@@ -1,3 +1,6 @@
+logWarning("Please use the version from https://github.com/lborgman/signaling-server");
+process.exit(1);
+
 
 // https://www.videosdk.live/developer-hub/webrtc/webrtc-signaling-server
 // Partly from Grok
