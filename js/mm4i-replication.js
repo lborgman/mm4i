@@ -25,7 +25,7 @@ divSyncLogState.style = `
 const divSyncLogLog = mkElt("div");
 divSyncLogLog.style = `
         color: gray;
-        max-height: 200px;
+        max-height: 100px;
         overflow-y: auto;
     `;
 const divSyncLog = mkElt("div", undefined, [
@@ -36,6 +36,7 @@ setSyncLogInactive();
 function logSyncLog(msg) {
     const line = mkElt("div", undefined, msg);
     divSyncLogLog.appendChild(line);
+    line.scrollIntoView({ behavior: "smooth", block: "end" });
 }
 function setSyncLogState(state, color) {
     divSyncLogState.textContent = state;
@@ -362,6 +363,7 @@ export async function replicationDialog() {
     // const sumKeys = mkElt("summary", undefined, "Sync keys");
     const sumKeys = mkElt("summary", undefined, spanSumKeys);
     sumKeys.id = "sum-sync-keys";
+    sumKeys.style.minHeight = "unset";
     const bodyKeys = mkElt("div", undefined, [
         mkElt("p", undefined,
             mkElt("b", undefined, `These keys must be the same on all devices you want to sync with.`)),
@@ -513,7 +515,7 @@ export async function replicationDialog() {
         eltTitle,
         divInfoCollapsible,
         detKeys,
-        mkElt("hr"),
+        // mkElt("hr"),
         divGrok,
         divSyncLog,
     ]);
@@ -562,6 +564,7 @@ async function fromGrok() {
 
     function connectWebSocket(urlSignaling) {
         function logConnectWebSocket(...args) {
+            logSyncLog(args[0]);
             console.log("%c Connect WebSocket: ", "background:darkgreen; color:white;", ...args);
         }
         return new Promise((resolve, reject) => {
@@ -740,6 +743,7 @@ async function fromGrok() {
     // Handle incoming offer
     async function handleOffer(offer) {
         logWebSocketInfo("handle offer", { offer });
+        logSyncLog("Handle offer");
         try {
             peerConnection = new RTCPeerConnection(configuration);
 
@@ -761,6 +765,7 @@ async function fromGrok() {
                 answer: answer
             }));
             logWebSocketInfo("answer sent");
+            logSyncLog("Answer sent");
         } catch (error) {
             // console.error('Error handling offer:', error);
             logWebSocketError('Error handling offer:', error);
