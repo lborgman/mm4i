@@ -464,7 +464,7 @@ export async function replicationDialog() {
             dataChannel.send(msg);
             console.log(`btnTestSend Sent message: ${msg} `);
         } else {
-            console.error(`btnTestSend Data channel not open: "${dataChannel?.readyState}"`);
+            console.error(`btnTestSend Data channel not open: "${dataChannel?.readyState}"`, {isInitiator});
         }
     });
 
@@ -705,9 +705,9 @@ async function fromGrok() {
 
         peerConnection.addEventListener("datachannel", (event) => {
             if (!isInitiator) {
-                const dataChannelPeer = event.channel;
-                console.log("Data channel received from peer:", dataChannelPeer.label);
-                setupDataChannel(dataChannelPeer);
+                dataChannel = event.channel;
+                console.log("Data channel received from peer:", dataChannel.label);
+                setupDataChannel();
             } else {
                 console.log("Ignoring received data channel as initiator");
             }
@@ -732,6 +732,14 @@ async function fromGrok() {
         isInitiator = isInitiatorParam;
         logWebSocketInfo("handle offer", { offer, from, isInitiatorParam });
         logSyncLog(`Handle offer, isInitiatorParam: ${isInitiatorParam}`);
+        if (isInitiator) {
+            console.log("is initiator, skipping offer");
+            dataChannel = peerConnection.createDataChannel("textChannel");
+            logSyncLog("created textChannel");
+            console.warn("created textChannel", { dataChannel });
+            setupDataChannel();
+            return;
+        }
         try {
 
             await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
@@ -777,19 +785,11 @@ async function fromGrok() {
         }
     }
 
-    function setupDataChannel(channelFromPeer) {
-        /*
-        if (dataChannel) {
-            logWebSocketWarn("Data channel already exists", { dataChannel });
-            return dataChannel;
-        }
-        */
+    function setupDataChannel() {
         function logSetupDataChannel(...args) {
             console.log("%c Setup Data Channel: ", "background:red; color:black;", ...args);
         }
-        const dataChannelSetup = channelFromPeer || peerConnection.createDataChannel("textChannel");
-        logSetupDataChannel("created textChannel", { channel: dataChannelSetup });
-        console.warn("created textChannel");
+        const dataChannelSetup = dataChannel;
 
         dataChannelSetup.addEventListener("open", () => {
             logSetupDataChannel("Data channel open");
