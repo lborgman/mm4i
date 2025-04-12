@@ -33,7 +33,7 @@ const divSyncLog = mkElt("div", undefined, [
     divSyncLogLog,
 ]);
 setSyncLogInactive();
-function logSyncLog(msg) {
+function _logSyncLog(msg) {
     const line = mkElt("div", undefined, msg);
     divSyncLogLog.appendChild(line);
     line.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -42,6 +42,10 @@ function setSyncLogState(state, color) {
     divSyncLogState.textContent = state;
     divSyncLogState.style.color = color;
 }
+function setSyncLogInitiator(isInitiator) {
+    divSyncLogState.style.textDecoration = isInitiator ? "overline" : "underline";
+}
+
 function setSyncLogInactive() {
     // divSyncLogState.textContent = "Not syncing";
     // divSyncLogState.style.color = "gray";
@@ -464,7 +468,7 @@ export async function replicationDialog() {
             dataChannel.send(msg);
             console.log(`btnTestSend Sent message: ${msg} `);
         } else {
-            console.error(`btnTestSend Data channel not open: "${dataChannel?.readyState}"`, {isInitiator});
+            console.error(`btnTestSend Data channel not open: "${dataChannel?.readyState}"`, { isInitiator });
         }
     });
 
@@ -505,9 +509,18 @@ async function fromGrok() {
     // https://www.videosdk.live/developer-hub/webrtc/webrtc-signaling-server
     // https://webrtc.org/getting-started/peer-connections
     // Configuration for STUN servers (works in browser)
-    const configuration = {
+    const iceConfiguration = {
         iceServers: [
-            { urls: "stun:stun.l.google.com:19302" }
+            { urls: "stun:stun.l.google.com:19302" },
+            { urls: "stun:stun.l.google.com:5349" },
+            { urls: "stun:stun1.l.google.com:3478" },
+            { urls: "stun:stun1.l.google.com:5349" },
+            { urls: "stun:stun2.l.google.com:19302" },
+            { urls: "stun:stun2.l.google.com:5349" },
+            { urls: "stun:stun3.l.google.com:3478" },
+            { urls: "stun:stun3.l.google.com:5349" },
+            { urls: "stun:stun4.l.google.com:19302" },
+            { urls: "stun:stun4.l.google.com:5349" }
         ]
     };
 
@@ -536,8 +549,10 @@ async function fromGrok() {
 
     function connectSignalingWebSocket(urlSignaling) {
         function logConnectWebSocket(...args) {
-            logSyncLog(args[0]);
-            console.log("%c Connect WebSocket: ", "background:darkgreen; color:white;", ...args);
+            const arg0 = args.shift();
+            const msg = `Connect WebSocket ${arg0}`;
+            console.log(`%c ${msg}`, "background:darkgreen; color:white;", ...args);
+            _logSyncLog(msg);
         }
         return new Promise((resolve, reject) => {
             const signalingChannel = new WebSocket(urlSignaling);
@@ -583,12 +598,13 @@ async function fromGrok() {
         }
     }
 
-    setSyncLogState("Syncing", "green");
+    setSyncLogState("Initialize syncing", "yellowgreen");
     signalingChannel = await initiateSignalingConnection(urlSignaling);
     myId = new Date().toISOString().slice(-10);
+    let myOffer;
     sendFirstMessageToServer(myId);
     let peerConnection;
-    if (!startPeerConnection()) { return; }
+    if (!sendPeerOfferToSignaling()) { return; }
 
 
 
@@ -607,7 +623,8 @@ async function fromGrok() {
         const data = JSON.parse(message.data);
 
         const dataType = data.type;
-        logWebSocketImportantInfo("signalingServer:", { dataType, data });
+        // logWebSocketImportantInfo("signalingServer:", { dataType, data });
+        logImportant(`signalingServer message: ${dataType}`, { data });
         switch (dataType) {
             case "init":
                 throw Error("init event not expected");
@@ -625,101 +642,108 @@ async function fromGrok() {
     });
 
     // Function to start the connection
-    async function startPeerConnection() {
+    async function sendPeerOfferToSignaling() {
         if (peerConnection) {
-            console.log("Peer connection already exists, skipping start");
+            logWebSocketInfo("Peer connection already exists, skipping start");
             return;
         }
-        logWebSocketInfo("start Peer Connection", { configuration });
-        logSyncLog("Start peer connection");
+        // logWebSocketInfo("start Peer Connection");
+        // _logSyncLog("Start peer connection");
 
         setupPeerConnection();
         if (!peerConnection) throw Error("peerConnection is undefined");
 
-        console.log("Creating offer...");
-        const offer = await peerConnection.createOffer();
-        console.log("Offer created:", offer);
-        await peerConnection.setLocalDescription(offer);
-        console.log("Local description set with offer");
+        logImportant("await peerConnection.createOffer()");
+        myOffer = await peerConnection.createOffer();
+        console.log("Offer created:", myOffer);
+        // await peerConnection.setLocalDescription(myOffer);
         signalingChannel.send(JSON.stringify({
             type: "offer",
-            offer: offer
+            offer: myOffer
         }));
-        console.log("Offer sent to signaling server");
+        logImportant("Offer sent to signaling server");
     }
 
 
     function setupPeerConnection() {
-        peerConnection = new RTCPeerConnection(configuration);
-        console.log("New peer connection created");
+        logImportant("new RTCPeerConnection", { iceConfiguration });
+        peerConnection = new RTCPeerConnection(iceConfiguration);
+
+        initialCreateDatachannel();
+        function initialCreateDatachannel() {
+            logWebSocketInfo("peerConnection.createDataChannel");
+            dataChannel = peerConnection.createDataChannel("textChannel");
+            setupDataChannel();
+        }
+
 
         // Standard RTCPeerConnection events
         peerConnection.addEventListener("icecandidate", (event) => {
             if (event.candidate) {
-                console.log("Sending ICE candidate:", event.candidate);
+                logImportant("Sending ICE Candidate:", event.candidate);
                 signalingChannel.send(JSON.stringify({
                     type: "candidate",
                     candidate: event.candidate
                 }));
             } else {
-                console.log("ICE candidate gathering completed");
+                logImportant("ICE Candidate gathering completed");
             }
         });
 
         peerConnection.addEventListener("icecandidateerror", (event) => {
-            // console.error("ICE candidate error:", event.errorText, "Code:", event.errorCode);
-            console.error("ICE candidate error:", event.errorText, "Code:", event.errorCode, event);
+            // console.error("ICE candidate error:", event.errorText, "Code:", event.errorCode, event);
+            const msg = `ICE candidate error code: ${event.errorCode}`;
+            logWebSocketError(msg, event.errorText, event);
         });
 
         peerConnection.addEventListener("negotiationneeded", () => {
-            console.log("Negotiation needed, starting connection...");
+            logImportant("Negotiation needed, starting connection...");
             // FIX-ME:
             // startPeerConnection(); // Trigger offer creation if needed
         });
 
         peerConnection.addEventListener("signalingstatechange", () => {
-            console.log("Signaling state changed to:", peerConnection.signalingState);
+            const msg = `Peer signalingstatechange: ${peerConnection.signalingState}`;
+            logImportant(msg);
         });
 
+
+
         peerConnection.addEventListener("iceconnectionstatechange", () => {
-            console.log("ICE connection state changed to:", peerConnection.iceConnectionState);
-            if (peerConnection.iceConnectionState === "disconnected") {
-                console.log("ICE connection disconnected, may need reconnect");
-            } else if (peerConnection.iceConnectionState === "failed") {
-                console.error("ICE connection failed");
-            }
+            const newState = peerConnection.iceConnectionState;
+            logImportant(`Peer iceconnectionstatechange: ${newState}`);
         });
 
         peerConnection.addEventListener("icegatheringstatechange", () => {
-            console.log("ICE gathering state changed to:", peerConnection.iceGatheringState);
+            const msg = `Peer icegatheringstatechange: ${peerConnection.iceGatheringState}`;
+            logImportant(msg);
         });
 
         peerConnection.addEventListener("connectionstatechange", () => {
-            console.log("Connection state changed to:", peerConnection.connectionState);
-            if (peerConnection.connectionState === "connected") {
-                console.log("Peers fully connected");
-            } else if (peerConnection.connectionState === "failed") {
-                console.error("Peer connection failed");
-            }
+            const msg = `Peer connectionstatechange: ${peerConnection.connectionState}`;
+            logImportant(msg);
         });
 
+        logWebSocketInfo("Adding listener for datachannel");
         peerConnection.addEventListener("datachannel", (event) => {
+            const msg = `Peer datachannel: ${dataChannel.label}`;
+            logImportant(msg);
             if (!isInitiator) {
                 dataChannel = event.channel;
-                console.log("Data channel received from peer:", dataChannel.label);
                 setupDataChannel();
             } else {
-                console.log("Ignoring received data channel as initiator");
+                logImportant("Ignoring received data channel as initiator");
             }
         });
 
         peerConnection.addEventListener("track", (event) => {
-            console.log("Received remote track:", event.track.kind);
+            logImportant("Peer track:", event.track.kind);
             // Not used here (no media), but logged for completeness
         });
 
         peerConnection.addEventListener("close", () => {
-            console.log("Peer connection closed");
+            const msg = "Peer event close";
+            logImportant(msg);
             peerConnection = null;
             dataChannel = null;
             // FIX-ME:
@@ -730,32 +754,31 @@ async function fromGrok() {
     // Handle incoming offer
     async function handleOffer(offer, from, isInitiatorParam) {
         isInitiator = isInitiatorParam;
-        logWebSocketInfo("handle offer", { offer, from, isInitiatorParam });
-        logSyncLog(`Handle offer, isInitiatorParam: ${isInitiatorParam}`);
+        setSyncLogInitiator(isInitiator);
+        logWebSocketInfo(`handle offer, isInitiator:${isInitiator}`, { offer, from });
+        // _logSyncLog(`Handle offer, isInitiatorParam: ${isInitiatorParam}`);
         if (isInitiator) {
-            console.log("is initiator, skipping offer");
-            dataChannel = peerConnection.createDataChannel("textChannel");
-            logSyncLog("created textChannel");
-            console.warn("created textChannel", { dataChannel });
-            setupDataChannel();
+            logWebSocketInfo("Is initiator, skipping offer");
+            // FIX-ME: has not this already been done???
+            logImportant("peerConnection.setLocalDescription(myOffer)")
+            await peerConnection.setLocalDescription(myOffer);
             return;
         }
         try {
-
+            logImportant("peerConnection.setRemoteDescription");
             await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
+            logImportant("await peerConnection.createAnswer()");
             const answer = await peerConnection.createAnswer();
-            console.log("-----------------", { answer });
-            await peerConnection.setLocalDescription(answer);
+            logImportant("peerConnection.setLocalDescription", answer);
+            await peerConnection.setLocalDescription(answer); // Will send ICE Candidate to server
 
             signalingChannel.send(JSON.stringify({
                 type: "answer",
                 answer: answer
             }));
-            logWebSocketImportantInfo("answer sent");
-            logSyncLog("Answer sent");
+            logImportant("Answer sent");
         } catch (error) {
-            // console.error("Error handling offer:", error);
-            logWebSocketError("Error handling offer:", error);
+            logWebSocketError("Error handling offer", error);
         }
     }
 
@@ -764,24 +787,21 @@ async function fromGrok() {
         console.warn({ isTheInitiator: isInitiator });
         if (isInitiator) return;
         try {
-            logWebSocketImportantInfo("handle answer await", { answer });
-            logSyncLog("Handle answer await");
+            logImportant("await peerConnection.setRemoteDescription", { answer });
             await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
-            logWebSocketImportantInfo("handle answer done");
-            logSyncLog("Handle answer done");
         } catch (error) {
-            // console.error("Error handling answer:", error);
-            logWebSocketError("Error handling answer:", error);
+            logWebSocketError("Error handling answer", error);
         }
     }
 
     // Handle ICE candidate
     async function handleCandidate(candidate) {
+        logWebSocketInfo("handle ICE Candidate message", candidate);
         try {
+            logImportant("peerConnection.addIceCanditate");
             await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
         } catch (error) {
-            // console.error("Error handling candidate:", error);
-            logWebSocketError("Error handling candidate:", error);
+            logWebSocketError("Error in handlingCandidate", error);
         }
     }
 
@@ -789,22 +809,22 @@ async function fromGrok() {
         function logSetupDataChannel(...args) {
             console.log("%c Setup Data Channel: ", "background:red; color:black;", ...args);
         }
+        logSetupDataChannel("setupDataChannel");
         const dataChannelSetup = dataChannel;
 
         dataChannelSetup.addEventListener("open", () => {
-            logSetupDataChannel("Data channel open");
+            logSetupDataChannel("open");
             signalingChannel.close();
         });
-        dataChannelSetup.addEventListener("message", (evt) => logSetupDataChannel("Message:", evt.data));
-        dataChannelSetup.addEventListener("error", (evt) => { logWebSocketError("Data channel error:", evt); });
+        dataChannelSetup.addEventListener("message", (evt) => logSetupDataChannel("message", evt.data));
+        dataChannelSetup.addEventListener("error", (evt) => { logWebSocketError("datachannel error", evt); });
 
         // signalingChannel.close();
         return dataChannelSetup;
     }
 
     function sendFirstMessageToServer(myId) {
-        logWebSocketInfo(`send FirstMessageToServer, myId:${myId}`);
-        logSyncLog(`First Message To Server, myId:${myId}`);
+        logWebSocketInfo(`sendFirstMessageToServer, myId:${myId}`);
         const firstMsg = {
             type: "client-init",
             room: "test-room",
@@ -815,35 +835,42 @@ async function fromGrok() {
 
     function getSignalingServerReadyState() {
         switch (signalingChannel.readyState) {
-            // case 0:
             case WebSocket.CONNECTING:
                 return "CONNECTING";
-            // case 1:
             case WebSocket.OPEN:
                 return "OPEN";
-            // case 2:
             case WebSocket.CLOSING:
                 return "CLOSING";
-            // case 3:
             case WebSocket.CLOSED:
                 return "CLOSED";
             default:
                 throw Error(`UNKNOWN signalingServer.readyState: ${signalingChannel.readyState}`);
         }
-        signalingChannel;
     }
 
 }
 
 function logWebSocketInfo(...args) {
-    console.log("%c WebSocket info: ", "background:blue; color:white;", ...args);
+    const arg0 = args.shift();
+    const msg = `WebSocket: ${arg0}`;
+    console.log(`%c ${msg}`, "background:blue; color:white;", ...args);
+    // _logSyncLog(msg);
 }
-function logWebSocketImportantInfo(...args) {
-    console.log("%c WebSocket info: ", "background:blue; color:white; font-size:20px;", ...args);
+function _logWebSocketImportantInfo(...args) {
+    console.warn("%c WebSocket: ", "background:blue; color:white; font-size:20px;", ...args);
+}
+function logImportant(...args) {
+    _logWebSocketImportantInfo(...args);
+    _logSyncLog(args[0]);
 }
 function logWebSocketError(...args) {
-    console.error("%c WebSocket error: ", "background:red; color:white;", ...args);
+    const arg0 = args.shift();
+    const msg = `WebSocket error: ${arg0}`;
+    console.error(`%c ${msg} `, "background:red; color:white;", ...args);
+    _logSyncLog(msg);
 }
+/*
 function logWebSocketWarn(...args) {
     console.warn("%c WebSocket warn: ", "background:darkorange; color:black;", ...args);
 }
+*/
