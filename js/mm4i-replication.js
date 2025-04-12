@@ -33,7 +33,7 @@ const divSyncLog = mkElt("div", undefined, [
     divSyncLogLog,
 ]);
 setSyncLogInactive();
-function _logSyncLog(msg) {
+function _logWSsyncLog(msg) {
     const line = mkElt("div", undefined, msg);
     divSyncLogLog.appendChild(line);
     line.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -419,6 +419,7 @@ export async function replicationDialog() {
 
 
 
+    /*
     const btnTestIdbReplicator = modMdc.mkMDCbutton("Test idb-replicator", "raised");
     btnTestIdbReplicator.title = "just a test";
     btnTestIdbReplicator.addEventListener("click", async (evt) => {
@@ -440,11 +441,15 @@ export async function replicationDialog() {
             modMdc.mkMDCsnackbar("Canceled sync", 6000);
         }
     });
+    */
 
+
+    /*
     const divIdbReplicator = mkElt("div", undefined, [
         mkElt("p", undefined, `This is a test.Nothing is done here yet.`),
         btnTestIdbReplicator,
     ]);
+    */
 
 
     // const btnGrok = mkElt("button", { class: "mdc-button mdc-button--raised" }, "Grok variant");
@@ -460,15 +465,15 @@ export async function replicationDialog() {
     btnTestSend.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         const msg = "Hi (" + Date().toString().slice(0, 24) + ")";
-        console.log("btnTestSend msg:", msg);
+        logWSdetail("btnTestSend msg:", msg);
         // debugger;
         const dataChannelState = dataChannel?.readyState;
         // const signalingChannel.
-        if (dataChannel && dataChannel.readyState === "open") {
+        if (dataChannel && dataChannelState === "open") {
             dataChannel.send(msg);
             console.log(`btnTestSend Sent message: ${msg} `);
         } else {
-            console.error(`btnTestSend Data channel not open: "${dataChannel?.readyState}"`, { isInitiator });
+            console.error(`btnTestSend Data channel not open: "${dataChannelState}"`, { isInitiator });
         }
     });
 
@@ -552,7 +557,7 @@ async function fromGrok() {
             const arg0 = args.shift();
             const msg = `Connect WebSocket ${arg0}`;
             console.log(`%c ${msg}`, "background:darkgreen; color:white;", ...args);
-            _logSyncLog(msg);
+            _logWSsyncLog(msg);
         }
         return new Promise((resolve, reject) => {
             const signalingChannel = new WebSocket(urlSignaling);
@@ -591,10 +596,10 @@ async function fromGrok() {
     async function initiateSignalingConnection(urlSignaling) {
         try {
             const signalingServerChannel = await connectSignalingWebSocket(urlSignaling);  // Wait for the connection to be either opened or error out
-            console.log("WebSocket signaling server connection established:", signalingServerChannel);
+            logWSdetail("WebSocket signaling server connection established:", signalingServerChannel);
             return signalingServerChannel;
         } catch (error) {
-            console.error("Failed to connect to signaling server:", error.message);
+            logWSError("Failed to connect to signaling server:", error.message);
         }
     }
 
@@ -609,7 +614,7 @@ async function fromGrok() {
 
 
 
-    console.log("signaling Server:", { signalingChannel });
+    logWSdetail("signaling Server:", { signalingChannel });
     if (!signalingChannel) {
         // alert("Could not connect to signaling server. Please check your connection.");
         modMdc.mkMDCdialogAlert(`Could not connect to signaling server at ${urlSignaling}.`);
@@ -624,7 +629,7 @@ async function fromGrok() {
 
         const dataType = data.type;
         // logWebSocketImportantInfo("signalingServer:", { dataType, data });
-        logImportant(`signalingServer message: ${dataType}`, { data });
+        logWSimportant(`signalingServer message: ${dataType}`, { data });
         switch (dataType) {
             case "init":
                 throw Error("init event not expected");
@@ -644,7 +649,7 @@ async function fromGrok() {
     // Function to start the connection
     async function sendPeerOfferToSignaling() {
         if (peerConnection) {
-            logWebSocketInfo("Peer connection already exists, skipping start");
+            logWSinfo("Peer connection already exists, skipping start");
             return;
         }
         // logWebSocketInfo("start Peer Connection");
@@ -653,25 +658,25 @@ async function fromGrok() {
         setupPeerConnection();
         if (!peerConnection) throw Error("peerConnection is undefined");
 
-        logImportant("await peerConnection.createOffer()");
+        logWSimportant("await peerConnection.createOffer()");
         myOffer = await peerConnection.createOffer();
-        console.log("Offer created:", myOffer);
+        logWSdetail("Offer created:", myOffer);
         // await peerConnection.setLocalDescription(myOffer);
         signalingChannel.send(JSON.stringify({
             type: "offer",
             offer: myOffer
         }));
-        logImportant("Offer sent to signaling server");
+        logWSimportant("Offer sent to signaling server");
     }
 
 
     function setupPeerConnection() {
-        logImportant("new RTCPeerConnection", { iceConfiguration });
+        logWSimportant("new RTCPeerConnection", { iceConfiguration });
         peerConnection = new RTCPeerConnection(iceConfiguration);
 
         initialCreateDatachannel();
         function initialCreateDatachannel() {
-            logWebSocketInfo("peerConnection.createDataChannel");
+            logWSinfo("peerConnection.createDataChannel");
             dataChannel = peerConnection.createDataChannel("textChannel");
             setupDataChannel();
         }
@@ -680,70 +685,70 @@ async function fromGrok() {
         // Standard RTCPeerConnection events
         peerConnection.addEventListener("icecandidate", (event) => {
             if (event.candidate) {
-                logImportant("Sending ICE Candidate:", event.candidate);
+                logWSimportant("Sending ICE Candidate:", event.candidate);
                 signalingChannel.send(JSON.stringify({
                     type: "candidate",
                     candidate: event.candidate
                 }));
             } else {
-                logImportant("ICE Candidate gathering completed");
+                logWSimportant("ICE Candidate gathering completed");
             }
         });
 
         peerConnection.addEventListener("icecandidateerror", (event) => {
             // console.error("ICE candidate error:", event.errorText, "Code:", event.errorCode, event);
             const msg = `ICE candidate error code: ${event.errorCode}`;
-            logWebSocketError(msg, event.errorText, event);
+            logWSError(msg, event.errorText, event);
         });
 
         peerConnection.addEventListener("negotiationneeded", () => {
-            logImportant("Negotiation needed, starting connection...");
+            logWSimportant("Negotiation needed, starting connection...");
             // FIX-ME:
             // startPeerConnection(); // Trigger offer creation if needed
         });
 
         peerConnection.addEventListener("signalingstatechange", () => {
             const msg = `Peer signalingstatechange: ${peerConnection.signalingState}`;
-            logImportant(msg);
+            logWSimportant(msg);
         });
 
 
 
         peerConnection.addEventListener("iceconnectionstatechange", () => {
             const newState = peerConnection.iceConnectionState;
-            logImportant(`Peer iceconnectionstatechange: ${newState}`);
+            logWSimportant(`Peer iceconnectionstatechange: ${newState}`);
         });
 
         peerConnection.addEventListener("icegatheringstatechange", () => {
             const msg = `Peer icegatheringstatechange: ${peerConnection.iceGatheringState}`;
-            logImportant(msg);
+            logWSimportant(msg);
         });
 
         peerConnection.addEventListener("connectionstatechange", () => {
             const msg = `Peer connectionstatechange: ${peerConnection.connectionState}`;
-            logImportant(msg);
+            logWSimportant(msg);
         });
 
-        logWebSocketInfo("Adding listener for datachannel");
+        logWSinfo("Adding listener for datachannel");
         peerConnection.addEventListener("datachannel", (event) => {
             const msg = `Peer datachannel: ${dataChannel.label}`;
-            logImportant(msg);
+            logWSimportant(msg);
             if (!isInitiator) {
                 dataChannel = event.channel;
                 setupDataChannel();
             } else {
-                logImportant("Ignoring received data channel as initiator");
+                logWSimportant("Ignoring received data channel as initiator");
             }
         });
 
         peerConnection.addEventListener("track", (event) => {
-            logImportant("Peer track:", event.track.kind);
+            logWSimportant("Peer track:", event.track.kind);
             // Not used here (no media), but logged for completeness
         });
 
         peerConnection.addEventListener("close", () => {
             const msg = "Peer event close";
-            logImportant(msg);
+            logWSimportant(msg);
             peerConnection = null;
             dataChannel = null;
             // FIX-ME:
@@ -755,30 +760,30 @@ async function fromGrok() {
     async function handleOffer(offer, from, isInitiatorParam) {
         isInitiator = isInitiatorParam;
         setSyncLogInitiator(isInitiator);
-        logWebSocketInfo(`handle offer, isInitiator:${isInitiator}`, { offer, from });
+        logWSinfo(`handle offer, isInitiator:${isInitiator}`, { offer, from });
         // _logSyncLog(`Handle offer, isInitiatorParam: ${isInitiatorParam}`);
         if (isInitiator) {
-            logWebSocketInfo("Is initiator, skipping offer");
+            logWSinfo("Is initiator, skipping offer");
             // FIX-ME: has not this already been done???
-            logImportant("peerConnection.setLocalDescription(myOffer)")
+            logWSimportant("peerConnection.setLocalDescription(myOffer)")
             await peerConnection.setLocalDescription(myOffer);
             return;
         }
         try {
-            logImportant("peerConnection.setRemoteDescription");
+            logWSimportant("peerConnection.setRemoteDescription");
             await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
-            logImportant("await peerConnection.createAnswer()");
+            logWSimportant("await peerConnection.createAnswer()");
             const answer = await peerConnection.createAnswer();
-            logImportant("peerConnection.setLocalDescription", answer);
+            logWSimportant("peerConnection.setLocalDescription", answer);
             await peerConnection.setLocalDescription(answer); // Will send ICE Candidate to server
 
             signalingChannel.send(JSON.stringify({
                 type: "answer",
                 answer: answer
             }));
-            logImportant("Answer sent");
+            logWSimportant("Answer sent");
         } catch (error) {
-            logWebSocketError("Error handling offer", error);
+            logWSError("Error handling offer", error);
         }
     }
 
@@ -787,21 +792,21 @@ async function fromGrok() {
         console.warn({ isTheInitiator: isInitiator });
         if (isInitiator) return;
         try {
-            logImportant("await peerConnection.setRemoteDescription", { answer });
+            logWSimportant("await peerConnection.setRemoteDescription", { answer });
             await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
         } catch (error) {
-            logWebSocketError("Error handling answer", error);
+            logWSError("Error handling answer", error);
         }
     }
 
     // Handle ICE candidate
     async function handleCandidate(candidate) {
-        logWebSocketInfo("handle ICE Candidate message", candidate);
+        logWSinfo("handle ICE Candidate message", candidate);
         try {
-            logImportant("peerConnection.addIceCanditate");
+            logWSimportant("peerConnection.addIceCanditate");
             await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
         } catch (error) {
-            logWebSocketError("Error in handlingCandidate", error);
+            logWSError("Error in handlingCandidate", error);
         }
     }
 
@@ -817,14 +822,14 @@ async function fromGrok() {
             signalingChannel.close();
         });
         dataChannelSetup.addEventListener("message", (evt) => logSetupDataChannel("message", evt.data));
-        dataChannelSetup.addEventListener("error", (evt) => { logWebSocketError("datachannel error", evt); });
+        dataChannelSetup.addEventListener("error", (evt) => { logWSError("datachannel error", evt); });
 
         // signalingChannel.close();
         return dataChannelSetup;
     }
 
     function sendFirstMessageToServer(myId) {
-        logWebSocketInfo(`sendFirstMessageToServer, myId:${myId}`);
+        logWSinfo(`sendFirstMessageToServer, myId:${myId}`);
         const firstMsg = {
             type: "client-init",
             room: "test-room",
@@ -850,24 +855,27 @@ async function fromGrok() {
 
 }
 
-function logWebSocketInfo(...args) {
+function logWSinfo(...args) {
     const arg0 = args.shift();
     const msg = `WebSocket: ${arg0}`;
     console.log(`%c ${msg}`, "background:blue; color:white;", ...args);
     // _logSyncLog(msg);
 }
-function _logWebSocketImportantInfo(...args) {
+function _logWSimportant(...args) {
     console.warn("%c WebSocket: ", "background:blue; color:white; font-size:20px;", ...args);
 }
-function logImportant(...args) {
-    _logWebSocketImportantInfo(...args);
-    _logSyncLog(args[0]);
+function logWSimportant(...args) {
+    _logWSimportant(...args);
+    _logWSsyncLog(args[0]);
 }
-function logWebSocketError(...args) {
+function logWSError(...args) {
     const arg0 = args.shift();
     const msg = `WebSocket error: ${arg0}`;
     console.error(`%c ${msg} `, "background:red; color:white;", ...args);
-    _logSyncLog(msg);
+    _logWSsyncLog(msg);
+}
+function logWSdetail(...args) {
+    console.log(...args);
 }
 /*
 function logWebSocketWarn(...args) {
