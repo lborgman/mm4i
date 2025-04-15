@@ -4,6 +4,11 @@ window["logConsoleHereIs"](`here is local-settings.js, module, ${LOCAL_SETTINGS_
 console.log(`%chere is local-settings.js ${LOCAL_SETTINGS_VER}`, "font-size:20px;");
 if (document.currentScript) { throw "local-settings.js is not loaded as module"; }
 
+if (window.location.hostname == "localhost") {
+    // debugger;
+    // console.log(`%cOur url: ${import.meta.url}`, "font-size:30px");
+}
+
 
 /**
  * class for binding localStorage to HTML input element.
@@ -60,7 +65,7 @@ export class LocalSetting {
         const tofMayUnbind = typeof mayUnbind;
         if ("boolean" !== tofMayUnbind) throw Error(`mayUnbind must be boolean, was "${mayUnbind}"`);
         if (this.#input) {
-            debugger;
+            // debugger;
             if (!mayUnbind) {
                 throw Error(`bindToInput, already has .#input and "mayUnbind"==${mayUnbind}`);
             }

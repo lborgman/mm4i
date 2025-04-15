@@ -18,12 +18,16 @@ const keyOpenRelayCred = "mm4i-openrelay-key";
 
 const modTools = await importFc4i("toolsJs");
 const modMdc = await importFc4i("util-mdc");
+
+// @ts-ignore
+/** @type { import('../js/mod/local-settings.js') } */
 const modLocalSettings = await importFc4i("local-settings");
 
+/**
+ * @extends modLocalSettings.LocalSetting
+ */
 class SettingsRepl extends modLocalSettings.LocalSetting {
-    constructor(key, defaultValue) {
-        super("mm4i-repl-", key, defaultValue);
-    }
+    constructor(key, defaultValue) { super("mm4i-repl-", key, defaultValue); }
 }
 const settingUseOpenRelay = new SettingsRepl("use-open-relay", false);
 /*
@@ -764,15 +768,18 @@ async function fromGrok() {
         };
 
         // chkOpenRelay
+        /*
         function useOpenRelay() {
             const checked = localStorage.getItem(keyUseOpenRelay);
             return checked;
         }
+        */
         function openRelayCred() {
             return localStorage.getItem(keyOpenRelayCred);
         }
 
-        if (useOpenRelay()) {
+        // if (useOpenRelay()) {
+        if (settingUseOpenRelay.value) {
             // debugger;
             const CREDENTIALS = openRelayCred();
             const APPNAME = "mm4i"
