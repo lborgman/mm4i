@@ -12,12 +12,39 @@ const keyRoomKey = "mm4i-webrct-room-key";
 const secretKeyMinLength = 8;
 const keySecretKey = "mm4i-webrct-secret-key";
 const keyOpenRelayCred = "mm4i-openrelay-key";
-const keyUseOpenRelay = "mm4i-openrelay-checked";
+// const keyUseOpenRelay = "mm4i-openrelay-checked";
 
 
 
 const modTools = await importFc4i("toolsJs");
 const modMdc = await importFc4i("util-mdc");
+const modLocalSettings = await importFc4i("local-settings");
+
+class SettingsRepl extends modLocalSettings.LocalSetting {
+    constructor(key, defaultValue) {
+        super("mm4i-repl-", key, defaultValue);
+    }
+}
+const settingUseOpenRelay = new SettingsRepl("use-open-relay", false);
+/*
+function getOpenRelayChecked() {
+    const checked = localStorage.getItem(keyUseOpenRelay);
+    console.log({ checked })
+    chkOpenRelay.checked = checked != null;
+    return checked;
+}
+*/
+/*
+function saveOpenRelayChecked() {
+    const checked = chkOpenRelay.checked;
+    if (checked) {
+        localStorage.setItem(keyUseOpenRelay, "checked");
+    } else {
+        localStorage.removeItem(keyUseOpenRelay);
+    }
+}
+*/
+
 
 
 ////////////////
@@ -264,21 +291,6 @@ export async function replicationDialog() {
     }
     // function clearOpenRelayCredential() { localStorage.removeItem(keyOpenRelayKey); }
 
-    function getOpenRelayChecked() {
-        const checked = localStorage.getItem(keyUseOpenRelay);
-        console.log({ checked })
-        chkOpenRelay.checked = checked != null;
-        return checked;
-    }
-    function saveOpenRelayChecked() {
-        const checked = chkOpenRelay.checked;
-        if (checked) {
-            localStorage.setItem(keyUseOpenRelay, "checked");
-        } else {
-            localStorage.removeItem(keyUseOpenRelay);
-        }
-    }
-
 
     function getAndShowStrength(passkey) {
         const eltProgress = prgStrength;
@@ -394,6 +406,8 @@ export async function replicationDialog() {
     color: red;
 `;
     const chkOpenRelay = mkElt("input", { type: "checkbox" });
+    console.log({ settingUseOpenRelay });
+    settingUseOpenRelay.bindToInput(chkOpenRelay, true);
     const lblChkOpenRelay = mkElt("label", undefined, [
         "Use Open Relay STUN: ",
         chkOpenRelay
@@ -402,6 +416,7 @@ export async function replicationDialog() {
         display: flex;
         gap: 10px;
     `;
+    /*
     chkOpenRelay.addEventListener("change", _evt => {
         console.log("chkOpenrelay, change", chkOpenRelay.checked);
     });
@@ -409,8 +424,9 @@ export async function replicationDialog() {
         console.log("chkOpenrelay, input", chkOpenRelay.checked);
         saveOpenRelayChecked();
     });
+    */
 
-    getOpenRelayChecked();
+    // getOpenRelayChecked();
     getOpenRelayCredential();
     checkCanUseOpenRelay();
 
