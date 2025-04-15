@@ -36,13 +36,55 @@ export class LocalSetting {
     constructor(prefix, key, defaultValue) {
         this.#key = prefix + key;
         this.#defaultValue = defaultValue;
+
         const tofDef = typeof defaultValue;
         const arrDef = ["string", "number", "boolean"];
-        // console.log(arrDef.toString());
         if (!arrDef.includes(tofDef)) throw Error(`LocalSetting value type must be: ${arrDef}`);
         this.#tofDef = tofDef;
+        // #addAndSetupInput() {}
+        // this.#input = (() => {
+        (() => {
+            let itype;
+            switch (tofDef) {
+                case "string": itype = "text"; break;
+                case "number": itype = "number"; break;
+                case "boolean": itype = "checkbox"; break;
+                default: throw Error("What did I do???");
+            }
+            const inp = document.createElement("input");
+            this.#input = inp;
+            inp.type = itype;
+            // debugger;
+            const handleInput = (evt) => {
+                let val;
+                switch (inp.type) {
+                    case "checkbox":
+                        val = inp.checked;
+                        break;
+                    case "number":
+                        val = inp.value.trim();
+                        val = +val;
+                        break;
+                    case "range":
+                        val = +inp.value;
+                        break;
+                    default:
+                        console.log(inp.type);
+                        val = inp.value;
+                }
+                console.log({ inp, evt, val });
+                this.#set_stored_itemValue(val);
+            }
+            inp.addEventListener("input", evt => {
+                handleInput(evt);
+            });
+
+        })();
+        console.log("this.#input", this.#input);
+        
         this.#cachedValue = defaultValue;
         this.#get_stored_itemValue();
+        this.#setInputValue();
         // FIX-ME: I have no idea how .ourSettings was supposed to be used???
         // LocalSetting.ourSettings = {};
         // LocalSetting.ourSettings[this.#key] = this;
@@ -54,6 +96,7 @@ export class LocalSetting {
         }
         this.#set_stored_itemValue(val);
     }
+    inputElement() { return this.#input; }
     /**
      * Bind the HTML element to this LocalSetting.
      * The value stored and the value of inp will be synched.
@@ -61,7 +104,7 @@ export class LocalSetting {
      * @param {HTMLInputElement} inp 
      * @param {boolean} mayUnbind
      */
-    bindToInput(inp, mayUnbind) {
+    OLDbindToInput(inp, mayUnbind) {
         const tofMayUnbind = typeof mayUnbind;
         if ("boolean" !== tofMayUnbind) throw Error(`mayUnbind must be boolean, was "${mayUnbind}"`);
         if (this.#input) {

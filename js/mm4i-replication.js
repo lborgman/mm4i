@@ -409,9 +409,10 @@ export async function replicationDialog() {
     background-color: black;
     color: red;
 `;
-    const chkOpenRelay = mkElt("input", { type: "checkbox" });
-    console.log({ settingUseOpenRelay });
-    settingUseOpenRelay.bindToInput(chkOpenRelay, true);
+    // const chkOpenRelay = mkElt("input", { type: "checkbox" });
+    // console.log({ settingUseOpenRelay });
+    // settingUseOpenRelay.bindToInput(chkOpenRelay, true);
+    const chkOpenRelay = settingUseOpenRelay.inputElement();
     const lblChkOpenRelay = mkElt("label", undefined, [
         "Use Open Relay STUN: ",
         chkOpenRelay
