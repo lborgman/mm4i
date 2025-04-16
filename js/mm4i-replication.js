@@ -478,6 +478,7 @@ export async function replicationDialog() {
     const divReplicate = mkElt("p", undefined, [
         btnReplicate,
         // btnStopReplicate,
+        // divId,
     ]);
     divReplicate.style = `
         display: flex;
@@ -556,6 +557,12 @@ export async function replicationDialog() {
         `;
 
 
+    const spanMyId = mkElt("span", undefined, "for myId");
+    spanMyId.id = "span-my-id";
+    const spanNumId = mkElt("span", undefined, "for numId");
+    spanNumId.id = "span-num-id";
+    const divIds = mkElt("div", undefined, [spanMyId, " / ", spanNumId,]);
+    divIds.id = "div-ids";
 
     const body = mkElt("div", undefined, [
         notReady,
@@ -564,6 +571,7 @@ export async function replicationDialog() {
         detKeys,
         // mkElt("hr"),
         divGrok,
+        divIds,
         divSyncLog,
     ]);
     body.id = "sync-dialog-body";
@@ -668,6 +676,7 @@ async function fromGrok() {
     setSyncLogState("Initialize syncing", "yellowgreen");
     signalingChannel = await initiateSignalingConnection(urlSignaling);
     myId = new Date().toISOString().slice(-10);
+    document.getElementById("span-my-id").textContent = myId;
     let myOffer;
     sendFirstMessageToServer(myId);
     let peerConnection;
@@ -705,6 +714,15 @@ async function fromGrok() {
             case "candidate":
                 await handleCandidate(data.candidate, data);
                 break;
+            case "first-reply":
+                const clientNum = data.clientNum;
+                const spanNumId = document.getElementById("span-num-id");
+                if (!spanNumId) throw Error(`Could not find span-num-id`);
+                spanNumId.textContent = `clientNum:${clientNum}`;
+                break;
+            default:
+                console.error(`server message, unrecognized type: "${dataType}"`);
+                debugger;
         }
     });
 
