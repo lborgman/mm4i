@@ -232,7 +232,8 @@ export async function replicationDialog() {
         if (!answer) return;
         // const newKey = generateRobustRandomAsciiString(secretKeyMinLength);
         const newKey = generateRobustRandomAsciiString(16);
-        inpSecret.value = newKey;
+        // inpSecret.value = newKey; // This would lead to inpSecret out of sync with settingSecret
+        settingSecret.value = newKey;
         getAndShowStrength(newKey);
         // saveSecretKey();
         modMdc.mkMDCsnackbar("Updated secret key", 6000);
