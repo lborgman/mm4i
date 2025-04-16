@@ -1,5 +1,5 @@
 // @ts-check
-const LOCAL_SETTINGS_VER = "0.1.01";
+const LOCAL_SETTINGS_VER = "0.2.00";
 window["logConsoleHereIs"](`here is local-settings.js, module, ${LOCAL_SETTINGS_VER}`);
 console.log(`%chere is local-settings.js ${LOCAL_SETTINGS_VER}`, "font-size:20px;");
 if (document.currentScript) { throw "local-settings.js is not loaded as module"; }
