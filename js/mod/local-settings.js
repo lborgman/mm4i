@@ -78,13 +78,18 @@ export class LocalSetting {
             inp.addEventListener("input", evt => {
                 handleInput(evt);
             });
+            /*
+             "change" is fired only after user modifies the value AND leave the input field.
+             The changed value should then already have been handled by the "input" event.
+            */
+            /*
             inp.addEventListener("change", evt => {
-                // handleInput(evt);
-                console.log(`change event for ${key}`);
+                handleInput(evt);
             });
+            */
 
         })();
-        console.log("this.#input", this.#input);
+        // console.log("this.#input", this.#input);
 
         this.#cachedValue = defaultValue;
         this.#get_stored_itemValue();
@@ -103,14 +108,23 @@ export class LocalSetting {
         }
         this.#set_stored_itemValue(val);
     }
-    getInputElement() { return this.#input; }
     /**
+     * Use this when inserting the <input> element in the DOM.
+     * 
+     * Do not assign a value with inp.value = ...
+     * This will make inp.value out of sync with the instance object.
+     * 
+     * @returns {HTMLInputElement}
+     */
+    getInputElement() { return this.#input; }
+    /*
      * Bind the HTML element to this LocalSetting.
      * The value stored and the value of inp will be synched.
      * 
-     * @param {HTMLInputElement} inp 
-     * @param {boolean} mayUnbind
+     * param {HTMLInputElement} inp 
+     * param {boolean} mayUnbind
      */
+    /*
     OLDbindToInput(inp, mayUnbind) {
         const tofMayUnbind = typeof mayUnbind;
         if ("boolean" !== tofMayUnbind) throw Error(`mayUnbind must be boolean, was "${mayUnbind}"`);
@@ -150,6 +164,7 @@ export class LocalSetting {
             handleInput(evt);
         });
     }
+    */
     defaultValue() { return this.#defaultValue; }
     valueType() { return this.#tofDef; }
     reset() {
@@ -198,6 +213,7 @@ export class LocalSetting {
                 throw Error(`Can't handle default value type: ${defValType}`);
         }
     }
+    /** Assign cached value to input element. */
     #setInputValue() {
         switch (this.#input.type) {
             case "checkbox":

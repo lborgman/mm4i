@@ -1,7 +1,7 @@
 // @ts-check
 const MM4I_REPL_VER = "0.0.1";
 window["logConsoleHereIs"](`here is mm4i-replication.js, module, ${MM4I_REPL_VER}`);
-console.log(`%chere is mm4i-replication.js`, "font-size:30px;");
+console.log(`%chere is mm4i-replication.js ${MM4I_REPL_VER}`, "font-size:20px;");
 if (document.currentScript) { throw "mm4i-replication.js is not loaded as module"; }
 
 const mkElt = window["mkElt"];
@@ -407,7 +407,7 @@ export async function replicationDialog() {
         // const keyLen = inpOpenRelayCredential.value.trim().length;
         const keyLen = settingOpenRelayCred.valueS.trim().length;
         console.log({ keyLen });
-        lblChkOpenRelay.inert = keyLen < 10;
+        lblChkOpenRelay.inert = keyLen < 36;
     }
 
     const divOpenRelay = mkElt("p", undefined, [
