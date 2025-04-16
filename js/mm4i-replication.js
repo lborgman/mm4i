@@ -8,10 +8,10 @@ const mkElt = window["mkElt"];
 // const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 const importFc4i = window["importFc4i"];
 
-const keyRoomKey = "mm4i-webrct-room-key";
+// const keyRoomKey = "mm4i-webrct-room-key";
 const secretKeyMinLength = 8;
-const keySecretKey = "mm4i-webrct-secret-key";
-const keyOpenRelayCred = "mm4i-openrelay-key";
+// const keySecretKey = "mm4i-webrct-secret-key";
+// const keyOpenRelayCred = "mm4i-openrelay-key";
 // const keyUseOpenRelay = "mm4i-openrelay-checked";
 
 
@@ -23,13 +23,16 @@ const modMdc = await importFc4i("util-mdc");
 /** @type { import('../js/mod/local-settings.js') } */
 const modLocalSettings = await importFc4i("local-settings");
 
-/**
- * @extends modLocalSettings.LocalSetting
- */
+/** @extends modLocalSettings.LocalSetting */
 class SettingsRepl extends modLocalSettings.LocalSetting {
     constructor(key, defaultValue) { super("mm4i-repl-", key, defaultValue); }
 }
 const settingUseOpenRelay = new SettingsRepl("use-open-relay", false);
+const settingOpenRelayCred = new SettingsRepl("open-relay-cred", "");
+const settingRoom = new SettingsRepl("room", "");
+const settingSecret = new SettingsRepl("secret", "");
+
+
 /*
 function getOpenRelayChecked() {
     const checked = localStorage.getItem(keyUseOpenRelay);
@@ -153,7 +156,8 @@ export async function replicationDialog() {
 
 
 
-    const inpRoom = mkElt("input", { type: "text" });
+    // const inpRoom = mkElt("input", { type: "text" });
+    const inpRoom = settingRoom.getInputElement();
     inpRoom.style = `
     margin-left: 10px;
     border: 1px solid grey;
@@ -161,8 +165,8 @@ export async function replicationDialog() {
     padding: 4px;
 `;
     inpRoom.addEventListener("input", (evt) => {
-        evt.stopPropagation();
-        saveRoomKey();
+        // evt.stopPropagation();
+        // saveRoomKey();
         checkSyncKeys();
     });
     const lblRoom = mkElt("label", undefined, ["Room: ", inpRoom]);
@@ -181,7 +185,8 @@ export async function replicationDialog() {
     ]);
 
 
-    const inpSecret = mkElt("input", { type: "text" });
+    // const inpSecret = mkElt("input", { type: "text" });
+    const inpSecret = settingSecret.getInputElement();
     inpSecret.style = `
     min-width: 20px;
     margin-left: 10px;
@@ -192,23 +197,18 @@ export async function replicationDialog() {
     color: red;
 `;
 
-    inpSecret.addEventListener("input", (evt) => {
-        evt.stopPropagation();
-        checkSyncKeys();
-    });
+    // inpSecret.addEventListener("input", (evt) => { // evt.stopPropagation(); checkSyncKeys(); });
     function checkSyncKeys() {
         let valid = true;
-        const passkey = inpSecret.value.trim();
+        // const passkey = inpSecret.value.trim();
+        const passkey = settingSecret.valueS.trim();
         const { strength } = getPasskeyStrength(passkey);
         if (strength < 3) {
-            // document.body.classList.remove("sync-keys-valid");
-            // return;
             valid = false;
         }
-        const room = inpRoom.value.trim();
+        // const room = inpRoom.value.trim();
+        const room = settingRoom.valueS.trim();
         if (room.length == 0) {
-            // document.body.classList.remove("sync-keys-valid");
-            // return;
             valid = false;
         }
         if (valid) {
@@ -234,7 +234,7 @@ export async function replicationDialog() {
         const newKey = generateRobustRandomAsciiString(16);
         inpSecret.value = newKey;
         getAndShowStrength(newKey);
-        saveSecretKey();
+        // saveSecretKey();
         modMdc.mkMDCsnackbar("Updated secret key", 6000);
     });
     // const lblSecret = mkElt("label", undefined, ["Secret: ", inpSecret, btnGenerate]);
@@ -248,52 +248,19 @@ export async function replicationDialog() {
     font-style: italic;
 `;
     inpSecret.addEventListener("input", (evt) => {
-        evt.stopPropagation();
+        // evt.stopPropagation();
         const passkey = inpSecret.value.trim();
         const strength = getAndShowStrength(passkey);
         if (strength < 3) {
-            clearSecretKey();
-            return;
+            // clearSecretKey();
+            // return;
         }
         // debugger; // eslint-disable-line no-debugger
-        saveSecretKey();
+        // saveSecretKey();
         checkSyncKeys();
     });
 
-    function saveRoomKey() {
-        const room = inpRoom.value.trim();
-        localStorage.setItem(keyRoomKey, room);
-    }
-    function getRoomKey() {
-        const room = localStorage.getItem(keyRoomKey);
-        if (room == null) return;
-        inpRoom.value = room;
-    }
-    // function clearRoomKey() { localStorage.removeItem(keyRoomKey); }
 
-    function saveSecretKey() {
-        const passkey = inpSecret.value.trim();
-        localStorage.setItem(keySecretKey, passkey);
-    }
-    function getSecretKey() {
-        const passkey = localStorage.getItem(keySecretKey);
-        if (passkey == null) return;
-        inpSecret.value = passkey;
-    }
-    function clearSecretKey() {
-        localStorage.removeItem(keySecretKey);
-    }
-
-    function saveOpenRelayCredential() {
-        const passkey = inpOpenRelayCredential.value.trim();
-        localStorage.setItem(keyOpenRelayCred, passkey);
-    }
-    function getOpenRelayCredential() {
-        const passkey = localStorage.getItem(keyOpenRelayCred);
-        if (passkey == null) return;
-        inpOpenRelayCredential.value = passkey;
-    }
-    // function clearOpenRelayCredential() { localStorage.removeItem(keyOpenRelayKey); }
 
 
     function getAndShowStrength(passkey) {
@@ -392,12 +359,13 @@ export async function replicationDialog() {
 
 
     // inpSecret
-    const inpOpenRelayCredential = mkElt("input", { type: "text" });
+    // const inpOpenRelayCredential = mkElt("input", { type: "text" });
+    const inpOpenRelayCredential = settingOpenRelayCred.getInputElement();
     inpOpenRelayCredential.addEventListener("change", _evt => {
         checkCanUseOpenRelay();
     });
     inpOpenRelayCredential.addEventListener("input", _evt => {
-        saveOpenRelayCredential();
+        // saveOpenRelayCredential();
         checkCanUseOpenRelay();
     });
     inpOpenRelayCredential.style = `
@@ -412,7 +380,7 @@ export async function replicationDialog() {
     // const chkOpenRelay = mkElt("input", { type: "checkbox" });
     // console.log({ settingUseOpenRelay });
     // settingUseOpenRelay.bindToInput(chkOpenRelay, true);
-    const chkOpenRelay = settingUseOpenRelay.inputElement();
+    const chkOpenRelay = settingUseOpenRelay.getInputElement();
     const lblChkOpenRelay = mkElt("label", undefined, [
         "Use Open Relay STUN: ",
         chkOpenRelay
@@ -432,11 +400,12 @@ export async function replicationDialog() {
     */
 
     // getOpenRelayChecked();
-    getOpenRelayCredential();
+    // getOpenRelayCredential();
     checkCanUseOpenRelay();
 
     function checkCanUseOpenRelay() {
-        const keyLen = inpOpenRelayCredential.value.trim().length;
+        // const keyLen = inpOpenRelayCredential.value.trim().length;
+        const keyLen = settingOpenRelayCred.valueS.trim().length;
         console.log({ keyLen });
         lblChkOpenRelay.inert = keyLen < 10;
     }
@@ -598,8 +567,8 @@ export async function replicationDialog() {
     ]);
     body.id = "sync-dialog-body";
 
-    getSecretKey();
-    getRoomKey();
+    // getSecretKey();
+    // getRoomKey();
     checkSyncKeys();
 
     await modMdc.mkMDCdialogAlert(body);
@@ -776,7 +745,8 @@ async function fromGrok() {
         }
         */
         function openRelayCred() {
-            return localStorage.getItem(keyOpenRelayCred);
+            // return localStorage.getItem(keyOpenRelayCred);
+            return settingOpenRelayCred.valueS;
         }
 
         // if (useOpenRelay()) {

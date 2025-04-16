@@ -78,10 +78,14 @@ export class LocalSetting {
             inp.addEventListener("input", evt => {
                 handleInput(evt);
             });
+            inp.addEventListener("change", evt => {
+                // handleInput(evt);
+                console.log(`change event for ${key}`);
+            });
 
         })();
         console.log("this.#input", this.#input);
-        
+
         this.#cachedValue = defaultValue;
         this.#get_stored_itemValue();
         this.#setInputValue();
@@ -90,13 +94,16 @@ export class LocalSetting {
         // LocalSetting.ourSettings[this.#key] = this;
     }
     get value() { return this.#getCachedValue(); }
+    get valueS() { return /** @type {string} */ (this.#getCachedValue()); }
+    get valueB() { return /** @type {boolean} */ (this.#getCachedValue()); }
+    get valueN() { return /** @type {number} */ (this.#getCachedValue()); }
     set value(val) {
         if (this.#input) {
             throw Error(`set value(val) can not be used when #input is set (${this.#key})`);
         }
         this.#set_stored_itemValue(val);
     }
-    inputElement() { return this.#input; }
+    getInputElement() { return this.#input; }
     /**
      * Bind the HTML element to this LocalSetting.
      * The value stored and the value of inp will be synched.
@@ -194,9 +201,11 @@ export class LocalSetting {
     #setInputValue() {
         switch (this.#input.type) {
             case "checkbox":
+                if (typeof this.#cachedValue !== "boolean") throw Error("expected boolean");
                 this.#input.checked = this.#cachedValue;
+                break;
             default:
-                // console.log(inp.type);
+                if (typeof this.#cachedValue !== "string") throw Error("expected string");
                 this.#input.value = this.#cachedValue;
         }
     }
