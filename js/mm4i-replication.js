@@ -563,6 +563,12 @@ export async function replicationDialog() {
     spanNumId.id = "span-num-id";
     const divIds = mkElt("div", undefined, [spanMyId, " / ", spanNumId,]);
     divIds.id = "div-ids";
+    divIds.style = `
+      background: lightgray;
+      padding: 0 2px;
+      color: blueviolet;
+      margin-bottom: 2px;
+    `;
 
     const body = mkElt("div", undefined, [
         notReady,
@@ -716,13 +722,17 @@ async function fromGrok() {
                 break;
             case "first-reply":
                 const clientNum = data.clientNum;
+                const myIdS = data.myId;
+                if (myIdS != myId) throw Error(`myIds:${myIdS} != myId:${myId}`);
                 const spanNumId = document.getElementById("span-num-id");
                 if (!spanNumId) throw Error(`Could not find span-num-id`);
                 spanNumId.textContent = `clientNum:${clientNum}`;
                 break;
             default:
-                console.error(`server message, unrecognized type: "${dataType}"`);
+                const msg = `server message, unrecognized type: "${dataType}"`;
+                console.error(msg);
                 debugger;
+                throw Error(msg);
         }
     });
 
