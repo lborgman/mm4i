@@ -359,17 +359,15 @@ export async function replicationDialog() {
 
 
 
-    // inpSecret
-    // const inpOpenRelayCredential = mkElt("input", { type: "text" });
-    const inpOpenRelayCredential = settingOpenRelayCred.getInputElement();
-    inpOpenRelayCredential.addEventListener("change", _evt => {
+    const _inpOpenRelayCredential = settingOpenRelayCred.getInputElement();
+    _inpOpenRelayCredential.addEventListener("change", _evt => {
         checkCanUseOpenRelay();
     });
-    inpOpenRelayCredential.addEventListener("input", _evt => {
+    _inpOpenRelayCredential.addEventListener("input", _evt => {
         // saveOpenRelayCredential();
         checkCanUseOpenRelay();
     });
-    inpOpenRelayCredential.style = `
+    _inpOpenRelayCredential.style = `
     min-width: 20px;
     NOmargin-left: 10px;
     border: 1px solid red;
@@ -382,11 +380,11 @@ export async function replicationDialog() {
     // console.log({ settingUseOpenRelay });
     // settingUseOpenRelay.bindToInput(chkOpenRelay, true);
     const chkOpenRelay = settingUseOpenRelay.getInputElement();
-    const lblChkOpenRelay = mkElt("label", undefined, [
+    const _lblChkOpenRelay = mkElt("label", undefined, [
         "Use Open Relay STUN: ",
         chkOpenRelay
     ]);
-    lblChkOpenRelay.style = `
+    _lblChkOpenRelay.style = `
         display: flex;
         gap: 10px;
     `;
@@ -408,14 +406,14 @@ export async function replicationDialog() {
         // const keyLen = inpOpenRelayCredential.value.trim().length;
         const keyLen = settingOpenRelayCred.valueS.trim().length;
         console.log({ keyLen });
-        lblChkOpenRelay.inert = keyLen < 36;
+        _lblChkOpenRelay.inert = keyLen < 36;
     }
 
-    const divOpenRelay = mkElt("p", undefined, [
+    const _divOpenRelay = mkElt("p", undefined, [
         mkElt("a", { href: "https://dashboard.metered.ca/" }, "Open Relay"),
         " credential:",
-        inpOpenRelayCredential,
-        lblChkOpenRelay,
+        _inpOpenRelayCredential,
+        _lblChkOpenRelay,
     ]);
 
 
@@ -430,10 +428,9 @@ export async function replicationDialog() {
     sumKeys.id = "sum-sync-keys";
     sumKeys.style.minHeight = "unset";
     const bodyKeys = mkElt("div", undefined, [
-        // mkElt("p", undefined, mkElt("b", undefined, `Make these keys the same and unique on synched devices.`)),
         divRoom,
         divSecret,
-        divOpenRelay,
+        // _divOpenRelay, // Google STUN servers seems to work just as well
     ]);
     // const divKeysCollapsible = modTools.mkHeightExpander(bodyKeys);
     const detKeys = mkElt("details", { class: "mdc-card" }, [
@@ -592,6 +589,7 @@ export async function replicationDialog() {
 
 let signalingChannel;
 let myId;
+let clientNum;
 let isInitiator = false;
 async function fromGrok() {
     // https://www.videosdk.live/developer-hub/webrtc/webrtc-signaling-server
@@ -712,7 +710,8 @@ async function fromGrok() {
                 throw Error("init event not expected");
                 break;
             case "offer":
-                await handleOffer(data.offer, data.from, data.isInitiator);
+                // await handleOffer(data.offer, data.from, data.isInitiator);
+                await handleOffer(data);
                 break;
             case "answer":
                 await handleAnswer(data.answer);
@@ -721,7 +720,8 @@ async function fromGrok() {
                 await handleCandidate(data.candidate, data);
                 break;
             case "first-reply":
-                const clientNum = data.clientNum;
+                // const clientNum = data.clientNum;
+                clientNum = data.clientNum;
                 const myIdS = data.myId;
                 if (myIdS != myId) throw Error(`myIds:${myIdS} != myId:${myId}`);
                 const spanNumId = document.getElementById("span-num-id");
@@ -754,7 +754,9 @@ async function fromGrok() {
         // await peerConnection.setLocalDescription(myOffer);
         signalingChannel.send(JSON.stringify({
             type: "offer",
-            offer: myOffer
+            offer: myOffer,
+            myId,
+            clientNum
         }));
         logSignaling("send: Offer");
     }
@@ -914,15 +916,31 @@ async function fromGrok() {
     }
 
     // Handle incoming offer
-    async function handleOffer(offer, from, isInitiatorParam) {
-        isInitiator = isInitiatorParam;
+    // async function handleOffer(offer, from, isInitiatorParam) {
+    async function handleOffer(offerData) {
+        // debugger;
+        window["pc"] = peerConnection;
+        const isInitiator = offerData.isInitiator;
+        const from = offerData.from;
+        const offer = offerData.offer;
+
+
         setSyncLogInitiator(isInitiator);
-        logWSinfo(`handle offer, isInitiator:${isInitiator}`, { offer, from });
+        const me = `${myId} / clientNum:${clientNum}`;
+        logWSimportant(`handle offer, isInitiator:${isInitiator}`, { offer, from, me });
+        const re = /^(.*?) \/ (.*?)$/;
+        const mFrom = re.exec(from);
+        const fromMyId = mFrom[1];
+        const fromClient = mFrom[2];
+        const fromClientNum = parseInt(fromClient.slice(10));
+        if (fromMyId == myId) debugger;
+        if (fromClientNum == clientNum) debugger;
+        // debugger;
         // _logSyncLog(`Handle offer, isInitiatorParam: ${isInitiatorParam}`);
         if (isInitiator) {
             logWSdetail("Is initiator, skipping offer");
             // FIX-ME: has not this already been done???
-            logWSimportant("peerConnection.setLocalDescription(myOffer)")
+            logWSimportant("peerConnection.setLocalDescription(myOffer)", myOffer);
             await peerConnection.setLocalDescription(myOffer);
             return;
         }
