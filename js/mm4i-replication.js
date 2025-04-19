@@ -61,17 +61,42 @@ divSyncLogState.style = `
         font-size: 1.2rem;
         font-weight: 500; 
     `;
+const btnSyncLogLog = mkElt("button", undefined, "Details");
+btnSyncLogLog.style = `
+    border: none;
+    background: none;
+    text-decoration: underline;
+`;
+btnSyncLogLog.title= "Show/hide details";
+
+const divSyncLogHeader = mkElt("div", undefined, [
+    mkElt("div", { style: "display:flex; gap:10px;" }, ["Sync:", divSyncLogState]),
+    btnSyncLogLog,
+]);
+divSyncLogHeader.style = `
+    display: flex;
+    justify-content: space-between;
+`;
+
 const divSyncLogLog = mkElt("div");
 divSyncLogLog.style = `
         color: gray;
         max-height: 100px;
         overflow-y: auto;
     `;
+
 const divSyncLog = mkElt("div", undefined, [
-    divSyncLogState,
+    divSyncLogHeader,
     divSyncLogLog,
 ]);
+
+btnSyncLogLog.addEventListener("click", evt => {
+    evt.stopPropagation();
+    divSyncLogLog.style.display = "none";
+});
 setSyncLogInactive();
+
+
 function _logWSsyncLog(msg) {
     const line = mkElt("div", undefined, msg);
     divSyncLogLog.appendChild(line);
@@ -80,16 +105,16 @@ function _logWSsyncLog(msg) {
 function setSyncLogState(state, color) {
     divSyncLogState.textContent = state;
     divSyncLogState.style.color = color;
+    divSyncLogHeader.inert = false;
 }
 function setSyncLogInitiator(isInitiator) {
     divSyncLogState.style.textDecoration = isInitiator ? "overline" : "underline";
 }
 
 function setSyncLogInactive() {
-    // divSyncLogState.textContent = "Not syncing";
-    // divSyncLogState.style.color = "gray";
-    setSyncLogState("Not syncing", "gray");
+    setSyncLogState("Not started", "gray");
     divSyncLogLog.textContent = "";
+    divSyncLogHeader.inert = true;
 }
 /////////////////
 
@@ -759,6 +784,7 @@ async function fromGrok() {
             clientNum
         }));
         logSignaling("send: Offer");
+        setSyncLogState("Wating for peer", "red");
     }
 
 
@@ -831,16 +857,6 @@ async function fromGrok() {
             const errorCode = event.errorCode;
             const url = event.url;
             const msg = `Peer icecandidateerror code: ${errorCode}, ${url}`;
-            /*
-            switch (errorCode) {
-                case 701:
-                    // logWSinfo(msg);
-                    logWSdetail(msg);
-                    break;
-                default:
-                    logWSError(msg, event.errorText, event);
-            }
-            */
             // https://www.webrtc-developers.com/oups-i-got-an-ice-error-701/
             // https://webrtc.github.io/samples/src/content/peerconnection/trickle-ice/
             if (errorCode >= 300 && errorCode <= 699) {
@@ -850,7 +866,7 @@ async function fromGrok() {
             } else if (errorCode >= 700 && errorCode <= 799) {
                 // Here, the application perhaps didn't reach the server ?
                 // Do something else...
-                console.log("%c> 700", "color:red;background:black", msg);
+                // console.log("%c> 700", "color:red;background:black", msg);
             }
         });
 
@@ -991,8 +1007,10 @@ async function fromGrok() {
         const dataChannelSetup = dataChannel;
 
         dataChannelSetup.addEventListener("open", () => {
+            // FIX-ME: Why do we get this 2 times???
             logDataChannel("open");
             signalingChannel.close();
+            setSyncLogState("Connected to peer", "green");
         });
         dataChannelSetup.addEventListener("message", (evt) => logDataChannel("message", evt.data));
         dataChannelSetup.addEventListener("error", (evt) => { logWSError("datachannel error", evt); });
@@ -1051,13 +1069,8 @@ function logWSError(...args) {
     _logWSsyncLog(msg);
 }
 function logWSdetail(...args) {
-    console.log(...args);
+    // console.log(...args);
 }
-/*
-function logWebSocketWarn(...args) {
-    console.warn("%c WebSocket warn: ", "background:darkorange; color:black;", ...args);
-}
-*/
 function logSignaling(...args) {
     const arg0 = args.shift();
     const msg = `Signaling server - ${arg0}`;
