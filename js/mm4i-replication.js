@@ -549,7 +549,7 @@ export async function replicationDialog() {
     btnStartReplication.title = "Sync your mindmaps between your devices";
     btnStartReplication.addEventListener("click", async (evt) => {
         evt.stopPropagation();
-        fromGrok();
+        openChannelToPeer(doSync);
     });
 
     const btnTestSend = mkElt("button", undefined, "send");
@@ -616,7 +616,7 @@ let signalingChannel;
 let myId;
 let clientNum;
 let isInitiator = false;
-async function fromGrok() {
+async function openChannelToPeer(funSync) {
     // https://www.videosdk.live/developer-hub/webrtc/webrtc-signaling-server
     // https://webrtc.org/getting-started/peer-connections
     // Configuration for STUN servers (works in browser)
@@ -1003,6 +1003,7 @@ async function fromGrok() {
     }
 
     function setupDataChannel() {
+        console.warn(">>>>>>>>>>>> setupDataChannel")
         logDataChannel("setupDataChannel");
         const dataChannelSetup = dataChannel;
 
@@ -1011,6 +1012,7 @@ async function fromGrok() {
             logDataChannel("open");
             signalingChannel.close();
             setSyncLogState("Connected to peer", "green");
+            funSync(dataChannelSetup);
         });
         dataChannelSetup.addEventListener("message", (evt) => logDataChannel("message", evt.data));
         dataChannelSetup.addEventListener("error", (evt) => { logWSError("datachannel error", evt); });
@@ -1044,6 +1046,10 @@ async function fromGrok() {
         }
     }
 
+}
+
+async function doSync(channelToPeer) {
+    console.log("doSync", channelToPeer);
 }
 
 function logWSinfo(...args) {
