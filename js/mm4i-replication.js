@@ -1,8 +1,20 @@
 // @ts-check
-const MM4I_REPL_VER = "0.0.1";
+const MM4I_REPL_VER = "0.0.01";
 window["logConsoleHereIs"](`here is mm4i-replication.js, module, ${MM4I_REPL_VER}`);
 console.log(`%chere is mm4i-replication.js ${MM4I_REPL_VER}`, "font-size:20px;");
 if (document.currentScript) { throw "mm4i-replication.js is not loaded as module"; }
+
+
+const btnTestSend = document.createElement("button");
+btnTestSend.textContent = "send";
+// btnTestSend.id = "btn-test-send";
+btnTestSend.style = `
+    background-color: violet;
+    border-radius: 50%;
+`;
+btnTestSend.inert = true;
+
+
 
 const mkElt = window["mkElt"];
 // const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
@@ -67,7 +79,7 @@ btnSyncLogLog.style = `
     background: none;
     text-decoration: underline;
 `;
-btnSyncLogLog.title= "Show/hide details";
+btnSyncLogLog.title = "Show/hide details";
 
 const divSyncLogHeader = mkElt("div", undefined, [
     mkElt("div", { style: "display:flex; gap:10px;" }, ["Sync:", divSyncLogState]),
@@ -122,8 +134,7 @@ function setSyncLogInactive() {
 
 let dataChannel;
 export async function replicationDialog() {
-    // debugger;
-    const notReady = mkElt("p", undefined, "Not ready yet");
+    const notReady = mkElt("p", undefined, `Not ready yet (${MM4I_REPL_VER})`);
     notReady.style = `color: red; font-size: 1.5rem; background: yellow; padding: 10px;`;
 
 
@@ -238,10 +249,10 @@ export async function replicationDialog() {
         }
         if (valid) {
             document.body.classList.add("sync-keys-valid");
-            btnReplicate.inert = false;
+            btnStartReplication.inert = false;
         } else {
             document.body.classList.remove("sync-keys-valid");
-            btnReplicate.inert = true;
+            btnStartReplication.inert = true;
         }
     }
 
@@ -281,8 +292,6 @@ export async function replicationDialog() {
             // clearSecretKey();
             // return;
         }
-        // debugger; // eslint-disable-line no-debugger
-        // saveSecretKey();
         checkSyncKeys();
     });
 
@@ -469,44 +478,30 @@ export async function replicationDialog() {
         `;
 
     let replicationPool;
-    const iconReplicate = modMdc.mkMDCicon("sync_alt");
-    const btnReplicate = modMdc.mkMDCbutton("Sync devices", "raised", iconReplicate);
-    btnReplicate.title = "Sync your mindmaps between your devices";
-    btnReplicate.addEventListener("click", async (evt) => {
+    /*
+    const OLDiconReplicate = modMdc.mkMDCicon("sync_alt");
+    const OLDbtnReplicate2 = modMdc.mkMDCbutton("Sync devices", "raised", OLDiconReplicate);
+    OLDbtnReplicate2.title = "Sync your mindmaps between your devices";
+    OLDbtnReplicate2.addEventListener("click", async (evt) => {
         evt.stopPropagation();
-        btnStopReplicate.inert = false;
-        btnReplicate.inert = true;
+        OLDbtnStopReplicate.inert = false;
+        OLDbtnReplicate2.inert = true;
         const room = `mm4i: ${inpRoom.value.trim()}`;
         const passkey = inpSecret.value.trim();
         debugger; // eslint-disable-line no-debugger
     });
-    const iconStop = modMdc.mkMDCicon("stop");
-    const btnStopReplicate = modMdc.mkMDCbutton("Stop", "raised", iconStop);
-    btnStopReplicate.title = "Stop sync";
-    btnStopReplicate.inert = true;
-    btnStopReplicate.addEventListener("click", async (evt) => {
-        evt.stopPropagation();
-        if (replicationPool) {
-            await replicationPool.cancel();
-            replicationPool = undefined;
-            modMdc.mkMDCsnackbar("Stopped sync", 6000);
-        } else {
-            modMdc.mkMDCsnackbar("No sync to stop", 6000);
-        }
-        btnStopReplicate.inert = true;
-        btnReplicate.inert = false;
-    });
+    */
 
-    const divReplicate = mkElt("p", undefined, [
-        btnReplicate,
-        // btnStopReplicate,
-        // divId,
+    /*
+    const divReplicate2 = mkElt("p", undefined, [
+        btnReplicate2,
     ]);
-    divReplicate.style = `
+    divReplicate2.style = `
         display: flex;
         display: none;
         gap: 10px;
         `;
+    */
 
 
 
@@ -543,21 +538,40 @@ export async function replicationDialog() {
     */
 
 
-    // const btnGrok = mkElt("button", { class: "mdc-button mdc-button--raised" }, "Grok variant");
-    const iconGrok = modMdc.mkMDCicon("sync_alt");
-    const btnStartReplication = modMdc.mkMDCbutton("Sync devices", "raised", iconGrok);
+    const iconReplication = modMdc.mkMDCicon("sync_alt");
+    const btnStartReplication = modMdc.mkMDCbutton("Sync devices", "raised", iconReplication);
     btnStartReplication.title = "Sync your mindmaps between your devices";
+
+    const iconStop = modMdc.mkMDCicon("stop");
+    const btnStopReplication = modMdc.mkMDCbutton("Stop", "raised", iconStop);
+    btnStopReplication.title = "Stop sync";
+    btnStopReplication.inert = true;
+
     btnStartReplication.addEventListener("click", async (evt) => {
         evt.stopPropagation();
+        btnStopReplication.inert = false;
         openChannelToPeer(doSync);
     });
+    btnStopReplication.addEventListener("click", async (evt) => {
+        evt.stopPropagation();
+        if (replicationPool) {
+            await replicationPool.cancel();
+            replicationPool = undefined;
+            modMdc.mkMDCsnackbar("Stopped sync", 6000);
+        } else {
+            modMdc.mkMDCsnackbar("No sync to stop", 6000);
+        }
+        btnStopReplication.inert = true;
+        btnStartReplication.inert = false;
+    });
 
-    const btnTestSend = mkElt("button", undefined, "send");
+
+
     btnTestSend.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         const msg = "Hi (" + Date().toString().slice(0, 24) + ")";
         logWSdetail("btnTestSend msg:", msg);
-        // debugger;
+        console.log("btnTestSend", dataChannel.id);
         const dataChannelState = dataChannel?.readyState;
         // const signalingChannel.
         if (dataChannel && dataChannelState === "open") {
@@ -570,7 +584,7 @@ export async function replicationDialog() {
 
     const divGrok = mkElt("p", undefined, [
         btnStartReplication,
-        btnStopReplicate,
+        btnStopReplication,
         btnTestSend,
     ]);
     divGrok.style = `
@@ -705,7 +719,9 @@ async function openChannelToPeer(funSync) {
     setSyncLogState("Initialize syncing", "yellowgreen");
     signalingChannel = await initiateSignalingConnection(urlSignaling);
     myId = new Date().toISOString().slice(-10);
-    document.getElementById("span-my-id").textContent = myId;
+    const spanMyId = document.getElementById("span-my-id");
+    if (!spanMyId) throw Error(`Could not find span-my-id`);
+    spanMyId.textContent = myId;
     let myOffer;
     sendFirstMessageToServer(myId);
     let peerConnection;
@@ -735,7 +751,6 @@ async function openChannelToPeer(funSync) {
                 throw Error("init event not expected");
                 break;
             case "offer":
-                // await handleOffer(data.offer, data.from, data.isInitiator);
                 await handleOffer(data);
                 break;
             case "answer":
@@ -756,7 +771,6 @@ async function openChannelToPeer(funSync) {
             default:
                 const msg = `server message, unrecognized type: "${dataType}"`;
                 console.error(msg);
-                debugger;
                 throw Error(msg);
         }
     });
@@ -806,9 +820,7 @@ async function openChannelToPeer(funSync) {
             return settingOpenRelayCred.valueS;
         }
 
-        // if (useOpenRelay()) {
         if (settingUseOpenRelay.value) {
-            // debugger;
             const CREDENTIALS = openRelayCred();
             const APPNAME = "mm4i"
             const urlIce = `https://${APPNAME}.metered.live/api/v1/turn/credentials?apiKey=${CREDENTIALS}`;
@@ -834,7 +846,7 @@ async function openChannelToPeer(funSync) {
         function initialCreateDatachannel() {
             logWSimportant('peerConnection.createDataChannel("textChannel"');
             dataChannel = peerConnection.createDataChannel("textChannel");
-            setupDataChannel();
+            // setupDataChannel();
         }
 
 
@@ -905,10 +917,11 @@ async function openChannelToPeer(funSync) {
 
         logWSinfo("Adding listener for datachannel");
         peerConnection.addEventListener("datachannel", (event) => {
-            const msg = `Peer datachannel: ${dataChannel.label}`;
+            const msg = `Peer datachannel ${dataChannel.id}: ${dataChannel.label}`;
             logWSimportant(msg);
             if (!isInitiator) {
-                logWSimportant("dataChannel = event.channel");
+                logWSimportant(`dataChannel = event.channel, close old: ${dataChannel.id}`);
+                dataChannel.close();
                 dataChannel = event.channel;
                 setupDataChannel();
             } else {
@@ -922,19 +935,17 @@ async function openChannelToPeer(funSync) {
         });
 
         peerConnection.addEventListener("close", () => {
-            const msg = "Peer event close";
+            const msg = `Peer close, close dataChannel:${dataChannel.id}`;
             logWSimportant(msg);
-            peerConnection = null;
+            debugger;
+            dataChannel.close();
             dataChannel = null;
-            // FIX-ME:
-            // document.getElementById("sendButton").disabled = true;
+            peerConnection = null;
+            btnTestSend.inert = true;
         });
     }
 
-    // Handle incoming offer
-    // async function handleOffer(offer, from, isInitiatorParam) {
     async function handleOffer(offerData) {
-        // debugger;
         window["pc"] = peerConnection;
         const isInitiator = offerData.isInitiator;
         const from = offerData.from;
@@ -946,18 +957,18 @@ async function openChannelToPeer(funSync) {
         logWSimportant(`handle offer, isInitiator:${isInitiator}`, { offer, from, me });
         const re = /^(.*?) \/ (.*?)$/;
         const mFrom = re.exec(from);
+        if (!mFrom) throw Error(`mFrom is ${mFrom}`);
         const fromMyId = mFrom[1];
         const fromClient = mFrom[2];
         const fromClientNum = parseInt(fromClient.slice(10));
         if (fromMyId == myId) debugger;
         if (fromClientNum == clientNum) debugger;
-        // debugger;
-        // _logSyncLog(`Handle offer, isInitiatorParam: ${isInitiatorParam}`);
         if (isInitiator) {
             logWSdetail("Is initiator, skipping offer");
             // FIX-ME: has not this already been done???
             logWSimportant("peerConnection.setLocalDescription(myOffer)", myOffer);
             await peerConnection.setLocalDescription(myOffer);
+            setupDataChannel();
             return;
         }
         try {
@@ -1003,22 +1014,22 @@ async function openChannelToPeer(funSync) {
     }
 
     function setupDataChannel() {
-        console.warn(">>>>>>>>>>>> setupDataChannel")
-        logDataChannel("setupDataChannel");
-        const dataChannelSetup = dataChannel;
+        console.warn(`%c>>>>>>>>>>>> setupDataChannel ${dataChannel.id}`, "font-size:20px;");
+        logDataChannel(dataChannel.id, "setupDataChannel", dataChannel);
+        // const dataChannelSetup = dataChannel;
 
-        dataChannelSetup.addEventListener("open", () => {
+        dataChannel.addEventListener("open", () => {
             // FIX-ME: Why do we get this 2 times???
-            logDataChannel("open");
+            logDataChannel(dataChannel.id, "open");
             signalingChannel.close();
             setSyncLogState("Connected to peer", "green");
-            funSync(dataChannelSetup);
+            funSync(dataChannel);
         });
-        dataChannelSetup.addEventListener("message", (evt) => logDataChannel("message", evt.data));
-        dataChannelSetup.addEventListener("error", (evt) => { logWSError("datachannel error", evt); });
+        dataChannel.addEventListener("message", (evt) => logDataChannel(dataChannel.id, "message", evt.data));
+        dataChannel.addEventListener("message", (evt) => console.log("message 2", dataChannel.id, evt.data));
+        dataChannel.addEventListener("error", (evt) => { logWSError("datachannel error", evt); });
 
-        // signalingChannel.close();
-        return dataChannelSetup;
+        return dataChannel;
     }
 
     function sendFirstMessageToServer(myId) {
@@ -1048,8 +1059,32 @@ async function openChannelToPeer(funSync) {
 
 }
 
-async function doSync(channelToPeer) {
-    console.log("doSync", channelToPeer);
+let handledOpen = false;
+async function doSync() {
+    debugger;
+    console.log(dataChannel.id, { channelToPeer: dataChannel });
+    if (handledOpen) debugger;
+    handledOpen = true;
+    dataChannel.addEventListener("message", evt => {
+        logDataChannel(dataChannel.id, "message synch", evt);
+    });
+    logDataChannel(dataChannel.id, "doSync");
+    const modDbMindmaps = await importFc4i("db-mindmaps");
+    const arrAll = await modDbMindmaps.DBgetAllMindmaps();
+    console.log({ arrAll });
+    const arrMetaName = arrAll.map(mm => {
+        console.log(mm);
+        const metaName = mm.jsmindmap.meta.name;
+        return metaName;
+    });
+    console.log({ arrMetaName });
+    const objMessage = {
+        "type": "my-mindmaps",
+        "arrMetaName": arrMetaName
+    }
+    // const json = JSON.stringify(arrMetaName);
+    const json = JSON.stringify(objMessage);
+    dataChannel.send(json);
 }
 
 function logWSinfo(...args) {
@@ -1085,6 +1120,12 @@ function logSignaling(...args) {
     _logWSsyncLog(msg);
 }
 
-function logDataChannel(...args) {
-    console.log("%c Data Channel: ", "background:cyan; color:black;", ...args);
+/**
+ * 
+ * @param {number} id 
+ * @param  {...any} args 
+ */
+function logDataChannel(id, ...args) {
+    // const id = args.shift();
+    console.warn(`%c Data Channel ${id}: `, "background:cyan; color:black;", ...args);
 }
