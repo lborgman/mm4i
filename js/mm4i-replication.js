@@ -7,10 +7,11 @@ if (document.currentScript) { throw "mm4i-replication.js is not loaded as module
 
 const btnTestSend = document.createElement("button");
 btnTestSend.textContent = "send";
-// btnTestSend.id = "btn-test-send";
+btnTestSend.title = "Send test message to peer";
 btnTestSend.style = `
     background-color: violet;
     border-radius: 50%;
+    box-shadow: 7px 7px 5px 0px rgba(0,0,0,0.5);
 `;
 btnTestSend.inert = true;
 
@@ -547,13 +548,19 @@ export async function replicationDialog() {
     btnStopReplication.title = "Stop sync";
     btnStopReplication.inert = true;
 
+    let isReplicating = false;
+
     btnStartReplication.addEventListener("click", async (evt) => {
         evt.stopPropagation();
+        btnStartReplication.inert = true;
         btnStopReplication.inert = false;
+        btnTestSend.inert = false;
+        isReplicating = true;
         openChannelToPeer(doSync);
     });
     btnStopReplication.addEventListener("click", async (evt) => {
         evt.stopPropagation();
+        isReplicating = false;
         if (replicationPool) {
             await replicationPool.cancel();
             replicationPool = undefined;
@@ -576,9 +583,13 @@ export async function replicationDialog() {
         // const signalingChannel.
         if (dataChannel && dataChannelState === "open") {
             dataChannel.send(msg);
-            console.log(`btnTestSend Sent message: ${msg} `);
+            const msgInfo = `btnTestSend Sent message: ${msg} `;
+            console.log(msgInfo);
+            modMdc.mkMDCsnackbar(msgInfo)
         } else {
-            console.error(`btnTestSend Data channel not open: "${dataChannelState}"`, { isInitiator });
+            const msgError = `btnTestSend Data channel not open: "${dataChannelState}"`;
+            console.error(msgError, { isInitiator });
+            modMdc.mkMDCsnackbar(msgError, "background:red;");
         }
     });
 
@@ -630,7 +641,7 @@ let signalingChannel;
 let myId;
 let clientNum;
 let isInitiator = false;
-async function openChannelToPeer(funSync) {
+async function openChannelToPeer(funDoSync) {
     // https://www.videosdk.live/developer-hub/webrtc/webrtc-signaling-server
     // https://webrtc.org/getting-started/peer-connections
     // Configuration for STUN servers (works in browser)
@@ -676,6 +687,8 @@ async function openChannelToPeer(funSync) {
             const signalingChannel = new WebSocket(urlSignaling);
 
             signalingChannel.addEventListener("open", function (evt) {
+                btnTestSend.style.backgroundColor = "yellow";
+                btnTestSend.style.color = "black";
                 logSignaling("open", evt);
                 resolve(signalingChannel);  // Resolve the promise when the connection is successful
             });
@@ -920,9 +933,22 @@ async function openChannelToPeer(funSync) {
             const msg = `Peer datachannel ${dataChannel.id}: ${dataChannel.label}`;
             logWSimportant(msg);
             if (!isInitiator) {
-                logWSimportant(`dataChannel = event.channel, close old: ${dataChannel.id}`);
-                dataChannel.close();
-                dataChannel = event.channel;
+                const oldChannel = dataChannel;
+                const newChannel = event.channel;
+                const oldId = oldChannel.id;
+                const newId = newChannel.id;
+                if (oldId == newId) {
+                    debugger;
+                    logWSimportant(`Something has changed in API: old: ${oldId} == new: ${newId}`);
+                }
+                logWSimportant(`dataChannel = event.channel, old: ${oldId}, new: ${newId}`);
+                const oldState = oldChannel.readyState;
+                const newState = newChannel.readyState;
+                logWSimportant(`states - old: ${oldId}/${oldState}, new: ${newId}/${newState}`);
+                // FIX-ME: to close or not to close???
+                // Currently closing the old channel will also close the new (2025-04-21)
+                // oldChannel.close();
+                dataChannel = newChannel;
                 setupDataChannel();
             } else {
                 logWSimportant("Ignoring received data channel as initiator");
@@ -935,6 +961,8 @@ async function openChannelToPeer(funSync) {
         });
 
         peerConnection.addEventListener("close", () => {
+            btnTestSend.style.backgroundColor = "red";
+            btnTestSend.style.color = "black";
             const msg = `Peer close, close dataChannel:${dataChannel.id}`;
             logWSimportant(msg);
             debugger;
@@ -971,6 +999,7 @@ async function openChannelToPeer(funSync) {
             setupDataChannel();
             return;
         }
+        setupDataChannel();
         try {
             logWSimportant("peerConnection.setRemoteDescription");
             await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
@@ -1019,15 +1048,28 @@ async function openChannelToPeer(funSync) {
         // const dataChannelSetup = dataChannel;
 
         dataChannel.addEventListener("open", () => {
+            const readyState = dataChannel.readyState;
+            console.log({ readyState });
+            btnTestSend.style.backgroundColor = "greenyellow";
+            btnTestSend.style.color = "black";
             // FIX-ME: Why do we get this 2 times???
             logDataChannel(dataChannel.id, "open");
             signalingChannel.close();
             setSyncLogState("Connected to peer", "green");
-            funSync(dataChannel);
+            funDoSync(dataChannel);
         });
         dataChannel.addEventListener("message", (evt) => logDataChannel(dataChannel.id, "message", evt.data));
         dataChannel.addEventListener("message", (evt) => console.log("message 2", dataChannel.id, evt.data));
-        dataChannel.addEventListener("error", (evt) => { logWSError("datachannel error", evt); });
+        dataChannel.addEventListener("error", (evt) => {
+            btnTestSend.style.backgroundColor = "black";
+            btnTestSend.style.color = "red";
+            logWSError("datachannel error", evt);
+        });
+        dataChannel.addEventListener("close", (evt) => {
+            btnTestSend.style.backgroundColor = "red";
+            btnTestSend.style.color = "black";
+            logDataChannel(dataChannel.id, "close", evt.data);
+        });
 
         return dataChannel;
     }
@@ -1059,12 +1101,12 @@ async function openChannelToPeer(funSync) {
 
 }
 
-let handledOpen = false;
+let handledOpenBefore = false;
 async function doSync() {
-    debugger;
+    // debugger;
     console.log(dataChannel.id, { channelToPeer: dataChannel });
-    if (handledOpen) debugger;
-    handledOpen = true;
+    if (handledOpenBefore) debugger;
+    handledOpenBefore = true;
     dataChannel.addEventListener("message", evt => {
         logDataChannel(dataChannel.id, "message synch", evt);
     });
