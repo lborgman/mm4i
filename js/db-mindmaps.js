@@ -1,7 +1,6 @@
-"use strict";
-
-const version = "0.1.0";
-logConsoleHereIs(`here is db-mindmaps.js, module ${version}`);
+// @ts-check
+const version = "0.2.00";
+window["logConsoleHereIs"](`here is db-mindmaps.js, module ${version}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 // const useLocalStorage = true;
@@ -37,13 +36,22 @@ export async function DBgetAllMindmaps() {
         });
     }
 }
-export async function DBsetMindmap(keyName, jsMindMap, lastUpdated) {
+/**
+ * 
+ * @param {string} keyName 
+ * @param {Object} jsMindMap - mindmap in jsMind format (FIX-ME: name of format)
+ * @param {string|undefined} lastUpdated - time in UTC format, use this as updated time if given
+ * @param {string|undefined} lastSynced - time in UTC format, new time for last sync
+ * @returns {Promise<any>} 
+ */
+export async function DBsetMindmap(keyName, jsMindMap, lastUpdated, lastSynced) {
     // if (keyName !== jsMindMap.meta.name) throw Error(`key=${keyName} but objMindmap.meta.name=${jsMindMap.meta.name}`);
     const metaName = jsMindMap.meta.name;
-    const [metaKey, _oldUpdated] = metaName.split("/");
+    const [metaKey, _oldUpdated, _lastSynced] = metaName.split("/");
     if (keyName !== metaKey) throw Error(`key=${keyName} but objMindmap.meta.name=${metaKey}`);
     const updated = lastUpdated || (new Date()).toISOString();
-    jsMindMap.meta.name = `${metaKey}/${updated}`;
+    const synched = lastSynced || _lastSynced;
+    jsMindMap.meta.name = `${metaKey}/${updated}/${synched}`;
     if (useLocalStorage) {
         const lsKey = strPrefix + keyName;
         const json = JSON.stringify(jsMindMap);
@@ -54,20 +62,14 @@ export async function DBsetMindmap(keyName, jsMindMap, lastUpdated) {
 }
 export async function DBgetMindmap(key) {
     if (useLocalStorage) {
+        // throw Error("new obj.meta.name format not implemented yet for localStorage");
         const lsKey = strPrefix + key;
         const json = localStorage.getItem(lsKey);
-        const obj = JSON.parse(json);
-        if (key !== obj.meta.name) {
-            console.error(`key=${key} but obj.meta.key=${obj.meta.key}`);
-            alert("Old format, fixing");
-            obj.meta.name = key;
-            delete obj.meta.key;
-        }
-        DBsetMindmap(key, obj);
+        if (!json) return;
+        return JSON.parse(json);
     } else {
         return modIdbCmn.getDbKey(idbStoreMm, key);
     }
-    return obj;
 }
 export async function DBremoveMindmap(key) {
     if (useLocalStorage) {
