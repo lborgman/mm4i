@@ -37,12 +37,12 @@ export async function DBgetAllMindmaps() {
         });
     }
 }
-export async function DBsetMindmap(keyName, jsMindMap) {
+export async function DBsetMindmap(keyName, jsMindMap, lastUpdated) {
     // if (keyName !== jsMindMap.meta.name) throw Error(`key=${keyName} but objMindmap.meta.name=${jsMindMap.meta.name}`);
     const metaName = jsMindMap.meta.name;
     const [metaKey, _oldUpdated] = metaName.split("/");
-    if (keyName !== metaKey) throw Error(`key=${keyKey} but objMindmap.meta.name=${metaKey}`);
-    const updated = (new Date()).toISOString();
+    if (keyName !== metaKey) throw Error(`key=${keyName} but objMindmap.meta.name=${metaKey}`);
+    const updated = lastUpdated || (new Date()).toISOString();
     jsMindMap.meta.name = `${metaKey}/${updated}`;
     if (useLocalStorage) {
         const lsKey = strPrefix + keyName;

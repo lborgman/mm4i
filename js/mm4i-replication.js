@@ -582,7 +582,12 @@ export async function replicationDialog() {
         const dataChannelState = dataChannel?.readyState;
         // const signalingChannel.
         if (dataChannel && dataChannelState === "open") {
+            const obj = {
+                type: "test-hi",
+                msg
+            }
             dataChannel.send(msg);
+            // dataChannel.send(JSON.stringify(obj));
             const msgInfo = `btnTestSend Sent message: ${msg} `;
             console.log(msgInfo);
             modMdc.mkMDCsnackbar(msgInfo)
@@ -1043,7 +1048,7 @@ async function openChannelToPeer(funDoSync) {
     }
 
     function setupDataChannel() {
-        console.warn(`%c>>>>>>>>>>>> setupDataChannel ${dataChannel.id}`, "font-size:20px;");
+        // console.warn(`%c>>>>>>>>>>>> setupDataChannel ${dataChannel.id}`, "font-size:20px;");
         logDataChannel(dataChannel.id, "setupDataChannel", dataChannel);
         // const dataChannelSetup = dataChannel;
 
@@ -1102,16 +1107,9 @@ async function openChannelToPeer(funDoSync) {
 }
 
 let handledOpenBefore = false;
-async function doSync() {
-    // debugger;
-    console.log(dataChannel.id, { channelToPeer: dataChannel });
-    if (handledOpenBefore) debugger;
-    handledOpenBefore = true;
-    dataChannel.addEventListener("message", evt => {
-        logDataChannel(dataChannel.id, "message synch", evt);
-    });
-    logDataChannel(dataChannel.id, "doSync");
-    const modDbMindmaps = await importFc4i("db-mindmaps");
+const modDbMindmaps = await importFc4i("db-mindmaps");
+// debugger;
+const myMindmaps = await (async () => {
     const arrAll = await modDbMindmaps.DBgetAllMindmaps();
     console.log({ arrAll });
     const arrMetaName = arrAll.map(mm => {
@@ -1120,16 +1118,143 @@ async function doSync() {
         return metaName;
     });
     console.log({ arrMetaName });
+    const mindmaps = arrMetaName.reduce((current, item) => {
+        const [key, updated] = item.split("/");
+        current[key] = updated;
+        return current;
+    }, {});
+    console.log({ myMindmaps: mindmaps });
+    return mindmaps;
+})();
+let peerMindmaps;
+async function doSync() {
+    // debugger;
+    console.log(dataChannel.id, { channelToPeer: dataChannel });
+    const wasOpenedBefore = handledOpenBefore;
+    // if (wasOpenedBefore) debugger; // FIX-ME:
+    handledOpenBefore = true;
+    dataChannel.addEventListener("message", evt => {
+        evt.stopPropagation();
+        logDataChannel(dataChannel.id, "message synch", evt);
+        handleMessageSync(evt);
+    });
+    function tellWhatIneed() {
+        if (!myMindmaps) {
+            console.log(`tellWhatIneed, myMindmaps is ${myMindmaps}`);
+            return;
+        }
+        if (!peerMindmaps) {
+            console.log(`tellWhatIneed, peerMindmaps is ${peerMindmaps}`);
+            return;
+        }
+        const myKeys = Object.keys(myMindmaps);
+        const peerKeys = Object.keys(peerMindmaps);
+        const needKeys = [];
+        peerKeys.forEach(pk => {
+            if (!myKeys.includes(pk)) {
+                needKeys.push(pk);
+            } else {
+                const myUpdated = myMindmaps[pk];
+                const peerUpdated = peerMindmaps[pk];
+                console.log({ myUpdated, peerUpdated });
+                if (peerUpdated > myUpdated) {
+                    needKeys.push(pk);
+                }
+            }
+        });
+        console.log({ needKeys });
+        const obj = {
+            type: "need-keys",
+            needKeys
+        }
+        dataChannel.send(JSON.stringify(obj));
+    }
+    function handleMessageSync(evt) {
+        console.log("handleMessageSync", { evt });
+        const strData = evt.data;
+        const tofData = typeof strData;
+        if (tofData != "string") throw Error(`Expeced data to be type "string", but it is ${tofData}`);
+        let data;
+        try {
+            data = JSON.parse(strData);
+        } catch (err) {
+            const isJsonErr = err instanceof SyntaxError;
+            console.log({ isJsonErr, err });
+            if (!isJsonErr) throw err;
+            if (!strData.startsWith("Hi (")) throw Error(`Unexpected string: "${strData}"`);
+            const msg = `handleMessage, skipping test message "${strData}"`;
+            console.log(msg);
+            modMdc.mkMDCsnackbar(msg);
+            return;
+        }
+        console.log("%chandleMessage", "font-size:20px; color:red", { data });
+        switch (data.type) {
+            case "my-mindmaps":
+                peerMindmaps = data.myMindmaps;
+                if (peerMindmaps == undefined) throw Error(`data.myMindmaps is undefined`);
+                console.log({ peerMindmaps, myMindmaps });
+                tellWhatIneed();
+                break;
+            case "need-keys":
+                const neededKeys = data.needKeys;
+                console.log({ neededKeys });
+                // myMindmaps =
+                const promNeededMm = [];
+                neededKeys.forEach(key => {
+                    const promMindmap = modDbMindmaps.DBgetMindmap(key);
+                    console.log({ promMindmap });
+                    promNeededMm.push(promMindmap);
+                });
+                (async () => {
+                    let arrSettled;
+                    try {
+                        arrSettled = await Promise.allSettled(promNeededMm);
+                    } catch (err) {
+                        console.error(err, arrSettled);
+                        throw Error("Could not find all needed mindmaps");
+                    }
+                    const arrNeededMindmaps = await Promise.all(promNeededMm);
+                    console.log({ arrNeededMindmaps });
+                    const obj = {
+                        type: "mindmaps-you-needed",
+                        arrNeededMindmaps
+                    }
+                    // debugger;
+                    dataChannel.send(JSON.stringify(obj));
+                })();
+                break;
+            case "mindmaps-you-needed":
+                const arrNeededMindmaps = data.arrNeededMindmaps;
+                arrNeededMindmaps.forEach(mm => {
+                    debugger;
+                    const key = mm.key;
+                    const [metaKey, metaUpdated] = mm.meta.name.split("/");
+                    if (key != metaKey) throw Error(`key:${key} != metaKey:${metaKey}`);
+                    modDbMindmaps.DBsetMindmap(key, mm, metaUpdated);
+                });
+                break;
+            default:
+                const errMsg = `Unrecognized data.type: ${data.type}`;
+                console.error(errMsg);
+                throw Error(errMsg);
+        }
+    }
+    logDataChannel(dataChannel.id, `doSync, wasOpenedBefore:${wasOpenedBefore}`);
+    console.log(`%cdoSync, wasOpenedBefore:${wasOpenedBefore}`, "font-size:30px");
+    if (!wasOpenedBefore) return; // FIX-ME:
+
+
     const objMessage = {
         "type": "my-mindmaps",
-        "arrMetaName": arrMetaName
+        myMindmaps,
     }
-    // const json = JSON.stringify(arrMetaName);
     const json = JSON.stringify(objMessage);
     dataChannel.send(json);
+    tellWhatIneed();
 }
 
 function logWSinfo(...args) {
+    return;
     const arg0 = args.shift();
     const msg = `WS: ${arg0}`;
     console.log(`%c ${msg}`, "background:blue; color:white;", ...args);
@@ -1152,9 +1277,11 @@ function logWSError(...args) {
     _logWSsyncLog(msg);
 }
 function logWSdetail(...args) {
-    // console.log(...args);
+    return;
+    console.log(...args);
 }
 function logSignaling(...args) {
+    return;
     const arg0 = args.shift();
     const msg = `Signaling server - ${arg0}`;
     // console.log(`%c ${msg}`, "background:darkgreen; color:white;", ...args);

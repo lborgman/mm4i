@@ -16,8 +16,9 @@ const throttleSaveMindmap = modTools.throttleTO(DBsaveNowThisMindmap, 300);
 export function DBrequestSaveThisMindmap(jmDisplayed) { throttleSaveMindmap(jmDisplayed); }
 async function DBsaveNowThisMindmap(jmDisplayed) {
     const objDataMind = jmDisplayed.get_data("node_array");
-    const keyName = objDataMind.meta.name;
-    if (!keyName) throw Error("Current mindmap has no meta.key");
+    const metaName = objDataMind.meta.name;
+    if (!metaName) throw Error("Current mindmap has no meta.key");
+    const [keyName] = metaName.split("/");
     // const dbMindmaps = await getDbMindmaps();
     const dbMindmaps = await importFc4i("db-mindmaps");
     await dbMindmaps.DBsetMindmap(keyName, objDataMind);
