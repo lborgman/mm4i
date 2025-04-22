@@ -21,6 +21,9 @@ const mkElt = window["mkElt"];
 // const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 const importFc4i = window["importFc4i"];
 
+const mod2peers = await importFc4i("webrtc-2-peers");
+console.log({ mod2peers });
+
 // const keyRoomKey = "mm4i-webrct-room-key";
 const secretKeyMinLength = 8;
 // const keySecretKey = "mm4i-webrct-secret-key";
@@ -556,7 +559,18 @@ export async function replicationDialog() {
         btnStopReplication.inert = false;
         btnTestSend.inert = false;
         isReplicating = true;
-        openChannelToPeer(doSync);
+        // openChannelToPeer(doSync);
+        mod2peers.openChannelToPeer(doSync, {
+            setSyncLogState,
+            setSyncLogInitiator,
+            logSignaling,
+            logWSimportant,
+            logWSinfo,
+            logWSdetail,
+            logDataChannel,
+        },
+        btnTestSend
+    );
     });
     btnStopReplication.addEventListener("click", async (evt) => {
         evt.stopPropagation();
