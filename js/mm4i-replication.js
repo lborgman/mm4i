@@ -560,7 +560,7 @@ export async function replicationDialog() {
         btnTestSend.inert = false;
         isReplicating = true;
         // openChannelToPeer(doSync);
-        mod2peers.openChannelToPeer(doSync, {
+        dataChannel = await mod2peers.openChannelToPeer(doSync, {
             setSyncLogState,
             setSyncLogInitiator,
             logSignaling,
@@ -569,8 +569,10 @@ export async function replicationDialog() {
             logWSdetail,
             logDataChannel,
         },
-        btnTestSend
-    );
+            btnTestSend
+        );
+        // debugger;
+        doSync(dataChannel);
     });
     btnStopReplication.addEventListener("click", async (evt) => {
         evt.stopPropagation();
@@ -660,7 +662,7 @@ let signalingChannel;
 let myId;
 let clientNum;
 let isInitiator = false;
-async function openChannelToPeer(funDoSync) {
+async function OLDopenChannelToPeer(funDoSync) {
     // https://www.videosdk.live/developer-hub/webrtc/webrtc-signaling-server
     // https://webrtc.org/getting-started/peer-connections
     // Configuration for STUN servers (works in browser)
@@ -1119,6 +1121,7 @@ async function openChannelToPeer(funDoSync) {
     }
 
 }
+
 
 let handledOpenBefore = false;
 const modDbMindmaps = await importFc4i("db-mindmaps");
