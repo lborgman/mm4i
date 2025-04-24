@@ -2383,7 +2383,17 @@ export function mkMDCsvgIcon(iconMaterialName) {
     </div>
 </aside>
 */
-export function mkMDCsnackbar(msg, msTimeout) {
+export function mkMDCsnackbarError(msg, msTimeout) {
+    return mkMDCsnackbar(msg, msTimeout, { "background-color": "red", "color": "yellow" });
+}
+export function mkMDCsnackbar(msg, msTimeout, styles) {
+    const objStyles = styles || {};
+    Object.keys(objStyles).forEach(prop => {
+        if (!["background-color", "color"].includes(prop)) {
+            debugger;
+            throw Error(`Style prop not allowed: "${prop}"`);
+        };
+    });
     const btnClose =
         mkElt("button", { type: "button", class: "mdc-button mdc-snackbar__action" }, [
             // <div class="mdc-button__ripple"></div>
@@ -2404,12 +2414,14 @@ export function mkMDCsnackbar(msg, msTimeout) {
             // </div>
         ]);
 
+    const eltLabel = mkElt("div", { class: "mdc-snackbar__label", "aria-atomic": "false" }, msg);
     const eltSurface =
         mkElt("div", { class: "mdc-snackbar__surface", role: "status", "aria-relevant": "additions" }, [
             // <div class="mdc-snackbar__label" aria-atomic="false">
             // Can't send photo. Retry in 5 seconds.
             // </div>
-            mkElt("div", { class: "mdc-snackbar__label", "aria-atomic": "false" }, msg),
+            // mkElt("div", { class: "mdc-snackbar__label", "aria-atomic": "false" }, msg),
+            eltLabel,
             // </div><div class="mdc-snackbar__actions" aria-atomic="true">
             eltActions,
             // </aside></div>
@@ -2424,9 +2436,14 @@ export function mkMDCsnackbar(msg, msTimeout) {
     // new mdc.radio.MDCRadio(elt);
     const snackbar = new mdc.snackbar.MDCSnackbar(eltSnackbar);
     snackbar.timeoutMs = msTimeout || 4000; // min
+
     document.body.appendChild(eltSnackbar);
     eltSnackbar.style.zIndex = 9999; // set to 8 by MDC, why??
-    eltSnackbar.addEventListener("MDCSnackbar:closed", () => { eltSnackbar.remove(); });
+
+    eltSurface.style.backgroundColor = objStyles["background-color"];
+    eltLabel.style.color = objStyles["color"];
+
+    // eltSnackbar.addEventListener("MDCSnackbar:closed", () => { eltSnackbar.remove(); });
     snackbar.open();
     return eltSnackbar;
 }

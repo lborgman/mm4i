@@ -123,8 +123,9 @@ function setSyncLogState(state, color) {
     divSyncLogState.style.color = color;
     divSyncLogHeader.inert = false;
 }
-function setSyncLogInitiator(isInitiator) {
-    divSyncLogState.style.textDecoration = isInitiator ? "overline" : "underline";
+function setSyncLogInitiator(tellIsInitiator) {
+    isInitiator = tellIsInitiator;
+    divSyncLogState.style.textDecoration = tellIsInitiator ? "overline" : "underline";
 }
 
 function setSyncLogInactive() {
@@ -468,7 +469,7 @@ export async function replicationDialog() {
     const bodyKeys = mkElt("div", undefined, [
         divRoom,
         divSecret,
-        // _divOpenRelay, // Google STUN servers seems to work just as well
+        _divOpenRelay, // Google STUN servers seems to work just as well
     ]);
     // const divKeysCollapsible = modTools.mkHeightExpander(bodyKeys);
     const detKeys = mkElt("details", { class: "mdc-card" }, [
@@ -559,8 +560,8 @@ export async function replicationDialog() {
         btnStopReplication.inert = false;
         btnTestSend.inert = false;
         isReplicating = true;
-        // openChannelToPeer(doSync);
-        dataChannel = await mod2peers.openChannelToPeer(doSync, {
+        const objLogFuns = {
+            logWSError,
             setSyncLogState,
             setSyncLogInitiator,
             logSignaling,
@@ -568,11 +569,14 @@ export async function replicationDialog() {
             logWSinfo,
             logWSdetail,
             logDataChannel,
-        },
-            btnTestSend
-        );
-        // debugger;
-        doSync(dataChannel);
+        };
+        const useNew = false;
+        if (useNew) {
+            dataChannel = await mod2peers.openChannelToPeer(objLogFuns, btnTestSend);
+            doSync(dataChannel);
+        } else {
+            OLDopenChannelToPeer(doSync);
+        }
     });
     btnStopReplication.addEventListener("click", async (evt) => {
         evt.stopPropagation();
@@ -610,7 +614,7 @@ export async function replicationDialog() {
         } else {
             const msgError = `btnTestSend Data channel not open: "${dataChannelState}"`;
             console.error(msgError, { isInitiator });
-            modMdc.mkMDCsnackbar(msgError, "background:red;");
+            modMdc.mkMDCsnackbarError(msgError, 10 * 1000);
         }
     });
 
@@ -1144,14 +1148,15 @@ const myMindmaps = await (async () => {
     return mindmaps;
 })();
 let peerMindmaps;
-async function doSync() {
-    // debugger;
+async function doSync(dataChannel) {
     console.log(dataChannel.id, { channelToPeer: dataChannel });
     const wasOpenedBefore = handledOpenBefore;
     // if (wasOpenedBefore) debugger; // FIX-ME:
     handledOpenBefore = true;
+    debugger;
     dataChannel.addEventListener("message", evt => {
-        evt.stopPropagation();
+        // evt.stopPropagation();
+        debugger;
         logDataChannel(dataChannel.id, "message synch", evt);
         handleMessageSync(evt);
     });
@@ -1210,6 +1215,7 @@ async function doSync() {
                 peerMindmaps = data.myMindmaps;
                 if (peerMindmaps == undefined) throw Error(`data.myMindmaps is undefined`);
                 console.log({ peerMindmaps, myMindmaps });
+                debugger;
                 tellWhatIneed();
                 break;
             case "need-keys":
@@ -1258,7 +1264,7 @@ async function doSync() {
     }
     logDataChannel(dataChannel.id, `doSync, wasOpenedBefore:${wasOpenedBefore}`);
     console.log(`%cdoSync, wasOpenedBefore:${wasOpenedBefore}`, "font-size:30px");
-    if (!wasOpenedBefore) return; // FIX-ME:
+    // if (!wasOpenedBefore) return; // FIX-ME:
 
 
     const objMessage = {
@@ -1267,7 +1273,7 @@ async function doSync() {
     }
     const json = JSON.stringify(objMessage);
     dataChannel.send(json);
-    tellWhatIneed();
+    // tellWhatIneed();
 }
 
 function logWSinfo(...args) {

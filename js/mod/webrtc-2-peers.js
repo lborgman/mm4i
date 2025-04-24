@@ -13,12 +13,11 @@ let isInitiator = false;
 
 /**
  * 
- * @param {function} funDoSync
- * @param {object} logFuns;
- 
+ * @param {object} logFuns
+ * @param {HTMLButtonElement} btnTestSend
  * @returns 
  */
-export async function openChannelToPeer(funDoSync, logFuns, btnTestSend) {
+export async function openChannelToPeer(logFuns, btnTestSend) {
     // https://www.videosdk.live/developer-hub/webrtc/webrtc-signaling-server
     // https://webrtc.org/getting-started/peer-connections
 
@@ -85,13 +84,13 @@ export async function openChannelToPeer(funDoSync, logFuns, btnTestSend) {
                 });
 
                 signalingChannel.addEventListener("error", function (event) {
-                    logWSError("WebSocket error:", event);
+                    logFuns.logWSError("WebSocket error:", event);
                     reject(new Error("WebSocket connection failed"));  // Reject the promise on error
                 });
 
                 signalingChannel.addEventListener("close", function (event) {
                     if (!event.wasClean) {
-                        logWSError("Connection closed unexpectedly", event);
+                        logFuns.logWSError("Connection closed unexpectedly", event);
                         reject(new Error("WebSocket connection closed unexpectedly"));  // Reject the promise if the connection closes unexpectedly
                     }
                 });
@@ -105,7 +104,7 @@ export async function openChannelToPeer(funDoSync, logFuns, btnTestSend) {
                 // logFuns.logWSdetail("WebSocket signaling server connection established:", signalingServerChannel);
                 return signalingServerChannel;
             } catch (error) {
-                logWSError("Failed to connect to signaling server:", error.message);
+                logFuns.logWSError("Failed to connect to signaling server:", error.message);
             }
         }
 
@@ -303,7 +302,7 @@ export async function openChannelToPeer(funDoSync, logFuns, btnTestSend) {
                 const state = peerConnection.connectionState;
                 const msg = `Peer connectionstatechange: ${state}`;
                 if (state == "failed") {
-                    logWSError(msg);
+                    logFuns.logWSError(msg);
                 } else {
                     logFuns.logWSimportant(msg);
                 }
@@ -356,7 +355,7 @@ export async function openChannelToPeer(funDoSync, logFuns, btnTestSend) {
 
         async function handleOffer(offerData) {
             window["pc"] = peerConnection;
-            const isInitiator = offerData.isInitiator;
+            isInitiator = offerData.isInitiator;
             const from = offerData.from;
             const offer = offerData.offer;
 
@@ -380,7 +379,7 @@ export async function openChannelToPeer(funDoSync, logFuns, btnTestSend) {
                 setupDataChannel();
                 return;
             }
-            setupDataChannel();
+            // setupDataChannel();
             try {
                 logFuns.logWSimportant("peerConnection.setRemoteDescription");
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
@@ -388,6 +387,7 @@ export async function openChannelToPeer(funDoSync, logFuns, btnTestSend) {
                 const answer = await peerConnection.createAnswer();
                 logFuns.logWSimportant("peerConnection.setLocalDescription(answer)");
                 await peerConnection.setLocalDescription(answer); // Will send ICE Candidate to server
+                setupDataChannel();
 
                 signalingChannel.send(JSON.stringify({
                     type: "answer",
@@ -395,7 +395,7 @@ export async function openChannelToPeer(funDoSync, logFuns, btnTestSend) {
                 }));
                 logFuns.logWSimportant("Answer sent");
             } catch (error) {
-                logWSError("Error handling offer", error);
+                logFuns.logWSError("Error handling offer", error);
             }
         }
 
@@ -407,7 +407,7 @@ export async function openChannelToPeer(funDoSync, logFuns, btnTestSend) {
                 logFuns.logWSimportant("await peerConnection.setRemoteDescription", { answer });
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
             } catch (error) {
-                logWSError("Error handling answer", error);
+                logFuns.logWSError("Error handling answer", error);
             }
         }
 
@@ -419,7 +419,7 @@ export async function openChannelToPeer(funDoSync, logFuns, btnTestSend) {
                 logFuns.logWSimportant("peerConnection.addIceCanditate", candidate);
                 await peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
             } catch (error) {
-                logWSError("Error in handlingCandidate", error, candidate);
+                logFuns.logWSError("Error in handlingCandidate", error, candidate);
             }
         }
 
@@ -438,19 +438,19 @@ export async function openChannelToPeer(funDoSync, logFuns, btnTestSend) {
                 signalingChannel.close();
                 logFuns.setSyncLogState("Connected to peer", "green");
                 resolve(dataChannel);
-                // funDoSync(dataChannel);
             });
             dataChannel.addEventListener("message", (evt) => logFuns.logDataChannel(dataChannel.id, "message", evt.data));
-            dataChannel.addEventListener("message", (evt) => console.log("message 2", dataChannel.id, evt.data));
+            // dataChannel.addEventListener("message", (evt) => console.log("message 2", dataChannel.id, evt.data));
             dataChannel.addEventListener("error", (evt) => {
                 btnTestSend.style.backgroundColor = "black";
                 btnTestSend.style.color = "red";
-                logWSError("datachannel error", evt);
+                logFuns.logWSError("datachannel error", evt);
             });
             dataChannel.addEventListener("close", (evt) => {
                 btnTestSend.style.backgroundColor = "red";
                 btnTestSend.style.color = "black";
                 logFuns.logDataChannel(dataChannel.id, "close", evt.data);
+                logFuns.setSyncLogState("Disconnected from peer", "gray");
             });
 
             return dataChannel;
