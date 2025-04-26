@@ -1149,10 +1149,14 @@ export function validateDownloadFilename(filename) {
         return `Filename not permitted: ${filename}`;
     }
     // Windows
-    if (/^\./.test(filename)) return `Filename must not begin with "."`;
-    if (/\.$/.test(filename)) return `Filename must not end with "."`;
+    // if (/^\./.test(filename)) return `Filename must not begin with "."`;
+    if (filename.startsWith(".")) return `Filename must not begin with "."`;
+    // if (/\.$/.test(filename)) return `Filename must not end with "."`;
+    if (filename.endsWith(".")) return `Filename must not end with "."`;
     // Unix
     if (filename.startsWith("-")) return `Filename must not begin with "-"`;
+
+    // eslint-disable-next-line no-control-regex
     const reControl = /[\x00-\x1f\x80-\x9f]/g;
     if (reControl.test(filename)) {
         return `Control chars not allowed in filename`;
@@ -2390,7 +2394,7 @@ export function mkMDCsnackbar(msg, msTimeout, styles) {
     const objStyles = styles || {};
     Object.keys(objStyles).forEach(prop => {
         if (!["background-color", "color"].includes(prop)) {
-            debugger;
+            debugger; // eslint-disable-line no-debugger
             throw Error(`Style prop not allowed: "${prop}"`);
         };
     });

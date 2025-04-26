@@ -124,7 +124,7 @@ function setSyncLogState(state, color) {
     divSyncLogHeader.inert = false;
 }
 function setSyncLogInitiator(tellIsInitiator) {
-    isInitiator = tellIsInitiator;
+    // _isInitiator = tellIsInitiator;
     divSyncLogState.style.textDecoration = tellIsInitiator ? "overline" : "underline";
 }
 
@@ -197,7 +197,6 @@ export async function replicationDialog() {
 
 
 
-    // const inpRoom = mkElt("input", { type: "text" });
     const inpRoom = settingRoom.getInputElement();
     inpRoom.style = `
     margin-left: 10px;
@@ -205,9 +204,7 @@ export async function replicationDialog() {
     border-radius: 5px;
     padding: 4px;
 `;
-    inpRoom.addEventListener("input", (evt) => {
-        // evt.stopPropagation();
-        // saveRoomKey();
+    inpRoom.addEventListener("input", (_evt) => {
         checkSyncKeys();
     });
     const lblRoom = mkElt("label", undefined, ["Room: ", inpRoom]);
@@ -289,7 +286,7 @@ export async function replicationDialog() {
     font-weight: 500;
     font-style: italic;
 `;
-    inpSecret.addEventListener("input", (evt) => {
+    inpSecret.addEventListener("input", (_evt) => {
         // evt.stopPropagation();
         const passkey = inpSecret.value.trim();
         const strength = getAndShowStrength(passkey);
@@ -483,64 +480,12 @@ export async function replicationDialog() {
         `;
 
     let replicationPool;
-    /*
-    const OLDiconReplicate = modMdc.mkMDCicon("sync_alt");
-    const OLDbtnReplicate2 = modMdc.mkMDCbutton("Sync devices", "raised", OLDiconReplicate);
-    OLDbtnReplicate2.title = "Sync your mindmaps between your devices";
-    OLDbtnReplicate2.addEventListener("click", async (evt) => {
-        evt.stopPropagation();
-        OLDbtnStopReplicate.inert = false;
-        OLDbtnReplicate2.inert = true;
-        const room = `mm4i: ${inpRoom.value.trim()}`;
-        const passkey = inpSecret.value.trim();
-        debugger; // eslint-disable-line no-debugger
-    });
-    */
-
-    /*
-    const divReplicate2 = mkElt("p", undefined, [
-        btnReplicate2,
-    ]);
-    divReplicate2.style = `
-        display: flex;
-        display: none;
-        gap: 10px;
-        `;
-    */
 
 
 
-    /*
-    const btnTestIdbReplicator = modMdc.mkMDCbutton("Test idb-replicator", "raised");
-    btnTestIdbReplicator.title = "just a test";
-    btnTestIdbReplicator.addEventListener("click", async (evt) => {
-        evt.stopPropagation();
-        const body = mkElt("div", undefined, [
-            mkElt("p", undefined, `This is a test of the sync functionality. `),
-            mkElt("p", undefined, `It will not affect your mindmap.`),
-        ]);
-        const answer = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel");
-        if (answer) {
-            const room = "mm4i: test sync";
-            const passkey = "test sync passkey";
-            const modIdbReplicator = await importFc4i("idb-replicator");
-            console.log({ modIdbReplicator });
-            debugger;
-            modIdbReplicator.establishConnection("test-client-id");
-            modMdc.mkMDCsnackbar("Started sync", 6000);
-        } else {
-            modMdc.mkMDCsnackbar("Canceled sync", 6000);
-        }
-    });
-    */
 
 
-    /*
-    const divIdbReplicator = mkElt("div", undefined, [
-        mkElt("p", undefined, `This is a test.Nothing is done here yet.`),
-        btnTestIdbReplicator,
-    ]);
-    */
+
 
 
     const iconReplication = modMdc.mkMDCicon("sync_alt");
@@ -552,14 +497,14 @@ export async function replicationDialog() {
     btnStopReplication.title = "Stop sync";
     btnStopReplication.inert = true;
 
-    let isReplicating = false;
+    let _isReplicating = false;
 
     btnStartReplication.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         btnStartReplication.inert = true;
         btnStopReplication.inert = false;
         btnTestSend.inert = false;
-        isReplicating = true;
+        _isReplicating = true;
         const objLogFuns = {
             logWSError,
             setSyncLogState,
@@ -570,17 +515,18 @@ export async function replicationDialog() {
             logWSdetail,
             logDataChannel,
         };
-        const useNew = false;
+        // const useNew = false;
+        const useNew = true;
         if (useNew) {
             dataChannel = await mod2peers.openChannelToPeer(objLogFuns, btnTestSend);
             doSync(dataChannel);
         } else {
-            OLDopenChannelToPeer(doSync);
+            // OLDopenChannelToPeer(doSync);
         }
     });
     btnStopReplication.addEventListener("click", async (evt) => {
         evt.stopPropagation();
-        isReplicating = false;
+        _isReplicating = false;
         if (replicationPool) {
             await replicationPool.cancel();
             replicationPool = undefined;
@@ -602,7 +548,7 @@ export async function replicationDialog() {
         const dataChannelState = dataChannel?.readyState;
         // const signalingChannel.
         if (dataChannel && dataChannelState === "open") {
-            const obj = {
+            const _obj = {
                 type: "test-hi",
                 msg
             }
@@ -613,7 +559,7 @@ export async function replicationDialog() {
             modMdc.mkMDCsnackbar(msgInfo)
         } else {
             const msgError = `btnTestSend Data channel not open: "${dataChannelState}"`;
-            console.error(msgError, { isInitiator });
+            console.error(msgError);
             modMdc.mkMDCsnackbarError(msgError, 10 * 1000);
         }
     });
@@ -662,10 +608,11 @@ export async function replicationDialog() {
 
 }
 
-let signalingChannel;
-let myId;
-let clientNum;
-let isInitiator = false;
+// let signalingChannel;
+// let myId;
+// let clientNum;
+// let isInitiator = false;
+/*
 async function OLDopenChannelToPeer(funDoSync) {
     // https://www.videosdk.live/developer-hub/webrtc/webrtc-signaling-server
     // https://webrtc.org/getting-started/peer-connections
@@ -846,15 +793,7 @@ async function OLDopenChannelToPeer(funDoSync) {
             // iceServers: freeIceServers
         };
 
-        // chkOpenRelay
-        /*
-        function useOpenRelay() {
-            const checked = localStorage.getItem(keyUseOpenRelay);
-            return checked;
-        }
-        */
         function openRelayCred() {
-            // return localStorage.getItem(keyOpenRelayCred);
             return settingOpenRelayCred.valueS;
         }
 
@@ -966,7 +905,7 @@ async function OLDopenChannelToPeer(funDoSync) {
                     debugger;
                     logWSimportant(`Something has changed in API: old: ${oldId} == new: ${newId}`);
                 }
-                logWSimportant(`dataChannel = event.channel, old: ${oldId}, new: ${newId}`);
+                logWSimportant(`dataChannel=event.channel, old: ${oldId}, new: ${newId}`);
                 const oldState = oldChannel.readyState;
                 const newState = newChannel.readyState;
                 logWSimportant(`states - old: ${oldId}/${oldState}, new: ${newId}/${newState}`);
@@ -1125,7 +1064,7 @@ async function OLDopenChannelToPeer(funDoSync) {
     }
 
 }
-
+*/
 
 let handledOpenBefore = false;
 const modDbMindmaps = await importFc4i("db-mindmaps");
@@ -1153,10 +1092,10 @@ async function doSync(dataChannel) {
     const wasOpenedBefore = handledOpenBefore;
     // if (wasOpenedBefore) debugger; // FIX-ME:
     handledOpenBefore = true;
-    debugger;
+    debugger; // eslint-disable-line no-debugger
     dataChannel.addEventListener("message", evt => {
         // evt.stopPropagation();
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         logDataChannel(dataChannel.id, "message synch", evt);
         handleMessageSync(evt);
     });
@@ -1215,7 +1154,7 @@ async function doSync(dataChannel) {
                 peerMindmaps = data.myMindmaps;
                 if (peerMindmaps == undefined) throw Error(`data.myMindmaps is undefined`);
                 console.log({ peerMindmaps, myMindmaps });
-                debugger;
+                debugger; // eslint-disable-line no-debugger
                 tellWhatIneed();
                 break;
             case "need-keys":
@@ -1249,7 +1188,7 @@ async function doSync(dataChannel) {
             case "mindmaps-you-needed":
                 const arrNeededMindmaps = data.arrNeededMindmaps;
                 arrNeededMindmaps.forEach(mm => {
-                    debugger;
+                    debugger; // eslint-disable-line no-debugger
                     const key = mm.key;
                     const [metaKey, metaUpdated] = mm.meta.name.split("/");
                     if (key != metaKey) throw Error(`key:${key} != metaKey:${metaKey}`);

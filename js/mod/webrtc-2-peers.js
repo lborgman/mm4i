@@ -10,6 +10,7 @@ let dataChannel;
 let myId;
 let clientNum;
 let isInitiator = false;
+const urlSignaling = "ws://localhost:3000";
 
 /**
  * 
@@ -57,9 +58,6 @@ export async function openChannelToPeer(logFuns, btnTestSend) {
                 });
             })();
         console.log({ freeIceServers });
-
-        const urlSignaling = "ws://localhost:3000";
-
 
         function connectSignalingWebSocket(urlSignaling) {
             return new Promise((resolve, reject) => {
@@ -239,7 +237,7 @@ export async function openChannelToPeer(logFuns, btnTestSend) {
             function initialCreateDatachannel() {
                 logFuns.logWSimportant('peerConnection.createDataChannel("textChannel"');
                 dataChannel = peerConnection.createDataChannel("textChannel");
-                // setupDataChannel();
+                setupDataChannel();
             }
 
 
@@ -318,7 +316,7 @@ export async function openChannelToPeer(logFuns, btnTestSend) {
                     const oldId = oldChannel.id;
                     const newId = newChannel.id;
                     if (oldId == newId) {
-                        debugger;
+                        debugger; // eslint-disable-line no-debugger
                         logFuns.logWSimportant(`Something has changed in API: old: ${oldId} == new: ${newId}`);
                     }
                     logFuns.logWSimportant(`dataChannel = event.channel, old: ${oldId}, new: ${newId}`);
@@ -345,7 +343,7 @@ export async function openChannelToPeer(logFuns, btnTestSend) {
                 btnTestSend.style.color = "black";
                 const msg = `Peer close, close dataChannel:${dataChannel.id}`;
                 logFuns.logWSimportant(msg);
-                debugger;
+                debugger; // eslint-disable-line no-debugger
                 dataChannel.close();
                 dataChannel = null;
                 peerConnection = null;
@@ -369,14 +367,14 @@ export async function openChannelToPeer(logFuns, btnTestSend) {
             const fromMyId = mFrom[1];
             const fromClient = mFrom[2];
             const fromClientNum = parseInt(fromClient.slice(10));
-            if (fromMyId == myId) debugger;
-            if (fromClientNum == clientNum) debugger;
+            if (fromMyId == myId) debugger; // eslint-disable-line no-debugger
+            if (fromClientNum == clientNum) debugger; // eslint-disable-line no-debugger
             if (isInitiator) {
                 logFuns.logWSdetail("Is initiator, skipping offer");
                 // FIX-ME: has not this already been done???
                 logFuns.logWSimportant("peerConnection.setLocalDescription(myOffer)", myOffer);
                 await peerConnection.setLocalDescription(myOffer);
-                setupDataChannel();
+                // setupDataChannel();
                 return;
             }
             // setupDataChannel();
@@ -387,7 +385,7 @@ export async function openChannelToPeer(logFuns, btnTestSend) {
                 const answer = await peerConnection.createAnswer();
                 logFuns.logWSimportant("peerConnection.setLocalDescription(answer)");
                 await peerConnection.setLocalDescription(answer); // Will send ICE Candidate to server
-                setupDataChannel();
+                // setupDataChannel();
 
                 signalingChannel.send(JSON.stringify({
                     type: "answer",
@@ -483,3 +481,8 @@ export async function openChannelToPeer(logFuns, btnTestSend) {
     });
 }
 
+export function getDataChannel() { return dataChannel; }
+export function getIsInitiator() { return isInitiator; }
+export function getMyId() { return myId; }
+export function getClientNum() { return clientNum; }
+export function getUrlSignaling() { return urlSignaling; }
