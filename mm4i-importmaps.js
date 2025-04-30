@@ -148,6 +148,8 @@ console.log({ baseUrl });
         // "no-ui-slider": "https://raw.githubusercontent.com/leongersen/noUiSlider/refs/heads/master/dist/nouislider.mjs",
         // "no-ui-slider": "https://cdn.jsdelivr.net/gh/leongersen/noUiSlider@master/dist/nouislider.mjs",
         "no-ui-slider": "./ext/no-ui-slider/nouislider.mjs",
+        // "peerjs": "https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js",
+        "peerjs": "https://esm.sh/peerjs@1.5.4?bundle-deps",
 
         // new
         "stairs": "./js/mod/stairs.js",

@@ -1,7 +1,7 @@
 // @ts-check
-const LOCAL_SETTINGS_VER = "0.0.00";
-window["logConsoleHereIs"](`here is webrtc-2-peers.js, module, ${LOCAL_SETTINGS_VER}`);
-console.log(`%chere is webrtc-2-peers.js ${LOCAL_SETTINGS_VER}`, "font-size:20px;");
+const WEBRTC2PEERS_VER = "0.0.01";
+window["logConsoleHereIs"](`here is webrtc-2-peers.js, module, ${WEBRTC2PEERS_VER}`);
+console.log(`%chere is webrtc-2-peers.js ${WEBRTC2PEERS_VER}`, "font-size:20px;");
 if (document.currentScript) { throw "webrtc-2-peers.js is not loaded as module"; }
 
 
@@ -21,6 +21,7 @@ const urlSignaling = "ws://localhost:3000";
 export async function openChannelToPeer(logFuns, btnTestSend) {
     // https://www.videosdk.live/developer-hub/webrtc/webrtc-signaling-server
     // https://webrtc.org/getting-started/peer-connections
+    // https://webrtc.org/getting-started/peer-connections-advanced
 
     return new Promise(async (resolve, reject) => {
 
@@ -171,16 +172,14 @@ export async function openChannelToPeer(logFuns, btnTestSend) {
                 logFuns.logWSinfo("Peer connection already exists, skipping start");
                 return;
             }
-            // logWebSocketInfo("start Peer Connection");
-            // _logSyncLog("Start peer connection");
 
             await setupPeerConnection();
             if (!peerConnection) throw Error("peerConnection is undefined");
 
             logFuns.logWSimportant("await peerConnection.createOffer()");
             myOffer = await peerConnection.createOffer();
-            // logFuns.logWSdetail("Offer created:", myOffer);
-            // await peerConnection.setLocalDescription(myOffer);
+            logFuns.logWSimportant("await peerConnection.setLocalDescription(myOffer)");
+            await peerConnection.setLocalDescription(myOffer);
             signalingChannel.send(JSON.stringify({
                 type: "offer",
                 offer: myOffer,
@@ -230,14 +229,14 @@ export async function openChannelToPeer(logFuns, btnTestSend) {
                 iceConfiguration.iceServers = freeIceServers;
             }
 
-            logFuns.logWSimportant("new RTCPeerConnection", { iceConfiguration });
+            logFuns.logWSinfo("new RTCPeerConnection", { iceConfiguration });
             peerConnection = new RTCPeerConnection(iceConfiguration);
 
             initialCreateDatachannel();
             function initialCreateDatachannel() {
                 logFuns.logWSimportant('peerConnection.createDataChannel("textChannel"');
                 dataChannel = peerConnection.createDataChannel("textChannel");
-                setupDataChannel();
+                // setupDataChannel();
             }
 
 
@@ -319,7 +318,7 @@ export async function openChannelToPeer(logFuns, btnTestSend) {
                         debugger; // eslint-disable-line no-debugger
                         logFuns.logWSimportant(`Something has changed in API: old: ${oldId} == new: ${newId}`);
                     }
-                    logFuns.logWSimportant(`dataChannel = event.channel, old: ${oldId}, new: ${newId}`);
+                    logFuns.logWSimportant(`dataChannel= event.channel, old: ${oldId}, new: ${newId}`);
                     const oldState = oldChannel.readyState;
                     const newState = newChannel.readyState;
                     logFuns.logWSimportant(`states - old: ${oldId}/${oldState}, new: ${newId}/${newState}`);
@@ -370,22 +369,24 @@ export async function openChannelToPeer(logFuns, btnTestSend) {
             if (fromMyId == myId) debugger; // eslint-disable-line no-debugger
             if (fromClientNum == clientNum) debugger; // eslint-disable-line no-debugger
             if (isInitiator) {
+            // if (false) {
                 logFuns.logWSdetail("Is initiator, skipping offer");
                 // FIX-ME: has not this already been done???
-                logFuns.logWSimportant("peerConnection.setLocalDescription(myOffer)", myOffer);
-                await peerConnection.setLocalDescription(myOffer);
+                // logFuns.logWSimportant("peerConnection.setLocalDescription(myOffer)", myOffer);
+                // await peerConnection.setLocalDescription(myOffer);
                 // setupDataChannel();
                 return;
             }
-            // setupDataChannel();
+            setupDataChannel();
             try {
+                // debugger;
                 logFuns.logWSimportant("peerConnection.setRemoteDescription");
                 await peerConnection.setRemoteDescription(new RTCSessionDescription(offer));
                 logFuns.logWSimportant("await peerConnection.createAnswer()");
                 const answer = await peerConnection.createAnswer();
                 logFuns.logWSimportant("peerConnection.setLocalDescription(answer)");
                 await peerConnection.setLocalDescription(answer); // Will send ICE Candidate to server
-                // setupDataChannel();
+                setupDataChannel();
 
                 signalingChannel.send(JSON.stringify({
                     type: "answer",
@@ -486,3 +487,4 @@ export function getIsInitiator() { return isInitiator; }
 export function getMyId() { return myId; }
 export function getClientNum() { return clientNum; }
 export function getUrlSignaling() { return urlSignaling; }
+export function getVersion() { return WEBRTC2PEERS_VER; }
