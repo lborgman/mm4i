@@ -1,5 +1,5 @@
 // @ts-check
-const MM4I_REPL_VER = "0.0.01";
+const MM4I_REPL_VER = "0.0.02";
 window["logConsoleHereIs"](`here is mm4i-replication.js, module, ${MM4I_REPL_VER}`);
 console.log(`%chere is mm4i-replication.js ${MM4I_REPL_VER}`, "font-size:20px;");
 if (document.currentScript) { throw "mm4i-replication.js is not loaded as module"; }
@@ -21,8 +21,8 @@ const mkElt = window["mkElt"];
 // const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 const importFc4i = window["importFc4i"];
 
-const mod2peers = await importFc4i("webrtc-2-peers");
-console.log({ mod2peers });
+// const mod2peers = await importFc4i("webrtc-2-peers");
+// console.log({ mod2peers });
 
 // const keyRoomKey = "mm4i-webrct-room-key";
 const secretKeyMinLength = 8;
@@ -50,6 +50,7 @@ const settingSecret = new SettingsRepl("secret", "");
 const settingPeerjsId = new SettingsRepl("peerjs-id", "");
 // const settingPeerjsSavedPeers = new SettingsRepl("peerjs-saved-peers", JSON.stringify([]));
 const settingPeerjsSavedPeers = new SettingsRepl("peerjs-saved-peers", []);
+const settingPeerjsLatestPeer = new SettingsRepl("latest-peer", null); // A string, but we would like to set it
 
 
 /*
@@ -142,7 +143,8 @@ function setSyncLogInactive() {
 
 let mm4iDataChannel;
 export async function replicationDialog() {
-    const peersVer = mod2peers.getVersion();
+    // const peersVer = mod2peers.getVersion();
+    const peersVer = "No 2peers";
     const notReady = mkElt("p", undefined, `Not ready yet (${MM4I_REPL_VER}/${peersVer})`);
     notReady.style = `color: red; font-size: 1.5rem; background: yellow; padding: 10px;`;
 
@@ -649,38 +651,51 @@ const myMindmaps = await (async () => {
     return mindmaps;
 })();
 let peerMindmaps;
+function makePublicId(privateId) {
+    // FIX-ME:
+    const id = `mm4i-${privateId}`;
+    return id;
+}
+let peerJsDataConnection;
 async function peerJsSync(myPeerjsId) {
     const modPeerjs = await importFc4i("peerjs");
-    const id = `mm4i-${myPeerjsId}`;
-    const peer = new modPeerjs.Peer(id);
+    const publicId = makePublicId(myPeerjsId);
+    const peer = new modPeerjs.Peer(publicId);
     peer.on('open', async (id) => {
-        console.log('My peer ID is: ' + id);
-        const otherId = await getOtherPeerId();
-        debugger;
-        console.log({ otherId });
+        console.log('ON OPEN, My peer ID is: ' + id);
+        const remotePrivateId = await getOtherPeerPrivateId();
+        // debugger;
+        if (remotePrivateId == undefined) {
+            // peer.close(); // FIX-ME: close peer connection
+            peer.destroy(); // FIX-ME: close peer connection
+            return;
+        }
+        const remotePublicId = makePublicId(remotePrivateId);
+        console.log({ remotePrivateId, remotePublicId });
+        peerJsDataConnection = peer.connect(remotePublicId, { reliable: true });
+        console.log("peer ON OPEN", { peerJsDataConnection });
+        peerJsDataConnection.on('data', (data) => {
+            console.log("peerJsConnection data", { data });
+            // logDataChannel(peerJsDataConnection.id, "message", data);
+            // handleMessageSync(data);
+        });
+        const msgHelloO = "Hello ON OPEN from " + myPeerjsId;
+        peerJsDataConnection.send(msgHelloO);
+        console.log("Sent", msgHelloO);
+    });
+    peer.on('connection', (conn) => {
+        console.log("peer ON connection", { conn });
+        peerJsDataConnection = conn;
+        const msgHelloC = "Hello ON CONNECTION from " + myPeerjsId;
+        peerJsDataConnection.send(msgHelloC);
+        console.log("Sent", msgHelloC);
     });
 }
-async function getOtherPeerId() {
-    // const savedPeers = settingPeerjsSavedPeers.valueS;
-    // console.log({ savedPeers });
-    // let arrSavedPeers = JSON.parse(savedPeers);
-    let arrSavedPeers = settingPeerjsSavedPeers.value;
-    console.log({ arrSavedPeers });
-    // debugger;
-    const otherPeerId = arrSavedPeers[0];
-    console.log({ otherPeerId });
+async function getOtherPeerPrivateId() {
+    // let arrSavedPeers = settingPeerjsSavedPeers.value;
+    // console.log({ arrSavedPeers });
     const eltKnownPeers = mkElt("p", { id: "mm4i-known-peers" });
     listPeers();
-    /*
-    if (arrSavedPeers.length === 0) {
-        eltKnownPeers.textContent = "No saved web browser names";
-    }
-    else {
-        arrSavedPeers.forEach((peer, idx) => {
-            console.log(`${idx + 1}: ${peer}`);
-        });
-    }
-    */
     const inpOtherPeerId = mkElt("input", { type: "text" });
     const lblOtherPeerId = mkElt("label", undefined, ["Add web browser: ", inpOtherPeerId]);
     const btnAddPeer = mkElt("button", undefined, "Add");
@@ -700,21 +715,22 @@ async function getOtherPeerId() {
     function listPeers() {
         eltKnownPeers.textContent = "";
         const arrSavedPeers = settingPeerjsSavedPeers.value;
-        console.log({ arrSavedPeers });
+        // console.log({ arrSavedPeers });
         if (arrSavedPeers.length === 0) {
             eltKnownPeers.textContent = "No saved web browser names";
         } else {
             eltKnownPeers.appendChild(mkElt("div", undefined, [`Known peer web browsers:`]));
             arrSavedPeers.forEach((peer, idx) => {
-                console.log(`${idx + 1}: ${peer}`);
+                // console.log(`${idx + 1}: ${peer}`);
                 const btnRemove = mkElt("button", undefined, "Remove");
                 btnRemove.addEventListener("click", async (evt) => {
                     evt.stopPropagation();
                     removePeerId(peer);
                     listPeers(); // FIX-ME:
                     const msg = `Removed peer id "${peer}"`;
+                    modMdc.mkMDCsnackbar(msg, 4000);
                 });
-                const radPeer = mkElt("input", {type:"radio", name:"remote-peer"});
+                const radPeer = mkElt("input", { type: "radio", name: "remote-peer", value: peer });
                 const lblPeer = mkElt("label", undefined, [
                     radPeer,
                     mkElt("span", undefined, peer),
@@ -757,7 +773,20 @@ async function getOtherPeerId() {
     ]);
     const answer = await modMdc.mkMDCdialogConfirm(body, "Sync", "Cancel");
     console.log({ answer });
-    return otherPeerId;
+    // debugger;
+    if (!answer) {
+        modMdc.mkMDCsnackbarError("Canceled", 4000);
+        return;
+    }
+    const radSelected = eltKnownPeers.querySelector("input[type=radio][name=remote-peer]:checked");
+    if (!radSelected) {
+        const msg = `No remote peer was selected`;
+        console.error(msg);
+        modMdc.mkMDCsnackbarError(msg, 4000);
+        return;
+    }
+    const remotePeerId = radSelected.value;
+    return remotePeerId;
 }
 
 async function doSync(dataChannel) {
