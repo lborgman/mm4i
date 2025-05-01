@@ -673,23 +673,38 @@ async function peerJsSync(myPeerjsId) {
         const remotePublicId = makePublicId(remotePrivateId);
         console.log({ remotePrivateId, remotePublicId });
         peerJsDataConnection = peer.connect(remotePublicId, { reliable: true });
-        console.log("peer ON OPEN", { peerJsDataConnection });
-        peerJsDataConnection.on('data', (data) => {
-            console.log("peerJsConnection data", { data });
-            // logDataChannel(peerJsDataConnection.id, "message", data);
-            // handleMessageSync(data);
-        });
+        setupDataConnection(peerJsDataConnection);
+
         const msgHelloO = "Hello ON OPEN from " + myPeerjsId;
+        console.log("Sending", msgHelloO);
         peerJsDataConnection.send(msgHelloO);
-        console.log("Sent", msgHelloO);
     });
     peer.on('connection', (conn) => {
         console.log("peer ON connection", { conn });
         peerJsDataConnection = conn;
-        const msgHelloC = "Hello ON CONNECTION from " + myPeerjsId;
-        peerJsDataConnection.send(msgHelloC);
-        console.log("Sent", msgHelloC);
+        setupDataConnection(peerJsDataConnection);
     });
+    function setupDataConnection(dataChannel) {
+        console.log("setupDataConnection", { dataChannel });
+        dataChannel.on('open', () => {
+            console.log("peerJsDataConnection open", { dataChannel });
+            const msgHelloO = "Hello ON CONNECTION from " + myPeerjsId;
+            console.log("Sending", msgHelloO);
+            peerJsDataConnection.send(msgHelloO);
+            // doSync(dataChannel);
+        });
+        dataChannel.on('data', (data) => {
+            console.log("peerJsDataConnection data", { data });
+            // logDataChannel(dataChannel.id, "message", data);
+            // handleMessageSync(data);
+        });
+        dataChannel.on('error', (err) => {
+            console.log("peerJsDataConnection error", { err });
+        });
+        dataChannel.on('close', () => {
+            console.log("peerJsDataConnection close", { dataChannel });
+        });
+    }
 }
 async function getOtherPeerPrivateId() {
     // let arrSavedPeers = settingPeerjsSavedPeers.value;
