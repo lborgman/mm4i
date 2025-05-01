@@ -695,7 +695,7 @@ async function peerJsSync(myPeerjsId) {
     function setupDataConnection(dataChannel) {
         console.log("setupDataConnection", { dataChannel });
         dataChannel.on('open', () => {
-            console.log("peerJsDataConnection open", { dataChannel });
+            console.warn("peerJsDataConnection open", { dataChannel });
             const msgHelloO = "Hello ON CONNECTION from " + myPeerjsId;
             console.log("Sending", msgHelloO);
             peerJsDataConnection.send(msgHelloO);
@@ -707,13 +707,14 @@ async function peerJsSync(myPeerjsId) {
             // handleMessageSync(data);
         });
         dataChannel.on('error', (err) => {
-            console.log("peerJsDataConnection error", { err });
+            console.error("peerJsDataConnection error", { err });
         });
         dataChannel.on('close', () => {
-            console.log("peerJsDataConnection close", { dataChannel });
+            console.warn("peerJsDataConnection close", { dataChannel });
         });
     }
 }
+let ourOkButton;
 async function getOtherPeerPrivateId() {
     // let arrSavedPeers = settingPeerjsSavedPeers.value;
     // console.log({ arrSavedPeers });
@@ -748,7 +749,10 @@ async function getOtherPeerPrivateId() {
         if (arrSavedPeers.length === 0) {
             eltKnownPeers.textContent = "No saved web browser names";
         } else {
+            if (ourOkButton) { ourOkButton.inert = false; }
             eltKnownPeers.appendChild(mkElt("div", undefined, [`Known other web browsers:`]));
+            const latestPeer = settingPeerjsLatestPeer.value;
+            let didSelect = false;
             arrSavedPeers.forEach((peer, idx) => {
                 const iconRemove = modMdc.mkMDCicon("delete_forever");
                 const btnRemove = modMdc.mkMDCiconButton(iconRemove, "Remove", 30);
@@ -773,6 +777,15 @@ async function getOtherPeerPrivateId() {
                     height: 40px;
                     `;
                 // const divLblPeer = mkElt("div", undefined, lblPeer);
+                if (!didSelect) {
+                    if (!latestPeer) {
+                        radPeer.checked = true;
+                        didSelect = true;
+                    } else if (latestPeer == peer) {
+                        radPeer.checked = true;
+                        didSelect = true;
+                    }
+                }
                 eltKnownPeers.appendChild(lblPeer);
             });
         }
@@ -807,14 +820,22 @@ async function getOtherPeerPrivateId() {
         eltKnownPeers,
         divAddPeer,
     ]);
-    const answer = await modMdc.mkMDCdialogConfirm(body, "Sync", "Cancel");
+    // listp
+    const getRadSelectedPeer = () => { return eltKnownPeers.querySelector("input[type=radio][name=remote-peer]:checked"); }
+    const funOkButton = (eltOkButton) => {
+        // console.log("eltOkButton", eltOkButton);
+        ourOkButton = eltOkButton;
+    if (!getRadSelectedPeer()) { ourOkButton.inert = true; }
+    };
+    const answer = await modMdc.mkMDCdialogConfirm(body, "Sync", "Cancel", undefined, funOkButton);
     console.log({ answer });
     // debugger;
     if (!answer) {
         modMdc.mkMDCsnackbarError("Canceled", 4000);
         return;
     }
-    const radSelected = eltKnownPeers.querySelector("input[type=radio][name=remote-peer]:checked");
+    // const radSelected = eltKnownPeers.querySelector("input[type=radio][name=remote-peer]:checked");
+    const radSelected = getRadSelectedPeer();
     if (!radSelected) {
         const msg = `No remote peer was selected`;
         console.error(msg);
