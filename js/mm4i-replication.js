@@ -326,10 +326,10 @@ export async function replicationDialog() {
     });
     getAndShowStrength(settingSecret.valueS);
 
-    const lblPeerjsId = mkElt("label", undefined, ["This peer id: ", inpPeerjsId]);
+    const lblPeerjsId = mkElt("label", undefined, ["Name for this web browser: ", inpPeerjsId]);
     lblPeerjsId.style = `
       display: grid;
-      grid-template-columns: auto 1fr auto;
+      grid-template-columns: auto 1fr;
       align-items: center;
       NOgap: 5px;
       font-weight: 500;
@@ -719,17 +719,23 @@ async function getOtherPeerPrivateId() {
     // console.log({ arrSavedPeers });
     const eltKnownPeers = mkElt("p", { id: "mm4i-known-peers" });
     listPeers();
-    const inpOtherPeerId = mkElt("input", { type: "text" });
-    const lblOtherPeerId = mkElt("label", undefined, ["Add web browser: ", inpOtherPeerId]);
-    const btnAddPeer = mkElt("button", undefined, "Add");
-    const divOtherPeerId = mkElt("div", undefined, [
-        lblOtherPeerId, btnAddPeer
+    const inpAddPeer = mkElt("input", { type: "text" });
+    const lblAddPeer = mkElt("label", undefined, ["Add web browser: ", inpAddPeer]);
+    const iconAddPeer = modMdc.mkMDCicon("add_circle_outline");
+    const btnAddPeer = modMdc.mkMDCiconButton(iconAddPeer, "Add", 30);
+    btnAddPeer.title = "Add other web browser";
+    const divAddPeer = mkElt("div", undefined, [
+        lblAddPeer, btnAddPeer
     ]);
+    divAddPeer.style = `
+        display: flex;
+        align-items: center;
+        `;
     btnAddPeer.addEventListener("click", async (evt) => {
         evt.stopPropagation();
-        const newPeerId = inpOtherPeerId.value.trim();
+        const newPeerId = inpAddPeer.value.trim();
         if (newPeerId.length === 0) {
-            modMdc.mkMDCsnackbar("No peer id entered", 4000);
+            modMdc.mkMDCsnackbar("No name was entered", 4000);
             return;
         }
         addPeerId(newPeerId);
@@ -742,10 +748,11 @@ async function getOtherPeerPrivateId() {
         if (arrSavedPeers.length === 0) {
             eltKnownPeers.textContent = "No saved web browser names";
         } else {
-            eltKnownPeers.appendChild(mkElt("div", undefined, [`Known peer web browsers:`]));
+            eltKnownPeers.appendChild(mkElt("div", undefined, [`Known other web browsers:`]));
             arrSavedPeers.forEach((peer, idx) => {
-                // console.log(`${idx + 1}: ${peer}`);
-                const btnRemove = mkElt("button", undefined, "Remove");
+                const iconRemove = modMdc.mkMDCicon("delete_forever");
+                const btnRemove = modMdc.mkMDCiconButton(iconRemove, "Remove", 30);
+                btnRemove.title = "Remove this web browser from the list";
                 btnRemove.addEventListener("click", async (evt) => {
                     evt.stopPropagation();
                     removePeerId(peer);
@@ -759,8 +766,14 @@ async function getOtherPeerPrivateId() {
                     mkElt("span", undefined, peer),
                     btnRemove,
                 ]);
-                const divLblPeer = mkElt("div", undefined, lblPeer);
-                eltKnownPeers.appendChild(divLblPeer);
+                lblPeer.style = `
+                    display: flex;
+                    gap: 10px;
+                    align-items: center;
+                    height: 40px;
+                    `;
+                // const divLblPeer = mkElt("div", undefined, lblPeer);
+                eltKnownPeers.appendChild(lblPeer);
             });
         }
     }
@@ -790,9 +803,9 @@ async function getOtherPeerPrivateId() {
 
     const body = mkElt("div", undefined, [
         mkElt("h2", undefined, "Sync with other web browser"),
-        mkElt("p", undefined, `This web browser id: "${settingPeerjsId.valueS}".`),
+        mkElt("p", undefined, ["This web browser: ", mkElt("b", undefined, settingPeerjsId.valueS)]),
         eltKnownPeers,
-        divOtherPeerId,
+        divAddPeer,
     ]);
     const answer = await modMdc.mkMDCdialogConfirm(body, "Sync", "Cancel");
     console.log({ answer });
