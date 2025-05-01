@@ -1,5 +1,5 @@
 // @ts-check
-const LOCAL_SETTINGS_VER = "0.2.00";
+const LOCAL_SETTINGS_VER = "0.3.00";
 window["logConsoleHereIs"](`here is local-settings.js, module, ${LOCAL_SETTINGS_VER}`);
 console.log(`%chere is local-settings.js ${LOCAL_SETTINGS_VER}`, "font-size:20px;");
 if (document.currentScript) { throw "local-settings.js is not loaded as module"; }
@@ -9,6 +9,8 @@ if (window.location.hostname == "localhost") {
     // console.log(`%cOur url: ${import.meta.url}`, "font-size:30px");
 }
 
+/** @typedef {string | number | boolean} inputType */
+/** @typedef {Object} jsonObjectType */
 
 /**
  * class for binding localStorage to HTML input element.
@@ -23,7 +25,8 @@ if (window.location.hostname == "localhost") {
  * */
 export class LocalSetting {
     #key; #defaultValue; #tofDef;
-    /** @type {string | number | boolean} */ #cachedValue;
+    // /** @type {string | number | boolean} */ #cachedValue;
+    /** @type {inputType | jsonObjectType} */ #cachedValue;
     #input;
     // static ourSettings = undefined;
 
@@ -38,7 +41,7 @@ export class LocalSetting {
         this.#defaultValue = defaultValue;
 
         const tofDef = typeof defaultValue;
-        const arrDef = ["string", "number", "boolean"];
+        const arrDef = ["string", "number", "boolean", "object"];
         if (!arrDef.includes(tofDef)) throw Error(`LocalSetting value type must be: ${arrDef}`);
         this.#tofDef = tofDef;
         // #addAndSetupInput() {}
@@ -49,6 +52,7 @@ export class LocalSetting {
                 case "string": itype = "text"; break;
                 case "number": itype = "number"; break;
                 case "boolean": itype = "checkbox"; break;
+                case "object": return;
                 default: throw Error("What did I do???");
             }
             const inp = document.createElement("input");
@@ -182,7 +186,8 @@ export class LocalSetting {
             throw Error(`#set_itemValue, ${this.#key}: typeof val==${tofVal}, expected ${this.#tofDef}`);
         }
         this.#cachedValue = val;
-        localStorage.setItem(this.#key, val.toString());
+        // localStorage.setItem(this.#key, val.toString());
+        localStorage.setItem(this.#key, JSON.stringify(val)); // FIX-ME: is this correct?
     }
     /** Fetch stored value and put it in #cachedValue */
     #get_stored_itemValue() {
@@ -209,12 +214,22 @@ export class LocalSetting {
                         throw Error(`String does not match boolean: ${stored}`);
                 }
                 break;
+            case "object":
+                const objJson = JSON.parse(stored); // FIX-ME: Can this be used for all value types?
+                this.#cachedValue = objJson;
+                break;
             default:
                 throw Error(`Can't handle default value type: ${defValType}`);
         }
     }
     /** Assign cached value to input element. */
     #setInputValue() {
+        if (!this.#input) {
+            if (this.#tofDef !== "object") {
+                throw Error("input is not set, but type is not object");
+            }
+            return;
+        }
         switch (this.#input.type) {
             case "checkbox":
                 if (typeof this.#cachedValue !== "boolean") throw Error("expected boolean");

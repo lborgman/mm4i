@@ -48,6 +48,8 @@ const settingOpenRelayCred = new SettingsRepl("open-relay-cred", "");
 const settingRoom = new SettingsRepl("room", "");
 const settingSecret = new SettingsRepl("secret", "");
 const settingPeerjsId = new SettingsRepl("peerjs-id", "");
+// const settingPeerjsSavedPeers = new SettingsRepl("peerjs-saved-peers", JSON.stringify([]));
+const settingPeerjsSavedPeers = new SettingsRepl("peerjs-saved-peers", []);
 
 
 /*
@@ -521,28 +523,27 @@ export async function replicationDialog() {
 
     btnStartReplication.addEventListener("click", async (evt) => {
         evt.stopPropagation();
-        btnStartReplication.inert = true;
-        btnStopReplication.inert = false;
-        btnTestSend.inert = false;
-        _isReplicating = true;
-        const objLogFuns = {
-            logWSError,
-            setSyncLogState,
-            setSyncLogInitiator,
-            logSignaling,
-            logWSimportant,
-            logWSinfo,
-            logWSdetail,
-            logDataChannel,
-        };
-        // const useNew = false;
         const usePeer2 = false;
         if (usePeer2) {
+            btnStartReplication.inert = true;
+            btnStopReplication.inert = false;
+            btnTestSend.inert = false;
+            _isReplicating = true;
+            const objLogFuns = {
+                logWSError,
+                setSyncLogState,
+                setSyncLogInitiator,
+                logSignaling,
+                logWSimportant,
+                logWSinfo,
+                logWSdetail,
+                logDataChannel,
+            };
             mm4iDataChannel = await mod2peers.openChannelToPeer(objLogFuns, btnTestSend);
             doSync(mm4iDataChannel);
         } else {
             // OLDopenChannelToPeer(doSync);
-            peerJsSync();
+            peerJsSync(settingPeerjsId.valueS);
         }
     });
     btnStopReplication.addEventListener("click", async (evt) => {
@@ -648,13 +649,115 @@ const myMindmaps = await (async () => {
     return mindmaps;
 })();
 let peerMindmaps;
-async function peerJsSync() {
+async function peerJsSync(myPeerjsId) {
     const modPeerjs = await importFc4i("peerjs");
-    const peer = new modPeerjs.Peer();
-    peer.on('open', function (id) {
+    const id = `mm4i-${myPeerjsId}`;
+    const peer = new modPeerjs.Peer(id);
+    peer.on('open', async (id) => {
         console.log('My peer ID is: ' + id);
+        const otherId = await getOtherPeerId();
         debugger;
+        console.log({ otherId });
     });
+}
+async function getOtherPeerId() {
+    // const savedPeers = settingPeerjsSavedPeers.valueS;
+    // console.log({ savedPeers });
+    // let arrSavedPeers = JSON.parse(savedPeers);
+    let arrSavedPeers = settingPeerjsSavedPeers.value;
+    console.log({ arrSavedPeers });
+    // debugger;
+    const otherPeerId = arrSavedPeers[0];
+    console.log({ otherPeerId });
+    const eltKnownPeers = mkElt("p", { id: "mm4i-known-peers" });
+    listPeers();
+    /*
+    if (arrSavedPeers.length === 0) {
+        eltKnownPeers.textContent = "No saved web browser names";
+    }
+    else {
+        arrSavedPeers.forEach((peer, idx) => {
+            console.log(`${idx + 1}: ${peer}`);
+        });
+    }
+    */
+    const inpOtherPeerId = mkElt("input", { type: "text" });
+    const lblOtherPeerId = mkElt("label", undefined, ["Add web browser: ", inpOtherPeerId]);
+    const btnAddPeer = mkElt("button", undefined, "Add");
+    const divOtherPeerId = mkElt("div", undefined, [
+        lblOtherPeerId, btnAddPeer
+    ]);
+    btnAddPeer.addEventListener("click", async (evt) => {
+        evt.stopPropagation();
+        const newPeerId = inpOtherPeerId.value.trim();
+        if (newPeerId.length === 0) {
+            modMdc.mkMDCsnackbar("No peer id entered", 4000);
+            return;
+        }
+        addPeerId(newPeerId);
+        listPeers();
+    });
+    function listPeers() {
+        eltKnownPeers.textContent = "";
+        const arrSavedPeers = settingPeerjsSavedPeers.value;
+        console.log({ arrSavedPeers });
+        if (arrSavedPeers.length === 0) {
+            eltKnownPeers.textContent = "No saved web browser names";
+        } else {
+            eltKnownPeers.appendChild(mkElt("div", undefined, [`Known peer web browsers:`]));
+            arrSavedPeers.forEach((peer, idx) => {
+                console.log(`${idx + 1}: ${peer}`);
+                const btnRemove = mkElt("button", undefined, "Remove");
+                btnRemove.addEventListener("click", async (evt) => {
+                    evt.stopPropagation();
+                    removePeerId(peer);
+                    listPeers(); // FIX-ME:
+                    const msg = `Removed peer id "${peer}"`;
+                });
+                const radPeer = mkElt("input", {type:"radio", name:"remote-peer"});
+                const lblPeer = mkElt("label", undefined, [
+                    radPeer,
+                    mkElt("span", undefined, peer),
+                    btnRemove,
+                ]);
+                const divLblPeer = mkElt("div", undefined, lblPeer);
+                eltKnownPeers.appendChild(divLblPeer);
+            });
+        }
+    }
+    function removePeerId(otherPeerId) {
+        const arrSavedPeers = settingPeerjsSavedPeers.value;
+        const idx = arrSavedPeers.indexOf(otherPeerId);
+        if (idx > -1) {
+            arrSavedPeers.splice(idx, 1);
+            settingPeerjsSavedPeers.value = arrSavedPeers;
+            listPeers();
+        }
+    }
+    function addPeerId(newPeerId) {
+        const arrSavedPeers = settingPeerjsSavedPeers.value;
+        if (arrSavedPeers.includes(newPeerId)) {
+            modMdc.mkMDCsnackbar(`Peer id "${newPeerId}" already exists`, 4000);
+            return;
+        }
+        arrSavedPeers.push(newPeerId);
+        // settingPeerjsSavedPeers.value = JSON.stringify(arrSavedPeers);
+        settingPeerjsSavedPeers.value = arrSavedPeers;
+        const msg = `Added peer id "${newPeerId}"`;
+        modMdc.mkMDCsnackbar(msg, 4000);
+    }
+
+
+
+    const body = mkElt("div", undefined, [
+        mkElt("h2", undefined, "Sync with other web browser"),
+        mkElt("p", undefined, `This web browser id: "${settingPeerjsId.valueS}".`),
+        eltKnownPeers,
+        divOtherPeerId,
+    ]);
+    const answer = await modMdc.mkMDCdialogConfirm(body, "Sync", "Cancel");
+    console.log({ answer });
+    return otherPeerId;
 }
 
 async function doSync(dataChannel) {
