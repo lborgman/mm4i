@@ -232,7 +232,7 @@ export async function replicationDialog() {
     const inpSecret = settingSecret.getInputElement();
     inpSecret.style = `
       min-width: 20px;
-      margin-left: 10px;
+      NOmargin-left: 10px;
       border: 1px solid red;
       border-radius: 5px;
       padding: 4px;
@@ -286,7 +286,26 @@ export async function replicationDialog() {
         // saveSecretKey();
         modMdc.mkMDCsnackbar("Updated secret key", 6000);
     });
-    const lblSecret = mkElt("label", undefined, ["Key: ", inpSecret, btnGenerate]);
+
+    const spanStrengthText = mkElt("span");
+    const prgStrength = mkElt("progress", { value: 0, max: 100 });
+    prgStrength.style = `
+        width: 100%;
+        `;
+    const divStrength = mkElt("div", undefined, [prgStrength, spanStrengthText]);
+    divStrength.style = `
+        width: 100%;
+        `;
+    divStrength.id = "mm4i-strength";
+
+    const spanSecret = mkElt("span", undefined, [inpSecret, divStrength]);
+    spanSecret.style = `
+        display: flex;  
+        flex-direction: column;
+        margin-left: 10px;
+        `;
+    // const lblSecret = mkElt("label", undefined, ["Secret: ", inpSecret, btnGenerate]);
+    const lblSecret = mkElt("label", undefined, ["Secret: ", spanSecret, btnGenerate]);
     lblSecret.style = `
       display: grid;
       grid-template-columns: auto 1fr auto;
@@ -305,6 +324,7 @@ export async function replicationDialog() {
         }
         checkSyncKeys();
     });
+    getAndShowStrength(settingSecret.valueS);
 
     const lblPeerjsId = mkElt("label", undefined, ["This peer id: ", inpPeerjsId]);
     lblPeerjsId.style = `
@@ -399,22 +419,9 @@ export async function replicationDialog() {
     // const robustRandomAscii = generateRobustRandomAsciiString(32);
     // console.log(robustRandomAscii);
 
-    const spanStrengthText = mkElt("span");
-    const prgStrength = mkElt("progress", { value: 0, max: 100 });
-    prgStrength.style = `
-    width: 100 %;
-        `;
-    const divStrength = mkElt("div", undefined, [prgStrength, spanStrengthText]);
-    divStrength.style = `
-        width: 100 %;
-        `;
-
-    const divSecret = mkElt("p", undefined, [
-        // `Sync start: `,
-        // mkElt("br"),
-        lblSecret,
-        divStrength,
-        lblPeerjsId,
+    const divSecret = mkElt("div", undefined, [
+        mkElt("p", undefined, lblPeerjsId),
+        mkElt("p", undefined, lblSecret),
     ]);
 
 
@@ -488,9 +495,9 @@ export async function replicationDialog() {
     sumKeys.id = "sum-sync-keys";
     sumKeys.style.minHeight = "unset";
     const bodyKeys = mkElt("div", undefined, [
-        divRoom,
+        // divRoom,
         divSecret,
-        _divOpenRelay, // Google STUN servers seems to work just as well
+        // _divOpenRelay, // Google STUN servers seems to work just as well
     ]);
     // const divKeysCollapsible = modTools.mkHeightExpander(bodyKeys);
     const detKeys = mkElt("details", { class: "mdc-card" }, [
@@ -613,7 +620,8 @@ export async function replicationDialog() {
         notReady,
         eltTitle,
         divInfoCollapsible,
-        detKeys,
+        // detKeys,
+        bodyKeys,
         // mkElt("hr"),
         divGrok,
         divIds,
