@@ -765,7 +765,6 @@ async function setupPeerConnection(remotePrivateId) {
                         })();
                         break;
                     case "mindmaps-you-needed":
-                        debugger; // eslint-disable-line no-debugger
                         const arrNeededMindmaps = data.arrNeededMindmaps;
                         arrNeededMindmaps.forEach(mm => {
                             debugger; // eslint-disable-line no-debugger
@@ -858,30 +857,32 @@ async function dialogSyncPeers() {
                     const msg = `Removed peer id "${peer}"`;
                     modMdc.mkMDCsnackbar(msg, 4000);
                 });
-                const radPeer = mkElt("input", { type: "radio", name: "remote-peer", value: peer });
-                const lblPeer = mkElt("label", undefined, [
-                    radPeer,
+                const iconThisDevice = modMdc.mkMDCicon("phone_android");
+                const deg360 = peer.split("").map(char => char.charCodeAt(0)).reduce((sum, val) => sum + val) * 4294967296 % 360;
+                const maxRotate = 30;
+                const rotate = (deg360 % maxRotate) - maxRotate / 2;
+                iconThisDevice.style.rotate = `${rotate}deg`;
+                const hue = deg360;
+                iconThisDevice.style.color = `hsl(${hue}, 70%, 70%)`;
+                // const btnTestUI = modMdc.mkMDCbutton(peer, "raised", iconThisDevice);
+                // const btnTestUI = modMdc.mkMDCbutton(peer, undefined, iconThisDevice);
+                const btnTestUI = modMdc.mkMDCbutton(`Sync with ${peer}`, "outlined", iconThisDevice);
+                btnTestUI.title = `Click to sync with web browser "${peer}"`;
+                btnTestUI.style.textTransform = "none";
+                const divPeer = mkElt("label", undefined, [
+                    // iconThisDevice,
+                    btnTestUI,
                     mkElt("span", undefined, peer),
                     btnSync,
                     btnRemove,
                 ]);
-                lblPeer.style = `
+                divPeer.style = `
                     display: flex;
                     gap: 10px;
                     align-items: center;
                     height: 40px;
                     `;
-                // const divLblPeer = mkElt("div", undefined, lblPeer);
-                if (!didSelect) {
-                    if (!latestPeer) {
-                        radPeer.checked = true;
-                        didSelect = true;
-                    } else if (latestPeer == peer) {
-                        radPeer.checked = true;
-                        didSelect = true;
-                    }
-                }
-                eltKnownPeers.appendChild(lblPeer);
+                eltKnownPeers.appendChild(divPeer);
             });
         }
     }
