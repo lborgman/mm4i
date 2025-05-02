@@ -730,18 +730,18 @@ async function setupPeerConnection(remotePrivateId) {
                     case "hello":
                         {
                             // console.log("got hello", { data });
-                            const msg = "Got hello, sending my mindmaps";
+                            const msg = "Got hello, sending my keys";
                             logWSimportant(msg, { data });
                             const objMessage = {
-                                "type": "my-mindmaps",
+                                "type": "my-keys",
                                 myMindmaps,
                             }
                             dataChannel.send(objMessage);
                         }
                         break;
-                    case "my-mindmaps":
+                    case "my-keys":
                         {
-                            const msg = "Got my-mindmaps, tell what I need";
+                            const msg = "Got my-keys, tell keys I need";
                             logWSimportant(msg, { data });
                             peerMindmaps = data.myMindmaps;
                             if (peerMindmaps == undefined) throw Error(`data.myMindmaps is undefined`);
@@ -751,7 +751,7 @@ async function setupPeerConnection(remotePrivateId) {
                         break;
                     case "need-keys":
                         {
-                            const msg = "Got need-keys, sending those mindmaps";
+                            const msg = "Got need-keys, sending those keys";
                             logWSimportant(msg, { data });
                         }
                         const neededKeys = data.needKeys;
@@ -774,7 +774,7 @@ async function setupPeerConnection(remotePrivateId) {
                             const arrNeededMindmaps = await Promise.all(promNeededMm);
                             console.log({ arrNeededMindmaps });
                             const objMindmapsYouNeeded = {
-                                type: "mindmaps-you-needed",
+                                type: "keys-you-needed",
                                 arrNeededMindmaps
                             }
                             // debugger;
@@ -782,15 +782,45 @@ async function setupPeerConnection(remotePrivateId) {
                             dataChannel.send(objMindmapsYouNeeded);
                         })();
                         break;
-                    case "mindmaps-you-needed":
+                    case "keys-you-needed":
                         {
-                            const msg = "Got mindmaps-you-needed, updating my mindmaps";
+                            const msg = "Got keys-you-needed, updating my keys";
                             logWSimportant(msg, { data });
                         }
                         const arrNeededMindmaps = data.arrNeededMindmaps;
+                        const currentKey = window["current-mindmapKey"];
                         arrNeededMindmaps.forEach(mm => {
-                            debugger; // eslint-disable-line no-debugger
                             const key = mm.key;
+                            if (key == currentKey) {
+                                const btnRefeshKey = mkElt("button", undefined, "Mindmap was updated, refresh");
+                                btnRefeshKey.style = `
+                                    position: absolute;
+                                    top: 20px;
+                                    left: 20px;
+                                    background-color: red;
+                                    color: white;
+                                    padding: 10px;
+                                    border-radius: 5px;
+                                    `;
+                                btnRefeshKey.addEventListener("click", async (evt) => {
+                                    evt.stopPropagation();
+                                    window.location.reload();
+                                });
+                                const shield = mkElt("div", undefined, [btnRefeshKey]);
+                                shield.style = `
+                                    position: absolute;
+                                    top: 0;
+                                    left: 0;
+                                    width: 100%;
+                                    height: 100%;
+                                    z-index: 7;
+                                    background-color: rgba(0, 0, 0, 0.5);
+                                    backdrop-filter: blur(2px);
+                                `;
+                                const container = document.getElementById("jsmind_container");
+                                if (container == null) { throw Error("Did not find jsmind_container"); }
+                                container.appendChild(shield);
+                            }
                             const [metaKey, metaUpdated] = mm.meta.name.split("/");
                             if (key != metaKey) throw Error(`key:${key} != metaKey:${metaKey}`);
                             modDbMindmaps.DBsetMindmap(key, mm, metaUpdated);
@@ -1044,7 +1074,7 @@ async function doSync(dataChannel) {
         }
         console.log("%chandleMessage", "font-size:20px; color:red", { data });
         switch (data.type) {
-            case "my-mindmaps":
+            case "my-keys":
                 peerMindmaps = data.myMindmaps;
                 if (peerMindmaps == undefined) throw Error(`data.myMindmaps is undefined`);
                 console.log({ peerMindmaps, myMindmaps });
@@ -1072,14 +1102,14 @@ async function doSync(dataChannel) {
                     const arrNeededMindmaps = await Promise.all(promNeededMm);
                     console.log({ arrNeededMindmaps });
                     const obj = {
-                        type: "mindmaps-you-needed",
+                        type: "keys-you-needed",
                         arrNeededMindmaps
                     }
                     // debugger;
                     dataChannel.send(JSON.stringify(obj));
                 })();
                 break;
-            case "mindmaps-you-needed":
+            case "keys-you-needed":
                 const arrNeededMindmaps = data.arrNeededMindmaps;
                 arrNeededMindmaps.forEach(mm => {
                     debugger; // eslint-disable-line no-debugger
@@ -1101,7 +1131,7 @@ async function doSync(dataChannel) {
 
 
     const objMessage = {
-        "type": "my-mindmaps",
+        "type": "my-keys",
         myMindmaps,
     }
     const json = JSON.stringify(objMessage);

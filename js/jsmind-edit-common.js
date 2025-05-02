@@ -1199,6 +1199,7 @@ export async function pageSetup() {
     let mind;
     if (mindmapKey) {
         mind = await modMMhelpers.getMindmap(mindmapKey);
+        window["current-mindmapKey"] = mindmapKey;
     }
     if (!mind) {
         if (funMindmapsDialog) {
