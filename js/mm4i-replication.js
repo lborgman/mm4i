@@ -552,7 +552,8 @@ export async function replicationDialog() {
             doSync(mm4iDataChannel);
         } else {
             // OLDopenChannelToPeer(doSync);
-            peerJsSync(settingPeerjsId.valueS);
+            // peerJsSync(settingPeerjsId.valueS);
+            dialogSyncPeers();
         }
     });
     btnStopReplication.addEventListener("click", async (evt) => {
@@ -665,13 +666,14 @@ function makePublicId(privateId) {
     return id;
 }
 let peerJsDataConnection;
-async function peerJsSync(myPeerjsId) {
+async function setupPeerConnection(remotePrivateId) {
     const modPeerjs = await importFc4i("peerjs");
-    const publicId = makePublicId(myPeerjsId);
-    const peer = new modPeerjs.Peer(publicId);
+    // const publicId = makePublicId(myPeerjsId);
+    const myPublicId = makePublicId(settingPeerjsId.valueS);
+    const peer = new modPeerjs.Peer(myPublicId);
     peer.on('open', async (id) => {
-        console.log('ON OPEN, My peer ID is: ' + id);
-        const remotePrivateId = await getOtherPeerPrivateId();
+        console.log('ON peer OPEN, My peer ID is: ' + id);
+        // const remotePrivateId = await dialogSyncPeers();
         // debugger;
         if (remotePrivateId == undefined) {
             // peer.close(); // FIX-ME: close peer connection
@@ -682,10 +684,6 @@ async function peerJsSync(myPeerjsId) {
         console.log({ remotePrivateId, remotePublicId });
         peerJsDataConnection = peer.connect(remotePublicId, { reliable: true });
         setupDataConnection(peerJsDataConnection);
-
-        const msgHelloO = "Hello ON OPEN from " + myPeerjsId;
-        console.log("Sending", msgHelloO);
-        peerJsDataConnection.send(msgHelloO);
     });
     peer.on('connection', (conn) => {
         console.log("peer ON connection", { conn });
@@ -693,31 +691,111 @@ async function peerJsSync(myPeerjsId) {
         setupDataConnection(peerJsDataConnection);
     });
     function setupDataConnection(dataChannel) {
+        // FIX-ME: if open
         console.log("setupDataConnection", { dataChannel });
         dataChannel.on('open', () => {
             console.warn("peerJsDataConnection open", { dataChannel });
-            const msgHelloO = "Hello ON CONNECTION from " + myPeerjsId;
-            console.log("Sending", msgHelloO);
-            peerJsDataConnection.send(msgHelloO);
+            const msgHelloO = "Hello ON dataChannel OPEN from " + myPublicId;
+            const objHelloO = {
+                type: "hello",
+                msg: msgHelloO,
+                myId: myPublicId,
+                // mindmaps: myMindmaps,
+            };
+            console.log("Sending", objHelloO);
+            peerJsDataConnection.send(objHelloO);
             // doSync(dataChannel);
         });
-        dataChannel.on('data', (data) => {
+        dataChannel.on("data", (data) => {
             console.log("peerJsDataConnection data", { data });
             // logDataChannel(dataChannel.id, "message", data);
             // handleMessageSync(data);
+            handleDataChannelMessage(data);
+            function handleDataChannelMessage(data) {
+                const tofData = typeof data;
+                if (tofData !== "object") {
+                    const msg = `peerJsDataConnection data is not an object: "${tofData}"`;
+                    console.error(msg, { data });
+                    throw Error(msg);
+                }
+                const msgType = data.type;
+                // handleMessageSync
+                switch (msgType) {
+                    case "hello":
+                        console.log("got hello", { data });
+                        const objMessage = {
+                            "type": "my-mindmaps",
+                            myMindmaps,
+                        }
+                        dataChannel.send(objMessage);
+                        break;
+                    case "my-mindmaps":
+                        peerMindmaps = data.myMindmaps;
+                        if (peerMindmaps == undefined) throw Error(`data.myMindmaps is undefined`);
+                        console.log({ peerMindmaps, myMindmaps });
+                        tellWhatIneed(dataChannel);
+                        break;
+                    case "need-keys":
+                        const neededKeys = data.needKeys;
+                        console.log({ neededKeys });
+                        // myMindmaps =
+                        const promNeededMm = [];
+                        neededKeys.forEach(key => {
+                            const promMindmap = modDbMindmaps.DBgetMindmap(key);
+                            console.log({ promMindmap });
+                            promNeededMm.push(promMindmap);
+                        });
+                        (async () => {
+                            let arrSettled;
+                            try {
+                                arrSettled = await Promise.allSettled(promNeededMm);
+                            } catch (err) {
+                                console.error(err, arrSettled);
+                                throw Error("Could not find all needed mindmaps");
+                            }
+                            const arrNeededMindmaps = await Promise.all(promNeededMm);
+                            console.log({ arrNeededMindmaps });
+                            const objMindmapsYouNeeded = {
+                                type: "mindmaps-you-needed",
+                                arrNeededMindmaps
+                            }
+                            // debugger;
+                            // dataChannel.send(JSON.stringify(objMindmapsYouNeeded));
+                            dataChannel.send(objMindmapsYouNeeded);
+                        })();
+                        break;
+                    case "mindmaps-you-needed":
+                        debugger; // eslint-disable-line no-debugger
+                        const arrNeededMindmaps = data.arrNeededMindmaps;
+                        arrNeededMindmaps.forEach(mm => {
+                            debugger; // eslint-disable-line no-debugger
+                            const key = mm.key;
+                            const [metaKey, metaUpdated] = mm.meta.name.split("/");
+                            if (key != metaKey) throw Error(`key:${key} != metaKey:${metaKey}`);
+                            modDbMindmaps.DBsetMindmap(key, mm, metaUpdated);
+                        });
+                        break;
+
+
+                    default:
+                        const msg = `peerJsDataConnection data type not handled: "${msgType}"`;
+                        console.error(msg, { data });
+                        throw Error(msg);
+                }
+            }
         });
-        dataChannel.on('error', (err) => {
+        dataChannel.on("error", (err) => {
             console.error("peerJsDataConnection error", { err });
         });
-        dataChannel.on('close', () => {
+        dataChannel.on("close", () => {
             console.warn("peerJsDataConnection close", { dataChannel });
+            dataChannel = undefined; // FIX-ME: close peer connection
+            peer.destroy(); // FIX-ME: close peer connection
         });
     }
 }
 let ourOkButton;
-async function getOtherPeerPrivateId() {
-    // let arrSavedPeers = settingPeerjsSavedPeers.value;
-    // console.log({ arrSavedPeers });
+async function dialogSyncPeers() {
     const eltKnownPeers = mkElt("p", { id: "mm4i-known-peers" });
     listPeers();
     const inpAddPeer = mkElt("input", { type: "text" });
@@ -754,9 +832,25 @@ async function getOtherPeerPrivateId() {
             const latestPeer = settingPeerjsLatestPeer.value;
             let didSelect = false;
             arrSavedPeers.forEach((peer, idx) => {
+                const iconSync = modMdc.mkMDCicon("sync_alt");
+                // const btnSync = modMdc.mkMDCiconButton(iconSync, "Sync", 30);
+                const btnSync = modMdc.mkMDCbutton("Sync", "raised", iconSync);
+                btnSync.title = "Sync with this web browser";
+                btnSync.addEventListener("click", async (evt) => {
+                    evt.stopPropagation();
+                    // settingPeerjsLatestPeer.value = peer;
+                    const msg = `Sync with web browser "${peer}"`;
+                    modMdc.mkMDCsnackbar(msg, 4000);
+                    // const remotePeerId = peer;
+                    // return peer;
+                    setupPeerConnection(peer);
+                });
+
+
                 const iconRemove = modMdc.mkMDCicon("delete_forever");
                 const btnRemove = modMdc.mkMDCiconButton(iconRemove, "Remove", 30);
-                btnRemove.title = "Remove this web browser from the list";
+                // btnRemove.title = "Remove this web browser from the list";
+                btnRemove.title = "Forget this web browser";
                 btnRemove.addEventListener("click", async (evt) => {
                     evt.stopPropagation();
                     removePeerId(peer);
@@ -768,6 +862,7 @@ async function getOtherPeerPrivateId() {
                 const lblPeer = mkElt("label", undefined, [
                     radPeer,
                     mkElt("span", undefined, peer),
+                    btnSync,
                     btnRemove,
                 ]);
                 lblPeer.style = `
@@ -820,30 +915,40 @@ async function getOtherPeerPrivateId() {
         eltKnownPeers,
         divAddPeer,
     ]);
-    // listp
-    const getRadSelectedPeer = () => { return eltKnownPeers.querySelector("input[type=radio][name=remote-peer]:checked"); }
-    const funOkButton = (eltOkButton) => {
-        // console.log("eltOkButton", eltOkButton);
-        ourOkButton = eltOkButton;
-    if (!getRadSelectedPeer()) { ourOkButton.inert = true; }
-    };
-    const answer = await modMdc.mkMDCdialogConfirm(body, "Sync", "Cancel", undefined, funOkButton);
-    console.log({ answer });
-    // debugger;
-    if (!answer) {
-        modMdc.mkMDCsnackbarError("Canceled", 4000);
+    modMdc.mkMDCdialogAlert(body, "Close");
+}
+
+function tellWhatIneed(dataChannel) {
+    if (!myMindmaps) {
+        console.log(`tellWhatIneed, myMindmaps is ${myMindmaps}`);
         return;
     }
-    // const radSelected = eltKnownPeers.querySelector("input[type=radio][name=remote-peer]:checked");
-    const radSelected = getRadSelectedPeer();
-    if (!radSelected) {
-        const msg = `No remote peer was selected`;
-        console.error(msg);
-        modMdc.mkMDCsnackbarError(msg, 4000);
+    if (!peerMindmaps) {
+        console.log(`tellWhatIneed, peerMindmaps is ${peerMindmaps}`);
         return;
     }
-    const remotePeerId = radSelected.value;
-    return remotePeerId;
+    const myKeys = Object.keys(myMindmaps);
+    const peerKeys = Object.keys(peerMindmaps);
+    const needKeys = [];
+    peerKeys.forEach(pk => {
+        if (!myKeys.includes(pk)) {
+            needKeys.push(pk);
+        } else {
+            const myUpdated = myMindmaps[pk];
+            const peerUpdated = peerMindmaps[pk];
+            console.log({ myUpdated, peerUpdated });
+            if (peerUpdated > myUpdated) {
+                needKeys.push(pk);
+            }
+        }
+    });
+    console.log({ needKeys });
+    const objNeedKeys = {
+        type: "need-keys",
+        needKeys
+    }
+    // dataChannel.send(JSON.stringify(objNeedKeys));
+    dataChannel.send(objNeedKeys);
 }
 
 async function doSync(dataChannel) {
@@ -858,37 +963,6 @@ async function doSync(dataChannel) {
         logDataChannel(dataChannel.id, "message synch", evt);
         handleMessageSync(evt);
     });
-    function tellWhatIneed() {
-        if (!myMindmaps) {
-            console.log(`tellWhatIneed, myMindmaps is ${myMindmaps}`);
-            return;
-        }
-        if (!peerMindmaps) {
-            console.log(`tellWhatIneed, peerMindmaps is ${peerMindmaps}`);
-            return;
-        }
-        const myKeys = Object.keys(myMindmaps);
-        const peerKeys = Object.keys(peerMindmaps);
-        const needKeys = [];
-        peerKeys.forEach(pk => {
-            if (!myKeys.includes(pk)) {
-                needKeys.push(pk);
-            } else {
-                const myUpdated = myMindmaps[pk];
-                const peerUpdated = peerMindmaps[pk];
-                console.log({ myUpdated, peerUpdated });
-                if (peerUpdated > myUpdated) {
-                    needKeys.push(pk);
-                }
-            }
-        });
-        console.log({ needKeys });
-        const obj = {
-            type: "need-keys",
-            needKeys
-        }
-        dataChannel.send(JSON.stringify(obj));
-    }
     function handleMessageSync(evt) {
         console.log("handleMessageSync", { evt });
         const strData = evt.data;
@@ -914,7 +988,7 @@ async function doSync(dataChannel) {
                 if (peerMindmaps == undefined) throw Error(`data.myMindmaps is undefined`);
                 console.log({ peerMindmaps, myMindmaps });
                 debugger; // eslint-disable-line no-debugger
-                tellWhatIneed();
+                tellWhatIneed(dataChannel);
                 break;
             case "need-keys":
                 const neededKeys = data.needKeys;
