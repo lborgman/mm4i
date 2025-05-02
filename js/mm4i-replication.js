@@ -697,7 +697,8 @@ async function setupPeerConnection(remotePrivateId) {
     });
     function setupDataConnection(dataChannel) {
         // FIX-ME: if open
-        console.log("setupDataConnection", { dataChannel });
+        const msg = "setupDataConnection";
+        logWSimportant(msg, { dataChannel });
         dataChannel.on('open', () => {
             console.warn("peerJsDataConnection open", { dataChannel });
             const msgHelloO = "Hello ON dataChannel OPEN from " + myPublicId;
@@ -727,20 +728,32 @@ async function setupPeerConnection(remotePrivateId) {
                 // handleMessageSync
                 switch (msgType) {
                     case "hello":
-                        console.log("got hello", { data });
-                        const objMessage = {
-                            "type": "my-mindmaps",
-                            myMindmaps,
+                        {
+                            // console.log("got hello", { data });
+                            const msg = "Got hello, sending my mindmaps";
+                            logWSimportant(msg, { data });
+                            const objMessage = {
+                                "type": "my-mindmaps",
+                                myMindmaps,
+                            }
+                            dataChannel.send(objMessage);
                         }
-                        dataChannel.send(objMessage);
                         break;
                     case "my-mindmaps":
-                        peerMindmaps = data.myMindmaps;
-                        if (peerMindmaps == undefined) throw Error(`data.myMindmaps is undefined`);
-                        console.log({ peerMindmaps, myMindmaps });
-                        tellWhatIneed(dataChannel);
+                        {
+                            const msg = "Got my-mindmaps, tell what I need";
+                            logWSimportant(msg, { data });
+                            peerMindmaps = data.myMindmaps;
+                            if (peerMindmaps == undefined) throw Error(`data.myMindmaps is undefined`);
+                            console.log({ peerMindmaps, myMindmaps });
+                            tellWhatIneed(dataChannel);
+                        }
                         break;
                     case "need-keys":
+                        {
+                            const msg = "Got need-keys, sending those mindmaps";
+                            logWSimportant(msg, { data });
+                        }
                         const neededKeys = data.needKeys;
                         console.log({ neededKeys });
                         // myMindmaps =
@@ -770,6 +783,10 @@ async function setupPeerConnection(remotePrivateId) {
                         })();
                         break;
                     case "mindmaps-you-needed":
+                        {
+                            const msg = "Got mindmaps-you-needed, updating my mindmaps";
+                            logWSimportant(msg, { data });
+                        }
                         const arrNeededMindmaps = data.arrNeededMindmaps;
                         arrNeededMindmaps.forEach(mm => {
                             debugger; // eslint-disable-line no-debugger
@@ -779,7 +796,6 @@ async function setupPeerConnection(remotePrivateId) {
                             modDbMindmaps.DBsetMindmap(key, mm, metaUpdated);
                         });
                         break;
-
 
                     default:
                         const msg = `peerJsDataConnection data type not handled: "${msgType}"`;
@@ -903,7 +919,7 @@ async function dialogSyncPeers() {
                         ]));
                         divSyncLogLog = mkElt("div");
                         eltKnownPeers.appendChild(divSyncLogLog);
-                        
+
                         eltKnownPeers.classList.add("mdc-card");
                         eltKnownPeers.style.backgroundColor = "rgba(255, 255, 0, 0.5)";
                         eltKnownPeers.style.padding = "10px";
