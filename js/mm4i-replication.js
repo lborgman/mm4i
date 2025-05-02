@@ -98,12 +98,15 @@ divSyncLogHeader.style = `
     justify-content: space-between;
 `;
 
+let divSyncLogLog;
+/*
 const divSyncLogLog = mkElt("div");
 divSyncLogLog.style = `
         color: gray;
         max-height: 100px;
         overflow-y: auto;
     `;
+*/
 
 const divSyncLog = mkElt("div", undefined, [
     divSyncLogHeader,
@@ -114,7 +117,7 @@ btnSyncLogLog.addEventListener("click", evt => {
     evt.stopPropagation();
     divSyncLogLog.style.display = "none";
 });
-setSyncLogInactive();
+// setSyncLogInactive();
 
 
 function _logWSsyncLog(msg) {
@@ -672,7 +675,8 @@ async function setupPeerConnection(remotePrivateId) {
     const myPublicId = makePublicId(settingPeerjsId.valueS);
     const peer = new modPeerjs.Peer(myPublicId);
     peer.on('open', async (id) => {
-        console.log('ON peer OPEN, My peer ID is: ' + id);
+        const msg = 'ON peer OPEN, My peer ID is: ' + id;
+        logWSimportant(msg);
         // const remotePrivateId = await dialogSyncPeers();
         // debugger;
         if (remotePrivateId == undefined) {
@@ -686,7 +690,8 @@ async function setupPeerConnection(remotePrivateId) {
         setupDataConnection(peerJsDataConnection);
     });
     peer.on('connection', (conn) => {
-        console.log("peer ON connection", { conn });
+        const msg = "peer ON connection";
+        logWSimportant(msg, { conn });
         peerJsDataConnection = conn;
         setupDataConnection(peerJsDataConnection);
     });
@@ -833,9 +838,9 @@ async function dialogSyncPeers() {
             arrSavedPeers.forEach((peer, idx) => {
                 const iconSync = modMdc.mkMDCicon("sync_alt");
                 // const btnSync = modMdc.mkMDCiconButton(iconSync, "Sync", 30);
-                const btnSync = modMdc.mkMDCbutton("Sync", "raised", iconSync);
-                btnSync.title = "Sync with this web browser";
-                btnSync.addEventListener("click", async (evt) => {
+                const OLDbtnSync = modMdc.mkMDCbutton("Sync", "raised", iconSync);
+                OLDbtnSync.title = "Sync with this web browser";
+                OLDbtnSync.addEventListener("click", async (evt) => {
                     evt.stopPropagation();
                     // settingPeerjsLatestPeer.value = peer;
                     const msg = `Sync with web browser "${peer}"`;
@@ -848,14 +853,27 @@ async function dialogSyncPeers() {
 
                 const iconRemove = modMdc.mkMDCicon("delete_forever");
                 const btnRemove = modMdc.mkMDCiconButton(iconRemove, "Remove", 30);
+                btnRemove.style.opacity = "0.5";
                 // btnRemove.title = "Remove this web browser from the list";
                 btnRemove.title = "Forget this web browser";
                 btnRemove.addEventListener("click", async (evt) => {
                     evt.stopPropagation();
+                    const secTrans = 1;
+                    const divPeer = btnRemove.closest("div.mm4i-peer-item");
+                    const bcr = divPeer.getBoundingClientRect();
+                    const h = bcr.height;
+                    divPeer.style.height = `${h}px`;
+                    divPeer.style.opacity = "1.0";
+                    divPeer.style.transitionProperty = `opacity, height`
+                    divPeer.style.transitionDuration = `${secTrans}s`;
+                    divPeer.style.opacity = "0.0";
+                    // divPeer.style.transitionDelay = `${secTrans}s`;
+                    divPeer.style.height = "0px";
+                    // return;
                     removePeerId(peer);
-                    listPeers(); // FIX-ME:
-                    const msg = `Removed peer id "${peer}"`;
-                    modMdc.mkMDCsnackbar(msg, 4000);
+                    // listPeers(); // FIX-ME:
+                    // const msg = `Removed peer id "${peer}"`;
+                    // modMdc.mkMDCsnackbar(msg, 4000);
                 });
                 const iconThisDevice = modMdc.mkMDCicon("phone_android");
                 const deg360 = peer.split("").map(char => char.charCodeAt(0)).reduce((sum, val) => sum + val) * 4294967296 % 360;
@@ -866,21 +884,47 @@ async function dialogSyncPeers() {
                 iconThisDevice.style.color = `hsl(${hue}, 70%, 70%)`;
                 // const btnTestUI = modMdc.mkMDCbutton(peer, "raised", iconThisDevice);
                 // const btnTestUI = modMdc.mkMDCbutton(peer, undefined, iconThisDevice);
-                const btnTestUI = modMdc.mkMDCbutton(`Sync with ${peer}`, "outlined", iconThisDevice);
+                const btnTestUI = modMdc.mkMDCbutton(`Sync ${peer}`, "outlined", iconThisDevice);
                 btnTestUI.title = `Click to sync with web browser "${peer}"`;
                 btnTestUI.style.textTransform = "none";
-                const divPeer = mkElt("label", undefined, [
-                    // iconThisDevice,
+                btnTestUI.style.minWidth = "180px";
+                btnTestUI.addEventListener("click", async (evt) => {
+                    evt.stopPropagation();
+                    const secTrans = 1;
+                    eltKnownPeers.style.opacity = "1";
+                    eltKnownPeers.style.transition = `opacity ${secTrans}s ease-in-out`;
+                    eltKnownPeers.style.opacity = "0";
+                    setTimeout(() => {
+                        const bcr = eltKnownPeers.getBoundingClientRect();
+                        eltKnownPeers.style.minHeight = `${bcr.height}px`;
+                        eltKnownPeers.textContent = "";
+                        eltKnownPeers.appendChild(mkElt("div", undefined, [
+                            mkElt("b", undefined, `Syncing with web browser "${peer}"`)
+                        ]));
+                        divSyncLogLog = mkElt("div");
+                        eltKnownPeers.appendChild(divSyncLogLog);
+                        
+                        eltKnownPeers.classList.add("mdc-card");
+                        eltKnownPeers.style.backgroundColor = "rgba(255, 255, 0, 0.5)";
+                        eltKnownPeers.style.padding = "10px";
+                        eltKnownPeers.style.opacity = "1";
+                        setupPeerConnection(peer);
+                    }, secTrans * 1000);
+                });
+                const divPeer = mkElt("div", undefined, [
                     btnTestUI,
-                    mkElt("span", undefined, peer),
-                    btnSync,
                     btnRemove,
                 ]);
+                divPeer.classList.add("mm4i-peer-item");
                 divPeer.style = `
                     display: flex;
+                    width: calc(100% - 40px);
+                    margin-left: 20px;
+                    margin-right: 20px;
+                    height: 40px;
                     gap: 10px;
                     align-items: center;
-                    height: 40px;
+                    justify-content: space-between;
                     `;
                 eltKnownPeers.appendChild(divPeer);
             });
@@ -892,7 +936,7 @@ async function dialogSyncPeers() {
         if (idx > -1) {
             arrSavedPeers.splice(idx, 1);
             settingPeerjsSavedPeers.value = arrSavedPeers;
-            listPeers();
+            // listPeers();
         }
     }
     function addPeerId(newPeerId) {
