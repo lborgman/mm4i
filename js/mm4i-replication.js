@@ -729,8 +729,9 @@ async function setupPeerConnection(remotePrivateId) {
                 switch (msgType) {
                     case "hello":
                         {
-                            // console.log("got hello", { data });
-                            const msg = "Got hello, sending my keys";
+                            // debugger;
+                            const len = Object.keys(myMindmaps).length;
+                            const msg = `Got hello, sending my keys/values (${len})`;
                             logWSimportant(msg, { data });
                             const objMessage = {
                                 "type": "my-keys",
@@ -750,12 +751,13 @@ async function setupPeerConnection(remotePrivateId) {
                         }
                         break;
                     case "need-keys":
-                        {
-                            const msg = "Got need-keys, sending those keys";
-                            logWSimportant(msg, { data });
-                        }
                         const neededKeys = data.needKeys;
                         console.log({ neededKeys });
+                        {
+                            const len = neededKeys.length;
+                            const msg = `Got need-keys, sending those keys (${len})`;
+                            logWSimportant(msg, { data });
+                        }
                         // myMindmaps =
                         const promNeededMm = [];
                         neededKeys.forEach(key => {
@@ -783,11 +785,12 @@ async function setupPeerConnection(remotePrivateId) {
                         })();
                         break;
                     case "keys-you-needed":
+                        const arrNeededMindmaps = data.arrNeededMindmaps;
                         {
-                            const msg = "Got keys-you-needed, updating my keys";
+                            const len = arrNeededMindmaps.length;
+                            const msg = `Got keys-you-needed (${len}), updating`;
                             logWSimportant(msg, { data });
                         }
-                        const arrNeededMindmaps = data.arrNeededMindmaps;
                         const currentKey = window["current-mindmapKey"];
                         arrNeededMindmaps.forEach(mm => {
                             const key = mm.key;
@@ -825,6 +828,11 @@ async function setupPeerConnection(remotePrivateId) {
                             if (key != metaKey) throw Error(`key:${key} != metaKey:${metaKey}`);
                             modDbMindmaps.DBsetMindmap(key, mm, metaUpdated);
                         });
+                        logWSimportant("*** Sync is ready ***");
+                        // destroy and close
+                        // FIX-ME: is this correct?
+                        dataChannel.close();
+                        peer.destroy();
                         break;
 
                     default:
