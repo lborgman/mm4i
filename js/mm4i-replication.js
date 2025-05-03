@@ -46,7 +46,18 @@ class SettingsRepl extends modLocalSettings.LocalSetting {
 const settingUseOpenRelay = new SettingsRepl("use-open-relay", false);
 const settingOpenRelayCred = new SettingsRepl("open-relay-cred", "");
 const settingRoom = new SettingsRepl("room", "");
+
 const settingSecret = new SettingsRepl("secret", "");
+// async function makeSecret512() { return window.crypto.subtle.digest("SHA-512", (new TextEncoder()).encode(settingSecret.valueS)); }
+// makeSecret512(settingSecret.valueS);
+async function makeSecret512(secret) {
+    // return settingSecret.valueS;
+    return window.crypto.subtle.digest("SHA-512", (new TextEncoder()).encode(secret));
+}
+function isEqualSecret512(e1, e2) {
+    return JSON.stringify((new Uint8Array(e1))) == JSON.stringify((new Uint8Array(e2)));
+}
+
 const settingPeerjsId = new SettingsRepl("peerjs-id", "");
 // const settingPeerjsSavedPeers = new SettingsRepl("peerjs-saved-peers", JSON.stringify([]));
 const settingPeerjsSavedPeers = new SettingsRepl("peerjs-saved-peers", []);
@@ -699,13 +710,17 @@ async function setupPeerConnection(remotePrivateId) {
         // FIX-ME: if open
         const msg = "setupDataConnection";
         logWSimportant(msg, { dataChannel });
-        dataChannel.on('open', () => {
+        dataChannel.on('open', async () => {
             console.warn("peerJsDataConnection open", { dataChannel });
             const msgHelloO = "Hello ON dataChannel OPEN from " + myPublicId;
+            const secretKey = settingSecret.valueS;
+            const secretSha512 = await makeSecret512(secretKey);
             const objHelloO = {
                 type: "hello",
                 msg: msgHelloO,
                 myId: myPublicId,
+                secretSha512,
+                secretKey,
                 // mindmaps: myMindmaps,
             };
             console.log("Sending", objHelloO);
@@ -717,7 +732,7 @@ async function setupPeerConnection(remotePrivateId) {
             // logDataChannel(dataChannel.id, "message", data);
             // handleMessageSync(data);
             handleDataChannelMessage(data);
-            function handleDataChannelMessage(data) {
+            async function handleDataChannelMessage(data) {
                 const tofData = typeof data;
                 if (tofData !== "object") {
                     const msg = `peerJsDataConnection data is not an object: "${tofData}"`;
@@ -729,7 +744,18 @@ async function setupPeerConnection(remotePrivateId) {
                 switch (msgType) {
                     case "hello":
                         {
-                            // debugger;
+                            debugger;
+                            const mySecretKey = settingSecret.valueS;
+                            const peerSecretKey = data.secretKey;
+                            const tempOk = mySecretKey == peerSecretKey;
+                            if (!tempOk) {
+                                const msg = `Secret key mismatch: "${mySecretKey}" != "${peerSecretKey}"`;
+                                throw Error(msg);
+                            }
+                            const mySecretSha512 = await makeSecret512(settingSecret.valueS);
+                            const peerSecretSha512 = data.secretSha512;
+                            const secretOk = isEqualSecret512(mySecretSha512, peerSecretSha512);
+                            console.log({ secretOk, tempOk });
                             const len = Object.keys(myMindmaps).length;
                             const msg = `Got hello, sending my keys/values (${len})`;
                             logWSimportant(msg, { data });
