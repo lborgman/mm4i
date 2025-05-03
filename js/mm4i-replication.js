@@ -5,6 +5,7 @@ console.log(`%chere is mm4i-replication.js ${MM4I_REPL_VER}`, "font-size:20px;")
 if (document.currentScript) { throw "mm4i-replication.js is not loaded as module"; }
 
 
+/*
 const btnTestSend = document.createElement("button");
 btnTestSend.textContent = "send";
 btnTestSend.title = "Send test message to peer";
@@ -14,6 +15,7 @@ btnTestSend.style = `
     box-shadow: 7px 7px 5px 0px rgba(0,0,0,0.5);
 `;
 btnTestSend.inert = true;
+*/
 
 
 
@@ -100,6 +102,7 @@ btnSyncLogLog.style = `
 `;
 btnSyncLogLog.title = "Show/hide details";
 
+/*
 const divSyncLogHeader = mkElt("div", undefined, [
     mkElt("div", { style: "display:flex; gap:10px;" }, ["Sync:", divSyncLogState]),
     btnSyncLogLog,
@@ -108,6 +111,7 @@ divSyncLogHeader.style = `
     display: flex;
     justify-content: space-between;
 `;
+*/
 
 let divSyncLogLog;
 /*
@@ -120,7 +124,7 @@ divSyncLogLog.style = `
 */
 
 const divSyncLog = mkElt("div", undefined, [
-    divSyncLogHeader,
+    // divSyncLogHeader,
     divSyncLogLog,
 ]);
 
@@ -542,10 +546,10 @@ export async function replicationDialog() {
     const btnStartReplication = modMdc.mkMDCbutton("Sync devices", "raised", iconReplication);
     btnStartReplication.title = "Sync your mindmaps between your devices";
 
-    const iconStop = modMdc.mkMDCicon("stop");
-    const btnStopReplication = modMdc.mkMDCbutton("Stop", "raised", iconStop);
-    btnStopReplication.title = "Stop sync";
-    btnStopReplication.inert = true;
+    // const iconStop = modMdc.mkMDCicon("stop");
+    // const btnStopReplication = modMdc.mkMDCbutton("Stop", "raised", iconStop);
+    // btnStopReplication.title = "Stop sync";
+    // btnStopReplication.inert = true;
 
     let _isReplicating = false;
 
@@ -575,6 +579,7 @@ export async function replicationDialog() {
             dialogSyncPeers();
         }
     });
+    /*
     btnStopReplication.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         _isReplicating = false;
@@ -588,9 +593,11 @@ export async function replicationDialog() {
         btnStopReplication.inert = true;
         btnStartReplication.inert = false;
     });
+    */
 
 
 
+    /*
     btnTestSend.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         const msg = "Hi (" + Date().toString().slice(0, 24) + ")";
@@ -611,11 +618,12 @@ export async function replicationDialog() {
             modMdc.mkMDCsnackbarError(msgError, 10 * 1000);
         }
     });
+    */
 
     const divGrok = mkElt("p", undefined, [
         btnStartReplication,
-        btnStopReplication,
-        btnTestSend,
+        // btnStopReplication,
+        // btnTestSend,
     ]);
     divGrok.style = `
         display: flex;
@@ -623,6 +631,7 @@ export async function replicationDialog() {
         `;
 
 
+    /*
     const spanMyId = mkElt("span", undefined, "for myId");
     spanMyId.id = "span-my-id";
     const spanNumId = mkElt("span", undefined, "for numId");
@@ -635,6 +644,7 @@ export async function replicationDialog() {
       color: blueviolet;
       margin-bottom: 2px;
     `;
+    */
 
     const body = mkElt("div", undefined, [
         notReady,
@@ -644,7 +654,7 @@ export async function replicationDialog() {
         bodyKeys,
         // mkElt("hr"),
         divGrok,
-        divIds,
+        // divIds,
         divSyncLog,
     ]);
     body.id = "sync-dialog-body";
