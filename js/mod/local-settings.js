@@ -1,5 +1,5 @@
 // @ts-check
-const LOCAL_SETTINGS_VER = "0.3.00";
+const LOCAL_SETTINGS_VER = "0.3.01";
 window["logConsoleHereIs"](`here is local-settings.js, module, ${LOCAL_SETTINGS_VER}`);
 console.log(`%chere is local-settings.js ${LOCAL_SETTINGS_VER}`, "font-size:20px;");
 if (document.currentScript) { throw "local-settings.js is not loaded as module"; }
@@ -62,6 +62,9 @@ export class LocalSetting {
             const handleInput = (evt) => {
                 let val;
                 switch (inp.type) {
+                    case "text":
+                        val = JSON.stringify(inp.value);
+                        break;
                     case "checkbox":
                         val = inp.checked;
                         break;
@@ -118,57 +121,9 @@ export class LocalSetting {
      * Do not assign a value with inp.value = ...
      * This will make inp.value out of sync with the instance object.
      * 
-     * @returns {HTMLInputElement}
+     * @returns {HTMLInputElement | undefined} - the input element or undefined if type is object
      */
     getInputElement() { return this.#input; }
-    /*
-     * Bind the HTML element to this LocalSetting.
-     * The value stored and the value of inp will be synched.
-     * 
-     * param {HTMLInputElement} inp 
-     * param {boolean} mayUnbind
-     */
-    /*
-    OLDbindToInput(inp, mayUnbind) {
-        const tofMayUnbind = typeof mayUnbind;
-        if ("boolean" !== tofMayUnbind) throw Error(`mayUnbind must be boolean, was "${mayUnbind}"`);
-        if (this.#input) {
-            // debugger;
-            if (!mayUnbind) {
-                throw Error(`bindToInput, already has .#input and "mayUnbind"==${mayUnbind}`);
-            }
-            // console.warn("bindToInput, already has .#input");
-            if (this.#input.isConnected) {
-                throw Error("bindToInput, already has .#input in DOM");
-            }
-        }
-        this.#input = inp;
-        this.#setInputValue();
-        const handleInput = (evt) => {
-            let val;
-            switch (inp.type) {
-                case "checkbox":
-                    val = inp.checked;
-                    break;
-                case "number":
-                    val = inp.value.trim();
-                    val = +val;
-                    break;
-                case "range":
-                    val = +inp.value;
-                    break;
-                default:
-                    console.log(inp.type);
-                    val = inp.value;
-            }
-            console.log({ inp, evt, val });
-            this.#set_stored_itemValue(val);
-        }
-        inp.addEventListener("input", evt => {
-            handleInput(evt);
-        });
-    }
-    */
     defaultValue() { return this.#defaultValue; }
     valueType() { return this.#tofDef; }
     reset() {
@@ -197,7 +152,14 @@ export class LocalSetting {
         const defValType = typeof this.#defaultValue;
         switch (defValType) {
             case "string":
-                this.#cachedValue = stored;
+                // this.#cachedValue = stored;
+                try {
+                    this.#cachedValue = JSON.parse(stored);
+                }
+                catch (err) {
+                    // console.warn(`localStorage value for ${this.#key} is not JSON: ${stored}`);
+                    this.#cachedValue = stored;
+                }
                 break;
             case "number":
                 this.#cachedValue = +stored;
@@ -223,6 +185,7 @@ export class LocalSetting {
         }
     }
     /** Assign cached value to input element. */
+    // handleInput()
     #setInputValue() {
         if (!this.#input) {
             if (this.#tofDef !== "object") {
@@ -236,7 +199,10 @@ export class LocalSetting {
                 this.#input.checked = this.#cachedValue;
                 break;
             default:
-                if (typeof this.#cachedValue !== "string") throw Error("expected string");
+                if (typeof this.#cachedValue !== "string") {
+                    debugger;
+                    throw Error("expected string");
+                }
                 this.#input.value = this.#cachedValue;
         }
     }
@@ -246,3 +212,59 @@ export class LocalSetting {
         this.#cachedValue = this.#defaultValue;
     }
 }
+
+function _testValueTypesInLocalStorage() {
+    const testObj = {
+        str: "normal string",
+        strQ: "quoted \"string\"",
+        num: 123,
+        bool: true,
+        obj: { a: 1, b: 2 },
+        arr: [1, 2, 3],
+    };
+    const mkTestKey = (key) => `test-${key}`;
+    // console.log(testObj);
+    let someError = false;
+    for (const [key, value] of Object.entries(testObj)) {
+        localStorage.setItem(mkTestKey(key), JSON.stringify(value));
+    }
+    for (const [key, value] of Object.entries(testObj)) {
+        const testKey = mkTestKey(key);
+        const initValue = testObj[key];
+        const valueType = typeof initValue;
+        const stored = localStorage.getItem(testKey);
+        // console.log({ testKey, stored });
+        if (stored == null) { throw Error(`localStorage.getItem(${testKey}) returned null`); }
+        const parsed = JSON.parse(stored);
+
+        const retrValue = parsed;
+        let someErrorHere = false;
+        const tofRetrieved = typeof retrValue;
+        if (tofRetrieved !== valueType) {
+            console.warn("retrieved !== valueType", { valueType, tofRetrieved });
+            someErrorHere = true;
+        } else if (retrValue !== initValue) {
+            if (valueType === "object") {
+                if (JSON.stringify(retrValue) !== JSON.stringify(initValue)) {
+                    someErrorHere = true;
+                }
+            }
+            else {
+                someErrorHere = true;
+            }
+            if (someErrorHere) {
+                console.warn("retrValue !== initValue", { initValue, retrValue });
+            }
+        }
+        if (someErrorHere) { someError = true; }
+        const style = someErrorHere
+            ? "color:yellow;background:red;font-size:18px"
+            : "color:white;background:green;font-size:16px";
+        console.log("%cTEST-RESULT", style, initValue, valueType, tofRetrieved, { testKey, retrValue, stored, parsed });
+    }
+    if (someError) {
+        console.error("TEST found error", { someError });
+    }
+    debugger;
+}
+_testValueTypesInLocalStorage();
