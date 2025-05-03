@@ -766,13 +766,23 @@ async function setupPeerConnection(remotePrivateId) {
                             const peerSecretKey = data.secretKey;
                             const tempOk = mySecretKey == peerSecretKey;
                             if (!tempOk) {
-                                const msg = `Secret key mismatch: "${mySecretKey}" != "${peerSecretKey}"`;
-                                throw Error(msg);
+                                // const msg = `Secret key mismatch: "${mySecretKey}" != "${peerSecretKey}"`;
+                                // peer.destroy();
+                                // logWSError(msg);
+                                // modMdc.mkMDCdialogAlert(msg);
+                                // break;
                             }
                             const mySecretSha512 = await makeSecret512(settingSecret.valueS);
                             const peerSecretSha512 = data.secretSha512;
                             const secretOk = isEqualSecret512(mySecretSha512, peerSecretSha512);
                             console.log({ secretOk, tempOk });
+                            if (!secretOk) {
+                                const msg = `Secret key did not match peer`;
+                                peer.destroy();
+                                logWSError(msg);
+                                modMdc.mkMDCdialogAlert(msg);
+                                break;
+                            }
                             const len = Object.keys(myMindmaps).length;
                             const msg = `Got hello, sending my keys/values (${len})`;
                             logWSimportant(msg, { data });
