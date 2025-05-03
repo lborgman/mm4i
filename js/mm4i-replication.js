@@ -275,10 +275,12 @@ export async function replicationDialog() {
         if (strength < 3) {
             valid = false;
         }
+        /*
         const room = settingRoom.valueS.trim();
         if (room.length == 0) {
             valid = false;
         }
+        */
         if (valid) {
             document.body.classList.add("sync-keys-valid");
             btnStartReplication.inert = false;
@@ -558,8 +560,8 @@ export async function replicationDialog() {
         const usePeer2 = false;
         if (usePeer2) {
             btnStartReplication.inert = true;
-            btnStopReplication.inert = false;
-            btnTestSend.inert = false;
+            // btnStopReplication.inert = false;
+            // btnTestSend.inert = false;
             _isReplicating = true;
             const objLogFuns = {
                 logWSError,
