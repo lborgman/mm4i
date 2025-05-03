@@ -20,7 +20,7 @@ btnTestSend.inert = true;
 
 
 const mkElt = window["mkElt"];
-// const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
+const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 const importFc4i = window["importFc4i"];
 
 // const mod2peers = await importFc4i("webrtc-2-peers");
@@ -697,11 +697,11 @@ function makePublicId(privateId) {
     return id;
 }
 let peerJsDataConnection;
+let peer;
 async function setupPeerConnection(remotePrivateId) {
     const modPeerjs = await importFc4i("peerjs");
-    // const publicId = makePublicId(myPeerjsId);
     const myPublicId = makePublicId(settingPeerjsId.valueS);
-    const peer = new modPeerjs.Peer(myPublicId);
+    peer = new modPeerjs.Peer(myPublicId);
     peer.on('open', async (id) => {
         const msg = 'ON peer OPEN, My peer ID is: ' + id;
         logWSimportant(msg);
@@ -761,7 +761,7 @@ async function setupPeerConnection(remotePrivateId) {
                 switch (msgType) {
                     case "hello":
                         {
-                            debugger;
+                            // debugger;
                             const mySecretKey = settingSecret.valueS;
                             const peerSecretKey = data.secretKey;
                             const tempOk = mySecretKey == peerSecretKey;
@@ -1057,7 +1057,20 @@ async function dialogSyncPeers() {
         eltKnownPeers,
         divAddPeer,
     ]);
-    modMdc.mkMDCdialogAlert(body, "Close");
+
+    // modMdc.mkMDCdialogAlert(body, "Close");
+    // FIX-ME: we must handle closing the dialog
+    const btnClose = modMdc.mkMDCdialogButton("Close", "close", true);
+    const eltActions = modMdc.mkMDCdialogActions([btnClose]);
+    const dlg = await modMdc.mkMDCdialog(body, eltActions);
+    return await new Promise((resolve) => {
+        dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async _evt => {
+            // const action = evt.detail.action;
+            peer?.destroy(); // FIX-ME: close peer connection
+            resolve(undefined);
+        }));
+    });
+
 }
 
 function tellWhatIneed(dataChannel) {
