@@ -4,10 +4,7 @@ window["logConsoleHereIs"](`here is local-settings.js, module, ${LOCAL_SETTINGS_
 console.log(`%chere is local-settings.js ${LOCAL_SETTINGS_VER}`, "font-size:20px;");
 if (document.currentScript) { throw "local-settings.js is not loaded as module"; }
 
-if (window.location.hostname == "localhost") {
-    // debugger;
-    // console.log(`%cOur url: ${import.meta.url}`, "font-size:30px");
-}
+export function getVersion() { return LOCAL_SETTINGS_VER; }
 
 /** @typedef {string | number | boolean} inputType */
 /** @typedef {Object} jsonObjectType */
@@ -34,7 +31,7 @@ export class LocalSetting {
      * Create a LocalSetting
      * @param {string} prefix - prefix for stored key
      * @param {string} key 
-     * @param {string | number | boolean} defaultValue 
+     * @param {string | number | boolean | object} defaultValue 
      */
     constructor(prefix, key, defaultValue) {
         this.#key = prefix + key;
@@ -63,7 +60,8 @@ export class LocalSetting {
                 let val;
                 switch (inp.type) {
                     case "text":
-                        val = JSON.stringify(inp.value);
+                        // val = JSON.stringify(inp.value);
+                        val = inp.value.trim();
                         break;
                     case "checkbox":
                         val = inp.checked;
@@ -111,9 +109,13 @@ export class LocalSetting {
     get valueN() { return /** @type {number} */ (this.#getCachedValue()); }
     set value(val) {
         if (this.#input) {
-            throw Error(`set value(val) can not be used when #input is set (${this.#key})`);
+            console.warn("set value(val) can perhaps not be used when #input is set", this);
+            // throw Error(`set value(val) can not be used when #input is set (${this.#key})`);
         }
         this.#set_stored_itemValue(val);
+        if (this.#input) {
+            this.#setInputValue();
+        }
     }
     /**
      * Use this when inserting the <input> element in the DOM.
@@ -141,7 +143,6 @@ export class LocalSetting {
             throw Error(`#set_itemValue, ${this.#key}: typeof val==${tofVal}, expected ${this.#tofDef}`);
         }
         this.#cachedValue = val;
-        // localStorage.setItem(this.#key, val.toString());
         localStorage.setItem(this.#key, JSON.stringify(val)); // FIX-ME: is this correct?
     }
     /** Fetch stored value and put it in #cachedValue */
@@ -149,6 +150,8 @@ export class LocalSetting {
         const stored = localStorage.getItem(this.#key);
         // if (stored == null) { this.#cachedValue = this.#defaultValue; return; }
         if (stored == null) { return; }
+        this.#cachedValue = JSON.parse(stored);
+        return;
         const defValType = typeof this.#defaultValue;
         switch (defValType) {
             case "string":
@@ -213,6 +216,14 @@ export class LocalSetting {
     }
 }
 
+/**
+ * Test function to check if localStorage can handle all value types.
+ * 
+ * I added this test function because there was a problem with quoted strings.
+ * 
+ * Always store using JSON.stringify(val) and retrieve using JSON.parse(stored)
+ * solves the problem. And works for all value types.
+ */
 function _testValueTypesInLocalStorage() {
     const testObj = {
         str: "normal string",
@@ -223,17 +234,15 @@ function _testValueTypesInLocalStorage() {
         arr: [1, 2, 3],
     };
     const mkTestKey = (key) => `test-${key}`;
-    // console.log(testObj);
     let someError = false;
     for (const [key, value] of Object.entries(testObj)) {
         localStorage.setItem(mkTestKey(key), JSON.stringify(value));
     }
-    for (const [key, value] of Object.entries(testObj)) {
+    for (const [key, _value] of Object.entries(testObj)) {
         const testKey = mkTestKey(key);
         const initValue = testObj[key];
         const valueType = typeof initValue;
         const stored = localStorage.getItem(testKey);
-        // console.log({ testKey, stored });
         if (stored == null) { throw Error(`localStorage.getItem(${testKey}) returned null`); }
         const parsed = JSON.parse(stored);
 
@@ -264,7 +273,7 @@ function _testValueTypesInLocalStorage() {
     }
     if (someError) {
         console.error("TEST found error", { someError });
+        debugger;
     }
-    debugger;
 }
 _testValueTypesInLocalStorage();

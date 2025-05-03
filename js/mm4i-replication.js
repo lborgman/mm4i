@@ -158,8 +158,9 @@ function setSyncLogInactive() {
 let mm4iDataChannel;
 export async function replicationDialog() {
     // const peersVer = mod2peers.getVersion();
-    const peersVer = "No 2peers";
-    const notReady = mkElt("p", undefined, `Not ready yet (${MM4I_REPL_VER}/${peersVer})`);
+    // const peersVer = "No 2peers";
+    const localVer = modLocalSettings.getVersion();
+    const notReady = mkElt("p", undefined, `Not ready (this ${MM4I_REPL_VER}/LS ${localVer})`);
     notReady.style = `color: red; font-size: 1.5rem; background: yellow; padding: 10px;`;
 
 
@@ -287,12 +288,16 @@ export async function replicationDialog() {
     const btnGenerate = modMdc.mkMDCiconButton("enhanced_encryption", "Generate random passkey", 40);
     btnGenerate.addEventListener("click", async (evt) => {
         evt.stopPropagation();
-        const body = mkElt("div", undefined, [
-            mkElt("p", undefined, `This will generate a strong random secret key. `),
-            mkElt("p", undefined, `It will replace your current secret key. Do you want to continue?`),
-        ]);
-        const answer = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel");
-        if (!answer) return;
+        // debugger;
+        const hasSecretKey = settingSecret.valueS !== "";
+        if (hasSecretKey) {
+            const body = mkElt("div", undefined, [
+                mkElt("p", undefined, `This will generate a strong random secret key. `),
+                mkElt("p", undefined, `It will replace your current secret key. Do you want to continue?`),
+            ]);
+            const answer = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel");
+            if (!answer) return;
+        }
         const newKey = generateRobustRandomAsciiString(16);
         // inppSecret.value = newKey; // This would lead to inppSecret out of sync with settingSecret
         settingSecret.value = newKey;
