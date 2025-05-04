@@ -245,11 +245,13 @@ export async function replicationDialog() {
     font-weight: 500;
     font-style: italic;
 `;
+    /*
     const divRoom = mkElt("p", undefined, [
         // `Name announced.`,
         // mkElt("br"),
         lblRoom
     ]);
+    */
 
 
     const inpSecret = settingSecret.getInputElement();
@@ -333,6 +335,7 @@ export async function replicationDialog() {
         spanSecret.style.display = "flex";
     });
     const btnQR = modMdc.mkMDCiconButton("qr_code_2", "Show QR code", 40);
+    let eltScannedQR;
     btnQR.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         const secretKey = settingSecret.valueS;
@@ -340,12 +343,68 @@ export async function replicationDialog() {
         console.log({ modQR });
         // debugger;
         const canvas = mkElt("canvas", { id: "mm4i-qrcode" });
-        await modQR.toCanvas(canvas, secretKey);
+        await modQR.toCanvas(canvas, ["mm4i", settingPeerjsId.valueS, secretKey].join("\n"));
+        const btnScanQR = modMdc.mkMDCbutton("Scan peer QR code", "raised");
+        const eltVideo = mkElt("video", { id: "mm4i-video" });
+        eltVideo.style = `
+            width: 200px;
+            height: 200px;
+            outline: 2px dotted red;
+            `;
+        eltScannedQR = mkElt("p", { id: "mm4i-scanned-qr" });
+        let qrScanner;
+        btnScanQR.addEventListener("click", async (evt) => {
+            evt.stopPropagation();
+            const body = mkElt("div", undefined, [
+                mkElt("p", undefined, `Scan peer QR code with your phone camera.`),
+                eltVideo,
+                eltScannedQR,
+            ]);
+            // modMdc.mkMDCdialogAlert(body, "Close");
+            const btnClose = modMdc.mkMDCdialogButton("Close", "close", true);
+            const eltActions = modMdc.mkMDCdialogActions([btnClose]);
+            const dlg = await modMdc.mkMDCdialog(body, eltActions);
+            new Promise((resolve) => {
+                dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async _evt => {
+                    // const action = evt.detail.action;
+                    qrScanner.stop();
+                    resolve(undefined);
+                }));
+            });
+
+            const modQRScan = await importFc4i("qr-scanner");
+            console.log({ modQRScan });
+            // debugger;
+            const QrScanner = modQRScan.default;
+            console.log("QR scanner", { QrScanner });
+            qrScanner = new QrScanner(eltVideo, (result) => {
+                console.log("QR result", { result });
+                const [mm4iMark, peerName, peerSecret] = result.data.split("\n");
+                eltScannedQR.textContent = result.data;
+                if (!mm4iMark.startsWith("mm4i")) {
+                    const msg = `Not a valid mm4i QR code: "${mm4iMark}"`;
+                    modMdc.mkMDCsnackbarError(msg, 6000);
+                    return;
+                }
+                eltScannedQR.appendChild(mkElt("div", undefined, [mkElt("b", undefined, "MM4I mark: "), mm4iMark]));
+                eltScannedQR.appendChild(mkElt("div", undefined, [mkElt("b", undefined, "Peer name: "), peerName]));
+                eltScannedQR.appendChild(mkElt("div", undefined, [mkElt("b", undefined, "Peer secret: "), peerSecret]));
+                modMdc.mkMDCsnackbar("Scanned peer QR", 6000);
+                qrScanner.stop();
+                eltVideo.remove();
+            }, {
+                returnDetailedScanResult: true,
+                highlightCodeOutline: true,
+            });
+            qrScanner.start();
+        });
         const body = mkElt("div", undefined, [
-            mkElt("h2", undefined, "Secret key"),
+            mkElt("h2", undefined, `Name (${settingPeerjsId.valueS}) and secret`),
             canvas,
             mkElt("p", undefined, `Scan QR above with Google Lens and enter as secret in MM4I. Or type the secret key you see below:`),
             mkElt("p", { style: "font-weight:700;" }, secretKey),
+            mkElt("hr", { style: "background-color:gray; width:80%; height: 1px;" }),
+            btnScanQR,
         ]);
         body.style = `
             display: flex;
@@ -370,10 +429,6 @@ export async function replicationDialog() {
         spanSecret,
     ]);
     lblSecret.style = `
-      NOdisplay: grid;
-      NOgrid-template-columns: auto 1fr auto;
-      NOalign-items: center;
-      NOgap: 5px;
       font-weight: 500;
       font-style: italic;
       display: flex;

@@ -123,9 +123,9 @@ export class LocalSetting {
      * Do not assign a value with inp.value = ...
      * This will make inp.value out of sync with the instance object.
      * 
-     * @returns {HTMLInputElement | undefined} - the input element or undefined if type is object
+     * @returns {HTMLInputElement} - the input element or undefined if type is object
      */
-    getInputElement() { return this.#input; }
+    getInputElement() { if (!this.#input) throw Error("This setting has no input element"); return this.#input; }
     defaultValue() { return this.#defaultValue; }
     valueType() { return this.#tofDef; }
     reset() {

@@ -152,6 +152,8 @@ console.log({ baseUrl });
         "peerjs": "https://esm.sh/peerjs@1.5.4?bundle-deps",
         // "qr-creator": "https://esm.sh/qr-creator?bundle=yes",
         "qrcode": "https://cdn.jsdelivr.net/npm/qrcode-esm/+esm",
+        "qr-scanner": "https://cdn.jsdelivr.net/npm/qr-scanner@latest/qr-scanner.min.js",
+
 
         // new
         "stairs": "./js/mod/stairs.js",
