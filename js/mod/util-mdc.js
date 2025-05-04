@@ -10,7 +10,8 @@ const UTIL_MDC_VER = "0.8.0";
 logConsoleHereIs(`here is util-mdc.js, module,${UTIL_MDC_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
-let materialIconsClass = "material-icons";
+// let materialIconsClass = "material-icons";
+let materialIconsClass = "material-symbols-outlined";
 export function getMaterialIconClass() { return materialIconsClass; }
 export function setMaterialIconClass(className) {
     if (
@@ -240,7 +241,6 @@ export function mkMDCbutton(txtLabel, emphasis, icon) {
 // https://m2.material.io/develop/web/components/buttons/icon-buttons
 export function mkMDCiconButton(icon, ariaLabel, sizePx) {
     const btn = mkElt("button",
-        // { class: `mdc-icon-button material-icons` },
         { class: `mdc-icon-button ${materialIconsClass}` },
         [
             mkElt("div", { class: "mdc-icon-button__ripple" }),
@@ -2248,7 +2248,7 @@ export function mkMDCdataTable(tableName, columnLabels, exampleRow4sort) {
                     }, lbl);
                 const btn = mkElt("button",
                     {
-                        class: "mdc-icon-button material-icons mdc-data-table__sort-icon-button",
+                        class: `mdc-icon-button ${materialIconsClass} mdc-data-table__sort-icon-button`,
                         "aria-label": `Sort by ${lbl}`,
                         "aria-describedby": `${idLbl}-status-label`
                     },
@@ -2316,7 +2316,6 @@ export function mkMDCicon(iconMaterialName) {
         if (icon) return icon;
     }
     return mkElt("span",
-        // { class: "material-icons" },
         { class: materialIconsClass },
         iconMaterialName);
 }

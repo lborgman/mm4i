@@ -215,11 +215,13 @@ export async function replicationDialog() {
     eltTitle.style.position = "relative";
     eltTitle.appendChild(btnInfo);
     btnInfo.style = `
-    position: absolute;
-    bottom: -14px;
-    right: 14px;
-    color: blue;
-`;
+        position: absolute;
+        bottom: -14px;
+        right: 14px;
+        color: white;
+        background-color: cornflowerblue;
+        border-radius: 50%;
+    `;
     btnInfo.addEventListener("click", evt => {
         evt.stopPropagation();
         modTools.toggleHeightExpander(divInfoCollapsible);
@@ -356,7 +358,7 @@ export async function replicationDialog() {
     });
     getAndShowStrength(settingSecret.valueS);
 
-    const lblPeerjsId = mkElt("label", undefined, ["Name for this web browser: ", inpPeerjsId]);
+    const lblPeerjsId = mkElt("label", undefined, ["Name for this peer: ", inpPeerjsId]);
     lblPeerjsId.style = `
       display: grid;
       grid-template-columns: auto 1fr;
@@ -549,9 +551,13 @@ export async function replicationDialog() {
 
 
 
-    const iconReplication = modMdc.mkMDCicon("sync_alt");
-    const btnStartReplication = modMdc.mkMDCbutton("Sync devices", "raised", iconReplication);
-    btnStartReplication.title = "Sync your mindmaps between your devices";
+    // const iconReplication = modMdc.mkMDCicon("sync_alt");
+    const iconReplication = modMdc.mkMDCicon("p2p");
+    const btnStartReplication = modMdc.mkMDCbutton("Sync peers", "raised", iconReplication);
+    // export function mkMDCiconButton(icon, ariaLabel, sizePx) {
+    // const btnStartReplication = modMdc.mkMDCiconButton(iconReplication, "Sync devices", 40);
+    // const btnStartReplication = modMdc.mkMDCiconButton("p2p", "Sync devices", 40);
+    btnStartReplication.title = "Sync your mindmaps between your peer devices";
 
     // const iconStop = modMdc.mkMDCicon("stop");
     // const btnStopReplication = modMdc.mkMDCbutton("Stop", "raised", iconStop);

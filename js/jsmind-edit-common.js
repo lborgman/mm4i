@@ -1096,7 +1096,8 @@ export async function pageSetup() {
             modStairs.dialogStairs();
         }));
 
-        const btnSyncMm = modMdc.mkMDCiconButton("sync_alt", "Sync mindmaps to your devices", 40);
+        // const btnSyncMm = modMdc.mkMDCiconButton("sync_alt", "Sync mindmaps to your devices", 40);
+        const btnSyncMm = modMdc.mkMDCiconButton("p2p", "Sync mindmaps to your devices", 40);
         btnSyncMm.addEventListener("click", async evt => {
             evt.stopPropagation();
 
@@ -1382,7 +1383,6 @@ export async function pageSetup() {
             const iconHit = "search_check_2";
             const eltSpanHit = mkElt("span", undefined, iconHit);
             eltSpanHit.classList.add("material-symbols-outlined");
-            // eltSpanHit.classList.add("material-icons");
             eltSpanHit.classList.add("hit-mark"); // .jsmind-hit
             eltJmnode.appendChild(eltSpanHit);
         }

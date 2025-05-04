@@ -77,7 +77,7 @@ export class LocalSetting {
                         console.log(inp.type);
                         val = inp.value;
                 }
-                console.log({ inp, evt, val });
+                // console.log({ inp, evt, val });
                 this.#set_stored_itemValue(val);
             }
             inp.addEventListener("input", evt => {
