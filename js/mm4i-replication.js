@@ -166,10 +166,7 @@ function setSyncLogInactive() {
 
 let mm4iDataChannel;
 export async function replicationDialog() {
-    // const peersVer = mod2peers.getVersion();
-    // const peersVer = "No 2peers";
-    const localVer = modLocalSettings.getVersion();
-    const notReady = mkElt("p", undefined, `Not ready (this ${MM4I_REPL_VER}/LS ${localVer})`);
+    const notReady = mkElt("p", undefined, `Not ready, usable (${MM4I_REPL_VER})`);
     notReady.style = `color: red; font-size: 1.5rem; background: yellow; padding: 10px;`;
 
 
@@ -955,27 +952,10 @@ async function dialogSyncPeers() {
             if (ourOkButton) { ourOkButton.inert = false; }
             eltKnownPeers.appendChild(mkElt("div", undefined, [`Known other web browsers:`]));
             const latestPeer = settingPeerjsLatestPeer.value;
-            let didSelect = false;
-            arrSavedPeers.forEach((peer, idx) => {
-                const iconSync = modMdc.mkMDCicon("sync_alt");
-                // const btnSync = modMdc.mkMDCiconButton(iconSync, "Sync", 30);
-                const OLDbtnSync = modMdc.mkMDCbutton("Sync", "raised", iconSync);
-                OLDbtnSync.title = "Sync with this web browser";
-                OLDbtnSync.addEventListener("click", async (evt) => {
-                    evt.stopPropagation();
-                    // settingPeerjsLatestPeer.value = peer;
-                    const msg = `Sync with web browser "${peer}"`;
-                    modMdc.mkMDCsnackbar(msg, 4000);
-                    // const remotePeerId = peer;
-                    // return peer;
-                    setupPeerConnection(peer);
-                });
-
-
+            arrSavedPeers.forEach((peer, _idx) => {
                 const iconRemove = modMdc.mkMDCicon("delete_forever");
                 const btnRemove = modMdc.mkMDCiconButton(iconRemove, "Remove", 30);
                 btnRemove.style.opacity = "0.5";
-                // btnRemove.title = "Remove this web browser from the list";
                 btnRemove.title = "Forget this web browser";
                 btnRemove.addEventListener("click", async (evt) => {
                     evt.stopPropagation();
@@ -988,13 +968,8 @@ async function dialogSyncPeers() {
                     divPeer.style.transitionProperty = `opacity, height`
                     divPeer.style.transitionDuration = `${secTrans}s`;
                     divPeer.style.opacity = "0.0";
-                    // divPeer.style.transitionDelay = `${secTrans}s`;
                     divPeer.style.height = "0px";
-                    // return;
                     removePeerId(peer);
-                    // listPeers(); // FIX-ME:
-                    // const msg = `Removed peer id "${peer}"`;
-                    // modMdc.mkMDCsnackbar(msg, 4000);
                 });
                 const iconThisDevice = modMdc.mkMDCicon("phone_android");
                 const deg360 = peer.split("").map(char => char.charCodeAt(0)).reduce((sum, val) => sum + val) * 4294967296 % 360;
