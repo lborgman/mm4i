@@ -294,8 +294,8 @@ export async function replicationDialog() {
         }
     }
 
-    // const btnGenerate = modMdc.mkMDCiconButton("vpn_key", "Generate random passkey", 40);
-    const btnGenerate = modMdc.mkMDCiconButton("enhanced_encryption", "Generate random passkey", 40);
+    // const btnGenerate = modMdc.mkMDCiconButton("vpn_key", "Generate random secret", 40);
+    const btnGenerate = modMdc.mkMDCiconButton("enhanced_encryption", "Generate random secret", 40);
     btnGenerate.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         // debugger;
@@ -327,21 +327,56 @@ export async function replicationDialog() {
         `;
     divStrength.id = "mm4i-strength";
 
+    const btnUnhide = modMdc.mkMDCiconButton("visibility", "Unhide passkey", 40);
+    btnUnhide.addEventListener("click", (evt) => {
+        btnUnhide.style.display = "none";
+        spanSecret.style.display = "flex";
+    });
+    const btnQR = modMdc.mkMDCiconButton("qr_code_2", "Show QR code", 40);
+    btnQR.addEventListener("click", async (evt) => {
+        evt.stopPropagation();
+        const secretKey = settingSecret.valueS;
+        const modQR = await importFc4i("qrcode");
+        console.log({ modQR });
+        // debugger;
+        const canvas = mkElt("canvas", { id: "mm4i-qrcode" });
+        await modQR.toCanvas(canvas, secretKey);
+        const body = mkElt("div", undefined, [
+            mkElt("h2", undefined, "Secret key"),
+            canvas,
+            mkElt("p", undefined, `Scan QR above with Google Lens and enter as secret in MM4I. Or type the secret key you see below:`),
+            mkElt("p", { style: "font-weight:700;" }, secretKey),
+        ]);
+        body.style = `
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        `;
+        await modMdc.mkMDCdialogAlert(body, "Close");
+    });
+
     const spanSecret = mkElt("span", undefined, [inpSecret, divStrength]);
     spanSecret.style = `
-        display: flex;  
+        display: none;  
         flex-direction: column;
         margin-left: 10px;
         `;
-    // const lblSecret = mkElt("label", undefined, ["Secret: ", inpSecret, btnGenerate]);
-    const lblSecret = mkElt("label", undefined, ["Secret: ", spanSecret, btnGenerate]);
+    const lblSecret = mkElt("label", undefined, [
+        "Secret: ",
+        btnGenerate,
+        btnQR,
+        btnUnhide,
+        spanSecret,
+    ]);
     lblSecret.style = `
-      display: grid;
-      grid-template-columns: auto 1fr auto;
-      align-items: center;
+      NOdisplay: grid;
+      NOgrid-template-columns: auto 1fr auto;
+      NOalign-items: center;
       NOgap: 5px;
       font-weight: 500;
       font-style: italic;
+      display: flex;
     `;
     inpSecret.addEventListener("input", (_evt) => {
         // evt.stopPropagation();

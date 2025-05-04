@@ -150,7 +150,8 @@ console.log({ baseUrl });
         "no-ui-slider": "./ext/no-ui-slider/nouislider.mjs",
         // "peerjs": "https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js",
         "peerjs": "https://esm.sh/peerjs@1.5.4?bundle-deps",
-        "qr-creator": "https://esm.sh/qr-creator?bundle=yes",
+        // "qr-creator": "https://esm.sh/qr-creator?bundle=yes",
+        "qrcode": "https://cdn.jsdelivr.net/npm/qrcode-esm/+esm",
 
         // new
         "stairs": "./js/mod/stairs.js",
