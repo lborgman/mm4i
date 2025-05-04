@@ -50,11 +50,16 @@ const settingOpenRelayCred = new SettingsRepl("open-relay-cred", "");
 const settingRoom = new SettingsRepl("room", "");
 
 const settingSecret = new SettingsRepl("secret", "");
-// async function makeSecret512() { return window.crypto.subtle.digest("SHA-512", (new TextEncoder()).encode(settingSecret.valueS)); }
-// makeSecret512(settingSecret.valueS);
-async function makeSecret512(secret) {
+/**
+ * 
+ * @param {string} secret 
+ * @param {string} variant 
+ * @returns {Promise<string>}
+ */
+async function makeSecret512(secret, variant) {
     // return settingSecret.valueS;
-    return window.crypto.subtle.digest("SHA-512", (new TextEncoder()).encode(secret));
+    const buffer = await window.crypto.subtle.digest("SHA-512", (new TextEncoder()).encode(`${secret} + ${variant}`));
+    return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 function isEqualSecret512(e1, e2) {
     return JSON.stringify((new Uint8Array(e1))) == JSON.stringify((new Uint8Array(e2)));
@@ -731,13 +736,16 @@ async function setupPeerConnection(remotePrivateId) {
             console.warn("peerJsDataConnection open", { dataChannel });
             const msgHelloO = "Hello ON dataChannel OPEN from " + myPublicId;
             const secretKey = settingSecret.valueS;
-            const secretSha512 = await makeSecret512(secretKey);
+            const variant = (new Date()).toISOString();
+            const secretSha512 = await makeSecret512(secretKey, variant);
+            if (typeof secretSha512 !== "string") { throw Error("secretSha512 is not a string"); }
             const objHelloO = {
                 type: "hello",
                 msg: msgHelloO,
                 myId: myPublicId,
                 secretSha512,
-                secretKey,
+                variant,
+                // secretKey,
                 // mindmaps: myMindmaps,
             };
             console.log("Sending", objHelloO);
@@ -762,20 +770,20 @@ async function setupPeerConnection(remotePrivateId) {
                     case "hello":
                         {
                             // debugger;
-                            const mySecretKey = settingSecret.valueS;
-                            const peerSecretKey = data.secretKey;
-                            const tempOk = mySecretKey == peerSecretKey;
-                            if (!tempOk) {
-                                // const msg = `Secret key mismatch: "${mySecretKey}" != "${peerSecretKey}"`;
-                                // peer.destroy();
-                                // logWSError(msg);
-                                // modMdc.mkMDCdialogAlert(msg);
-                                // break;
-                            }
-                            const mySecretSha512 = await makeSecret512(settingSecret.valueS);
+                            // const mySecretKey = settingSecret.valueS;
+                            // const peerSecretKey = data.secretKey;
+                            // const tempOk = mySecretKey == peerSecretKey;
+                            // if (!tempOk) {
+                            // const msg = `Secret key mismatch: "${mySecretKey}" != "${peerSecretKey}"`;
+                            // peer.destroy();
+                            // logWSError(msg);
+                            // modMdc.mkMDCdialogAlert(msg);
+                            // break;
+                            // }
+                            const mySecretSha512 = await makeSecret512(settingSecret.valueS, data.variant);
                             const peerSecretSha512 = data.secretSha512;
                             const secretOk = isEqualSecret512(mySecretSha512, peerSecretSha512);
-                            console.log({ secretOk, tempOk });
+                            console.log({ secretOk });
                             if (!secretOk) {
                                 const msg = `Secret key did not match peer`;
                                 peer.destroy();
