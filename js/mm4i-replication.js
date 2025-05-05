@@ -70,6 +70,13 @@ const settingPeerjsId = new SettingsRepl("peerjs-id", "");
 const settingPeerjsSavedPeers = new SettingsRepl("peerjs-saved-peers", []);
 const settingPeerjsLatestPeer = new SettingsRepl("latest-peer", null); // A string, but we would like to set it
 
+if (settingPeerjsSavedPeers.value !== null) {
+    const firstPeer = settingPeerjsSavedPeers.value[0];
+    if (typeof firstPeer === "string") {
+        settingPeerjsSavedPeers.reset();
+    }
+}
+
 function addPeer(peerId, peerSecret) {
     const arrSavedPeers = settingPeerjsSavedPeers.value;
     const arrIds = arrSavedPeers.map(peerRec => peerRec.id);
@@ -1145,7 +1152,7 @@ async function dialogSyncPeers() {
                 });
                 const iconThisDevice = modMdc.mkMDCicon("phone_android");
                 // alert(JSON.stringify(peer)); // Catch old version of peer list
-                const peerId = typeof peer == "string"? peer: peer.id;
+                const peerId = typeof peer == "string" ? peer : peer.id;
                 const deg360 = peerId.split("").map(char => char.charCodeAt(0)).reduce((sum, val) => sum + val) * 4294967296 % 360;
                 const maxRotate = 30;
                 const rotate = (deg360 % maxRotate) - maxRotate / 2;
