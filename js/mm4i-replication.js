@@ -1176,7 +1176,7 @@ async function dialogSyncPeers() {
                         eltKnownPeers.style.minHeight = `${bcr.height}px`;
                         eltKnownPeers.textContent = "";
                         eltKnownPeers.appendChild(mkElt("div", undefined, [
-                            mkElt("b", undefined, `Syncing with web browser "${peer}"`)
+                            mkElt("b", undefined, `Syncing with web browser "${peer.id}"`)
                         ]));
                         divSyncLogLog = mkElt("div");
                         eltKnownPeers.appendChild(divSyncLogLog);
@@ -1185,7 +1185,7 @@ async function dialogSyncPeers() {
                         eltKnownPeers.style.backgroundColor = "rgba(255, 255, 0, 0.5)";
                         eltKnownPeers.style.padding = "10px";
                         eltKnownPeers.style.opacity = "1";
-                        setupPeerConnection(peer);
+                        setupPeerConnection(peer.id);
                     }, secTrans * 1000);
                 });
                 const divPeer = mkElt("div", undefined, [
