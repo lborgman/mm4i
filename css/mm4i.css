@@ -1356,7 +1356,7 @@ xdetails[open]:has(.expander)>.expander>.expander-content {
 
 /* .mdc-icon-button.material-icons.icon-button-sized { */
 /* .mdc-icon-button.material-symbols-outlined.icon-button-sized { */
-.mdc-icon-button.icon-button-sized {
+button.mdc-icon-button.icon-button-sized {
     /* transform: scale(calc(var(--icon-button-size) / 48)); */
     /* transform-origin: 0 0; */
     height: var(--icon-button-size) !important;

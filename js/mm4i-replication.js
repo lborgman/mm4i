@@ -206,7 +206,7 @@ export async function replicationDialog() {
     padding: 10px;
 `;
     const divInfoCollapsible = modTools.mkHeightExpander(divInfo);
-    const btnInfo = modMdc.mkMDCiconButton("info_i", "What does mindmap sync mean?");
+    const btnInfo = modMdc.mkMDCiconButton("info_i", "What does mindmap sync mean?", 32);
 
     const eltTitle = mkElt("h2", undefined, "Mindmap sync");
     eltTitle.style.position = "relative";
@@ -399,9 +399,9 @@ export async function replicationDialog() {
             qrScanner.start();
         });
         const body = mkElt("div", undefined, [
-            mkElt("h2", undefined, `Name (${settingPeerjsId.valueS}) and secret`),
+            mkElt("h2", undefined, `Peer "${settingPeerjsId.valueS}"`),
             canvas,
-            mkElt("p", undefined, `Scan QR above with Google Lens and enter as secret in MM4I. Or type the secret key you see below:`),
+            mkElt("p", undefined, `Scan QR above with with MM4I. Or, type the secret key you see below:`),
             mkElt("p", { style: "font-weight:700;" }, secretKey),
             mkElt("hr", { style: "background-color:gray; width:80%; height: 1px;" }),
             btnScanQR,
@@ -422,7 +422,7 @@ export async function replicationDialog() {
         margin-left: 10px;
         `;
     const lblSecret = mkElt("label", undefined, [
-        "Secret: ",
+        mkElt("span", {style:"margin-right:10px"}, "Secret:"),
         btnGenerate,
         btnQR,
         btnUnhide,
@@ -432,6 +432,8 @@ export async function replicationDialog() {
       font-weight: 500;
       font-style: italic;
       display: flex;
+      flex-wrap: wrap;
+      align-items: center;
     `;
     inpSecret.addEventListener("input", (_evt) => {
         // evt.stopPropagation();
@@ -445,7 +447,7 @@ export async function replicationDialog() {
     });
     getAndShowStrength(settingSecret.valueS);
 
-    const lblPeerjsId = mkElt("label", undefined, ["Name for this peer: ", inpPeerjsId]);
+    const lblPeerjsId = mkElt("label", undefined, ["My name: ", inpPeerjsId]);
     lblPeerjsId.style = `
       display: grid;
       grid-template-columns: auto 1fr;
@@ -1011,7 +1013,7 @@ async function dialogSyncPeers() {
     const eltKnownPeers = mkElt("p", { id: "mm4i-known-peers" });
     listPeers();
     const inpAddPeer = mkElt("input", { type: "text" });
-    const lblAddPeer = mkElt("label", undefined, ["Add web browser: ", inpAddPeer]);
+    const lblAddPeer = mkElt("label", undefined, ["Add peer: ", inpAddPeer]);
     const iconAddPeer = modMdc.mkMDCicon("add_circle_outline");
     const btnAddPeer = modMdc.mkMDCiconButton(iconAddPeer, "Add", 30);
     btnAddPeer.title = "Add other web browser";
@@ -1040,15 +1042,18 @@ async function dialogSyncPeers() {
             eltKnownPeers.textContent = "No saved web browser names";
         } else {
             if (ourOkButton) { ourOkButton.inert = false; }
-            eltKnownPeers.appendChild(mkElt("div", undefined, [`Known other web browsers:`]));
+            eltKnownPeers.appendChild(mkElt("div", undefined, [`Click to sync with peer:`]));
             const latestPeer = settingPeerjsLatestPeer.value;
             arrSavedPeers.forEach((peer, _idx) => {
                 const iconRemove = modMdc.mkMDCicon("delete_forever");
                 const btnRemove = modMdc.mkMDCiconButton(iconRemove, "Remove", 30);
-                btnRemove.style.opacity = "0.5";
-                btnRemove.title = "Forget this web browser";
+                // btnRemove.style.opacity = "0.5";
+                btnRemove.style.color = "#aaa";
+                btnRemove.title = "Forget this peer";
                 btnRemove.addEventListener("click", async (evt) => {
                     evt.stopPropagation();
+                    const answer = await modMdc.mkMDCdialogConfirm(`Forget peer "${peer}"?`, "Forget", "Cancel");
+                    if (!answer) { return; }
                     const secTrans = 1;
                     const divPeer = btnRemove.closest("div.mm4i-peer-item");
                     const bcr = divPeer.getBoundingClientRect();
@@ -1070,7 +1075,7 @@ async function dialogSyncPeers() {
                 iconThisDevice.style.color = `hsl(${hue}, 70%, 70%)`;
                 // const btnTestUI = modMdc.mkMDCbutton(peer, "raised", iconThisDevice);
                 // const btnTestUI = modMdc.mkMDCbutton(peer, undefined, iconThisDevice);
-                const btnTestUI = modMdc.mkMDCbutton(`Sync ${peer}`, "outlined", iconThisDevice);
+                const btnTestUI = modMdc.mkMDCbutton(`${peer}`, "outlined", iconThisDevice);
                 btnTestUI.title = `Click to sync with web browser "${peer}"`;
                 btnTestUI.style.textTransform = "none";
                 btnTestUI.style.minWidth = "180px";
@@ -1108,7 +1113,7 @@ async function dialogSyncPeers() {
                     margin-left: 20px;
                     margin-right: 20px;
                     height: 40px;
-                    gap: 10px;
+                    gap: 5px;
                     align-items: center;
                     justify-content: space-between;
                     `;
@@ -1141,8 +1146,8 @@ async function dialogSyncPeers() {
 
 
     const body = mkElt("div", undefined, [
-        mkElt("h2", undefined, "Sync with other web browser"),
-        mkElt("p", undefined, ["This web browser: ", mkElt("b", undefined, settingPeerjsId.valueS)]),
+        mkElt("h2", undefined, "Sync with other peers"),
+        mkElt("p", undefined, ["This peer name: ", mkElt("b", undefined, settingPeerjsId.valueS)]),
         eltKnownPeers,
         divAddPeer,
     ]);

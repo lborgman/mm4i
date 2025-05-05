@@ -6,7 +6,7 @@
 // const modErrorJs = await importFc4i("toolsJs");
 // const mkElt = modErrorJs.mkElt;
 
-const UTIL_MDC_VER = "0.8.0";
+const UTIL_MDC_VER = "0.8.01";
 logConsoleHereIs(`here is util-mdc.js, module,${UTIL_MDC_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
@@ -246,10 +246,14 @@ export function mkMDCiconButton(icon, ariaLabel, sizePx) {
             mkElt("div", { class: "mdc-icon-button__ripple" }),
             icon
         ]);
+    const iconButtonRipple = new mdc.ripple.MDCRipple(btn);
+    iconButtonRipple.unbounded = true;
     // if (small) btn.classList.add("icon-button-small");
     if (sizePx) {
         btn.classList.add("icon-button-sized");
-        btn.style.setProperty("--icon-button-size", `${sizePx}px`);
+        setTimeout(() => {
+            btn.style.setProperty("--icon-button-size", `${sizePx}px`);
+        }, 0);
     }
     if (ariaLabel) {
         btn.setAttribute("aria-label", ariaLabel);
@@ -257,8 +261,8 @@ export function mkMDCiconButton(icon, ariaLabel, sizePx) {
     } else {
         console.warn("Missing ariaLabel");
     }
-    const iconButtonRipple = new mdc.ripple.MDCRipple(btn);
-    iconButtonRipple.unbounded = true;
+    // const iconButtonRipple = new mdc.ripple.MDCRipple(btn);
+    // iconButtonRipple.unbounded = true;
     return btn;
 }
 export function setMDCiconButton(iconButton, iconName) {
