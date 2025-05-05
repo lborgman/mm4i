@@ -70,6 +70,37 @@ const settingPeerjsId = new SettingsRepl("peerjs-id", "");
 const settingPeerjsSavedPeers = new SettingsRepl("peerjs-saved-peers", []);
 const settingPeerjsLatestPeer = new SettingsRepl("latest-peer", null); // A string, but we would like to set it
 
+function addPeer(peerId, peerSecret) {
+    const arrSavedPeers = settingPeerjsSavedPeers.value;
+    const arrIds = arrSavedPeers.map(peerRec => peerRec.id);
+    const idx = arrIds.indexOf(peerId);
+    const oldPeer = arrSavedPeers[idx];
+    if (oldPeer) {
+        const oldSecret = oldPeer.secret;
+        if (oldSecret != peerSecret) {
+            oldPeer.secret = peerSecret;
+            settingPeerjsSavedPeers.value = arrSavedPeers;
+            modMdc.mkMDCsnackbar(`Updated "${peerId}" secret`, 4000);
+        } else {
+            modMdc.mkMDCsnackbar(`Peer "${peerId}" already exists (with same secret)`, 4000);
+        }
+        return;
+    }
+    const newPeer = {
+        id: peerId,
+    };
+    if (peerSecret) {
+        newPeer.secret = peerSecret;
+    }
+    arrSavedPeers.push(newPeer);
+    settingPeerjsSavedPeers.value = arrSavedPeers;
+    if (peerSecret) {
+        modMdc.mkMDCsnackbar(`Added peer "${peerId}" (with secret)`, 4000);
+    } else {
+        modMdc.mkMDCsnackbar(`Added peer "${peerId}"`, 4000);
+    }
+}
+
 
 /*
 function getOpenRelayChecked() {
@@ -165,6 +196,65 @@ function setSyncLogInactive() {
 
 
 let mm4iDataChannel;
+async function dialogScanningQR() {
+    let qrScanner;
+    const eltVideo = mkElt("video", { id: "mm4i-video" });
+    eltVideo.style = `
+width: 200px;
+height: 200px;
+outline: 2px dotted red;
+`;
+    const eltScannedQR = mkElt("p", { id: "mm4i-scanned-qr" });
+    const body = mkElt("div", undefined, [
+        mkElt("p", undefined, `Scan peer QR code with your phone camera.`),
+        eltVideo,
+        eltScannedQR,
+    ]);
+    // modMdc.mkMDCdialogAlert(body, "Close");
+    const btnClose = modMdc.mkMDCdialogButton("Close", "close", true);
+    const eltActions = modMdc.mkMDCdialogActions([btnClose]);
+    const dlg = await modMdc.mkMDCdialog(body, eltActions);
+    new Promise((resolve) => {
+        dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async _evt => {
+            // const action = evt.detail.action;
+            qrScanner.stop();
+            resolve(undefined);
+        }));
+    });
+
+    const modQRScan = await importFc4i("qr-scanner");
+    console.log({ modQRScan });
+    // debugger;
+    const QrScanner = modQRScan.default;
+    console.log("QR scanner", { QrScanner });
+    qrScanner = new QrScanner(eltVideo, (result) => {
+        console.log("QR result", { result });
+        const [mm4iMark, peerName, peerSecret] = result.data.split("\n");
+        eltScannedQR.textContent = result.data;
+        if (!mm4iMark.startsWith("mm4i")) {
+            const msg = `Not a valid mm4i QR code: "${mm4iMark}"`;
+            modMdc.mkMDCsnackbarError(msg, 6000);
+            return;
+        }
+        const divQRresult = mkElt("div", { class: "mdc-card" }, mkElt("b", undefined, "Added peer"));
+        divQRresult.style = `
+            background-color: greenyellow;
+            padding: 10px;
+            `;
+        eltScannedQR.appendChild(divQRresult);
+        divQRresult.appendChild(mkElt("div", undefined, [mkElt("i", undefined, "Name: "), peerName]));
+        divQRresult.appendChild(mkElt("div", undefined, [mkElt("i", undefined, "Secret: "), peerSecret]));
+        addPeer(peerName, peerSecret);
+        modMdc.mkMDCsnackbar("Scanned peer QR", 6000);
+        qrScanner.stop();
+        eltVideo.remove();
+    }, {
+        returnDetailedScanResult: true,
+        highlightCodeOutline: true,
+    });
+    qrScanner.start();
+}
+
 export async function replicationDialog() {
     const notReady = mkElt("p", undefined, `Not ready, usable (${MM4I_REPL_VER})`);
     notReady.style = `color: red; font-size: 1.5rem; background: yellow; padding: 10px;`;
@@ -335,7 +425,7 @@ export async function replicationDialog() {
         spanSecret.style.display = "flex";
     });
     const btnQR = modMdc.mkMDCiconButton("qr_code_2", "Show QR code", 40);
-    let eltScannedQR;
+
     btnQR.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         const secretKey = settingSecret.valueS;
@@ -345,58 +435,9 @@ export async function replicationDialog() {
         const canvas = mkElt("canvas", { id: "mm4i-qrcode" });
         await modQR.toCanvas(canvas, ["mm4i", settingPeerjsId.valueS, secretKey].join("\n"));
         const btnScanQR = modMdc.mkMDCbutton("Scan peer QR code", "raised");
-        const eltVideo = mkElt("video", { id: "mm4i-video" });
-        eltVideo.style = `
-            width: 200px;
-            height: 200px;
-            outline: 2px dotted red;
-            `;
-        eltScannedQR = mkElt("p", { id: "mm4i-scanned-qr" });
-        let qrScanner;
         btnScanQR.addEventListener("click", async (evt) => {
             evt.stopPropagation();
-            const body = mkElt("div", undefined, [
-                mkElt("p", undefined, `Scan peer QR code with your phone camera.`),
-                eltVideo,
-                eltScannedQR,
-            ]);
-            // modMdc.mkMDCdialogAlert(body, "Close");
-            const btnClose = modMdc.mkMDCdialogButton("Close", "close", true);
-            const eltActions = modMdc.mkMDCdialogActions([btnClose]);
-            const dlg = await modMdc.mkMDCdialog(body, eltActions);
-            new Promise((resolve) => {
-                dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async _evt => {
-                    // const action = evt.detail.action;
-                    qrScanner.stop();
-                    resolve(undefined);
-                }));
-            });
-
-            const modQRScan = await importFc4i("qr-scanner");
-            console.log({ modQRScan });
-            // debugger;
-            const QrScanner = modQRScan.default;
-            console.log("QR scanner", { QrScanner });
-            qrScanner = new QrScanner(eltVideo, (result) => {
-                console.log("QR result", { result });
-                const [mm4iMark, peerName, peerSecret] = result.data.split("\n");
-                eltScannedQR.textContent = result.data;
-                if (!mm4iMark.startsWith("mm4i")) {
-                    const msg = `Not a valid mm4i QR code: "${mm4iMark}"`;
-                    modMdc.mkMDCsnackbarError(msg, 6000);
-                    return;
-                }
-                eltScannedQR.appendChild(mkElt("div", undefined, [mkElt("b", undefined, "MM4I mark: "), mm4iMark]));
-                eltScannedQR.appendChild(mkElt("div", undefined, [mkElt("b", undefined, "Peer name: "), peerName]));
-                eltScannedQR.appendChild(mkElt("div", undefined, [mkElt("b", undefined, "Peer secret: "), peerSecret]));
-                modMdc.mkMDCsnackbar("Scanned peer QR", 6000);
-                qrScanner.stop();
-                eltVideo.remove();
-            }, {
-                returnDetailedScanResult: true,
-                highlightCodeOutline: true,
-            });
-            qrScanner.start();
+            dialogScanningQR();
         });
         const body = mkElt("div", undefined, [
             mkElt("h2", undefined, `Peer "${settingPeerjsId.valueS}"`),
@@ -422,7 +463,7 @@ export async function replicationDialog() {
         margin-left: 10px;
         `;
     const lblSecret = mkElt("label", undefined, [
-        mkElt("span", {style:"margin-right:10px"}, "Secret:"),
+        mkElt("span", { style: "margin-right:10px" }, "Secret:"),
         btnGenerate,
         btnQR,
         btnUnhide,
@@ -1012,18 +1053,54 @@ let ourOkButton;
 async function dialogSyncPeers() {
     const eltKnownPeers = mkElt("p", { id: "mm4i-known-peers" });
     listPeers();
-    const inpAddPeer = mkElt("input", { type: "text" });
-    const lblAddPeer = mkElt("label", undefined, ["Add peer: ", inpAddPeer]);
-    const iconAddPeer = modMdc.mkMDCicon("add_circle_outline");
-    const btnAddPeer = modMdc.mkMDCiconButton(iconAddPeer, "Add", 30);
-    btnAddPeer.title = "Add other web browser";
+    // const inpAddPeer = mkElt("input", { type: "text" });
+    // const lblAddPeer = mkElt("label", undefined, ["Add peer: ", inpAddPeer]);
+    // const iconAddPeer = modMdc.mkMDCicon("add_circle_outline");
+    // const btnAddPeer = modMdc.mkMDCiconButton(iconAddPeer, "Add", 30);
+    // btnAddPeer.title = "Add other web browser";
+    const iconNewPeer = modMdc.mkMDCicon("phone_android");
+    const btnNewPeer = modMdc.mkMDCbutton("Add peer", "raised", iconNewPeer);
     const divAddPeer = mkElt("div", undefined, [
-        lblAddPeer, btnAddPeer
+        // lblAddPeer, btnAddPeer,
+        btnNewPeer,
     ]);
     divAddPeer.style = `
         display: flex;
         align-items: center;
         `;
+    btnNewPeer.addEventListener("click", async (evt) => {
+        evt.stopPropagation();
+        debugger;
+        const btnScanQR2 = modMdc.mkMDCbutton("Peer QR", "raised", "qr_code_2");
+        btnScanQR2.addEventListener("click", async (evt) => {
+            evt.stopPropagation();
+            closeDialog();
+            dialogScanningQR();
+            // const modQRscan = await importFc4i("qr-scanner");
+            // console.log({ modQR: modQRscan });
+        });
+        btnScanQR2.inert = true;
+        const divQR = mkElt("div", undefined, [
+            mkElt("p", undefined, `Scan peer QR code with your phone camera.`),
+            btnScanQR2,
+            // mkElt("video", { id: "mm4i-video" }),
+            // mkElt("p", { id: "mm4i-scanned-qr" }),
+        ]);
+        const p = await navigator.mediaDevices.getUserMedia({ video: true });
+        const hasCamera = p.getVideoTracks().length > 0;
+        if (hasCamera) {
+            btnScanQR2.inert = false;
+            p.getVideoTracks()[0].stop()
+        }
+        const body = mkElt("div", undefined, [
+            mkElt("h2", undefined, `Add new peer`),
+            divQR,
+        ]);
+        const dlg = await modMdc.mkMDCdialogAlert(body, "Close");
+        console.log({ dlg });
+        function closeDialog() { dlg.mdc.close(); }
+    });
+    /*
     btnAddPeer.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         const newPeerId = inpAddPeer.value.trim();
@@ -1034,12 +1111,13 @@ async function dialogSyncPeers() {
         addPeerId(newPeerId);
         listPeers();
     });
+    */
     function listPeers() {
         eltKnownPeers.textContent = "";
         const arrSavedPeers = settingPeerjsSavedPeers.value;
         // console.log({ arrSavedPeers });
         if (arrSavedPeers.length === 0) {
-            eltKnownPeers.textContent = "No saved web browser names";
+            eltKnownPeers.textContent = "No saved peers";
         } else {
             if (ourOkButton) { ourOkButton.inert = false; }
             eltKnownPeers.appendChild(mkElt("div", undefined, [`Click to sync with peer:`]));
@@ -1047,12 +1125,11 @@ async function dialogSyncPeers() {
             arrSavedPeers.forEach((peer, _idx) => {
                 const iconRemove = modMdc.mkMDCicon("delete_forever");
                 const btnRemove = modMdc.mkMDCiconButton(iconRemove, "Remove", 30);
-                // btnRemove.style.opacity = "0.5";
                 btnRemove.style.color = "#aaa";
                 btnRemove.title = "Forget this peer";
                 btnRemove.addEventListener("click", async (evt) => {
                     evt.stopPropagation();
-                    const answer = await modMdc.mkMDCdialogConfirm(`Forget peer "${peer}"?`, "Forget", "Cancel");
+                    const answer = await modMdc.mkMDCdialogConfirm(`Forget peer "${peer.id}"?`, "Forget", "Cancel");
                     if (!answer) { return; }
                     const secTrans = 1;
                     const divPeer = btnRemove.closest("div.mm4i-peer-item");
@@ -1064,10 +1141,10 @@ async function dialogSyncPeers() {
                     divPeer.style.transitionDuration = `${secTrans}s`;
                     divPeer.style.opacity = "0.0";
                     divPeer.style.height = "0px";
-                    removePeerId(peer);
+                    removePeerId(peer.id);
                 });
                 const iconThisDevice = modMdc.mkMDCicon("phone_android");
-                const deg360 = peer.split("").map(char => char.charCodeAt(0)).reduce((sum, val) => sum + val) * 4294967296 % 360;
+                const deg360 = peer.id.split("").map(char => char.charCodeAt(0)).reduce((sum, val) => sum + val) * 4294967296 % 360;
                 const maxRotate = 30;
                 const rotate = (deg360 % maxRotate) - maxRotate / 2;
                 iconThisDevice.style.rotate = `${rotate}deg`;
@@ -1075,7 +1152,7 @@ async function dialogSyncPeers() {
                 iconThisDevice.style.color = `hsl(${hue}, 70%, 70%)`;
                 // const btnTestUI = modMdc.mkMDCbutton(peer, "raised", iconThisDevice);
                 // const btnTestUI = modMdc.mkMDCbutton(peer, undefined, iconThisDevice);
-                const btnTestUI = modMdc.mkMDCbutton(`${peer}`, "outlined", iconThisDevice);
+                const btnTestUI = modMdc.mkMDCbutton(`${peer.id}`, "outlined", iconThisDevice);
                 btnTestUI.title = `Click to sync with web browser "${peer}"`;
                 btnTestUI.style.textTransform = "none";
                 btnTestUI.style.minWidth = "180px";
@@ -1121,26 +1198,18 @@ async function dialogSyncPeers() {
             });
         }
     }
-    function removePeerId(otherPeerId) {
+    function removePeerId(remPeerId) {
+        const tofPeerId = typeof remPeerId;
+        if (tofPeerId !== "string") throw Error(`Expected peerId to be a string, but it is ${tofPeerId}`);
         const arrSavedPeers = settingPeerjsSavedPeers.value;
-        const idx = arrSavedPeers.indexOf(otherPeerId);
+        const arrIds = arrSavedPeers.map(peerRec => peerRec.id);
+        const idx = arrIds.indexOf(remPeerId);
+        // const idx = arrSavedPeers.indexOf(otherPeerId);
         if (idx > -1) {
             arrSavedPeers.splice(idx, 1);
             settingPeerjsSavedPeers.value = arrSavedPeers;
             // listPeers();
         }
-    }
-    function addPeerId(newPeerId) {
-        const arrSavedPeers = settingPeerjsSavedPeers.value;
-        if (arrSavedPeers.includes(newPeerId)) {
-            modMdc.mkMDCsnackbar(`Peer id "${newPeerId}" already exists`, 4000);
-            return;
-        }
-        arrSavedPeers.push(newPeerId);
-        // settingPeerjsSavedPeers.value = JSON.stringify(arrSavedPeers);
-        settingPeerjsSavedPeers.value = arrSavedPeers;
-        const msg = `Added peer id "${newPeerId}"`;
-        modMdc.mkMDCsnackbar(msg, 4000);
     }
 
 

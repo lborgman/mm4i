@@ -227,12 +227,22 @@ function addButtonIcon(btn, icon) {
     btn.appendChild(icon);
 }
 
-export function mkMDCbutton(txtLabel, emphasis, icon) {
+/**
+ * 
+ * @param {string | undefined} txtLabel 
+ * @param {string | undefined} emphasis 
+ * @param {string | HTMLSpanElement | undefined} iconPar 
+ * @returns 
+ */
+export function mkMDCbutton(txtLabel, emphasis, iconPar) {
     const btn = mkElt("button", { class: "mdc-button" }, mkElt("div", { class: "mdc-button__ripple" }));
     new mdc.ripple.MDCRipple(btn);
     addButtonEmphasis(btn, emphasis);
     // <i class="material-icons mdc-button__icon" aria-hidden="true">favorite</i>
-    if (icon) { addButtonIcon(btn, icon); }
+    if (iconPar) {
+        const icon = typeof iconPar === "string" ? mkMDCicon(iconPar) : iconPar;
+        addButtonIcon(btn, icon);
+    }
     if (txtLabel) btn.appendChild(mkElt("span", { class: "mdc-button__label" }, txtLabel));
     return btn;
 }
