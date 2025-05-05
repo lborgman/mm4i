@@ -1144,6 +1144,7 @@ async function dialogSyncPeers() {
                     removePeerId(peer.id);
                 });
                 const iconThisDevice = modMdc.mkMDCicon("phone_android");
+                alert(JSON.stringify(peer));
                 const deg360 = peer.id.split("").map(char => char.charCodeAt(0)).reduce((sum, val) => sum + val) * 4294967296 % 360;
                 const maxRotate = 30;
                 const rotate = (deg360 % maxRotate) - maxRotate / 2;
