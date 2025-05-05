@@ -846,7 +846,8 @@ function makePublicId(privateId) {
 }
 let peerJsDataConnection;
 let peer;
-async function setupPeerConnection(remotePrivateId) {
+async function setupPeerConnection(remotePeerObj) {
+    const remotePrivateId = remotePeerObj.id;
     const modPeerjs = await importFc4i("peerjs");
     const myPublicId = makePublicId(settingPeerjsId.valueS);
     peer = new modPeerjs.Peer(myPublicId);
@@ -863,7 +864,7 @@ async function setupPeerConnection(remotePrivateId) {
         const remotePublicId = makePublicId(remotePrivateId);
         console.log({ remotePrivateId, remotePublicId });
         peerJsDataConnection = peer.connect(remotePublicId, { reliable: true });
-        setupDataConnection(peerJsDataConnection);
+        setupDataConnection(peerJsDataConnection, remotePeerObj);
     });
     peer.on('connection', (conn) => {
         const msg = "peer ON connection";
@@ -880,7 +881,8 @@ async function setupPeerConnection(remotePrivateId) {
             const msgHelloO = "Hello ON dataChannel OPEN from " + myPublicId;
             const secretKey = settingSecret.valueS;
             const variant = (new Date()).toISOString();
-            const secretSha512 = await makeSecret512(secretKey, variant);
+            const secret = remotePeerObj.secret || secretKey;
+            const secretSha512 = await makeSecret512(secret, variant);
             if (typeof secretSha512 !== "string") { throw Error("secretSha512 is not a string"); }
             const objHelloO = {
                 type: "hello",
@@ -1176,7 +1178,7 @@ async function dialogSyncPeers() {
                         eltKnownPeers.style.minHeight = `${bcr.height}px`;
                         eltKnownPeers.textContent = "";
                         eltKnownPeers.appendChild(mkElt("div", undefined, [
-                            mkElt("b", undefined, `Syncing with web browser "${peer.id}"`)
+                            mkElt("b", undefined, `Syncing with peer "${peer.id}"`)
                         ]));
                         divSyncLogLog = mkElt("div");
                         eltKnownPeers.appendChild(divSyncLogLog);
@@ -1185,7 +1187,7 @@ async function dialogSyncPeers() {
                         eltKnownPeers.style.backgroundColor = "rgba(255, 255, 0, 0.5)";
                         eltKnownPeers.style.padding = "10px";
                         eltKnownPeers.style.opacity = "1";
-                        setupPeerConnection(peer.id);
+                        setupPeerConnection(peer);
                     }, secTrans * 1000);
                 });
                 const divPeer = mkElt("div", undefined, [

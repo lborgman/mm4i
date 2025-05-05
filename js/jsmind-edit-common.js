@@ -514,9 +514,18 @@ export function checkJmnodeBgObj(bgObj) {
             {
                 let blob, blurVal;
                 blob = bgValue;
-                // New format?
+                // New format? (This is the expected format)
                 if (bgValue.blob) {
-                    blob = bgValue.blob;
+                    const val = bgValue.blob;
+                    if (val instanceof Blob) {
+                        blob = val;
+                    } else {
+                        // FIX-ME: I believe we can get ArrayBuffer here after transfering with peerJS??
+                        if (val instanceof ArrayBuffer) {
+                            blob = new Blob([val], { type: "image/webp" });
+                        }
+                    }
+                    // blob = bgValue.blob;
                     blurVal = bgValue.blur;
                 }
                 // debugger;
@@ -583,18 +592,24 @@ export async function applyShapeEtcBg(bgName, bgValue, bgTheme, eltJmnode) {
         // case "bg-choice-img-link": const url = bgValue; eltBg.style.backgroundImage = `url("${url}")`; break;
         case "bg-choice-img-clipboard":
             let objectUrl;
-            // let blob, blurValue, isDarkBG, fgColor;
-            // isDarkBG = false; // Default to black text
             let blob, blurValue, fgColor;
             blob = bgValue;
             blurValue = 9;
-            // New format?
+            // New format? (This is the expected format)
             if (bgValue.blob) {
-                blob = bgValue.blob;
+                const val = bgValue.blob;
+                if (val instanceof Blob) {
+                    blob = val;
+                } else {
+                    // FIX-ME: I believe we can get ArrayBuffer here after transfering with peerJS??
+                    if (val instanceof ArrayBuffer) {
+                        blob = new Blob([val], { type: "image/webp" });
+                    }
+                }
+
+                // blob = bgValue.blob;
                 blurValue = bgValue.blur;
-                // isDarkBG = bgValue.isDarkBG;
                 fgColor = bgValue.fgColor;
-                // debugger;
             }
             objectUrl = URL.createObjectURL(blob);
             setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
