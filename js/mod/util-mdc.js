@@ -6,7 +6,7 @@
 // const modErrorJs = await importFc4i("toolsJs");
 // const mkElt = modErrorJs.mkElt;
 
-const UTIL_MDC_VER = "0.8.01";
+const UTIL_MDC_VER = "0.9.00";
 logConsoleHereIs(`here is util-mdc.js, module,${UTIL_MDC_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
@@ -1153,6 +1153,23 @@ export async function mkMDCdialog(body, eltActions, fullScreen) {
     // setTimeout(addMDCandOpen);
     // return ret;
 }
+export function closeMyDialog(elt) {
+    const eltDialog = elt.closest(".mdc-dialog");
+    // eltDialog.mdc.close();
+    if (!eltDialog) {
+        const msg = `elt <${elt.tagName}> is not an MDC dialog`;
+        console.error(msg, { elt });
+        throw Error(msg);
+    }
+    const btnClose = eltDialog.querySelector("button[data-mdc-dialog-action=close]");
+    if (btnClose == null) {
+        const msg = `btnClose is null`;
+        console.error(msg, { elt, eltDialog });
+        throw Error(msg);
+    }
+    btnClose.click();
+}
+
 
 ////////////////////////////////////////////////////////////////////
 // Input validators
