@@ -1079,31 +1079,64 @@ async function dialogSyncPeers() {
         `;
     btnNewPeer.addEventListener("click", async (evt) => {
         evt.stopPropagation();
-        debugger;
+
+        const objUserMedia = await navigator.mediaDevices.getUserMedia({ video: true });
+        const hasCamera = objUserMedia.getVideoTracks().length > 0;
+        if (hasCamera) { objUserMedia.getVideoTracks()[0].stop() }
+
+        // debugger;
         const btnScanQR2 = modMdc.mkMDCbutton("Peer QR", "raised", "qr_code_2");
         btnScanQR2.addEventListener("click", async (evt) => {
             evt.stopPropagation();
             closeDialog();
             dialogScanningQR();
-            // const modQRscan = await importFc4i("qr-scanner");
-            // console.log({ modQR: modQRscan });
         });
-        btnScanQR2.inert = true;
-        const divQR = mkElt("div", undefined, [
+        // btnScanQR2.inert = true;
+        const divQR = mkElt("p", undefined, [
             mkElt("p", undefined, `Scan peer QR code with your phone camera.`),
-            btnScanQR2,
-            // mkElt("video", { id: "mm4i-video" }),
-            // mkElt("p", { id: "mm4i-scanned-qr" }),
+            mkElt("div", undefined, [btnScanQR2]),
         ]);
-        const p = await navigator.mediaDevices.getUserMedia({ video: true });
-        const hasCamera = p.getVideoTracks().length > 0;
-        if (hasCamera) {
-            btnScanQR2.inert = false;
-            p.getVideoTracks()[0].stop()
-        }
+        divQR.classList.add("mdc-card");
+        divQR.style = `
+            background-color: orange;
+            padding: 10px;
+        `;
+        divQR.inert = !hasCamera;
+
+
+        // debugger;
+        const inpPeerName = modMdc.mkMDCtextFieldInput();
+        const tfPeerName = modMdc.mkMDCtextFieldOutlined("Peer Name", inpPeerName);
+        const inpPeerSecret = modMdc.mkMDCtextFieldInput();
+        const tfPeerSecret = modMdc.mkMDCtextFieldOutlined("Peer Secret (optional)", inpPeerSecret);
+        const btnAddManually = modMdc.mkMDCbutton("Add peer", "raised");
+        const divManInputs = mkElt("div", undefined, [
+            tfPeerName,
+            tfPeerSecret,
+            mkElt("div", undefined, [btnAddManually]),
+        ]);
+        divManInputs.style = `
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        `;
+        const divManually = mkElt("p", undefined, [
+            mkElt("p", undefined, `
+                Enter peer manually.
+                (If peer secret is not entered, this peer secret will be used.)
+            `),
+            divManInputs,
+        ]);
+        divManually.classList.add("mdc-card");
+        divManually.style = `
+            background-color: orange;
+            padding: 10px;
+        `;
+
         const body = mkElt("div", undefined, [
             mkElt("h2", undefined, `Add new peer`),
             divQR,
+            divManually,
         ]);
         const dlg = await modMdc.mkMDCdialogAlert(body, "Close");
         console.log({ dlg });
