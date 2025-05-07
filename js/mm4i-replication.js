@@ -745,19 +745,19 @@ const modDbMindmaps = await importFc4i("db-mindmaps");
 // debugger;
 const myMindmaps = await (async () => {
     const arrAll = await modDbMindmaps.DBgetAllMindmaps();
-    console.log({ arrAll });
+    // console.log({ arrAll });
     const arrMetaName = arrAll.map(mm => {
-        console.log(mm);
+        // console.log(mm);
         const metaName = mm.jsmindmap.meta.name;
         return metaName;
     });
-    console.log({ arrMetaName });
+    // console.log({ arrMetaName });
     const mindmaps = arrMetaName.reduce((current, item) => {
         const [key, updated] = item.split("/");
         current[key] = updated;
         return current;
     }, {});
-    console.log({ myMindmaps: mindmaps });
+    // console.log({ mindmaps });
     return mindmaps;
 })();
 let peerMindmaps;
@@ -800,7 +800,7 @@ async function setupPeerConnection(remotePeerObj) {
             return;
         }
         const remotePublicId = makePublicId(remotePrivateId);
-        console.log({ remotePrivateId, remotePublicId });
+        // console.log({ remotePrivateId, remotePublicId });
         peerJsDataChannel = peer.connect(remotePublicId, { reliable: true });
         // setupDataConnection(peerJsDataConnection, remotePeerObj);
         setupDataConnection(peerJsDataChannel);
@@ -863,7 +863,7 @@ async function setupPeerConnection(remotePeerObj) {
                             console.log({ secret512Ok });
                             // debugger;
                             if (!secret512Ok) {
-                                const peerHadMySecret = Object.keys(data).includes("secret");
+                                const peerHadMySecret = Object.keys(data).includes("hasRemoteSecret");
                                 console.log({ peerHadMySecret })
                                 const msg = `Secret key did not match peer`;
                                 // peer.destroy();
