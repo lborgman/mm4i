@@ -766,8 +766,24 @@ function makePublicId(privateId) {
     const id = `mm4i-${privateId}`;
     return id;
 }
-let peerJsDataConnection;
+let peerJsDataChannel;
 let peer;
+function finishPeer() {
+    // FIX-ME: how to handle the objects
+    if (peer) {
+        peer.destroy();
+    }
+    if (peerJsDataChannel) {
+        if (peerJsDataChannel.open) { peerJsDataChannel.close(); }
+    }
+}
+function sendToPeer(obj) {
+    if (!peerJsDataChannel.open) {
+        console.warn("dataChannel not open when trying to send", obj);
+        return;
+    }
+    peerJsDataChannel.send(obj);
+}
 async function setupPeerConnection(remotePeerObj) {
     const remotePrivateId = remotePeerObj.id;
     const modPeerjs = await importFc4i("peerjs");
@@ -779,21 +795,21 @@ async function setupPeerConnection(remotePeerObj) {
         // const remotePrivateId = await dialogSyncPeers();
         // debugger;
         if (remotePrivateId == undefined) {
-            // peer.close(); // FIX-ME: close peer connection
-            peer.destroy(); // FIX-ME: close peer connection
+            // peer.destroy(); // FIX-ME: close peer connection
+            finishPeer();
             return;
         }
         const remotePublicId = makePublicId(remotePrivateId);
         console.log({ remotePrivateId, remotePublicId });
-        peerJsDataConnection = peer.connect(remotePublicId, { reliable: true });
+        peerJsDataChannel = peer.connect(remotePublicId, { reliable: true });
         // setupDataConnection(peerJsDataConnection, remotePeerObj);
-        setupDataConnection(peerJsDataConnection);
+        setupDataConnection(peerJsDataChannel);
     });
     peer.on('connection', (conn) => {
         const msg = "peer ON connection";
         logWSimportant(msg, { conn });
-        peerJsDataConnection = conn;
-        setupDataConnection(peerJsDataConnection);
+        peerJsDataChannel = conn;
+        setupDataConnection(peerJsDataChannel);
     });
     function setupDataConnection(dataChannel) {
         // FIX-ME: if open
@@ -806,6 +822,7 @@ async function setupPeerConnection(remotePeerObj) {
             const variant = (new Date()).toISOString();
             const secret = remotePeerObj.secret || secretKey;
             const secretSha512 = await makeSecret512(secret, variant);
+            const hasRemoteSecret = Object.keys(remotePeerObj).includes("secret");
             if (typeof secretSha512 !== "string") { throw Error("secretSha512 is not a string"); }
             const objHelloO = {
                 type: "hello",
@@ -813,11 +830,13 @@ async function setupPeerConnection(remotePeerObj) {
                 myId: myPublicId,
                 secretSha512,
                 variant,
+                hasRemoteSecret,
                 // secretKey,
                 // secret,
             };
             console.log("Sending", objHelloO);
-            peerJsDataConnection.send(objHelloO);
+            // peerJsDataChannel.send(objHelloO);
+            sendToPeer(objHelloO);
             // doSync(dataChannel);
         });
         dataChannel.on("data", (data) => {
@@ -840,16 +859,26 @@ async function setupPeerConnection(remotePeerObj) {
                             console.log({ data });
                             const mySecretSha512 = await makeSecret512(settingSecret.valueS, data.variant);
                             const peerSecretSha512 = data.secretSha512;
-                            // const secret512Ok = isEqualSecret512(mySecretSha512, peerSecretSha512);
                             const secret512Ok = mySecretSha512 == peerSecretSha512;
-                            // const secretOK = settingSecret.valueS === data.secret;
                             console.log({ secret512Ok });
                             // debugger;
                             if (!secret512Ok) {
+                                const peerHadMySecret = Object.keys(data).includes("secret");
+                                console.log({ peerHadMySecret })
                                 const msg = `Secret key did not match peer`;
-                                peer.destroy();
+                                // peer.destroy();
                                 logWSError(msg);
-                                modMdc.mkMDCdialogAlert(msg);
+                                const txtWhichKey = peerHadMySecret ?
+                                    "Remote peer used secret key saved together with my name" :
+                                    "Remote peer used its own secret key";
+                                const header = mkElt("h2", undefined, `${msg}`);
+                                header.style.color = "red";
+                                const body = mkElt("div", undefined, [
+                                    header,
+                                    mkElt("p", undefined, txtWhichKey),
+                                ]);
+                                modMdc.mkMDCdialogAlert(body);
+                                finishPeer();
                                 break;
                             }
                             const len = Object.keys(myMindmaps).length;
@@ -859,7 +888,8 @@ async function setupPeerConnection(remotePeerObj) {
                                 "type": "have-keys",
                                 myMindmaps,
                             }
-                            dataChannel.send(objMessage);
+                            // dataChannel.send(objMessage);
+                            sendToPeer(objMessage);
                         }
                         break;
                     case "have-keys":
@@ -902,8 +932,8 @@ async function setupPeerConnection(remotePeerObj) {
                                 arrNeededMindmaps
                             }
                             // debugger;
-                            // dataChannel.send(JSON.stringify(objMindmapsYouNeeded));
-                            dataChannel.send(objMindmapsYouNeeded);
+                            // dataChannel.send(objMindmapsYouNeeded);
+                            sendToPeer(objMindmapsYouNeeded);
                         })();
                         break;
                     case "keys-you-needed":
@@ -951,10 +981,8 @@ async function setupPeerConnection(remotePeerObj) {
                             modDbMindmaps.DBsetMindmap(key, mm, metaUpdated);
                         });
                         logWSimportant("*** Sync is ready ***");
-                        // destroy and close
-                        // FIX-ME: is this correct?
-                        dataChannel.close();
-                        peer.destroy();
+                        // peer.destroy();
+                        finishPeer();
                         break;
 
                     default:
@@ -969,8 +997,8 @@ async function setupPeerConnection(remotePeerObj) {
         });
         dataChannel.on("close", () => {
             console.warn("peerJsDataConnection close", { dataChannel });
-            dataChannel = undefined; // FIX-ME: close peer connection
-            peer.destroy(); // FIX-ME: close peer connection
+            // peer.destroy(); // FIX-ME: close peer connection
+            finishPeer();
         });
     }
 }
@@ -1207,7 +1235,8 @@ async function dialogSyncPeers() {
     return await new Promise((resolve) => {
         dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async _evt => {
             // const action = evt.detail.action;
-            peer?.destroy(); // FIX-ME: close peer connection
+            // peer?.destroy(); // FIX-ME: close peer connection
+            finishPeer();
             resolve(undefined);
         }));
     });
@@ -1245,7 +1274,8 @@ function tellWhatIneed(dataChannel) {
     }
     const msg = `Sending need-keys (${needKeys.length})`;
     logWSimportant(msg, { objNeedKeys });
-    dataChannel.send(objNeedKeys);
+    // dataChannel.send(objNeedKeys);
+    sendToPeer(objNeedKeys);
 }
 
 /*
