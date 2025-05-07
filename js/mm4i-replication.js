@@ -58,10 +58,11 @@ const settingSecret = new SettingsRepl("secret", "");
  */
 async function makeSecret512(secret, variant) {
     // return settingSecret.valueS;
-    const buffer = await window.crypto.subtle.digest("SHA-512", (new TextEncoder()).encode(`${secret} + ${variant}`));
+    const str = `${secret} + ${variant}`;
+    const buffer = await window.crypto.subtle.digest("SHA-512", (new TextEncoder()).encode(str));
     return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
-function isEqualSecret512(e1, e2) {
+function _OLDisEqualSecret512(e1, e2) {
     return JSON.stringify((new Uint8Array(e1))) == JSON.stringify((new Uint8Array(e2)));
 }
 
@@ -773,7 +774,7 @@ async function setupPeerConnection(remotePeerObj) {
     const myPublicId = makePublicId(settingPeerjsId.valueS);
     peer = new modPeerjs.Peer(myPublicId);
     peer.on('open', async (id) => {
-        const msg = 'ON peer OPEN, My peer ID is: ' + id;
+        const msg = 'ON peer OPEN, id: ' + id;
         logWSimportant(msg);
         // const remotePrivateId = await dialogSyncPeers();
         // debugger;
@@ -813,7 +814,7 @@ async function setupPeerConnection(remotePeerObj) {
                 secretSha512,
                 variant,
                 // secretKey,
-                // mindmaps: myMindmaps,
+                // secret,
             };
             console.log("Sending", objHelloO);
             peerJsDataConnection.send(objHelloO);
@@ -836,11 +837,15 @@ async function setupPeerConnection(remotePeerObj) {
                 switch (msgType) {
                     case "hello":
                         {
+                            console.log({ data });
                             const mySecretSha512 = await makeSecret512(settingSecret.valueS, data.variant);
                             const peerSecretSha512 = data.secretSha512;
-                            const secretOk = isEqualSecret512(mySecretSha512, peerSecretSha512);
-                            console.log({ secretOk });
-                            if (!secretOk) {
+                            // const secret512Ok = isEqualSecret512(mySecretSha512, peerSecretSha512);
+                            const secret512Ok = mySecretSha512 == peerSecretSha512;
+                            // const secretOK = settingSecret.valueS === data.secret;
+                            console.log({ secret512Ok });
+                            // debugger;
+                            if (!secret512Ok) {
                                 const msg = `Secret key did not match peer`;
                                 peer.destroy();
                                 logWSError(msg);
@@ -1355,14 +1360,30 @@ function _logWSimportant(...args) {
 }
 function logWSimportant(...args) {
     _logWSimportant(...args);
-    _logWSsyncLog(args[0]);
+    const arg0 = args.shift();
+    const eltMsg = mkElt("span", undefined, arg0);
+    eltMsg.style.color = "blue";
+    _logWSsyncLog(eltMsg);
 }
 function logWSError(...args) {
     const arg0 = args.shift();
-    const msg = `WS error: ${arg0}`;
+    const msg = arg0;
+    const eltMsg = mkElt("span", undefined, arg0);
+    eltMsg.style.color = "red";
     console.error(`%c ${msg} `, "background:red; color:white;", ...args);
-    _logWSsyncLog(msg);
+    _logWSsyncLog(eltMsg);
 }
+function _logDebug(...args) {
+    const arg0 = args.shift();
+    const msg = arg0;
+    const eltMsg = mkElt("span", undefined, arg0);
+    eltMsg.style.color = "red";
+    eltMsg.style.backgroundColor = "yellow";
+    console.warn(`%c ${msg} `, "background:red; color:white;", ...args);
+    _logWSsyncLog(eltMsg);
+    debugger; // eslint-disable-line no-debugger
+}
+
 function _logWSdetail(...args) {
     return;
     console.log(...args);
