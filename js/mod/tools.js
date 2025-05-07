@@ -2343,3 +2343,26 @@ export function getCssTransforms(elt) {
     return { scale, x, y }
 }
 
+/**
+ * This function should just protect me from my worst mistakes.
+ * It compares to variables and screens for equality.
+ * It does not check for deep equality, but only for shallow equality.
+ *  
+ * @param {*} varA 
+ * @param {*} varB 
+ * @returns {boolean}
+ */
+export function canVarsBeEq(varA, varB) {
+    if (varA === varB) return true;
+    if (typeof varA !== typeof varB ) return false;
+    if (Object.prototype.toString.call(varA) !== Object.prototype.toString.call(varB)) return false;
+    const keysA = Object.keys(varA);
+    const keysB = Object.keys(varB);
+    if (keysA.length !== keysB.length) return false;
+    for (const key of keysA) {
+        if (!keysB.includes(key)) return false;
+        if (varA[key] !== varB[key]) return false;
+    }
+    if (JSON.stringify(varA) !== JSON.stringify(varB)) return false;
+    return true;
+}
