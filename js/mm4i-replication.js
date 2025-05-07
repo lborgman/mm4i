@@ -193,23 +193,19 @@ function _logWSsyncLog(msg) {
 function setSyncLogState(state, color) {
     divSyncLogState.textContent = state;
     divSyncLogState.style.color = color;
-    divSyncLogHeader.inert = false;
-}
-function setSyncLogInitiator(tellIsInitiator) {
-    // _isInitiator = tellIsInitiator;
-    divSyncLogState.style.textDecoration = tellIsInitiator ? "overline" : "underline";
+    // divSyncLogHeader.inert = false;
 }
 
-function setSyncLogInactive() {
+function _setSyncLogInactive() {
     setSyncLogState("Not started", "gray");
     divSyncLogLog.textContent = "";
-    divSyncLogHeader.inert = true;
+    // divSyncLogHeader.inert = true;
 }
 /////////////////
 
 
 
-let mm4iDataChannel;
+let _mm4iDataChannel;
 async function dialogScanningQR() {
     let qrScanner;
     const eltVideo = mkElt("video", { id: "mm4i-video" });
@@ -435,6 +431,7 @@ export async function replicationDialog() {
 
     const btnUnhide = modMdc.mkMDCiconButton("visibility", "Unhide passkey", 40);
     btnUnhide.addEventListener("click", (evt) => {
+        evt.stopPropagation();
         btnUnhide.style.display = "none";
         spanSecret.style.display = "flex";
     });
@@ -686,7 +683,7 @@ export async function replicationDialog() {
         padding: 10px;
         `;
 
-    let replicationPool;
+    // let replicationPool;
 
 
 
@@ -712,51 +709,13 @@ export async function replicationDialog() {
 
     btnStartReplication.addEventListener("click", async (evt) => {
         evt.stopPropagation();
-        const usePeer2 = false;
-        if (usePeer2) {
-            btnStartReplication.inert = true;
-            // btnStopReplication.inert = false;
-            // btnTestSend.inert = false;
-            _isReplicating = true;
-            const objLogFuns = {
-                logWSError,
-                setSyncLogState,
-                setSyncLogInitiator,
-                logSignaling,
-                logWSimportant,
-                logWSinfo,
-                logWSdetail,
-                logDataChannel,
-            };
-            mm4iDataChannel = await mod2peers.openChannelToPeer(objLogFuns, btnTestSend);
-            doSync(mm4iDataChannel);
-        } else {
-            // OLDopenChannelToPeer(doSync);
-            // peerJsSync(settingPeerjsId.valueS);
-            dialogSyncPeers();
-        }
+        dialogSyncPeers();
     });
-    /*
-    btnStopReplication.addEventListener("click", async (evt) => {
-        evt.stopPropagation();
-        _isReplicating = false;
-        if (replicationPool) {
-            await replicationPool.cancel();
-            replicationPool = undefined;
-            modMdc.mkMDCsnackbar("Stopped sync", 6000);
-        } else {
-            modMdc.mkMDCsnackbar("No sync to stop", 6000);
-        }
-        btnStopReplication.inert = true;
-        btnStartReplication.inert = false;
-    });
-    */
 
 
 
     const divGrok = mkElt("p", undefined, [
         btnStartReplication,
-        // btnStopReplication,
     ]);
     divGrok.style = `
         display: flex;
@@ -780,7 +739,7 @@ export async function replicationDialog() {
 }
 
 
-let handledOpenBefore = false;
+// let handledOpenBefore = false;
 const modDbMindmaps = await importFc4i("db-mindmaps");
 // debugger;
 const myMindmaps = await (async () => {
@@ -826,7 +785,8 @@ async function setupPeerConnection(remotePeerObj) {
         const remotePublicId = makePublicId(remotePrivateId);
         console.log({ remotePrivateId, remotePublicId });
         peerJsDataConnection = peer.connect(remotePublicId, { reliable: true });
-        setupDataConnection(peerJsDataConnection, remotePeerObj);
+        // setupDataConnection(peerJsDataConnection, remotePeerObj);
+        setupDataConnection(peerJsDataConnection);
     });
     peer.on('connection', (conn) => {
         const msg = "peer ON connection";
@@ -1009,7 +969,7 @@ async function setupPeerConnection(remotePeerObj) {
         });
     }
 }
-let ourOkButton;
+// let ourOkButton;
 async function dialogSyncPeers() {
     const eltKnownPeers = mkElt("p", { id: "mm4i-known-peers" });
     listPeers();
@@ -1059,7 +1019,7 @@ async function dialogSyncPeers() {
         const btnAddManually = modMdc.mkMDCbutton("Add peer", "raised");
         btnAddManually.addEventListener("click", async (evt) => {
             evt.stopPropagation();
-            debugger;
+            // debugger;
             const peerName = inpPeerName.value.trim();
             const peerSecret = inpPeerSecret.value.trim();
             console.log({ peerName, peerSecret });
@@ -1088,7 +1048,7 @@ async function dialogSyncPeers() {
                     }
                 }
             }
-            debugger;
+            // debugger;
             addPeer(peerName, peerSecret);
         });
 
@@ -1130,9 +1090,9 @@ async function dialogSyncPeers() {
         if (arrSavedPeers.length === 0) {
             eltKnownPeers.textContent = "No saved peers";
         } else {
-            if (ourOkButton) { ourOkButton.inert = false; }
+            // if (ourOkButton instanceof HTMLElement) { ourOkButton.inert = false; }
             eltKnownPeers.appendChild(mkElt("div", undefined, [`Click to sync with peer:`]));
-            const latestPeer = settingPeerjsLatestPeer.value;
+            const _latestPeer = settingPeerjsLatestPeer.value;
             arrSavedPeers.forEach((peer, _idx) => {
                 const iconRemove = modMdc.mkMDCicon("delete_forever");
                 const btnRemove = modMdc.mkMDCiconButton(iconRemove, "Remove", 30);
@@ -1283,6 +1243,7 @@ function tellWhatIneed(dataChannel) {
     dataChannel.send(objNeedKeys);
 }
 
+/*
 async function doSync(dataChannel) {
     console.log(dataChannel.id, { channelToPeer: dataChannel });
     const wasOpenedBefore = handledOpenBefore;
@@ -1377,8 +1338,9 @@ async function doSync(dataChannel) {
     const json = JSON.stringify(objMessage);
     dataChannel.send(json);
 }
+*/
 
-function logWSinfo(...args) {
+function _logWSinfo(...args) {
     return;
     const arg0 = args.shift();
     const msg = `WS: ${arg0}`;
@@ -1401,17 +1363,9 @@ function logWSError(...args) {
     console.error(`%c ${msg} `, "background:red; color:white;", ...args);
     _logWSsyncLog(msg);
 }
-function logWSdetail(...args) {
+function _logWSdetail(...args) {
     return;
     console.log(...args);
-}
-function logSignaling(...args) {
-    return;
-    const arg0 = args.shift();
-    const msg = `Signaling server - ${arg0}`;
-    // console.log(`%c ${msg}`, "background:darkgreen; color:white;", ...args);
-    console.log(`%c ${msg}`, "background:darkgreen; color:white;");
-    _logWSsyncLog(msg);
 }
 
 /**
@@ -1419,7 +1373,7 @@ function logSignaling(...args) {
  * @param {number} id 
  * @param  {...any} args 
  */
-function logDataChannel(id, ...args) {
+function _logDataChannel(id, ...args) {
     // const id = args.shift();
     console.warn(`%c Data Channel ${id}: `, "background:cyan; color:black;", ...args);
 }
