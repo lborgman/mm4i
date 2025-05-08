@@ -765,14 +765,35 @@ function finishPeer() {
         }
     }
 }
-function sendToPeer(obj, fromWhere, otherData) {
-    const tofFromWhere = typeof fromWhere;
-    if (tofFromWhere != "string") {
-        const msg = `Expected fromWhere to be string but it was ${tofFromWhere}`;
+function sendToPeer(obj, arrInfo, otherData) {
+    // const tofFromWhere = typeof fromWhere;
+    if (!Array.isArray(arrInfo)) {
+        const msg = `Expected fromWhere to be array of strings but it was ${arrInfo}`;
         SentAndRecieved.push(msg);
         console.error(msg);
         throw Error(msg);
     }
+    const arrEltInfo = arrInfo.reduce(
+        (tot, curr) => {
+            const tofCurr = typeof curr;
+            if (tofCurr != "string") { debugger; throw Error(`Expected "curr" to be "string", but it was "${tofCurr}`); }
+            switch (curr) {
+                case "R":
+                    tot.push(mkElt("span", { style: "color:blue" }, "R:"));
+                    break;
+                case "S":
+                    if (tot.length > 0) {
+                        tot.push(mkElt("span", { style: "color:gray" }, "=>"));
+                    }
+                    tot.push(mkElt("span", { style: "color:green" }, "S:"));
+                    break;
+                default:
+                    tot.push(curr);
+            }
+            return tot;
+        },
+        []);
+    const eltInfo = mkElt("span", undefined, arrEltInfo);
     if (!peerJsDataChannel.open) {
         // debugger;
         const msg = `dataChannel not open when trying to send from ${fromWhere}`;
@@ -781,9 +802,17 @@ function sendToPeer(obj, fromWhere, otherData) {
         SentAndRecieved.push(msg);
         return;
     }
-    const msg = `S: ${fromWhere}`;
-    logWSimportant(msg, { obj, otherData });
-    SentAndRecieved.push(msg);
+    /*
+    const eltMsg = mkElt("span", undefined, [
+        mkElt("span", { style: "color:green" }, "S:"),
+        `${fromWhere}`,
+    ])
+    */
+    const strInfo = eltInfo.textContent;
+    // logWSimportant(eltMsg, { obj, otherData });
+    _logWSimportant(strInfo, { obj, otherData });
+    _logWSsyncLog(eltInfo);
+    SentAndRecieved.push(strInfo);
     peerJsDataChannel.send(obj);
 }
 async function setupPeerConnection(remotePeerObj) {
@@ -804,24 +833,25 @@ async function setupPeerConnection(remotePeerObj) {
         const remotePublicId = makePublicId(remotePrivateId);
         // console.log({ remotePrivateId, remotePublicId });
         peerJsDataChannel = peer.connect(remotePublicId, { reliable: true });
-        // setupDataConnection(peerJsDataConnection, remotePeerObj);
-        setupDataConnection(peerJsDataChannel);
+        setupDataConnection(peerJsDataChannel, "4OPEN");
     });
     peer.on('connection', (conn) => {
-        const msg = "peer ON connection";
+        const msg = "ON peer CONNECTION";
         logWSimportant(msg, { conn });
         peerJsDataChannel = conn;
-        setupDataConnection(peerJsDataChannel);
+        setupDataConnection(peerJsDataChannel, "4CONNECTION");
     });
-    function setupDataConnection(dataChannel) {
+    function setupDataConnection(dataChannel, what4) {
         // FIX-ME: if open
-        const msg = "setupDataConnection";
+        const msg = `setupDataConnection ${what4}`;
         logWSimportant(msg, { dataChannel });
         let saidHello = false;
         dataChannel.on('open', async () => {
+            // if (what4 == "4CONNECTION") return;
             if (saidHello) {
                 logWSimportant("Second dataChannel ON OPEN");
                 debugger;
+                return;
             }
             saidHello = true;
             console.warn("peerJsDataConnection open", { dataChannel });
@@ -842,7 +872,7 @@ async function setupPeerConnection(remotePeerObj) {
                 secretKey,
                 secret,
             };
-            sendToPeer(objHelloO, "Say hello");
+            sendToPeer(objHelloO, ["S", '"hello"']);
             // doSync(dataChannel);
         });
         dataChannel.on("data", (data) => {
@@ -889,19 +919,19 @@ async function setupPeerConnection(remotePeerObj) {
                                 break;
                             }
                             const len = Object.keys(myMindmaps).length;
-                            const msg = `After hello, have-keys (${len})`;
-                            // logWSimportant(msg, { data });
+                            // const msg = `Got "hello" => "have-keys" (${len})`;
+                            const arrInfo = ["R", '"hello"', "S", `"have-keys" (${len})`];
                             const objMessage = {
                                 "type": "have-keys",
                                 myMindmaps,
                             }
-                            sendToPeer(objMessage, msg, data);
+                            sendToPeer(objMessage, arrInfo, data);
                         }
                         break;
                     case "have-keys":
                         {
-                            const msg = "Got have-keys";
-                            logWSimportant(msg, { data });
+                            // const msg = "Got have-keys";
+                            // logWSimportant(msg, { data });
                             peerMindmaps = data.myMindmaps;
                             if (peerMindmaps == undefined) throw Error(`data.myMindmaps is undefined`);
                             // console.log({ peerMindmaps, myMindmaps });
@@ -913,7 +943,8 @@ async function setupPeerConnection(remotePeerObj) {
                         // console.log({ neededKeys });
                         {
                             const len = neededKeys.length;
-                            const msg = `After need-keys, keys (${len})`;
+                            // const msg = `After need-keys, keys (${len})`;
+                            const arrInfo = ["R", `"need-keys", keys (${len})`];
                             // logWSimportant(msg, { data });
                             const promNeededMm = [];
                             neededKeys.forEach(key => {
@@ -935,7 +966,7 @@ async function setupPeerConnection(remotePeerObj) {
                                     type: "keys-you-needed",
                                     arrNeededMindmaps
                                 }
-                                sendToPeer(objMindmapsYouNeeded, msg, data);
+                                sendToPeer(objMindmapsYouNeeded, arrInfo, data);
                             })();
                         }
                         break;
@@ -943,8 +974,11 @@ async function setupPeerConnection(remotePeerObj) {
                         const arrNeededMindmaps = data.arrNeededMindmaps;
                         {
                             const len = arrNeededMindmaps.length;
-                            const msg = `Got keys-you-needed (${len}), updating`;
-                            logWSimportant(msg, { data });
+                            // const msg = `Got "keys-you-needed" (${len}), updating`;
+                            const eltInfo = mkElt("span",
+                                { style: "color:orange" },
+                                `Got "keys-you-needed" (${len}), updating`);
+                            logWSimportant(eltInfo, { data });
                         }
                         const currentKey = window["current-mindmapKey"];
                         arrNeededMindmaps.forEach(mm => {
@@ -1275,8 +1309,10 @@ function tellWhatIneed(dataChannel) {
         type: "need-keys",
         needKeys
     }
-    const msg = `After have-keys, need-keys (${needKeys.length})`;
-    sendToPeer(objNeedKeys, msg, objNeedKeys);
+    // const msg = `Got "have-keys" => "need-keys" (${needKeys.length})`;
+    const arrInfo = ["R", '"have-keys"', "S", `"need-keys" (${needKeys.length})`];
+    // sendToPeer(objNeedKeys, msg, objNeedKeys);
+    sendToPeer(objNeedKeys, arrInfo, objNeedKeys);
 }
 
 /*
@@ -1397,7 +1433,7 @@ function logWSimportant(...args) {
     _logWSsyncLog(eltMsg);
 }
 function logWSready() {
-    const msg = "Sync is ready"
+    const msg = "** Sync is ready **"
     console.warn("%c WS: ", "background:green; color:white; font-size:20px;", msg);
     const eltMsg = mkElt("span", undefined, msg);
     eltMsg.style.color = "green";
