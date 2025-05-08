@@ -5,32 +5,13 @@ console.log(`%chere is mm4i-replication.js ${MM4I_REPL_VER}`, "font-size:20px;")
 if (document.currentScript) { throw "mm4i-replication.js is not loaded as module"; }
 
 
-/*
-const btnTestSend = document.createElement("button");
-btnTestSend.textContent = "send";
-btnTestSend.title = "Send test message to peer";
-btnTestSend.style = `
-    background-color: violet;
-    border-radius: 50%;
-    box-shadow: 7px 7px 5px 0px rgba(0,0,0,0.5);
-`;
-btnTestSend.inert = true;
-*/
-
-
 
 const mkElt = window["mkElt"];
 const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 const importFc4i = window["importFc4i"];
 
-// const mod2peers = await importFc4i("webrtc-2-peers");
-// console.log({ mod2peers });
 
-// const keyRoomKey = "mm4i-webrct-room-key";
 const secretKeyMinLength = 8;
-// const keySecretKey = "mm4i-webrct-secret-key";
-// const keyOpenRelayCred = "mm4i-openrelay-key";
-// const keyUseOpenRelay = "mm4i-openrelay-checked";
 
 
 
@@ -768,20 +749,41 @@ function makePublicId(privateId) {
 }
 let peerJsDataChannel;
 let peer;
+const SentAndRecieved = [];
+window["S&R"] = SentAndRecieved;
+
 function finishPeer() {
     // FIX-ME: how to handle the objects
     if (peer) {
+        console.log("finishPeer: peer.destroy()");
         peer.destroy();
     }
     if (peerJsDataChannel) {
-        if (peerJsDataChannel.open) { peerJsDataChannel.close(); }
+        if (peerJsDataChannel.open) {
+            console.log("finishPeer: peerJsDataChannel.close()");
+            peerJsDataChannel.close();
+        }
     }
 }
-function sendToPeer(obj) {
+function sendToPeer(obj, fromWhere, otherData) {
+    const tofFromWhere = typeof fromWhere;
+    if (tofFromWhere != "string") {
+        const msg = `Expected fromWhere to be string but it was ${tofFromWhere}`;
+        SentAndRecieved.push(msg);
+        console.error(msg);
+        throw Error(msg);
+    }
     if (!peerJsDataChannel.open) {
-        console.warn("dataChannel not open when trying to send", obj);
+        // debugger;
+        const msg = `dataChannel not open when trying to send from ${fromWhere}`;
+        logWSimportant(msg, obj);
+        // console.warn(msg, obj);
+        SentAndRecieved.push(msg);
         return;
     }
+    const msg = `S: ${fromWhere}`;
+    logWSimportant(msg, { obj, otherData });
+    SentAndRecieved.push(msg);
     peerJsDataChannel.send(obj);
 }
 async function setupPeerConnection(remotePeerObj) {
@@ -815,7 +817,13 @@ async function setupPeerConnection(remotePeerObj) {
         // FIX-ME: if open
         const msg = "setupDataConnection";
         logWSimportant(msg, { dataChannel });
+        let saidHello = false;
         dataChannel.on('open', async () => {
+            if (saidHello) {
+                logWSimportant("Second dataChannel ON OPEN");
+                debugger;
+            }
+            saidHello = true;
             console.warn("peerJsDataConnection open", { dataChannel });
             const msgHelloO = "Hello ON dataChannel OPEN from " + myPublicId;
             const secretKey = settingSecret.valueS;
@@ -831,18 +839,14 @@ async function setupPeerConnection(remotePeerObj) {
                 secretSha512,
                 variant,
                 hasRemoteSecret,
-                // secretKey,
-                // secret,
+                secretKey,
+                secret,
             };
-            console.log("Sending", objHelloO);
-            // peerJsDataChannel.send(objHelloO);
-            sendToPeer(objHelloO);
+            sendToPeer(objHelloO, "Say hello");
             // doSync(dataChannel);
         });
         dataChannel.on("data", (data) => {
-            console.log("peerJsDataConnection data", { data });
-            // logDataChannel(dataChannel.id, "message", data);
-            // handleMessageSync(data);
+            // console.log("peerJsDataConnection data", { data });
             handleDataChannelMessage(data);
             async function handleDataChannelMessage(data) {
                 const tofData = typeof data;
@@ -852,18 +856,21 @@ async function setupPeerConnection(remotePeerObj) {
                     throw Error(msg);
                 }
                 const msgType = data.type;
-                // handleMessageSync
+                SentAndRecieved.push(`R: ${msgType}`);
                 switch (msgType) {
                     case "hello":
                         {
-                            console.log({ data });
                             const mySecretSha512 = await makeSecret512(settingSecret.valueS, data.variant);
                             const peerSecretSha512 = data.secretSha512;
                             const secret512Ok = mySecretSha512 == peerSecretSha512;
-                            console.log({ secret512Ok });
+                            const secretOK = data.secret == settingSecret.valueS;
+                            // console.log({ secret512Ok, secretOK });
                             // debugger;
                             if (!secret512Ok) {
-                                const peerHadMySecret = Object.keys(data).includes("hasRemoteSecret");
+                                debugger;
+                                const peerHadMySecret =
+                                    Object.keys(data).includes("hasRemoteSecret")
+                                    && data.hasRemoteSecret;
                                 console.log({ peerHadMySecret })
                                 const msg = `Secret key did not match peer`;
                                 // peer.destroy();
@@ -882,65 +889,61 @@ async function setupPeerConnection(remotePeerObj) {
                                 break;
                             }
                             const len = Object.keys(myMindmaps).length;
-                            const msg = `Got hello, sending have-keys (${len})`;
-                            logWSimportant(msg, { data });
+                            const msg = `After hello, have-keys (${len})`;
+                            // logWSimportant(msg, { data });
                             const objMessage = {
                                 "type": "have-keys",
                                 myMindmaps,
                             }
-                            // dataChannel.send(objMessage);
-                            sendToPeer(objMessage);
+                            sendToPeer(objMessage, msg, data);
                         }
                         break;
                     case "have-keys":
                         {
-                            const msg = "Got peer have-keys, will tell keys I need";
+                            const msg = "Got have-keys";
                             logWSimportant(msg, { data });
                             peerMindmaps = data.myMindmaps;
                             if (peerMindmaps == undefined) throw Error(`data.myMindmaps is undefined`);
-                            console.log({ peerMindmaps, myMindmaps });
+                            // console.log({ peerMindmaps, myMindmaps });
                             tellWhatIneed(dataChannel);
                         }
                         break;
                     case "need-keys":
                         const neededKeys = data.needKeys;
-                        console.log({ neededKeys });
+                        // console.log({ neededKeys });
                         {
                             const len = neededKeys.length;
-                            const msg = `Got peer need-keys, sending those keys (${len})`;
-                            logWSimportant(msg, { data });
+                            const msg = `After need-keys, keys (${len})`;
+                            // logWSimportant(msg, { data });
+                            const promNeededMm = [];
+                            neededKeys.forEach(key => {
+                                const promMindmap = modDbMindmaps.DBgetMindmap(key);
+                                console.log({ promMindmap });
+                                promNeededMm.push(promMindmap);
+                            });
+                            (async () => {
+                                let arrSettled;
+                                try {
+                                    arrSettled = await Promise.allSettled(promNeededMm);
+                                } catch (err) {
+                                    console.error(err, arrSettled);
+                                    throw Error("Could not find all needed mindmaps");
+                                }
+                                const arrNeededMindmaps = await Promise.all(promNeededMm);
+                                // console.log({ arrNeededMindmaps });
+                                const objMindmapsYouNeeded = {
+                                    type: "keys-you-needed",
+                                    arrNeededMindmaps
+                                }
+                                sendToPeer(objMindmapsYouNeeded, msg, data);
+                            })();
                         }
-                        // myMindmaps =
-                        const promNeededMm = [];
-                        neededKeys.forEach(key => {
-                            const promMindmap = modDbMindmaps.DBgetMindmap(key);
-                            console.log({ promMindmap });
-                            promNeededMm.push(promMindmap);
-                        });
-                        (async () => {
-                            let arrSettled;
-                            try {
-                                arrSettled = await Promise.allSettled(promNeededMm);
-                            } catch (err) {
-                                console.error(err, arrSettled);
-                                throw Error("Could not find all needed mindmaps");
-                            }
-                            const arrNeededMindmaps = await Promise.all(promNeededMm);
-                            console.log({ arrNeededMindmaps });
-                            const objMindmapsYouNeeded = {
-                                type: "keys-you-needed",
-                                arrNeededMindmaps
-                            }
-                            // debugger;
-                            // dataChannel.send(objMindmapsYouNeeded);
-                            sendToPeer(objMindmapsYouNeeded);
-                        })();
                         break;
                     case "keys-you-needed":
                         const arrNeededMindmaps = data.arrNeededMindmaps;
                         {
                             const len = arrNeededMindmaps.length;
-                            const msg = `Got from peer keys-you-needed (${len}), updating`;
+                            const msg = `Got keys-you-needed (${len}), updating`;
                             logWSimportant(msg, { data });
                         }
                         const currentKey = window["current-mindmapKey"];
@@ -980,7 +983,8 @@ async function setupPeerConnection(remotePeerObj) {
                             if (key != metaKey) throw Error(`key:${key} != metaKey:${metaKey}`);
                             modDbMindmaps.DBsetMindmap(key, mm, metaUpdated);
                         });
-                        logWSimportant("*** Sync is ready ***");
+                        // logWSimportant("*** Sync is ready ***");
+                        logWSready();
                         // peer.destroy();
                         finishPeer();
                         break;
@@ -996,7 +1000,7 @@ async function setupPeerConnection(remotePeerObj) {
             console.error("peerJsDataConnection error", { err });
         });
         dataChannel.on("close", () => {
-            console.warn("peerJsDataConnection close", { dataChannel });
+            console.warn("dataChannel on close");
             // peer.destroy(); // FIX-ME: close peer connection
             finishPeer();
         });
@@ -1261,21 +1265,18 @@ function tellWhatIneed(dataChannel) {
         } else {
             const myUpdated = myMindmaps[pk];
             const peerUpdated = peerMindmaps[pk];
-            console.log({ myUpdated, peerUpdated });
+            // console.log({ myUpdated, peerUpdated });
             if (peerUpdated > myUpdated) {
                 needKeys.push(pk);
             }
         }
     });
-    console.log({ needKeys });
     const objNeedKeys = {
         type: "need-keys",
         needKeys
     }
-    const msg = `Sending need-keys (${needKeys.length})`;
-    logWSimportant(msg, { objNeedKeys });
-    // dataChannel.send(objNeedKeys);
-    sendToPeer(objNeedKeys);
+    const msg = `After have-keys, need-keys (${needKeys.length})`;
+    sendToPeer(objNeedKeys, msg, objNeedKeys);
 }
 
 /*
@@ -1393,6 +1394,13 @@ function logWSimportant(...args) {
     const arg0 = args.shift();
     const eltMsg = mkElt("span", undefined, arg0);
     eltMsg.style.color = "blue";
+    _logWSsyncLog(eltMsg);
+}
+function logWSready() {
+    const msg = "Sync is ready"
+    console.warn("%c WS: ", "background:green; color:white; font-size:20px;", msg);
+    const eltMsg = mkElt("span", undefined, msg);
+    eltMsg.style.color = "green";
     _logWSsyncLog(eltMsg);
 }
 function logWSError(...args) {
