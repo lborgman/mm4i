@@ -1,5 +1,5 @@
 // @ts-check
-const MM4I_REPL_VER = "0.0.02";
+const MM4I_REPL_VER = "0.0.03";
 window["logConsoleHereIs"](`here is mm4i-replication.js, module, ${MM4I_REPL_VER}`);
 console.log(`%chere is mm4i-replication.js ${MM4I_REPL_VER}`, "font-size:20px;");
 if (document.currentScript) { throw "mm4i-replication.js is not loaded as module"; }
