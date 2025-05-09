@@ -11,7 +11,6 @@ MM4I (Mindmaps 4 Internet) offers that.
 <a href="https://lborgman.github.io/mm4i/mm4i.html">
     <figure>
     <img src="./img/mm4i.svg" width="20%" title="Start Mindmaps 4 Internet">
-    <figcaption>Start MM4I</figcaption>
     </figure>
 </a>
 
