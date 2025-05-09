@@ -168,6 +168,7 @@ btnSyncLogLog.addEventListener("click", evt => {
 
 
 function _logWSsyncLog(msg) {
+    if (!divSyncLogLog) return;
     const line = mkElt("div", undefined, msg);
     divSyncLogLog.appendChild(line);
     line.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -753,15 +754,26 @@ const SentAndRecieved = [];
 window["S&R"] = SentAndRecieved;
 
 function finishPeer() {
+    if (!peer) {
+        debugger;
+        return;
+    }
     // FIX-ME: how to handle the objects
+    logWSimportant("* finishPeer()", { peer, peerJsDataChannel });
     if (peer) {
-        console.log("finishPeer: peer.destroy()");
-        peer.destroy();
+        if (peer.destroyed) {
+            logWSimportant("** p.destroyed already");
+        } else {
+            logWSimportant("** p.destroy()");
+            peer.destroy();
+        }
     }
     if (peerJsDataChannel) {
         if (peerJsDataChannel.open) {
-            console.log("finishPeer: peerJsDataChannel.close()");
+            logWSimportant("** c.close()");
             peerJsDataChannel.close();
+        } else {
+            logWSimportant("** c.closed already");
         }
     }
 }
@@ -796,7 +808,8 @@ function sendToPeer(obj, arrInfo, otherData) {
     const eltInfo = mkElt("span", undefined, arrEltInfo);
     if (!peerJsDataChannel.open) {
         // debugger;
-        const msg = `dataChannel not open when trying to send from ${fromWhere}`;
+
+        const msg = `dataChannel not open when trying to send from ${eltInfo.textContent}`;
         logWSimportant(msg, obj);
         // console.warn(msg, obj);
         SentAndRecieved.push(msg);
@@ -823,10 +836,7 @@ async function setupPeerConnection(remotePeerObj) {
     peer.on('open', async (id) => {
         const msg = 'ON peer OPEN, id: ' + id;
         logWSimportant(msg);
-        // const remotePrivateId = await dialogSyncPeers();
-        // debugger;
         if (remotePrivateId == undefined) {
-            // peer.destroy(); // FIX-ME: close peer connection
             finishPeer();
             return;
         }
@@ -944,7 +954,7 @@ async function setupPeerConnection(remotePeerObj) {
                         {
                             const len = neededKeys.length;
                             // const msg = `After need-keys, keys (${len})`;
-                            const arrInfo = ["R", `"need-keys", keys (${len})`];
+                            const arrInfo = ["R", `"need-keys" (${len})`];
                             // logWSimportant(msg, { data });
                             const promNeededMm = [];
                             neededKeys.forEach(key => {
@@ -966,6 +976,8 @@ async function setupPeerConnection(remotePeerObj) {
                                     type: "keys-you-needed",
                                     arrNeededMindmaps
                                 }
+                                arrInfo.push("S");
+                                arrInfo.push(`keys-you-needed (${arrNeededMindmaps.length})`);
                                 sendToPeer(objMindmapsYouNeeded, arrInfo, data);
                             })();
                         }
@@ -974,10 +986,9 @@ async function setupPeerConnection(remotePeerObj) {
                         const arrNeededMindmaps = data.arrNeededMindmaps;
                         {
                             const len = arrNeededMindmaps.length;
-                            // const msg = `Got "keys-you-needed" (${len}), updating`;
                             const eltInfo = mkElt("span",
                                 { style: "color:orange" },
-                                `Got "keys-you-needed" (${len}), updating`);
+                                `R:"keys-you-needed" (${len}), updating`);
                             logWSimportant(eltInfo, { data });
                         }
                         const currentKey = window["current-mindmapKey"];
@@ -1017,9 +1028,7 @@ async function setupPeerConnection(remotePeerObj) {
                             if (key != metaKey) throw Error(`key:${key} != metaKey:${metaKey}`);
                             modDbMindmaps.DBsetMindmap(key, mm, metaUpdated);
                         });
-                        // logWSimportant("*** Sync is ready ***");
                         logWSready();
-                        // peer.destroy();
                         finishPeer();
                         break;
 
@@ -1031,11 +1040,11 @@ async function setupPeerConnection(remotePeerObj) {
             }
         });
         dataChannel.on("error", (err) => {
+            debugger;
             console.error("peerJsDataConnection error", { err });
         });
         dataChannel.on("close", () => {
-            console.warn("dataChannel on close");
-            // peer.destroy(); // FIX-ME: close peer connection
+            logWSimportant("dataChannel on close");
             finishPeer();
         });
     }
@@ -1057,21 +1066,36 @@ async function dialogSyncPeers() {
     btnNewPeer.addEventListener("click", async (evt) => {
         evt.stopPropagation();
 
-        const objUserMedia = await navigator.mediaDevices.getUserMedia({ video: true });
-        const hasCamera = objUserMedia.getVideoTracks().length > 0;
-        if (hasCamera) { objUserMedia.getVideoTracks()[0].stop() }
+        let canUseCamera = true;
+        let infoCamera = `Scan peer QR code with your device camera.`;
+        const btnScanQR2 = modMdc.mkMDCbutton("Scan peer QR", "raised", "qr_code_2");
+        try {
+            const objUserMedia = await navigator.mediaDevices.getUserMedia({ video: true });
+            const canUseCamera = objUserMedia.getVideoTracks().length > 0;
+            if (canUseCamera) { objUserMedia.getVideoTracks()[0].stop() }
+        } catch (err) {
+            console.log({ err });
+            canUseCamera = false;
+            btnScanQR2.inert = true;
+            switch (err.name) {
+                case "NotAllowedError":
+                    infoCamera = "Permission to access camera is denied.";
+                    break;
+                case "NotFoundError":
+                    infoCamera = "No camera was found.";
+                    break;
+                default:
+                    infoCamera = `An error occured while accessing the camera: ${err.message}.`;
+            }
+        }
 
-        // debugger;
-        const btnScanQR2 = modMdc.mkMDCbutton("Peer QR", "raised", "qr_code_2");
         btnScanQR2.addEventListener("click", async (evt) => {
             evt.stopPropagation();
-            // closeDialog();
             modMdc.closeMyDialog(btnScanQR2);
             dialogScanningQR();
         });
-        // btnScanQR2.inert = true;
         const divQR = mkElt("p", undefined, [
-            mkElt("p", undefined, `Scan peer QR code with your phone camera.`),
+            mkElt("p", undefined, infoCamera),
             mkElt("div", undefined, [btnScanQR2]),
         ]);
         divQR.classList.add("mdc-card");
@@ -1079,7 +1103,7 @@ async function dialogSyncPeers() {
             background-color: orange;
             padding: 10px;
         `;
-        divQR.inert = !hasCamera;
+        divQR.inert = !canUseCamera;
 
 
         // debugger;
@@ -1265,15 +1289,12 @@ async function dialogSyncPeers() {
         divAddPeer,
     ]);
 
-    // modMdc.mkMDCdialogAlert(body, "Close");
     // FIX-ME: we must handle closing the dialog
     const btnClose = modMdc.mkMDCdialogButton("Close", "close", true);
     const eltActions = modMdc.mkMDCdialogActions([btnClose]);
     const dlg = await modMdc.mkMDCdialog(body, eltActions);
     return await new Promise((resolve) => {
         dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async _evt => {
-            // const action = evt.detail.action;
-            // peer?.destroy(); // FIX-ME: close peer connection
             finishPeer();
             resolve(undefined);
         }));
