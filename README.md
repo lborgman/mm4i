@@ -4,7 +4,14 @@
 
 Mindmaps in your web browser. So you can use it in your mobile phone. Or in your desktop computer.
 
-MM4I (Mindmaps 4 Internet) offers that.  You can start it [here](https://lborgman.github.io/mm4i/mm4i.html).  No installation required. Since it is a web page.
+MM4I (Mindmaps 4 Internet) offers that.
+        No installation required. Since it is a web page.
+        You can start it [here](https://lborgman.github.io/mm4i/mm4i.html):
+
+        <figure>
+            <img src="./img/mm4i.png">
+            <figcaption>Start mm4i</figcaption>
+        </figure>
 
 The mindmaps you create are stored locally in your web browser on your computer or mobile.  (But you still have to be connected to the Internet since MM4I is loaded from the its sources every time you start it.  I will change that soon so you can use MM4I when you are offline.)
 
