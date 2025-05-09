@@ -6,11 +6,11 @@ Mindmaps in your web browser. So you can use it in your mobile phone. Or in your
 
 MM4I (Mindmaps 4 Internet) offers that.
         No installation required. Since it is a web page.
-        You can start it [here](https://lborgman.github.io/mm4i/mm4i.html):
+        You can start it here:
 
 <a href="https://lborgman.github.io/mm4i/mm4i.html">
     <figure>
-    <img src="./img/mm4i.svg" width="20%" title="Start Mindmaps 4 Internet">
+    <img src="./img/mm4i.svg" width="40px" title="Start Mindmaps 4 Internet">
     </figure>
 </a>
 

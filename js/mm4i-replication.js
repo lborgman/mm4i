@@ -249,7 +249,7 @@ async function dialogScanningQR() {
 }
 
 export async function replicationDialog() {
-    const notReady = mkElt("p", undefined, `Not ready, usable (${MM4I_REPL_VER})`);
+    const notReady = mkElt("p", undefined, `Maybe soon ready, usable (${MM4I_REPL_VER})`);
     notReady.style = `color: red; font-size: 1.5rem; background: yellow; padding: 10px;`;
 
 
@@ -372,10 +372,10 @@ export async function replicationDialog() {
         */
         if (valid) {
             document.body.classList.add("sync-keys-valid");
-            btnStartReplication.inert = false;
+            btnSyncPeers.inert = false;
         } else {
             document.body.classList.remove("sync-keys-valid");
-            btnStartReplication.inert = true;
+            btnSyncPeers.inert = true;
         }
     }
 
@@ -676,29 +676,28 @@ export async function replicationDialog() {
 
 
     // const iconReplication = modMdc.mkMDCicon("sync_alt");
-    const iconReplication = modMdc.mkMDCicon("p2p");
-    const btnStartReplication = modMdc.mkMDCbutton("Sync peers", "raised", iconReplication);
-    // export function mkMDCiconButton(icon, ariaLabel, sizePx) {
-    // const btnStartReplication = modMdc.mkMDCiconButton(iconReplication, "Sync devices", 40);
-    // const btnStartReplication = modMdc.mkMDCiconButton("p2p", "Sync devices", 40);
-    btnStartReplication.title = "Sync your mindmaps between your peer devices";
+    const iconSyncPeers = modMdc.mkMDCicon("p2p");
+    const btnSyncPeers = modMdc.mkMDCbutton("Sync peers", "raised", iconSyncPeers);
+    btnSyncPeers.title = "Sync your mindmaps between your peer devices";
 
-    // const iconStop = modMdc.mkMDCicon("stop");
-    // const btnStopReplication = modMdc.mkMDCbutton("Stop", "raised", iconStop);
-    // btnStopReplication.title = "Stop sync";
-    // btnStopReplication.inert = true;
+    const iconPrivacy = modMdc.mkMDCicon("shield_with_heart");
+    const btnPrivacy = modMdc.mkMDCbutton("Privacy", "outlined", iconPrivacy);
+    btnPrivacy.title = "Select mindmaps to sync";
 
     let _isReplicating = false;
 
-    btnStartReplication.addEventListener("click", async (evt) => {
+    btnSyncPeers.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         dialogSyncPeers();
     });
-
+    btnPrivacy.addEventListener("click", async evt => {
+        dialogMindmapPrivacy();
+    });
 
 
     const divGrok = mkElt("p", undefined, [
-        btnStartReplication,
+        btnSyncPeers,
+        btnPrivacy,
     ]);
     divGrok.style = `
         display: flex;
@@ -1289,13 +1288,78 @@ async function dialogSyncPeers() {
         divAddPeer,
     ]);
 
-    // FIX-ME: we must handle closing the dialog
     const btnClose = modMdc.mkMDCdialogButton("Close", "close", true);
     const eltActions = modMdc.mkMDCdialogActions([btnClose]);
     const dlg = await modMdc.mkMDCdialog(body, eltActions);
     return await new Promise((resolve) => {
         dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async _evt => {
             finishPeer();
+            resolve(undefined);
+        }));
+    });
+
+}
+async function dialogMindmapPrivacy() {
+    // alert("not ready");
+    const divSearch = mkElt("p", undefined, "div search here not ready");
+    const divMindmaps = mkElt("p", undefined, "div mindmaps here not ready");
+    const body = mkElt("div", undefined, [
+        mkElt("h2", undefined, "Select mindmaps to sync"),
+        divSearch,
+        divMindmaps,
+    ]);
+
+    const dbMindmaps = await importFc4i("db-mindmaps");
+    const arrMindmaps = await dbMindmaps.DBgetAllMindmaps();
+    const arrToShow = arrMindmaps.map(mh => {
+        const key = mh.key;
+        const j = mh.jsmindmap;
+        const hits = mh.hits;
+        let topic;
+        switch (j.format) {
+            case "node_tree":
+                topic = j.data.topic;
+                break;
+            case "node_array":
+                topic = j.data[0].topic;
+                break;
+            case "freemind":
+                const s = j.data;
+                topic = s.match(/<node .*?TEXT="([^"]*)"/)[1];
+                break;
+            default:
+                throw Error(`Unknown mindmap format: ${j.format}`);
+        }
+        return { key, topic, hits };
+    });
+    const arrPromLiMenu = arrToShow.map(async m => {
+        // https://stackoverflow.com/questions/43033988/es6-decide-if-object-or-promise
+        const topic = await Promise.resolve(m.topic);
+        const btnDelete = await modMdc.mkMDCiconButton("delete_forever", "Delete mindmap");
+
+        // const eltA = funMkEltLinkMindmap(topic, m.key, m.hits, provider);
+        // const eltMm = mkElt("div", undefined, [eltA, btnDelete]);
+
+        const eltMm = mkElt("div", undefined, [topic]);
+        const li = modMdc.mkMDCmenuItem(eltMm);
+        li.addEventListener("click", () => {
+            // closeDialog();
+        });
+        return li;
+    });
+    const arrLiMenu = await Promise.all(arrPromLiMenu);
+    const ul = modMdc.mkMDCmenuUl(arrLiMenu);
+    ul.classList.add("mindmap-list");
+    divMindmaps.textContent = "";
+    divMindmaps.appendChild(ul);
+
+
+    const btnClose = modMdc.mkMDCdialogButton("Close", "close", true);
+    const eltActions = modMdc.mkMDCdialogActions([btnClose]);
+    const dlg = await modMdc.mkMDCdialog(body, eltActions);
+    return await new Promise((resolve) => {
+        dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async _evt => {
+            // FIX-ME: Save changes
             resolve(undefined);
         }));
     });
