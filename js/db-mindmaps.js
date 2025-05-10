@@ -44,14 +44,15 @@ export async function DBgetAllMindmaps() {
  * @param {string|undefined} lastSynced - time in UTC format, new time for last sync
  * @returns {Promise<any>} 
  */
-export async function DBsetMindmap(keyName, jsMindMap, lastUpdated, lastSynced) {
+export async function DBsetMindmap(keyName, jsMindMap, lastUpdated, lastSynced, privacy) {
     // if (keyName !== jsMindMap.meta.name) throw Error(`key=${keyName} but objMindmap.meta.name=${jsMindMap.meta.name}`);
     const metaName = jsMindMap.meta.name;
-    const [metaKey, _oldUpdated, _lastSynced] = metaName.split("/");
+    const [metaKey, _oldUpdated, _lastSynced, _privacy] = metaName.split("/");
     if (keyName !== metaKey) throw Error(`key=${keyName} but objMindmap.meta.name=${metaKey}`);
     const updated = lastUpdated || (new Date()).toISOString();
     const synched = lastSynced || _lastSynced;
-    jsMindMap.meta.name = `${metaKey}/${updated}/${synched}`;
+    const priv = privacy || _privacy || "private";
+    jsMindMap.meta.name = `${metaKey}/${updated}/${synched}/${priv}`;
     if (useLocalStorage) {
         const lsKey = strPrefix + keyName;
         const json = JSON.stringify(jsMindMap);

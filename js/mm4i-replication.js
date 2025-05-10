@@ -1300,7 +1300,7 @@ async function dialogSyncPeers() {
 
 }
 async function dialogMindmapPrivacy() {
-    // alert("not ready");
+    const modMMhelpers = await importFc4i("mindmap-helpers");
     const divSearch = mkElt("p", undefined, "div search here not ready");
     const divMindmaps = mkElt("p", undefined, "div mindmaps here not ready");
     const body = mkElt("div", undefined, [
@@ -1330,28 +1330,29 @@ async function dialogMindmapPrivacy() {
             default:
                 throw Error(`Unknown mindmap format: ${j.format}`);
         }
-        return { key, topic, hits };
+        return { key, j, topic, hits };
     });
-    const arrPromLiMenu = arrToShow.map(async m => {
-        // https://stackoverflow.com/questions/43033988/es6-decide-if-object-or-promise
-        const topic = await Promise.resolve(m.topic);
-        const btnDelete = await modMdc.mkMDCiconButton("delete_forever", "Delete mindmap");
+    const arrLi = arrToShow.map(m => {
+        const topic = mkElt("span", undefined, m.topic);
+        topic.style = `
+                font-weight: bold;
+            `;
+        const chkShared = mkElt("input", { type: "checkbox", id: m.key });
+        const privacy = modMMhelpers.getMindmapPrivacyFromObject(m.j);
+        chkShared.checked = privacy == "shared";
+        const lblShared = mkElt("label", undefined, [chkShared, "Shared"]);
 
-        // const eltA = funMkEltLinkMindmap(topic, m.key, m.hits, provider);
-        // const eltMm = mkElt("div", undefined, [eltA, btnDelete]);
-
-        const eltMm = mkElt("div", undefined, [topic]);
-        const li = modMdc.mkMDCmenuItem(eltMm);
-        li.addEventListener("click", () => {
-            // closeDialog();
-        });
-        return li;
+        const divMm = mkElt("div", undefined, [lblShared, topic]);
+        divMm.style = `
+                display: flex;
+                flex-direction: row;
+                gap: 20px;
+            `;
+        return divMm;
     });
-    const arrLiMenu = await Promise.all(arrPromLiMenu);
-    const ul = modMdc.mkMDCmenuUl(arrLiMenu);
-    ul.classList.add("mindmap-list");
+    const divAllMm = mkElt("div", undefined, arrLi);
     divMindmaps.textContent = "";
-    divMindmaps.appendChild(ul);
+    divMindmaps.appendChild(divAllMm);
 
 
     const btnClose = modMdc.mkMDCdialogButton("Close", "close", true);

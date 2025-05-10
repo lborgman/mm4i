@@ -30,7 +30,7 @@ export function showMindmap(key) {
     const absLink = makeAbsLink(URL_MINDMAPS_PAGE);
     const url = new URL(absLink);
     url.searchParams.set("mindmap", key);
-    location.href = url.href; 
+    location.href = url.href;
 }
 
 // export async function createAndShowNewMindmap(linkMindmapsPage) {
@@ -220,6 +220,7 @@ export async function pasteCustomClipDialog() {
 }
 */
 
+/*
 async function mkDivOneCustomClip(objCustomClip) {
     const modMdc = await importFc4i("util-mdc");
     const modCustRend = await importFc4i("jsmind-cust-rend");
@@ -251,6 +252,7 @@ async function mkDivOneCustomClip(objCustomClip) {
     divClip.appendChild(btnRemove);
     return divClip;
 }
+*/
 
 /*
 async function dialogShowCustomClipboard() {
@@ -272,6 +274,8 @@ async function dialogShowCustomClipboard() {
 }
 */
 
+
+/*
 export async function dialogAdded2CustomClipboard(objAdded) {
     const modMdc = await importFc4i("util-mdc");
     const divObjAdded = await mkDivOneCustomClip(objAdded);
@@ -300,6 +304,7 @@ export async function dialogAdded2CustomClipboard(objAdded) {
     console.log({ dlg });
     function closeDialog() { dlg.mdc.close(); }
 }
+*/
 
 
 
@@ -387,4 +392,39 @@ export function getNewMindmap(rootTopic, author, version, format) {
             throw Error(`Bad jsmind map format: ${format}`);
     }
     return mind0;
+}
+
+
+
+export async function getMindmapPrivacy(key) {
+    const jsMindmap = await dbMindmaps.DBgetMindmap(key);
+    return getMindmapPrivacyFromObject(jsMindmap);
+}
+export function getMindmapPrivacyFromObject(jsMindmap) {
+    // jsMindMap.meta.name = `${metaKey}/${updated}/${synched}/${priv}`;
+    const metaName = jsMindmap.meta.name;
+    const [_metaKey, _oldUpdated, _lastSynced, savedPrivacy] = metaName.split("/");
+    const privacy = savedPrivacy || "private";
+    checkIsPrivacyEnum(privacy);
+    return privacy;
+}
+
+function checkIsPrivacyEnum(privacy) {
+    const enumPriv = ["private", "shared"];
+    if (!enumPriv.includes(privacy)) {
+        debugger; // eslint-disable-line no-debugger
+        throw Error(`Not privacy enum: ${privacy}`);
+    }
+}
+
+/**
+ * 
+ * @param {string} key 
+ * @param {string} privacy 
+ * @returns {Promise<any>} 
+ */
+export async function setMindmapPrivacy(key, privacy) {
+    checkIsPrivacyEnum(privacy);
+    const jsMindmap = await dbMindmaps.DBgetMindmap(key);
+    return dbMindmaps.DBsetMindmap(key, jsMindmap, undefined, undefined, privacy);
 }
