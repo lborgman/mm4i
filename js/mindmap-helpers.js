@@ -425,6 +425,26 @@ function checkIsPrivacyEnum(privacy) {
  */
 export async function setMindmapPrivacy(key, privacy) {
     checkIsPrivacyEnum(privacy);
+    const dbMindmaps = await importFc4i("db-mindmaps");
     const jsMindmap = await dbMindmaps.DBgetMindmap(key);
     return dbMindmaps.DBsetMindmap(key, jsMindmap, undefined, undefined, privacy);
+}
+
+/**
+ * Get keys for all shareable mindmaps.
+ * 
+ * @returns {Promise<string[]}
+ */
+export async function getSharedMindmaps() {
+    const dbMindmaps = await importFc4i("db-mindmaps");
+    const arrMindmaps = await dbMindmaps.DBgetAllMindmaps();
+    // debugger;
+    const arrShared = arrMindmaps
+        .filter(mh => {
+            const j = mh.jsmindmap;
+            const privacy = getMindmapPrivacyFromObject(j);
+            return privacy == "shared";
+        });
+        // .map(mm => mm.key);
+    return arrShared;
 }

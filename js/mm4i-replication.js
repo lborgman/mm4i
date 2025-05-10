@@ -723,24 +723,45 @@ export async function replicationDialog() {
 
 // let handledOpenBefore = false;
 const modDbMindmaps = await importFc4i("db-mindmaps");
+const modMMhelpers = await importFc4i("mindmap-helpers");
+
 // debugger;
-const myMindmaps = await (async () => {
-    const arrAll = await modDbMindmaps.DBgetAllMindmaps();
-    // console.log({ arrAll });
-    const arrMetaName = arrAll.map(mm => {
-        // console.log(mm);
+const myMindmapsAllKeyUpdatedOLD = await (async () => {
+    const arrMm = await modDbMindmaps.DBgetAllMindmaps();
+    // const arrMm = await modMMhelpers.getSharedMindmaps();
+    const arrMetaName = arrMm.map(mm => {
         const metaName = mm.jsmindmap.meta.name;
         return metaName;
     });
-    // console.log({ arrMetaName });
-    const mindmaps = arrMetaName.reduce((current, item) => {
+    const mindmapsKeyUpdated = arrMetaName.reduce((current, item) => {
         const [key, updated] = item.split("/");
         current[key] = updated;
         return current;
     }, {});
-    // console.log({ mindmaps });
-    return mindmaps;
+    return mindmapsKeyUpdated;
 })();
+
+function getMindmapsKeysUpdated(arrMm) {
+    const arrMetaName = arrMm.map(mm => {
+        const metaName = mm.jsmindmap.meta.name;
+        return metaName;
+    });
+    const mindmapsKeyUpdated = arrMetaName.reduce((current, item) => {
+        const [key, updated] = item.split("/");
+        current[key] = updated;
+        return current;
+    }, {});
+    return mindmapsKeyUpdated;
+}
+const arrAllMm = await modDbMindmaps.DBgetAllMindmaps();
+const myMindmapsAllKeyUpdated = getMindmapsKeysUpdated(arrAllMm);
+const arrSharedMm = await modMMhelpers.getSharedMindmaps();
+const myMindmapsSharedKeyUpdated = getMindmapsKeysUpdated(arrSharedMm);
+// debugger;
+if (JSON.stringify(myMindmapsAllKeyUpdatedOLD) != JSON.stringify(myMindmapsAllKeyUpdated)) {
+    debugger;
+}
+
 let peerMindmaps;
 function makePublicId(privateId) {
     // FIX-ME:
@@ -927,12 +948,13 @@ async function setupPeerConnection(remotePeerObj) {
                                 finishPeer();
                                 break;
                             }
-                            const len = Object.keys(myMindmaps).length;
+                            const len = Object.keys(myMindmapsAllKeyUpdated).length;
                             // const msg = `Got "hello" => "have-keys" (${len})`;
                             const arrInfo = ["R", '"hello"', "S", `"have-keys" (${len})`];
                             const objMessage = {
                                 "type": "have-keys",
-                                myMindmaps,
+                                // myMindmaps: myMindmapsAllKeyUpdated,
+                                myMindmaps: myMindmapsSharedKeyUpdated,
                             }
                             sendToPeer(objMessage, arrInfo, data);
                         }
@@ -1300,7 +1322,11 @@ async function dialogSyncPeers() {
 
 }
 async function dialogMindmapPrivacy() {
-    const modMMhelpers = await importFc4i("mindmap-helpers");
+    // const modMMhelpers = await importFc4i("mindmap-helpers");
+    const divInfoPrivacy = mkElt("p", undefined, `
+        By default mindmaps are private to the device where you create them.
+        If you want to share them from this device to another device mark them as "shared" here.
+        `);
     const divSearch = mkElt("p", undefined, "div search here not ready");
     const divMindmaps = mkElt("p", undefined, "div mindmaps here not ready");
     const body = mkElt("div", undefined, [
@@ -1308,6 +1334,11 @@ async function dialogMindmapPrivacy() {
         divSearch,
         divMindmaps,
     ]);
+
+    // FIX-ME: remove
+    const arrShared = await modMMhelpers.getSharedMindmaps();
+    console.log({ arrShared });
+    // debugger;
 
     const dbMindmaps = await importFc4i("db-mindmaps");
     const arrMindmaps = await dbMindmaps.DBgetAllMindmaps();
@@ -1338,9 +1369,15 @@ async function dialogMindmapPrivacy() {
                 font-weight: bold;
             `;
         const chkShared = mkElt("input", { type: "checkbox", id: m.key });
+        chkShared.addEventListener("input", evt => {
+            // debugger;
+            console.log(`input chkShared, ${chkShared.checked}, ${m.key}`);
+            const privacy = chkShared.checked ? "shared" : "private";
+            modMMhelpers.setMindmapPrivacy(m.key, privacy);
+        });
         const privacy = modMMhelpers.getMindmapPrivacyFromObject(m.j);
         chkShared.checked = privacy == "shared";
-        const lblShared = mkElt("label", undefined, [chkShared, "Shared"]);
+        const lblShared = mkElt("label", undefined, [chkShared, mkElt("i", undefined, "share")]);
 
         const divMm = mkElt("div", undefined, [lblShared, topic]);
         divMm.style = `
@@ -1368,22 +1405,22 @@ async function dialogMindmapPrivacy() {
 }
 
 function tellWhatIneed(dataChannel) {
-    if (!myMindmaps) {
-        console.log(`tellWhatIneed, myMindmaps is ${myMindmaps}`);
+    if (!myMindmapsAllKeyUpdated) {
+        console.log(`tellWhatIneed, myMindmaps is ${myMindmapsAllKeyUpdated}`);
         return;
     }
     if (!peerMindmaps) {
         console.log(`tellWhatIneed, peerMindmaps is ${peerMindmaps}`);
         return;
     }
-    const myKeys = Object.keys(myMindmaps);
+    const myKeys = Object.keys(myMindmapsAllKeyUpdated);
     const peerKeys = Object.keys(peerMindmaps);
     const needKeys = [];
     peerKeys.forEach(pk => {
         if (!myKeys.includes(pk)) {
             needKeys.push(pk);
         } else {
-            const myUpdated = myMindmaps[pk];
+            const myUpdated = myMindmapsAllKeyUpdated[pk];
             const peerUpdated = peerMindmaps[pk];
             // console.log({ myUpdated, peerUpdated });
             if (peerUpdated > myUpdated) {
