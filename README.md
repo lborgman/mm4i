@@ -28,6 +28,16 @@ Each node in a mindmap can have a note that you create.  You can search the mind
 
 (To create a "search link" just click the orange search icon in the toolbar when you are editing a node note.)
 
+
+### Sync and Backup
+There is currently no built in backup. And the mindmaps are only stored on your device (in your web browser, actually).
+
+So if you loose your device your mindmaps may also be gone.
+
+But there is one possible remedy: You can sync your mindmaps to other devices.  This mus be done manually, but it quite simple.
+
+
+
 ## Background
 Ever since I first saw mindmaps in practical use I have wanted to use it myself.  But. It looked like you needed a big paper.  Or rather several to redraw the mindmap. 
 
@@ -52,16 +62,23 @@ Using a touch screen instead of a mouse is a challenge.  **jssm** helped a lot w
 
 I did add some things to try to give MM4I the "feel" of a mindmap.  Colors, shape etc.  And notes for nodes - which I think is a natural addition for a computer based mindmap.
 
+*Software included in MM4I:*
+* [Google Material Design, ver 2](https://m2.material.io/)
+* [Google Workbox (for PWA)](https://developer.chrome.com/docs/workbox)
 * [jsmind](https://www.npmjs.com/package/jsmind)
 * [jssm](https://www.npmjs.com/package/jssm)
     * [jssm-viz](https://www.npmjs.com/package/jssm-viz)
     * [viz-js](https://www.npmjs.com/package/@viz-js/viz)
+* [PeerJs](https://peerjs.com)
 * [TOAST UI Editor](https://github.com/nhn/tui.editor/blob/master/README.md)
-* [Visual Studio Code](https://code.visualstudio.com/)
+
+*Software I used when developing MM4I:*
 * [GitHub](https://github.com/)
 * [Google Chrome](https://en.wikipedia.org/wiki/Google_Chrome)
+* [Visual Studio Code](https://code.visualstudio.com/)
 
-##### My dev notes
+##### My developer notes
+Just some links to bugs etc.
 * [mobile display bug example](https://lborgman.github.io/mm4i/mobile-disp-bug.html)
 * [mobile display bug issue](https://issues.chromium.org/issues/381679574)
 * [mobile display bug workaround](https://lborgman.github.io/mm4i/mobile-disp-bug-workaround.html)

@@ -1120,9 +1120,10 @@ export async function pageSetup() {
         });
 
 
-        divJsmindSearch.appendChild(btnJsmindStair);
         divJsmindSearch.appendChild(btnJsmindSearch);
+        divJsmindSearch.appendChild(btnJsmindStair);
         divJsmindSearch.appendChild(btnSyncMm);
+        btnSyncMm.style.borderLeft = "1px solid rgb(0,0,0,0.4)";
 
 
         const btnCloseProvHits = modMdc.mkMDCiconButton("clear", "Clear search hits");
