@@ -1112,20 +1112,18 @@ export async function pageSetup() {
         }));
 
         // const btnSyncMm = modMdc.mkMDCiconButton("sync_alt", "Sync mindmaps to your devices", 40);
-        const btnSyncMm = modMdc.mkMDCiconButton("p2p", "Sync mindmaps to your devices", 40);
+        const btnSyncMm = modMdc.mkMDCiconButton("p2p", "Sync mindmap devices", 40);
         btnSyncMm.addEventListener("click", async evt => {
             evt.stopPropagation();
-
             const modMm4iReplication = await importFc4i("mm4i-replication");
             modMm4iReplication.replicationDialog();
         });
 
 
-
         divJsmindSearch.appendChild(btnJsmindStair);
         divJsmindSearch.appendChild(btnJsmindSearch);
-        // if (location.hostname == "localhost") divJsmindSearch.appendChild(btnSyncMm);
         divJsmindSearch.appendChild(btnSyncMm);
+
 
         const btnCloseProvHits = modMdc.mkMDCiconButton("clear", "Clear search hits");
         btnCloseProvHits.classList.add("icon-button-sized");
@@ -1665,6 +1663,10 @@ export async function pageSetup() {
 
         const liMindmapsA = mkMenuItemA("List Mindmaps", "./mm4i.html");
 
+        const liMindmapSync = mkMenuItem("Sync mindmap devices", (async () => {
+            const modMm4iReplication = await importFc4i("mm4i-replication");
+            modMm4iReplication.replicationDialog();
+        }));
 
         // https://www.npmjs.com/package/pinch-zoom-js
 
@@ -1814,6 +1816,7 @@ export async function pageSetup() {
             liEditMindmap,
             liMindmapStairs,
             liMindmapsA,
+            liMindmapSync,
             modMdc.mkMDCmenuItemSeparator(),
         ];
         const arrMenuTestEntries = [

@@ -5,7 +5,7 @@
 Mindmaps in your web browser. So you can use it in your mobile phone. Or in your desktop computer.
 
 MM4I (Mindmaps 4 Internet) offers that.
-        No installation required. Since it is a web page.
+        No installation required - since it is a web page.
         You can start it here:
 
 <a href="https://lborgman.github.io/mm4i/mm4i.html">
@@ -20,10 +20,11 @@ The mindmaps you create are stored locally in your web browser on your computer 
 ## Usage
 Just try it. If you think something needs to be explained then please tell me [here](https://github.com/lborgman/mm4i/issues).
 
-Hm. Maybe node notes and search needs explanation?
+Hm. Maybe node notes and search needs explanation? Backup? Sync mindmap between devices?
+
 
 ### Node notes and search links
-Each node in a mindmap can have a note that you create.  You can search the mindmap for the text in the node notes.  And you can create "search links" in your node notes that start such a search when clicked.
+Each node in a mindmap can have a note that you create.  You can search the mindmap for text in node notes (and node topics).  And you can create "search links" in your node note that start such a search when clicked.
 
 (To create a "search link" just click the orange search icon in the toolbar when you are editing a node note.)
 
