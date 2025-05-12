@@ -641,6 +641,7 @@ export async function PWAonline() {
         return false
     }
 }
+window["PWAonline"] = PWAonline;
 
 export function getDisplayMode() {
     let displayMode = 'browser';

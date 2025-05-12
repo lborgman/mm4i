@@ -919,7 +919,6 @@ async function popupDialog(title, body, severity) {
             {
                 (async () => {
                     try {
-                        const modPwa = await importFc4i("pwa");
                         const btnUpdate = mkElt("button", undefined, "Update now");
                         const styleUpdate = "background:black; color:white; padding:10px; display: none;";
                         const divUpdate = mkElt("div", { style: styleUpdate }, ["Update available ", btnUpdate]);

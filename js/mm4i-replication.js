@@ -249,6 +249,11 @@ async function dialogScanningQR() {
 }
 
 export async function replicationDialog() {
+    const isOnline = await funIsOnline();
+    if (!isOnline) {
+        modMdc.mkMDCdialogAlert("Can't sync because device is not online.");
+        return;
+    }
     const notReady = mkElt("p", undefined, `Maybe soon ready, usable (${MM4I_REPL_VER})`);
     notReady.style = `color: red; font-size: 1.5rem; background: yellow; padding: 10px;`;
 
@@ -724,6 +729,10 @@ export async function replicationDialog() {
 // let handledOpenBefore = false;
 const modDbMindmaps = await importFc4i("db-mindmaps");
 const modMMhelpers = await importFc4i("mindmap-helpers");
+
+// const modPWA = await importFc4i("pwa");
+// const funIsOnline = modPWA.PWAonline;
+const funIsOnline = window["PWAonline"];
 
 // debugger;
 const myMindmapsAllKeyUpdatedOLD = await (async () => {

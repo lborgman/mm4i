@@ -2,7 +2,7 @@
 
 # Mindmaps 4 Internet
 
-Mindmaps in your web browser. So you can use it in your mobile phone. Or in your desktop computer.
+Mindmaps that you create and edit in your mobile phone. Or in your desktop computer.
 
 MM4I (Mindmaps 4 Internet) offers that.
         No installation required - since it is a web page.
@@ -56,11 +56,11 @@ So I thought I should just fix that...
 
 It was far more work than I expected.  But also difficult sometimes, which made it more fun.
 
-I strived a bit to make it easy to move nodes in a mindmap.  Zhigang came up with a nice idea which I decided to use.
+I strived a bit to make it easy to move nodes in a mindmap.  Zhigang (the author of jsmind) came up with a nice idea which I decided to use.
 
-Using a touch screen instead of a mouse is a challenge.  **jssm** helped a lot when I struggled to implement that.
+Using a touch screen on a mobile phone instead of a mouse on a desktop can be a challenge for complex interactions.  **jssm** helped a lot when I struggled to implement that.
 
-I did add some things to try to give MM4I the "feel" of a mindmap.  Colors, shape etc.  And notes for nodes - which I think is a natural addition for a computer based mindmap.
+I did add some things to try to give MM4I the "feel" of a mindmap.  Colors, shape etc.  And notes for nodes - which I think is a natural addition for a computer based mindmap. (Hm. This gave me a nice lesson on the interaction between JavaScript and the web browser screen renderer. You need to fail before you can learn some things.)
 
 *Software included in MM4I:*
 * [Google Material Design, ver 2](https://m2.material.io/)
