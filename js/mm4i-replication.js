@@ -862,6 +862,7 @@ async function setupPeerConnection(remotePeerObj) {
     const modPeerjs = await importFc4i("peerjs");
     const myPublicId = makePublicId(settingPeerjsId.valueS);
     peer = new modPeerjs.Peer(myPublicId);
+    let dlgWaitingForPeer;
     peer.on('open', async (id) => {
         const msg = 'ON peer OPEN, id: ' + id;
         logWSimportant(msg);
@@ -872,12 +873,30 @@ async function setupPeerConnection(remotePeerObj) {
         const remotePublicId = makePublicId(remotePrivateId);
         // console.log({ remotePrivateId, remotePublicId });
         peerJsDataChannel = peer.connect(remotePublicId, { reliable: true });
+        const eltH2 = mkElt("h2", undefined, "Waiting for peer...");
+        const eltInstructions = mkElt("p", undefined,
+            `... Please do the same thing on peer device "${remotePeerObj.id}" as you did here!`)
+        const body = mkElt("div", undefined, [
+            eltH2,
+            eltInstructions,
+        ]);
+
+        setTimeout(async () => {
+            // debugger;
+            if (dlgWaitingForPeer === true) return;
+            dlgWaitingForPeer = await modMdc.mkMDCdialogAlert(body);
+            const eltDialog = dlgWaitingForPeer.dom.querySelector(".mdc-dialog__surface");
+            eltDialog.style.backgroundColor = "yellow";
+        }, 3 * 1000);
+
         setupDataConnection(peerJsDataChannel, "4OPEN");
     });
     peer.on('connection', (conn) => {
         const msg = "ON peer CONNECTION";
         logWSimportant(msg, { conn });
         peerJsDataChannel = conn;
+        // dlgWaitingForPeer?.mdc.close();
+        // dlgWaitingForPeer = true;
         setupDataConnection(peerJsDataChannel, "4CONNECTION");
     });
     function setupDataConnection(dataChannel, what4) {
@@ -929,6 +948,8 @@ async function setupPeerConnection(remotePeerObj) {
                 switch (msgType) {
                     case "hello":
                         {
+                            dlgWaitingForPeer?.mdc.close();
+                            dlgWaitingForPeer = true;
                             const mySecretSha512 = await makeSecret512(settingSecret.valueS, data.variant);
                             const peerSecretSha512 = data.secretSha512;
                             const secret512Ok = mySecretSha512 == peerSecretSha512;
