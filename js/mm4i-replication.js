@@ -1312,7 +1312,9 @@ async function dialogSyncPeers() {
                     eltKnownPeers.style.opacity = "0";
                     setTimeout(() => {
                         const bcr = eltKnownPeers.getBoundingClientRect();
-                        eltKnownPeers.style.minHeight = `${bcr.height}px`;
+                        // eltKnownPeers.style.minHeight = `${bcr.height}px`;
+                        eltKnownPeers.style.height = `${bcr.height}px`;
+                        eltKnownPeers.style.overflow = "auto";
                         eltKnownPeers.textContent = "";
                         eltKnownPeers.appendChild(mkElt("div", undefined, [
                             divSyncingHeader,
@@ -1374,7 +1376,8 @@ async function dialogSyncPeers() {
     const eltActions = modMdc.mkMDCdialogActions([btnClose]);
     const dlg = await modMdc.mkMDCdialog(body, eltActions);
     const eltDialog = dlg.dom.querySelector(".mdc-dialog__surface");
-    eltDialog.style.minWidth = "310px";
+    // eltDialog.style.minWidth = "310px";
+    eltDialog.style.width = "310px";
     return await new Promise((resolve) => {
         dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async _evt => {
             finishPeer();
