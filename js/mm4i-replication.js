@@ -145,18 +145,30 @@ divSyncLogHeader.style = `
 `;
 */
 
-let divSyncLogLog;
-/*
-const divSyncLogLog = mkElt("div");
-divSyncLogLog.style = `
-        color: gray;
-        max-height: 100px;
-        overflow-y: auto;
+let syncIsReady = false;
+const divSyncLogLog = mkElt("div", { id: "div-sync-log-log", class: "display-none" });
+// const divSyncingHeaderMain = mkElt("b", undefined, `Syncing with peer "${peer.id}"`)
+const divSyncingHeaderMain = mkElt("b");
+const divSyncingHeaderDots = mkElt("span");
+divSyncingHeaderDots.style = `
+        color: red;
+        background: #0001;
     `;
-*/
+divSyncingHeaderDots.addEventListener("click", evt => {
+    evt.stopImmediatePropagation();
+    divSyncLogLog.classList.toggle("display-none");
+});
+const divSyncingHeader = mkElt("div", undefined, [
+    divSyncingHeaderMain,
+    divSyncingHeaderDots
+]);
+divSyncingHeader.style = `
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: 10px;
+    `;
 
 const divSyncLog = mkElt("div", undefined, [
-    // divSyncLogHeader,
     divSyncLogLog,
 ]);
 
@@ -172,6 +184,7 @@ function _logWSsyncLog(msg) {
     const line = mkElt("div", undefined, msg);
     divSyncLogLog.appendChild(line);
     line.scrollIntoView({ behavior: "smooth", block: "end" });
+    if (!syncIsReady) { divSyncingHeaderDots.append("."); }
 }
 function setSyncLogState(state, color) {
     divSyncLogState.textContent = state;
@@ -861,8 +874,35 @@ async function setupPeerConnection(remotePeerObj) {
     const remotePrivateId = remotePeerObj.id;
     const modPeerjs = await importFc4i("peerjs");
     const myPublicId = makePublicId(settingPeerjsId.valueS);
-    peer = new modPeerjs.Peer(myPublicId);
+
     let dlgWaitingForPeer;
+    async function startDialogWaitPeer() {
+        if (dlgWaitingForPeer == "done") return;
+        const eltH2 = mkElt("h2", undefined, `Waiting for "${remotePeerObj.id}"...`);
+        eltH2.style.color = "blue";
+        const eltInstructions = mkElt("p", undefined,
+            `... Please also start sync on peer device "${remotePeerObj.id}"!`)
+        eltInstructions.id = "wait-peer-info";
+        const body = mkElt("div", undefined, [
+            eltH2,
+            eltInstructions,
+        ]);
+
+        dlgWaitingForPeer = await modMdc.mkMDCdialogAlert(body, "Close");
+        const eltDialog = dlgWaitingForPeer.dom.querySelector(".mdc-dialog__surface");
+        eltDialog.style.backgroundColor = "yellow";
+        eltDialog.style.maxWidth = "310px";
+    }
+    function endDialogWaitPeer() {
+        const dlg = dlgWaitingForPeer;
+        dlgWaitingForPeer = "done";
+        const eltInstructions = document.getElementById("wait-peer-info");
+        if (!eltInstructions) return;
+        eltInstructions.textContent = "Thanks, connected to peer!";
+        setTimeout(() => { dlg.mdc.close(); }, 4 * 1000);
+    }
+
+    peer = new modPeerjs.Peer(myPublicId);
     peer.on('open', async (id) => {
         const msg = 'ON peer OPEN, id: ' + id;
         logWSimportant(msg);
@@ -873,21 +913,8 @@ async function setupPeerConnection(remotePeerObj) {
         const remotePublicId = makePublicId(remotePrivateId);
         // console.log({ remotePrivateId, remotePublicId });
         peerJsDataChannel = peer.connect(remotePublicId, { reliable: true });
-        const eltH2 = mkElt("h2", undefined, "Waiting for peer...");
-        const eltInstructions = mkElt("p", undefined,
-            `... Please do the same thing on peer device "${remotePeerObj.id}" as you did here!`)
-        const body = mkElt("div", undefined, [
-            eltH2,
-            eltInstructions,
-        ]);
 
-        setTimeout(async () => {
-            // debugger;
-            if (dlgWaitingForPeer === true) return;
-            dlgWaitingForPeer = await modMdc.mkMDCdialogAlert(body);
-            const eltDialog = dlgWaitingForPeer.dom.querySelector(".mdc-dialog__surface");
-            eltDialog.style.backgroundColor = "yellow";
-        }, 3 * 1000);
+        setTimeout(async () => { startDialogWaitPeer(); }, 3 * 1000);
 
         setupDataConnection(peerJsDataChannel, "4OPEN");
     });
@@ -895,8 +922,6 @@ async function setupPeerConnection(remotePeerObj) {
         const msg = "ON peer CONNECTION";
         logWSimportant(msg, { conn });
         peerJsDataChannel = conn;
-        // dlgWaitingForPeer?.mdc.close();
-        // dlgWaitingForPeer = true;
         setupDataConnection(peerJsDataChannel, "4CONNECTION");
     });
     function setupDataConnection(dataChannel, what4) {
@@ -948,8 +973,8 @@ async function setupPeerConnection(remotePeerObj) {
                 switch (msgType) {
                     case "hello":
                         {
-                            dlgWaitingForPeer?.mdc.close();
-                            dlgWaitingForPeer = true;
+                            endDialogWaitPeer();
+
                             const mySecretSha512 = await makeSecret512(settingSecret.valueS, data.variant);
                             const peerSecretSha512 = data.secretSha512;
                             const secret512Ok = mySecretSha512 == peerSecretSha512;
@@ -1227,7 +1252,11 @@ async function dialogSyncPeers() {
             divManually,
         ]);
         modMdc.closeMyDialog(btnNewPeer);
-        modMdc.mkMDCdialogAlert(body, "Close");
+        // dlgWaitingForPeer = await modMdc.mkMDCdialogAlert(body);
+        // const eltDialog = dlgWaitingForPeer.dom.querySelector(".mdc-dialog__surface");
+        const dlg = await modMdc.mkMDCdialogAlert(body, "Close");
+        const eltDialog = dlg.dom.querySelector(".mdc-dialog__surface");
+        eltDialog.style.minWidth = "300px";
     });
     function listPeers() {
         eltKnownPeers.textContent = "";
@@ -1286,9 +1315,10 @@ async function dialogSyncPeers() {
                         eltKnownPeers.style.minHeight = `${bcr.height}px`;
                         eltKnownPeers.textContent = "";
                         eltKnownPeers.appendChild(mkElt("div", undefined, [
-                            mkElt("b", undefined, `Syncing with peer "${peer.id}"`)
+                            divSyncingHeader,
                         ]));
-                        divSyncLogLog = mkElt("div");
+                        divSyncingHeaderMain.textContent = `Syncing with "${peer.id}"`;
+                        // divSyncLogLog = mkElt("div");
                         eltKnownPeers.appendChild(divSyncLogLog);
 
                         eltKnownPeers.classList.add("mdc-card");
@@ -1334,7 +1364,7 @@ async function dialogSyncPeers() {
 
 
     const body = mkElt("div", undefined, [
-        mkElt("h2", undefined, "Sync with other peers"),
+        mkElt("h2", undefined, "Sync with peers"),
         mkElt("p", undefined, ["This peer name: ", mkElt("b", undefined, settingPeerjsId.valueS)]),
         eltKnownPeers,
         divAddPeer,
@@ -1343,6 +1373,8 @@ async function dialogSyncPeers() {
     const btnClose = modMdc.mkMDCdialogButton("Close", "close", true);
     const eltActions = modMdc.mkMDCdialogActions([btnClose]);
     const dlg = await modMdc.mkMDCdialog(body, eltActions);
+    const eltDialog = dlg.dom.querySelector(".mdc-dialog__surface");
+    eltDialog.style.minWidth = "310px";
     return await new Promise((resolve) => {
         dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async _evt => {
             finishPeer();
@@ -1586,11 +1618,14 @@ function logWSimportant(...args) {
     _logWSsyncLog(eltMsg);
 }
 function logWSready() {
+    syncIsReady = true;
     const msg = "** Sync is ready **"
     console.warn("%c WS: ", "background:green; color:white; font-size:20px;", msg);
     const eltMsg = mkElt("span", undefined, msg);
     eltMsg.style.color = "green";
     _logWSsyncLog(eltMsg);
+    divSyncingHeaderDots.style.color = "green";
+    divSyncingHeaderDots.textContent = "*Ready*"
 }
 function logWSError(...args) {
     const arg0 = args.shift();
