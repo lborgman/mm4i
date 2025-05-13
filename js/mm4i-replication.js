@@ -879,9 +879,10 @@ async function setupPeerConnection(remotePeerObj) {
     async function startDialogWaitPeer() {
         if (dlgWaitingForPeer == "done") return;
         const eltH2 = mkElt("h2", undefined, `Waiting for "${remotePeerObj.id}"...`);
+        eltH2.id = "wait-peer-h2";
         eltH2.style.color = "blue";
-        const eltInstructions = mkElt("p", undefined,
-            `... Please also start sync on peer device "${remotePeerObj.id}"!`)
+        const eltInstructions = mkElt("div", undefined, mkElt("p", undefined,
+            `... Please also start sync on peer device "${remotePeerObj.id}"!`));
         eltInstructions.id = "wait-peer-info";
         const body = mkElt("div", undefined, [
             eltH2,
@@ -893,13 +894,48 @@ async function setupPeerConnection(remotePeerObj) {
         eltDialog.style.backgroundColor = "yellow";
         eltDialog.style.maxWidth = "310px";
     }
-    function endDialogWaitPeer() {
+    async function endDialogWaitPeer(dataMsg) {
+        console.log({ dataMsg });
+        const re = /from:(.*?),shared:(.*?),all:(.*?)$/;
+        // const m = re.match(dataMsg);
+        const m = dataMsg.match(re);
+        console.log({ m });
+        const peerShared = parseInt(m[2]);
+        const peerAll = parseInt(m[3]);
+        // debugger;
         const dlg = dlgWaitingForPeer;
         dlgWaitingForPeer = "done";
         const eltInstructions = document.getElementById("wait-peer-info");
+        const eltH2 = document.getElementById("wait-peer-h2");
         if (!eltInstructions) return;
-        eltInstructions.textContent = "Thanks, connected to peer!";
-        setTimeout(() => { dlg.mdc.close(); }, 4 * 1000);
+        if (!eltH2) return;
+        eltInstructions.textContent = "";
+        eltH2.textContent = "Thanks, connected to peer!";
+
+        const arrMindmaps = await modDbMindmaps.DBgetAllMindmaps();
+        const arrShared = await modMMhelpers.getSharedMindmaps();
+        const myAll = arrMindmaps.length;
+        const myShared = arrShared.length;
+        const liMy = mkElt("li", undefined, [
+            `Shared from this device: `,
+            mkElt("b", undefined, myShared),
+            ` of ${myAll} mindmaps.`
+        ]);
+        const liPeer = mkElt("li", undefined, [
+            `Shared from peer: `,
+            mkElt("b", undefined, peerShared),
+            ` of ${peerAll} mindmaps.`
+        ]);
+        const ul = mkElt("ul", undefined, [liMy, liPeer]);
+        eltInstructions.appendChild(ul);
+        const totShared = myShared + peerShared;
+        if (totShared == 0) {
+            const pNothingToSync = mkElt("p", undefined, "There was no mindmaps that could be synced");
+            eltInstructions.appendChild(pNothingToSync);
+        } else {
+            // debugger;
+            setTimeout(() => { dlg.mdc.close(); }, 10 * 1000);
+        }
     }
 
     peer = new modPeerjs.Peer(myPublicId);
@@ -924,11 +960,14 @@ async function setupPeerConnection(remotePeerObj) {
         peerJsDataChannel = conn;
         setupDataConnection(peerJsDataChannel, "4CONNECTION");
     });
-    function setupDataConnection(dataChannel, what4) {
+    async function setupDataConnection(dataChannel, what4) {
         // FIX-ME: if open
         const msg = `setupDataConnection ${what4}`;
         logWSimportant(msg, { dataChannel });
         let saidHello = false;
+        const numShared = (await modMMhelpers.getSharedMindmaps()).length;
+        const numMindmaps = (await modDbMindmaps.DBgetAllMindmaps()).length;
+        // debugger;
         dataChannel.on('open', async () => {
             // if (what4 == "4CONNECTION") return;
             if (saidHello) {
@@ -938,7 +977,7 @@ async function setupPeerConnection(remotePeerObj) {
             }
             saidHello = true;
             console.warn("peerJsDataConnection open", { dataChannel });
-            const msgHelloO = "Hello ON dataChannel OPEN from " + myPublicId;
+            const msgHelloO = `Hello ON dataChannel OPEN, from:${myPublicId},shared:${numShared},all:${numMindmaps}`;
             const secretKey = settingSecret.valueS;
             const variant = (new Date()).toISOString();
             const secret = remotePeerObj.secret || secretKey;
@@ -973,7 +1012,8 @@ async function setupPeerConnection(remotePeerObj) {
                 switch (msgType) {
                     case "hello":
                         {
-                            endDialogWaitPeer();
+                            // debugger;
+                            endDialogWaitPeer(data.msg);
 
                             const mySecretSha512 = await makeSecret512(settingSecret.valueS, data.variant);
                             const peerSecretSha512 = data.secretSha512;
@@ -1402,11 +1442,8 @@ async function dialogMindmapPrivacy() {
 
     // FIX-ME: remove
     const arrShared = await modMMhelpers.getSharedMindmaps();
+    const arrMindmaps = await modDbMindmaps.DBgetAllMindmaps();
     console.log({ arrShared });
-    // debugger;
-
-    const dbMindmaps = await importFc4i("db-mindmaps");
-    const arrMindmaps = await dbMindmaps.DBgetAllMindmaps();
     const arrToShow = arrMindmaps.map(mh => {
         const key = mh.key;
         const j = mh.jsmindmap;
