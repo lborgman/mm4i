@@ -25,6 +25,14 @@ window["fsm"] = modFsm.fsm;
 modTools.addPosListeners();
 
 let instMoveAtDragBorder;
+let forceDiffPointHandle = 0;
+
+/**
+ * 
+ * @param {number | undefined} px 
+ */
+export function setDiffPointHandle(px) { forceDiffPointHandle = px }
+
 class PointHandle {
     static sizePointHandle = 20;
     // static diffPointHandle = 60;
@@ -116,13 +124,17 @@ class PointHandle {
         if (jmnodeDragged.getAttribute("nodeid") == "root") return;
 
         // if (isTouch) { this.#diffPointHandle = 60; } else { this.#diffPointHandle = 0; }
-        switch (pointerType) {
-            case "mouse":
-                this.#diffPointHandle = 0;
-                // this.#diffPointHandle = 80; // FIX-ME:
-                break;
-            default:
-                this.#diffPointHandle = 80;
+        if (forceDiffPointHandle != undefined) {
+            this.#diffPointHandle = forceDiffPointHandle;
+        } else {
+            switch (pointerType) {
+                case "mouse":
+                    this.#diffPointHandle = 0;
+                    // this.#diffPointHandle = 80; // FIX-ME:
+                    break;
+                default:
+                    this.#diffPointHandle = 80;
+            }
         }
 
         if (!pointHandle.isState("idle")) throw Error(`Expected state "idle" but it was ${this.#state}`);
@@ -1778,7 +1790,6 @@ export async function pageSetup() {
         const liDeleteNode = mkMenuItem("Delete node", deleteNode);
         markIfNoSelected(liDeleteNode);
         markIfNoMother(liDeleteNode);
-
         function deleteNode() {
             const selected_node = getSelected_node();
             if (selected_node) {
@@ -1798,10 +1809,55 @@ export async function pageSetup() {
         const liNodeNotes = mkMenuItem("Node's notes", editNodesNotes);
         markIfNoSelected(liNodeNotes);
         markIfNoMother(liNodeNotes);
-
         function editNodesNotes() {
             const eltJmnode = document.querySelector("jmnode.selected");
             editNotes(eltJmnode);
+        }
+
+        const liDragNodes = mkMenuItem("Moving nodes", dialogDraggingNodes)
+        async function dialogDraggingNodes() {
+            const modJsEditCommon = await importFc4i("jsmind-edit-common");
+
+            // FIX-ME: move class
+            const modLocalSettings = await importFc4i("local-settings");
+            class SettingsMm4i extends modLocalSettings.LocalSetting {
+                constructor(key, defaultValue) { super("mm4i-settings-", key, defaultValue); }
+            }
+            const settingPointHandle = new SettingsMm4i("pointhandle-type", "detect-touch");
+
+            const phType = settingPointHandle.valueS;
+            const pChoices = mkElt("p", undefined);
+            pChoices.addEventListener("input", evt => {
+                const target = evt.target;
+                console.log("input", evt, target);
+                settingPointHandle.value = target.value;
+            })
+            function makeChoice(value, txt) {
+                const radChoice = mkElt("input", { type: "radio", name: "point-choice", value });
+                if (phType == value) radChoice.checked = true;
+                const lblChoice = mkElt("label", undefined, [radChoice, txt]);
+                return mkElt("div", undefined, lblChoice);
+            }
+            pChoices.appendChild(makeChoice("detect-touch", "Default behavoir (detect mouse/touch)"));
+            pChoices.appendChild(makeChoice("mouse", "Do as if mouse input"));
+            pChoices.appendChild(makeChoice("touch", "Do as if touch input"));
+            const body = mkElt("div", undefined, [
+                mkElt("h2", undefined, "How to move nodes"),
+                mkElt("p", undefined, `
+                    To move nodes to new ancestors in the mindmap you drag them.
+                    On a touch device this unfortunately means that you have your finger over
+                    the node you are moving.
+                    So it can be a bit difficult to see what you are doing.
+                    `),
+                mkElt("p", undefined, `
+                    If MM4I discovers that you are using your finger it separate the point you move from
+                    where your finger touches the screen.
+                    This is easier to understand when you see it.
+                    (I should make a video of this...)
+                    `),
+                pChoices,
+            ]);
+            modMdc.mkMDCdialogAlert(body, "Close");
         }
 
         const arrMenuEntries = [
@@ -1810,6 +1866,7 @@ export async function pageSetup() {
             liDeleteNode,
             liEditNode,
             liNodeNotes,
+            liDragNodes,
             // liTestConvertToCustom,
             // liDragAccessibility,
             modMdc.mkMDCmenuItemSeparator(),
