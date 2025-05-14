@@ -31,7 +31,9 @@ let forceDiffPointHandle = 0;
  * 
  * @param {number | undefined} px 
  */
-export function setDiffPointHandle(px) { forceDiffPointHandle = px }
+export function setDiffPointHandle(px) {
+    forceDiffPointHandle = px;
+}
 
 class PointHandle {
     static sizePointHandle = 20;
@@ -123,19 +125,34 @@ class PointHandle {
         if (!jmnodeDragged) return;
         if (jmnodeDragged.getAttribute("nodeid") == "root") return;
 
-        // if (isTouch) { this.#diffPointHandle = 60; } else { this.#diffPointHandle = 0; }
-        if (forceDiffPointHandle != undefined) {
-            this.#diffPointHandle = forceDiffPointHandle;
-        } else {
-            switch (pointerType) {
-                case "mouse":
-                    this.#diffPointHandle = 0;
-                    // this.#diffPointHandle = 80; // FIX-ME:
-                    break;
-                default:
-                    this.#diffPointHandle = 80;
-            }
+        // if (forceDiffPointHandle != undefined) {
+        // this.#diffPointHandle = forceDiffPointHandle;
+        // } else {
+        const settingPointHandle = window["settingPointHandle"];
+        const setType = settingPointHandle.valueS;
+        let usePointerType;
+        switch (setType) {
+            case "detect-touch":
+                usePointerType = pointerType;
+                break;
+            case "mouse":
+                usePointerType = "mouse";
+                break;
+            case "touch":
+                usePointerType = "touch";
+                break;
+            default:
+                throw Error(`Did not handle setType: ${setType}`);
         }
+        switch (usePointerType) {
+            case "mouse":
+                this.#diffPointHandle = 0;
+                // this.#diffPointHandle = 80; // FIX-ME:
+                break;
+            default:
+                this.#diffPointHandle = 80;
+        }
+        // }
 
         if (!pointHandle.isState("idle")) throw Error(`Expected state "idle" but it was ${this.#state}`);
         this.#state = "init";
@@ -1819,14 +1836,15 @@ export async function pageSetup() {
             const modJsEditCommon = await importFc4i("jsmind-edit-common");
 
             // FIX-ME: move class
-            const modLocalSettings = await importFc4i("local-settings");
-            class SettingsMm4i extends modLocalSettings.LocalSetting {
-                constructor(key, defaultValue) { super("mm4i-settings-", key, defaultValue); }
-            }
-            const settingPointHandle = new SettingsMm4i("pointhandle-type", "detect-touch");
+            const settingPointHandle = window["settingPointHandle"];
 
             const phType = settingPointHandle.valueS;
-            const pChoices = mkElt("p", undefined);
+            const pChoices = mkElt("p", {class:"mdc-card"});
+            pChoices.style.padding = "20px";
+            pChoices.style.backgroundColor = "rgba(255,255,255,0.3)";
+            pChoices.style.display = "flex";
+            pChoices.style.gap = "5px";
+
             pChoices.addEventListener("input", evt => {
                 const target = evt.target;
                 console.log("input", evt, target);
