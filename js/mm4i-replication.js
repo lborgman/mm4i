@@ -1,5 +1,5 @@
 // @ts-check
-const MM4I_REPL_VER = "0.0.03";
+const MM4I_REPL_VER = "0.0.04";
 window["logConsoleHereIs"](`here is mm4i-replication.js, module, ${MM4I_REPL_VER}`);
 console.log(`%chere is mm4i-replication.js ${MM4I_REPL_VER}`, "font-size:20px;");
 if (document.currentScript) { throw "mm4i-replication.js is not loaded as module"; }
@@ -267,7 +267,7 @@ export async function replicationDialog() {
         modMdc.mkMDCdialogAlert("Can't sync because device is not online.");
         return;
     }
-    const notReady = mkElt("p", undefined, `Maybe soon ready, usable (${MM4I_REPL_VER})`);
+    const notReady = mkElt("p", undefined, `Usable (${MM4I_REPL_VER})`);
     notReady.style = `color: red; font-size: 1.5rem; background: yellow; padding: 10px;`;
 
 
@@ -600,62 +600,8 @@ export async function replicationDialog() {
 
 
 
-    const _inpOpenRelayCredential = settingOpenRelayCred.getInputElement();
-    _inpOpenRelayCredential.addEventListener("change", _evt => {
-        checkCanUseOpenRelay();
-    });
-    _inpOpenRelayCredential.addEventListener("input", _evt => {
-        // saveOpenRelayCredential();
-        checkCanUseOpenRelay();
-    });
-    _inpOpenRelayCredential.style = `
-    min-width: 20px;
-    NOmargin-left: 10px;
-    border: 1px solid red;
-    border-radius: 5px;
-    padding: 4px;
-    background-color: black;
-    color: red;
-`;
-    // const chkOpenRelay = mkElt("input", { type: "checkbox" });
-    // console.log({ settingUseOpenRelay });
-    // settingUseOpenRelay.bindToInput(chkOpenRelay, true);
-    const chkOpenRelay = settingUseOpenRelay.getInputElement();
-    const _lblChkOpenRelay = mkElt("label", undefined, [
-        "Use Open Relay STUN: ",
-        chkOpenRelay
-    ]);
-    _lblChkOpenRelay.style = `
-        display: flex;
-        gap: 10px;
-    `;
-    /*
-    chkOpenRelay.addEventListener("change", _evt => {
-        console.log("chkOpenrelay, change", chkOpenRelay.checked);
-    });
-    chkOpenRelay.addEventListener("input", _evt => {
-        console.log("chkOpenrelay, input", chkOpenRelay.checked);
-        saveOpenRelayChecked();
-    });
-    */
 
-    // getOpenRelayChecked();
-    // getOpenRelayCredential();
-    checkCanUseOpenRelay();
 
-    function checkCanUseOpenRelay() {
-        // const keyLen = inpOpenRelayCredential.value.trim().length;
-        const keyLen = settingOpenRelayCred.valueS.trim().length;
-        console.log({ keyLen });
-        _lblChkOpenRelay.inert = keyLen < 36;
-    }
-
-    const _divOpenRelay = mkElt("p", undefined, [
-        mkElt("a", { href: "https://dashboard.metered.ca/" }, "Open Relay"),
-        " credential:",
-        _inpOpenRelayCredential,
-        _lblChkOpenRelay,
-    ]);
 
 
 
@@ -664,27 +610,13 @@ export async function replicationDialog() {
     const spanSumKeysInvalid = mkElt("span", undefined, "Sync keys are invalid");
     spanSumKeysInvalid.id = "mm4i-sumkeys-invalid";
     const spanSumKeys = mkElt("span", undefined, [spanSumKeysInvalid, spanSumKeysValid]);
-    // const sumKeys = mkElt("summary", undefined, "Sync keys");
     const sumKeys = mkElt("summary", undefined, spanSumKeys);
     sumKeys.id = "sum-sync-keys";
     sumKeys.style.minHeight = "unset";
     const bodyKeys = mkElt("div", undefined, [
-        // divRoom,
         divSecret,
-        // _divOpenRelay, // Google STUN servers seems to work just as well
     ]);
-    // const divKeysCollapsible = modTools.mkHeightExpander(bodyKeys);
-    const detKeys = mkElt("details", { class: "mdc-card" }, [
-        sumKeys,
-        bodyKeys,
-        // divKeysCollapsible,
-    ]);
-    detKeys.style = `
-        background-color: orange;
-        padding: 10px;
-        `;
 
-    // let replicationPool;
 
 
 
@@ -713,11 +645,11 @@ export async function replicationDialog() {
     });
 
 
-    const divGrok = mkElt("p", undefined, [
+    const divMainButtons = mkElt("p", undefined, [
         btnSyncPeers,
         btnPrivacy,
     ]);
-    divGrok.style = `
+    divMainButtons.style = `
         display: flex;
         gap: 10px;
         `;
@@ -729,7 +661,7 @@ export async function replicationDialog() {
         eltTitle,
         divInfoCollapsible,
         bodyKeys,
-        divGrok,
+        divMainButtons,
         divSyncLog,
     ]);
     body.id = "sync-dialog-body";

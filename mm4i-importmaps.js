@@ -59,12 +59,12 @@ const baseUrl = (() => {
     if (b) {
         const bHref = b.href;
         const wlOrigin = window.location.origin;
-        console.log({ bHref, wlOrigin });
+        // console.log({ bHref, wlOrigin });
         return bHref;
     }
     return window.location.origin;
 })();
-console.log({ baseUrl });
+// console.log({ baseUrl });
 // debugger;
 
 // https://github.com/WICG/import-maps/issues/92

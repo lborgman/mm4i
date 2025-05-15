@@ -83,15 +83,15 @@ class PointHandle {
         // this.#jmnodesPointHandle.classList.add(`pointhandle-state-${state}`);
         eltState.classList.add(`pointhandle-state-${state}`);
         // this.#jmnodesPointHandle.classList.add(`pointhandle-state-dist`);
-        const jns = this.#jmnodesPointHandle;
-        const ph = ourPointHandle.#eltPointHandle;
-        const st = getComputedStyle(ph);
-        const bc = st.backgroundColor;
-        const phJns = ph.closest("jmnodes");
-        const phPar = ph.parentElement;
-        const phParTn = phPar?.tagName;
+        // const jns = this.#jmnodesPointHandle;
+        // const ph = ourPointHandle.#eltPointHandle;
+        // const st = getComputedStyle(ph);
+        // const bc = st.backgroundColor;
+        // const phJns = ph.closest("jmnodes");
+        // const phPar = ph.parentElement;
+        // const phParTn = phPar?.tagName;
         // console.log("jmnodes", jns, ph, bc, phJns, jns == phJns, phPar);
-        console.log(ph, bc, phParTn);
+        // console.log(ph, bc, phParTn);
     }
     /**
      * 
