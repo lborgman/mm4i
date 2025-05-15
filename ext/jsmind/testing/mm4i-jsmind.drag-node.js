@@ -47,9 +47,12 @@ export async function setupNewDragging() {
 
 }
 
+let oldElementAtPoint;
 export function setJmnodeDragged(jmnode) {
     eltDragged = jmnode;
-    markDragNode(jmnode, "dragged", true);
+    // markDragNode(jmnode, "dragged", true);
+    markAsDragged(jmnode, true);
+    oldElementAtPoint = undefined;
 }
 function markAsDragged(jmnode, on) {
     if (on) unmarkDragged();
@@ -139,7 +142,6 @@ function getNodesInColumn(arrBcr, clientX, nodeDragged) {
 
 let colClientX, colClientY;
 let nodeAbove, nodeBelow, nodeParent;
-let oldElementAtPoint;
 const modTools = await importFc4i("toolsJs");
 const dragPauseTimer = new modTools.TimeoutTimer(500, whenDragPauses);
 
