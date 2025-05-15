@@ -70,16 +70,28 @@ class PointHandle {
         }
         this.#myState = state;
 
-        // const elt = this.#eltPointHandle;
-
-        // const par = elt.parentElement;
+        // const elt = this.#eltPointHandle; const par = elt.parentElement;
         // console.log(">>>> set state", state, { elt, par });
         showDebugState(state);
 
+        // const eltState = this.#jmnodesPointHandle;
+        const eltState = document.documentElement;
         PointHandle.myStates.forEach(st => {
-            this.#jmnodesPointHandle.classList.remove(`pointhandle-state-${st}`);
+            // this.#jmnodesPointHandle.classList.remove(`pointhandle-state-${st}`);
+            eltState.classList.remove(`pointhandle-state-${st}`);
         })
-        this.#jmnodesPointHandle.classList.add(`pointhandle-state-${state}`);
+        // this.#jmnodesPointHandle.classList.add(`pointhandle-state-${state}`);
+        eltState.classList.add(`pointhandle-state-${state}`);
+        // this.#jmnodesPointHandle.classList.add(`pointhandle-state-dist`);
+        const jns = this.#jmnodesPointHandle;
+        const ph = ourPointHandle.#eltPointHandle;
+        const st = getComputedStyle(ph);
+        const bc = st.backgroundColor;
+        const phJns = ph.closest("jmnodes");
+        const phPar = ph.parentElement;
+        const phParTn = phPar?.tagName;
+        // console.log("jmnodes", jns, ph, bc, phJns, jns == phJns, phPar);
+        console.log(ph, bc, phParTn);
     }
     /**
      * 
@@ -125,9 +137,6 @@ class PointHandle {
         if (!jmnodeDragged) return;
         if (jmnodeDragged.getAttribute("nodeid") == "root") return;
 
-        // if (forceDiffPointHandle != undefined) {
-        // this.#diffPointHandle = forceDiffPointHandle;
-        // } else {
         const settingPointHandle = window["settingPointHandle"];
         const setType = settingPointHandle.valueS;
         let usePointerType;
@@ -179,7 +188,7 @@ class PointHandle {
         };
         eltJmnodeFrom = jmnodeDragged;
 
-        // Avoid scaling:
+        // Avoid scaling: FIX-ME:
         document.documentElement.appendChild(this.#eltPointHandle);
 
         this.#eltPointHandle.style.left = `${startX - PointHandle.sizePointHandle / 2}px`;
@@ -227,8 +236,8 @@ class PointHandle {
             this.#eltPointHandle.style.top = `${clientY - PointHandle.sizePointHandle / 2}px`;
 
             const ph = this.#eltPointHandle;
-            const php = ph.parentElement;
-            console.log("pointHandle", ph, "Parent", php);
+            // const php = ph.parentElement;
+            // console.log("pointHandle", ph, "Parent", php);
             this.#state = "dist";
             // debugger;
         }
@@ -458,7 +467,7 @@ function movePointHandle() {
         debugger; // eslint-disable-line no-debugger
         throw Error(`Saved pos is ${clientX}, ${clientY}`);
     }
-    if ((im++ % 40) == 0) console.log("mPH, clientX", clientX);
+    // if ((im++ % 40) == 0) console.log("mPH, clientX", clientX);
     try {
         const sp = pointHandle.element.style;
         // const left = clientX + posPointHandle.diffX - PointHandle.sizePointHandle / 2;
@@ -1839,7 +1848,7 @@ export async function pageSetup() {
             const settingPointHandle = window["settingPointHandle"];
 
             const phType = settingPointHandle.valueS;
-            const pChoices = mkElt("p", {class:"mdc-card"});
+            const pChoices = mkElt("p", { class: "mdc-card" });
             pChoices.style.padding = "20px";
             pChoices.style.backgroundColor = "rgba(255,255,255,0.3)";
             pChoices.style.display = "flex";
