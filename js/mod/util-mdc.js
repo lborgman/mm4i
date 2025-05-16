@@ -247,9 +247,12 @@ export function mkMDCbutton(txtLabel, emphasis, iconPar) {
     return btn;
 }
 
+export const usedIcons = new Set();
+
 // https://material.io/develop/web/components/buttons/icon-buttons
 // https://m2.material.io/develop/web/components/buttons/icon-buttons
 export function mkMDCiconButton(icon, ariaLabel, sizePx) {
+    usedIcons.add(icon);
     const btn = mkElt("button",
         { class: `mdc-icon-button ${materialIconsClass}` },
         [
@@ -2340,6 +2343,7 @@ export function addMDCrow2Table(row, table) {
 let useSvgIcon = false;
 // https://developers.google.com/fonts/docs/material_icons
 export function mkMDCicon(iconMaterialName) {
+    usedIcons.add(iconMaterialName);
     if (useSvgIcon) {
         const icon = mkMDCsvgIcon(iconMaterialName);
         // icon is always a HTML element because of the fetch.
