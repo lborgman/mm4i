@@ -247,12 +247,12 @@ export function mkMDCbutton(txtLabel, emphasis, iconPar) {
     return btn;
 }
 
-export const usedIcons = new Set();
 
 // https://material.io/develop/web/components/buttons/icon-buttons
 // https://m2.material.io/develop/web/components/buttons/icon-buttons
 export function mkMDCiconButton(icon, ariaLabel, sizePx) {
-    usedIcons.add(icon);
+    if ("string" == typeof icon) { addToUsedSymbols(icon); }
+    // usedIcons.add(icon);
     const btn = mkElt("button",
         { class: `mdc-icon-button ${materialIconsClass}` },
         [
@@ -2343,7 +2343,8 @@ export function addMDCrow2Table(row, table) {
 let useSvgIcon = false;
 // https://developers.google.com/fonts/docs/material_icons
 export function mkMDCicon(iconMaterialName) {
-    usedIcons.add(iconMaterialName);
+    addToUsedSymbols(iconMaterialName);
+    // usedIcons.add(iconMaterialName);
     if (useSvgIcon) {
         const icon = mkMDCsvgIcon(iconMaterialName);
         // icon is always a HTML element because of the fetch.
@@ -2636,3 +2637,41 @@ function clickHandlerStopPropagation(evt) {
     // console.log("clickHandlerStopPropagation", evt);
     evt.stopPropagation();
 }
+
+
+///////////////// MDC symbols offline
+export const setUsedIcons = new Set();
+// const knownIconsList = 'adb,clear,close,menu,p2p,route,search';
+// const knownIconsList = "adb,clear,close,enhanced_encryption,info_i,menu,p2p,qr_code_2,route,search,visibility";
+// const knownIconsList = "adb,clear,close,delete_forever,enhanced_encryption,info_i,menu,p2p,qr_code_2,route,search,shield_with_heart,visibility";
+
+const knownIconsList = ",adb,clear,close,delete_forever,enhanced_encryption,info_i,menu,p2p,passkey,phone_android,qr_code_2,route,search,shield_with_heart,visibility"
+// <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=,adb,clear,close,delete_forever,enhanced_encryption,info_i,menu,p2p,passkey,phone_android,qr_code_2,route,search,shield_with_heart,visibility" />
+
+const setKnownIcons = new Set(knownIconsList.split(","));
+function addToUsedSymbols(sym) {
+    const tofSym = typeof sym;
+    if (tofSym != "string") {
+        debugger;
+    }
+    setUsedIcons.add(sym);
+    if (!setKnownIcons.has(sym)) {
+        getSymbolsJsHtml();
+        alert(`Unrecognized symbol "${sym}"`);
+    }
+}
+export function getSymbolsJsHtml() {
+    const usedIcons = getUsedIconList();
+    const rowJs = `const knownIconsList = "${usedIcons}"`;
+    const rowHtml = `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=${usedIcons}" />`;
+    const rowHtml2 = `<link rel="stylesheet" href="fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=${usedIcons}" />`;
+    console.log("%cUsed icons", "color:red", usedIcons, rowJs, "\n\n", rowHtml, "\n\n", rowHtml2);
+
+}
+export function getUsedIconList() {
+    // return [...setUsedIcons].sort().reduce((tot, ico) => { return tot + "," + ico; }, "");
+    return [...setUsedIcons].sort().join(",");
+}
+/*
+[...(await importFc4i("util-mdc")).usedIcons].sort().reduce((tot, ico)=>tot+","+ico)
+*/
