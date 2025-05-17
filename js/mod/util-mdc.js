@@ -2639,39 +2639,97 @@ function clickHandlerStopPropagation(evt) {
 }
 
 
+
+
+
 ///////////////// MDC symbols offline
 export const setUsedIcons = new Set();
-// const knownIconsList = 'adb,clear,close,menu,p2p,route,search';
-// const knownIconsList = "adb,clear,close,enhanced_encryption,info_i,menu,p2p,qr_code_2,route,search,visibility";
-// const knownIconsList = "adb,clear,close,delete_forever,enhanced_encryption,info_i,menu,p2p,qr_code_2,route,search,shield_with_heart,visibility";
+// const woffIconsList = "adb,clear,close,enhanced_encryption,info_i,menu,p2p,qr_code_2,route,search,shield_with_heart,visibility";
+const woffIconsList = await getWoffSymbols();
 
-const knownIconsList = ",adb,clear,close,delete_forever,enhanced_encryption,info_i,menu,p2p,passkey,phone_android,qr_code_2,route,search,shield_with_heart,visibility"
-// <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=,adb,clear,close,delete_forever,enhanced_encryption,info_i,menu,p2p,passkey,phone_android,qr_code_2,route,search,shield_with_heart,visibility" />
-
-const setKnownIcons = new Set(knownIconsList.split(","));
+const setWoffIcons = new Set(woffIconsList.split(","));
+const setMissingIcons = new Set();
+let tmrWoffSymbols;
 function addToUsedSymbols(sym) {
     const tofSym = typeof sym;
-    if (tofSym != "string") {
-        debugger;
-    }
+    if (tofSym != "string") { debugger; }
     setUsedIcons.add(sym);
-    if (!setKnownIcons.has(sym)) {
-        getSymbolsJsHtml();
-        alert(`Unrecognized symbol "${sym}"`);
+    if (!setWoffIcons.has(sym)) {
+        if (sym == "clear") {
+            console.warn("clear");
+            debugger;
+        }
+        setMissingIcons.add(sym);
+        clearTimeout(tmrWoffSymbols);
+        tmrWoffSymbols = setTimeout(() => {
+            getWOFFdownloadLink();
+            const missing = [...setMissingIcons].sort().join(",");
+            alert(`Missing in woff file: "${missing}",\nsee console for .woff download link`);
+        }, 2000);
     }
 }
-export function getSymbolsJsHtml() {
-    const usedIcons = getUsedIconList();
-    const rowJs = `const knownIconsList = "${usedIcons}"`;
-    const rowHtml = `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=${usedIcons}" />`;
-    const rowHtml2 = `<link rel="stylesheet" href="fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=${usedIcons}" />`;
-    console.log("%cUsed icons", "color:red", usedIcons, rowJs, "\n\n", rowHtml, "\n\n", rowHtml2);
-
+async function getWOFFdownloadLink() {
+    const ourIcons = getOurIconList();
+    const linkWOFFcss = `https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=${ourIcons}`;
+    console.log(linkWOFFcss.slice(8));
+    const cssResponse = await fetch(linkWOFFcss);
+    const txtCss = await cssResponse.text();
+    const m = txtCss.match(/url\((.*?)\)/m);
+    const linkWoff = m[1];
+    console.log({ ourIcons });
+    console.log({ setWoffIcons });
+    console.log({ setMissingIcons });
+    console.log(`%cDownload WOFF (${ourIcons})`, "color:red", "\n\n", linkWoff);
 }
-export function getUsedIconList() {
+function getOurIconList() {
     // return [...setUsedIcons].sort().reduce((tot, ico) => { return tot + "," + ico; }, "");
-    return [...setUsedIcons].sort().join(",");
+    const setOurIcons = setWoffIcons.union(setUsedIcons);
+    // return [...setUsedIcons].sort().join(",");
+    return [...setOurIcons].sort().join(",");
 }
 /*
 [...(await importFc4i("util-mdc")).usedIcons].sort().reduce((tot, ico)=>tot+","+ico)
 */
+
+async function getWoffSymbols() {
+    const woffUrl = "./ext/mdc-fonts/my-symbols.woff2";
+    const codepoints = await fontkitGetCodepoints(woffUrl);
+    const codepointToName = await fetchGoogleSymbolNameMap();
+    // Now you can look up names:
+    const names = codepoints.map(cp => codepointToName[cp]);
+    const cleanedNames = names.filter(name => { if (typeof name == "string") return name; });
+    const strNames = cleanedNames.sort().join(",");
+    console.log({ strNames });
+    return strNames;
+
+    async function fontkitGetCodepoints(woffUrl) {
+        // https://github.com/foliojs/fontkit/issues/358
+        const fontkitUrl = "https://esm.sh/fontkit";
+        const modFontkit = await import(fontkitUrl);
+        const response = await fetch(woffUrl);
+        if (!response.ok) { debugger; }
+        const arrayBuffer = await response.arrayBuffer();
+        const font = modFontkit.create(new Uint8Array(arrayBuffer));
+        console.log({ font });
+        const codepoints = font.characterSet; // Array of codepoints (numbers)
+        console.log({ codepoints });
+        return codepoints;
+    }
+
+    async function fetchGoogleSymbolNameMap() {
+        const mappingUrl = "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsOutlined%5BFILL,GRAD,opsz,wght%5D.codepoints";
+        const response = await fetch(mappingUrl);
+        const text = await response.text();
+        const codepointToName = {};
+        text.split('\n').forEach(line => {
+            const [name, hex] = line.trim().split(/\s+/);
+            if (name && hex) {
+                codepointToName[parseInt(hex, 16)] = name;
+            }
+        });
+        return codepointToName;
+    }
+}
+
+
+

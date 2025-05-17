@@ -1164,19 +1164,6 @@ export async function pageSetup() {
         btnSyncMm.style.borderLeft = "1px solid rgb(0,0,0,0.4)";
 
 
-        const btnCloseProvHits = modMdc.mkMDCiconButton("clear", "Clear search hits");
-        btnCloseProvHits.classList.add("icon-button-sized");
-        btnCloseProvHits.addEventListener("click", () => {
-            const divInputs = document.getElementById("jsmind-search-inputs");
-            if (!divInputs) { throw Error(`Could not find jsmind-search-inputs`); }
-            divInputs.classList.remove("showing-provider-hits");
-            clearSearchHits();
-            const divHits = document.getElementById(idDivHits);
-            divHits?.classList.add("display-none");
-            const eltJmnodes = getJmnodesFromJm(jmDisplayed);
-            eltJmnodes.classList.remove("showing-hits");
-            inpSearch.focus();
-        });
         const eltTellProvider = mkElt("span");
         eltTellProvider.id = "elt-tell-provider";
         if (nodeProvider) {
@@ -1432,6 +1419,7 @@ export async function pageSetup() {
         console.log({ arrHits: arrIdHits });
         function addSpanHitMark(eltJmnode) {
             if (eltJmnode.querySelector("span.hit-mark")) return;
+            modMdc.mkMDCicon("search_check_2"); // For woff
             const iconHit = "search_check_2";
             const eltSpanHit = mkElt("span", undefined, iconHit);
             eltSpanHit.classList.add("material-symbols-outlined");
