@@ -1,5 +1,5 @@
 //========== Specific ====================================================
-const SW_VERSION = "0.1.78";
+const SW_VERSION = "0.1.79";
 
 
 // https://www.npmjs.com/package/workbox-sw
@@ -104,6 +104,7 @@ async function shareTargetHandler(evt) {
 */
 
 
+/*
 async function checkToNotify(matchValues) {
     return;
     const db = await getDb();
@@ -120,6 +121,8 @@ async function checkToNotify(matchValues) {
     const data = { text: msg }
     broadcastToClients(data);
 }
+*/
+/*
 function displayNotificationFromRecord(expiredRecord, timerInfo) {
     // console.log("%cdisplayNotificationFromRecord", logColors, { expiredRecord, timerInfo });
     logConsole("displayNotificationFromRecord", { expiredRecord, timerInfo });
@@ -134,7 +137,9 @@ function displayNotificationFromRecord(expiredRecord, timerInfo) {
     // console.log("%cwas displayed", logColors, { displayed });
     logConsole("Was displayed", { displayed });
 }
+*/
 
+/*
 async function displayExpiredLongTimeNotification(objExpired) {
     const { expiredRecord, expiredTimers } = objExpired;
     // console.log("%cdisplayExpiredLongTimeNotification", logColors, { objExpired, expiredRecord, expiredTimers });
@@ -142,12 +147,7 @@ async function displayExpiredLongTimeNotification(objExpired) {
     const timerInfo = expiredTimers[0].txtLength;
 
     displayNotificationFromRecord(expiredRecord, timerInfo);
-    // FIX-ME: Move to db-fc4i.js
-    // Save that we have notified:
     const recTimers = expiredRecord.timers;
-    // {msDelay, msWhen, txtLength}
-    // Change sign of msDelay when notification is sent.
-    // There should only be one timer in expiredTimers now
     if (expiredTimers.length !== 1) throw Error('expiredTimers.length !== 1');
     const msDelayNotified = expiredTimers[0].msDelay;
     for (let i = 0; i < recTimers.length; i++) {
@@ -156,9 +156,10 @@ async function displayExpiredLongTimeNotification(objExpired) {
             recT.msDelay = -recT.msDelay;
         }
     }
-    // console.log("%cService Worker stored notification done", logColors);
     logConsole("Service Worker stored notification done");
 }
+*/
+/*
 self.addEventListener('notificationclick', (evt) => {
     // console.log("%cService Worker notificationclick", logColors, { evt });
     logConsole("notificationclick", { evt });
@@ -181,12 +182,13 @@ self.addEventListener('notificationclick', (evt) => {
             break;
     }
 });
-
+*/
 
 let tmrCheck;
 
 // process.on('uncaughtException', function (err) { console.log("%cuncaughtException in service worker", logColors, { err }); });
 
+/*
 let tmrAutoCheck;
 const adjustTmrAutoCheck = async () => {
     return;
@@ -232,6 +234,8 @@ const adjustTmrAutoCheck = async () => {
     tmrAutoCheck = { tmr, isoTime };
     broadcastToClients({ text: `Saved your preferences. Will check for reminders ${toOurTime(dateCheck)}` })
 }
+*/
+/*
 const restartAutoCheck = (() => {
     let tmr;
     // const delayMs = 2000; // FIXME:
@@ -261,8 +265,9 @@ const restartAutoCheck = (() => {
         });
     }
 })();
+*/
 
-let tmrKeepalive;
+// let tmrKeepalive;
 self.addEventListener("message", errorHandlerAsyncEvent(async evt => {
     // FIX-ME: Do something when ping/keyChanged during login???
     // https://github.com/firebase/firebase-js-sdk/issues/1164
@@ -277,6 +282,7 @@ self.addEventListener("message", errorHandlerAsyncEvent(async evt => {
     logConsole("message", { evt, msgType });
     if (evt.data) {
         switch (msgType) {
+            /*
             case "TEST_TIMER":
                 const seconds = evt.data.seconds;
                 const stop = seconds < 1;
@@ -325,7 +331,6 @@ self.addEventListener("message", errorHandlerAsyncEvent(async evt => {
                         sendKeepalive(err4send);
                     }
                 }, msKeepalive);
-                /*
                 const testTimerShow = () => {
                     clearInterval(tmrKeepalive);
                     const title = `TEST_TIMER seconds=${seconds}`;
@@ -343,7 +348,6 @@ self.addEventListener("message", errorHandlerAsyncEvent(async evt => {
                     }
                 }
                 // if (seconds > 0) setTimeout(testTimerShow, seconds * 1000);
-                */
                 break;
             case "RESTART_AUTO_REMINDERS":
                 // throw Error("error test -1");
@@ -365,6 +369,7 @@ self.addEventListener("message", errorHandlerAsyncEvent(async evt => {
                     return;
                 }
                 break;
+            */
             case 'GET_VERSION':
                 // https://web.dev/two-way-communication-guide/
                 evt.ports[0].postMessage(SW_VERSION);
