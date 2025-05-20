@@ -1,5 +1,5 @@
 //========== Specific ====================================================
-const SW_VERSION = "0.1.79";
+const SW_VERSION = "0.1.80";
 
 
 // https://www.npmjs.com/package/workbox-sw
@@ -405,6 +405,11 @@ self.addEventListener("activate", (evt) => {
     evt.waitUntil(self.clients.claim()); // Become available to all pages
 });
 
+// Serve your main HTML for all navigation requests (perpexity)
+workbox.routing.registerRoute(
+  ({request}) => request.mode === 'navigate',
+  workbox.precaching.createHandlerBoundToURL('/mm4i.html')
+);
 
 // Notification seems to be not available here???
 // const greeting = new Notification('Hi, I am web worker');
