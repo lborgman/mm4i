@@ -2763,7 +2763,7 @@ async function getWoffSymbols() {
     return strNames;
 
     async function fontkitGetCodepoints(woffUrl) {
-        // if (!navigator.onLine) { return; }
+        if (!navigator.onLine) { return; }
         // https://github.com/foliojs/fontkit/issues/358
         const fontkitUrl = "https://esm.sh/fontkit";
         const modFontkit = await (async () => {
