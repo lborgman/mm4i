@@ -19,8 +19,14 @@ if (!jsMind) { throw Error("jsMind is not setup"); }
 const modMMhelpers = await importFc4i("mindmap-helpers");
 const modMdc = await importFc4i("util-mdc");
 const modTools = await importFc4i("toolsJs");
-const modFsm = await importFc4i("mm4i-fsm");
-window["fsm"] = modFsm.fsm;
+
+const modMm4iFsm = await (async () => {
+    // return;
+    // if (!navigator.onLine) return;
+    return await importFc4i("mm4i-fsm");
+})();
+const ourFsm = modMm4iFsm.fsm;
+window["ourFsm"] = ourFsm;
 
 modTools.addPosListeners();
 
@@ -1305,7 +1311,9 @@ export async function pageSetup() {
     if (!eltContainer) throw Error("Could not find jsmind container");
     const eltInner = eltContainer?.querySelector("div.jsmind-inner");
     if (!eltInner) throw Error("Could not find div.jsmind-inner");
+    // if (false && !eltInner.closest("div.zoom-move")) {
     if (!eltInner.closest("div.zoom-move")) {
+        // debugger;
         const eltZoomMove = document.createElement("div");
         eltZoomMove.classList.add("zoom-move");
         // @ts-ignore
@@ -1325,8 +1333,8 @@ export async function pageSetup() {
 
 
     ////// modFsm
-    modFsm.fsm.hook_any_action(fsmEvent);
-    modFsm.fsm.hook_any_transition((...args) => {
+    ourFsm?.hook_any_action(fsmEvent);
+    ourFsm?.hook_any_transition((...args) => {
         const newState = args[0].to;
         logJssmState(newState);
     });
@@ -1344,13 +1352,13 @@ export async function pageSetup() {
         pointHandle.initializePointHandle(eltJmnode, pointerType);
         // }, 300);
     }
-    modFsm.fsm.post_hook_entry("n_Move", (hookData) => {
+    ourFsm?.post_hook_entry("n_Move", (hookData) => {
         hookStartMovePointHandle(hookData);
     });
-    modFsm.fsm.hook_exit("n_Move", () => pointHandle.teardownPointHandle());
+    ourFsm?.hook_exit("n_Move", () => pointHandle.teardownPointHandle());
 
     let funStopScroll;
-    modFsm.fsm.post_hook_entry("c_Move", (hookData) => {
+    ourFsm?.post_hook_entry("c_Move", (hookData) => {
         // const { eltJmnode, pointerType } = hookData.data;
         const { eltJmnode } = hookData.data;
         if (eltJmnode && (!eltJmnode.classList.contains("root"))) throw Error("eltJmnode in c_Move");
@@ -1359,19 +1367,19 @@ export async function pageSetup() {
         const eltScroll = jmnodes.closest("div.zoom-move");
         funStopScroll = startGrabMove(eltScroll);
     });
-    modFsm.fsm.hook_exit("c_Move", () => {
+    ourFsm?.hook_exit("c_Move", () => {
         if (funStopScroll) funStopScroll();
     });
 
-    modFsm.fsm.post_hook_entry("c_Dblclick", () => { dialogEditMindmap(); });
-    modFsm.fsm.post_hook_entry("n_Dblclick", async (hookData) => {
+    ourFsm?.post_hook_entry("c_Dblclick", () => { dialogEditMindmap(); });
+    ourFsm?.post_hook_entry("n_Dblclick", async (hookData) => {
         // const eltJmnode = hookData.data;
         const { eltJmnode } = hookData.data;
         const renderer = await modCustRend.getOurCustomRenderer();
         renderer.editNodeDialog(eltJmnode);
     });
 
-    modFsm.setupFsmListeners(eltFsm);
+    modMm4iFsm.setupFsmListeners(eltFsm);
 
 
 
@@ -2358,14 +2366,14 @@ const rainbow = ["red", "orange", "yellow", "greenyellow", "aqua", "indigo", "vi
 let eltSmallGraph;
 let markedDecl;
 async function markLatestStates() {
-    const decl = modFsm.fsmDeclaration;
+    const decl = modMm4iFsm.fsmDeclaration;
     markedDecl = decl;
     markedDecl = markedDecl.replaceAll(/after (\d+) ms/g, "'$1ms'"); // FIX-ME:
     let iState = 0;
     const marked = new Set();
     for (let i = 0, len = stackLogFsm.length; i < len; i++) {
         const entry = stackLogFsm[i];
-        if (modFsm.isState(entry)) {
+        if (modMm4iFsm.isState(entry)) {
             const state = entry;
             if (marked.has(state)) continue;
             const color = rainbow[iState];
@@ -2444,8 +2452,9 @@ function addStackLogFsm(eventOrState) {
  * @param {string} state 
  */
 async function logJssmState(state) {
+    if (!ourFsm) return;
     addStackLogFsm(state);
-    modFsm.checkIsState(state)
+    modMm4iFsm.checkIsState(state)
     showDebugJssmState(state);
 }
 
@@ -2459,7 +2468,7 @@ async function logJssmEvent(eventMsg) {
     const res = re.exec(eventMsg);
     if (!res) throw Error(`Could not parse ${eventMsg}`);
     const eventName = res[1];
-    modFsm.checkIsEvent(eventName);
+    modMm4iFsm.checkIsEvent(eventName);
     showDebugJssmAction(eventName);
 }
 
@@ -2619,9 +2628,11 @@ function fsmEvent(event) {
     logJssmEvent(msg);
 }
 
-setTimeout(async () => {
-    logJssmState(modFsm.fsm.state());
-}, 1000);
+if (modMm4iFsm != undefined) {
+    setTimeout(async () => {
+        logJssmState(ourFsm?.state());
+    }, 1000);
+}
 
 
 const forCoverage = () => {

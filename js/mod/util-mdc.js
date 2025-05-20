@@ -2643,47 +2643,104 @@ function clickHandlerStopPropagation(evt) {
 
 
 ///////////////// MDC symbols offline
-export const setUsedIcons = new Set();
+const mdcIconStyle = "Outlined";
+// const mdcIconStyle = "Rounded";
+// const mdcIconStyle = "Sharp";
+
+export const setIconsUsed = new Set();
 // const woffIconsList = "adb,clear,close,enhanced_encryption,info_i,menu,p2p,qr_code_2,route,search,shield_with_heart,visibility";
 const woffIconsList = await getWoffSymbols();
+const hasWoffIcons = woffIconsList != undefined;
 
-const setWoffIcons = new Set(woffIconsList.split(","));
-const setMissingIcons = new Set();
+const setIconsWoff2 = new Set(hasWoffIcons ? woffIconsList.split(",") : undefined);
+const setIconsMissing = new Set();
 let tmrWoffSymbols;
 function addToUsedSymbols(sym) {
+    if (location.hostname != "localhost") return;
+    if (!navigator.onLine) return;
     const tofSym = typeof sym;
     if (tofSym != "string") { debugger; }
-    setUsedIcons.add(sym);
-    if (!setWoffIcons.has(sym)) {
+    setIconsUsed.add(sym);
+    if (!setIconsWoff2.has(sym)) {
         if (sym == "clear") {
             console.warn("clear");
             debugger;
         }
-        setMissingIcons.add(sym);
+        setIconsMissing.add(sym);
         clearTimeout(tmrWoffSymbols);
-        tmrWoffSymbols = setTimeout(() => {
+        tmrWoffSymbols = setTimeout(async () => {
+            debugger;
+            const linkWOFF2 = await mkWOFF2downloadLink();
+            try {
+                window.console.log("in tmwWoffSymbols", linkWOFF2);
+                window.console.warn("in tmwWoffSymbols");
+                window.console.error("in tmwWoffSymbols");
+            } catch (err) {
+                debugger;
+            }
             getWOFFdownloadLink();
-            const missing = [...setMissingIcons].sort().join(",");
-            alert(`Missing in woff file: "${missing}",\nsee console for .woff download link`);
+            const missing = [...setIconsMissing].sort().join(",");
+            const used = [...setIconsUsed].sort().join(",");
+            const woff2 = [...setIconsWoff2].sort().join(",");
+            window.console.log(`Missing in woff file: "${missing}",\nsee console for .woff download link`);
+            // alert(`Missing in woff file: "${missing}",\nsee console for .woff download link`);
+            const body = mkElt("div", undefined, [
+                mkElt("h2", undefined, "Missing Material Symbols"),
+                mkElt("div", undefined, `Used: ${used}`),
+                mkElt("div", undefined, `WOFF2: ${woff2}`),
+                mkElt("div", undefined, `Missing: ${missing}`),
+                mkElt("a", { href: linkWOFF2 }, "Download WOFF2"),
+            ]);
+            mkMDCdialogAlert(body);
         }, 2000);
     }
 }
-async function getWOFFdownloadLink() {
+
+// const symbol2codepointUrl = "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsOutlined%5BFILL,GRAD,opsz,wght%5D.codepoints";
+async function mkSymbol2codepointUrl() {
+    // From perplexity.ai
+    // https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsOutlined%5BFILL,GRAD,opsz,wght%5D.codepoints";
+    // https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsRounded%5BFILL,GRAD,opsz,wght%5D.codepoints";
+    // https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsSharp%5BFILL,GRAD,opsz,wght%5D.codepoints";
+
+    //// Github CORS blocked raw files in may 2025
+    // return `https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbols${mdcIconStyle}%5BFILL,GRAD,opsz,wght%5D.codepoints";`;
+    return `./ext/mdc-fonts/MaterialSymbols${mdcIconStyle}Codepoints.txt`;
+}
+async function mkWOFF2downloadLink() {
+    // if (!navigator.onLine) return;
     const ourIcons = getOurIconList();
-    const linkWOFFcss = `https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=${ourIcons}`;
-    console.log(linkWOFFcss.slice(8));
-    const cssResponse = await fetch(linkWOFFcss);
+    const linkWOFF2css = `https://fonts.googleapis.com/css2?family=Material+Symbols+${mdcIconStyle}:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=${ourIcons}`;
+    const old = `https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=${ourIcons}`;
+    if (old != linkWOFF2css) { debugger; }
+    console.log(linkWOFF2css.slice(8));
+    // return linkWOFF2css;
+    let cssResponse;
+    // https://web.dev/articles/fetch-api-error-handling
+    try {
+        cssResponse = await fetch(linkWOFF2css);
+    } catch (err) {
+        console.log(linkWOFF2css, err);
+        debugger;
+    }
     const txtCss = await cssResponse.text();
     const m = txtCss.match(/url\((.*?)\)/m);
-    const linkWoff = m[1];
-    console.log({ ourIcons });
-    console.log({ setWoffIcons });
-    console.log({ setMissingIcons });
-    console.log(`%cDownload WOFF (${ourIcons})`, "color:red", "\n\n", linkWoff);
+    const linkWOFF2 = m[1];
+    return linkWOFF2;
+}
+window["woff2DownloadLink"] = mkWOFF2downloadLink;
+
+async function getWOFFdownloadLink() {
+    const linkWOFF2 = await mkWOFF2downloadLink();
+    // console.log({ ourIcons });
+    console.log({ setIconsWoff2 });
+    console.log({ setIconsMissing });
+    const ourIcons = getOurIconList();
+    console.log(`%cDownload WOFF2 icons (${ourIcons}):\n`, "color:red;font-size:20px;", linkWOFF2);
 }
 function getOurIconList() {
     // return [...setUsedIcons].sort().reduce((tot, ico) => { return tot + "," + ico; }, "");
-    const setOurIcons = setWoffIcons.union(setUsedIcons);
+    const setOurIcons = setIconsWoff2.union(setIconsUsed);
     // return [...setUsedIcons].sort().join(",");
     return [...setOurIcons].sort().join(",");
 }
@@ -2694,7 +2751,9 @@ function getOurIconList() {
 async function getWoffSymbols() {
     const woffUrl = "./ext/mdc-fonts/my-symbols.woff2";
     const codepoints = await fontkitGetCodepoints(woffUrl);
+    if (!codepoints) return;
     const codepointToName = await fetchGoogleSymbolNameMap();
+    if (!codepointToName) return;
     // Now you can look up names:
     const names = codepoints.map(cp => codepointToName[cp]);
     const cleanedNames = names.filter(name => { if (typeof name == "string") return name; });
@@ -2703,12 +2762,29 @@ async function getWoffSymbols() {
     return strNames;
 
     async function fontkitGetCodepoints(woffUrl) {
+        // if (!navigator.onLine) { return; }
         // https://github.com/foliojs/fontkit/issues/358
         const fontkitUrl = "https://esm.sh/fontkit";
-        const modFontkit = await import(fontkitUrl);
-        const response = await fetch(woffUrl);
+        const modFontkit = await (async () => {
+            // if (!navigator.onLine) return;
+            try {
+                return await import(fontkitUrl);
+            } catch (err) {
+                console.error(err);
+                // debugger;
+                return;
+            }
+        })();
+        let response;
+        try {
+            response = await fetch(woffUrl);
+        } catch (err) {
+            console.error(woffUrl, err);
+            debugger;
+        }
         if (!response.ok) { debugger; }
         const arrayBuffer = await response.arrayBuffer();
+        if (!modFontkit) return;
         const font = modFontkit.create(new Uint8Array(arrayBuffer));
         console.log({ font });
         const codepoints = font.characterSet; // Array of codepoints (numbers)
@@ -2717,14 +2793,34 @@ async function getWoffSymbols() {
     }
 
     async function fetchGoogleSymbolNameMap() {
-        const mappingUrl = "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsOutlined%5BFILL,GRAD,opsz,wght%5D.codepoints";
-        const response = await fetch(mappingUrl);
+        const url = await mkSymbol2codepointUrl();
+        console.log({ url });
+        // const response = await fetch(symbol2codepointUrl);
+        let response;
+        try {
+            response = await fetch(url);
+        } catch (err) {
+            console.log(err);
+            debugger;
+        }
+        if (!response.ok) {
+            if (response.status == 404 && response.type == "cors") {
+                // Looks like Github has blocked access to raw files in may 2025
+                debugger;
+                throw "Can't fetch codepoint mapping file from Github";
+            }
+            debugger;
+        }
+        // return undefined;
         const text = await response.text();
         const codepointToName = {};
         text.split('\n').forEach(line => {
             const [name, hex] = line.trim().split(/\s+/);
             if (name && hex) {
-                codepointToName[parseInt(hex, 16)] = name;
+                const int = parseInt(hex, 16);
+                // codepointToName[parseInt(hex, 16)] = name;
+                codepointToName[int] = name;
+                if (line.startsWith("edit ")) { console.log("EDIT: ", line, name, hex, int); }
             }
         });
         return codepointToName;

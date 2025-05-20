@@ -1724,7 +1724,16 @@ InWord 'end' -> End;
 
 
 
-const modJssmTools = await importFc4i("jssm-tools")
+const modJssmTools = await (async () => {
+    // debugger;
+    // if (!navigator.onLine) return;
+    try {
+        return await importFc4i("jssm-tools");
+    } catch (err) {
+        console.log(err);
+        // debugger;
+    }
+})();
 
 
 
@@ -2353,7 +2362,7 @@ export function getCssTransforms(elt) {
  */
 export function canVarsBeEq(varA, varB) {
     if (varA === varB) return true;
-    if (typeof varA !== typeof varB ) return false;
+    if (typeof varA !== typeof varB) return false;
     if (varA.constructor.name !== varB.constructor.name) return false;
     if (Object.prototype.toString.call(varA) !== Object.prototype.toString.call(varB)) return false;
     const keysA = Object.keys(varA);

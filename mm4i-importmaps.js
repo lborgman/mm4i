@@ -120,7 +120,6 @@ const baseUrl = (() => {
         "jsmind-edit-common": "./js/jsmind-edit-common.js",
         // "jsmind-edit-spec-fc4i": "./js/jsmind-edit-spec-fc4i.js",
         "jsmind-cust-rend": "./js/jsmind-cust-rend.js",
-        "jssm-tools": "./js/mod/jssm-tools.js",
         // "local-settings": "./src/js/mod/local-settings.js",
         "local-settings": "./js/mod/local-settings.js",
         "mindmap-helpers": "./js/mindmap-helpers.js",
@@ -133,7 +132,10 @@ const baseUrl = (() => {
         "webrtc-2-peers": "./js/mod/webrtc-2-peers.js",
 
         // Tests:
-        "jssm": "https://cdn.jsdelivr.net/npm/jssm@latest/dist/jssm.es6.mjs",
+        // "jssm": "https://cdn.jsdelivr.net/npm/jssm@latest/dist/jssm.es6.mjs",
+        "jssm": "./ext/jssm/jssm.es6.mjs",
+        // "jssm": "https://esm.sh/jssm",
+        "jssm-tools": "./js/mod/jssm-tools.js",
         "jssm-viz": "./ext/jssm/jssm-viz.es6.js",
         "mm4i-fsm": "./js/mm4i-fsm.js",
         // "viz-js": "https://cdn.jsdelivr.net/npm/viz-js@latest/dist/jssm.es6.mjs",

@@ -1,10 +1,12 @@
 // @ts-check
 const MM4I_FSM_VER = "0.0.3";
-logConsoleHereIs(`here is mm4i-fsm.js, module,${MM4I_FSM_VER}`);
+window["logConsoleHereIs"](`here is mm4i-fsm.js, module,${MM4I_FSM_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 const importFc4i = window["importFc4i"];
+
 const modJssm = await importFc4i("jssm");
+// const modJssm = undefined;
 // console.log({ modJssm });
 
 export const fsmDeclaration = `
