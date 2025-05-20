@@ -2653,6 +2653,7 @@ const woffIconsList = await getWoffSymbols();
 const hasWoffIcons = woffIconsList != undefined;
 
 const setIconsWoff2 = new Set(hasWoffIcons ? woffIconsList.split(",") : undefined);
+setIconsWoff2.add("edit"); // FIX-ME: mapping codepoints problem
 const setIconsMissing = new Set();
 let tmrWoffSymbols;
 function addToUsedSymbols(sym) {
