@@ -1,21 +1,21 @@
 // @ts-check
 
-const SW_VERSION = "0.1.99";
+const SW_VERSION = "0.1.100";
 
 // https://www.npmjs.com/package/workbox-sw
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
 
 
 // throw Error("Test worker error");
-const logColors = "color: green; background: yellow;";
+const SWlogColors = "color: green; background: yellow;";
 
-const logStyle = "color: green; background: yellow; padding:2px; border-radius:2px;";
-const logStrongStyle = logStyle + " font-size:18px;";
+const SWlogStyle = "color: green; background: yellow; padding:2px; border-radius:2px;";
+const SWlogStrongStyle = SWlogStyle + " font-size:18px;";
 function logConsole(...msg) {
-    console.log(`%csw-workbox.js`, logStyle, ...msg);
+    console.log(`%csw-workbox.js`, SWlogStyle, ...msg);
 }
 function logStrongConsole(...msg) {
-    console.log(`%csw-workbox.js`, logStrongStyle, ...msg);
+    console.log(`%csw-workbox.js`, SWlogStrongStyle, ...msg);
 }
 logStrongConsole(`${SW_VERSION} is here`);
 
@@ -33,7 +33,7 @@ function errorHandlerAsyncEvent(asyncFun) {
     }
 }
 
-
+const workbox = globalThis["workbox"];
 
 workbox.setConfig({
     debug: false

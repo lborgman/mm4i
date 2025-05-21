@@ -71,7 +71,7 @@ async function dialogCreateMindMap() {
     const inpRoot = modMdc.mkMDCtextFieldInput(undefined, "text");
     let btnOk;
     const arrAll = await dbMindmaps.DBgetAllMindmaps();
-    inpRoot.addEventListener("input", evt => {
+    inpRoot.addEventListener("input", _evt => {
         const topic = inpRoot.value.trim();
         // console.log({ topic });
         let valid = true;
@@ -313,12 +313,14 @@ export async function dialogAdded2CustomClipboard(objAdded) {
 
 
 
+/*
 function setJsmindCopied4Mindmap(strJson) {
     localStorage.setItem("jsmind-copied4mindmap", strJson);
 }
 function getJsmindCopied4Mindmap() {
     return localStorage.getItem("jsmind-copied4mindmap");
 }
+*/
 
 /*
 export function addJsmindCopied4Mindmap(key, provider) {

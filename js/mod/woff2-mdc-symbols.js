@@ -12,22 +12,22 @@ if (document.currentScript) throw Error("import .currentScript"); // is module
  */
 export async function fetchGoogleSymbolNameMap(mdcIconStyle) {
     console.log("fetchGoogleSymbolNameMap", mdcIconStyle);
-    const url = mkSymbol2codepointUrl(mdcIconStyle) ;
+    const url = mkSymbol2codepointUrl(mdcIconStyle);
     let response;
     try {
         response = await fetch(url);
     } catch (err) {
         console.log(err);
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         throw Error(err);
     }
     if (!response.ok) {
         if (response.status == 404 && response.type == "cors") {
             // Looks like Github has blocked access to raw files in may 2025
-            debugger;
+            debugger; // eslint-disable-line no-debugger
             throw "Can't fetch codepoint mapping file from Github";
         }
-        debugger;
+        debugger; // eslint-disable-line no-debugger
     }
     // return undefined;
     const text = await response.text();

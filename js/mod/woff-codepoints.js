@@ -15,11 +15,12 @@ async function fontkitGetCodepoints(woffUrl) {
         response = await fetch(woffUrl);
     } catch (err) {
         console.error(woffUrl, err);
-        debugger;
+        throw Error(err);
+        debugger; // eslint-disable-line no-debugger
     }
     if (!response.ok) {
         if (response.status == 404) return;
-        debugger;
+        debugger; // eslint-disable-line no-debugger
     }
     const arrayBuffer = await response.arrayBuffer();
 

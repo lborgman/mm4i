@@ -31,19 +31,21 @@ window["ourFsm"] = ourFsm;
 modTools.addPosListeners();
 
 let instMoveAtDragBorder;
-let forceDiffPointHandle = 0;
+// let forceDiffPointHandle = 0;
 
-/**
+/*
  * 
  * @param {number | undefined} px 
- */
 export function setDiffPointHandle(px) {
     forceDiffPointHandle = px;
 }
+*/
 
 class PointHandle {
     static sizePointHandle = 20;
     // static diffPointHandle = 60;
+
+    // #jmnodesPointHandle;
 
     static myStates = ["idle", "init", "dist", "move"];
     #myState;
@@ -51,7 +53,7 @@ class PointHandle {
     #diffPointHandle = 1;
 
     /** @type {HTMLElement} */ #eltPointHandle;
-    /** @type {HTMLElement} */ #jmnodesPointHandle;
+    // @type {HTMLElement} */ #jmnodesPointHandle;
 
     /**
      * 
@@ -222,7 +224,7 @@ class PointHandle {
         /** @type {HTMLElement | null} */
         const elt = document.body.querySelector("jmnodes");
         if (!elt) throw Error("Could not find <jmnodes>");
-        this.#jmnodesPointHandle = elt;
+        // this.#jmnodesPointHandle = elt;
     }
     teardownPointHandle() {
         instMoveAtDragBorder.stopMoving();
@@ -241,7 +243,7 @@ class PointHandle {
             this.#eltPointHandle.style.left = `${clientX - PointHandle.sizePointHandle / 2}px`;
             this.#eltPointHandle.style.top = `${clientY - PointHandle.sizePointHandle / 2}px`;
 
-            const ph = this.#eltPointHandle;
+            // const ph = this.#eltPointHandle;
             // const php = ph.parentElement;
             // console.log("pointHandle", ph, "Parent", php);
             this.#state = "dist";
@@ -463,7 +465,7 @@ function requestCheckPointerHandleMove() {
 let eltJmnodeFrom;
 let eltOverJmnode;
 let movePointHandleProblem = false;
-let im = 0;
+// let im = 0;
 function movePointHandle() {
     if (movePointHandleProblem) return;
     const savedPointerPos = modTools.getSavedPointerPos();
@@ -1838,7 +1840,7 @@ export async function pageSetup() {
 
         const liDragNodes = mkMenuItem("Moving nodes", dialogDraggingNodes)
         async function dialogDraggingNodes() {
-            const modJsEditCommon = await importFc4i("jsmind-edit-common");
+            // const modJsEditCommon = await importFc4i("jsmind-edit-common");
 
             // FIX-ME: move class
             const settingPointHandle = window["settingPointHandle"];

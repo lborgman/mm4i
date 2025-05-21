@@ -58,7 +58,7 @@ const baseUrl = (() => {
     const b = [...document.getElementsByTagName("base")][0]
     if (b) {
         const bHref = b.href;
-        const wlOrigin = window.location.origin;
+        // const wlOrigin = window.location.origin;
         // console.log({ bHref, wlOrigin });
         return bHref;
     }

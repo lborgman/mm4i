@@ -2681,7 +2681,7 @@ let tmrSaveIconsUsed;
 function addToUsedSymbols(sym) {
     if (location.hostname != "localhost") return;
     const tofSym = typeof sym;
-    if (tofSym != "string") { debugger; }
+    if (tofSym != "string") { throw Error(`typeof sym is not "string", but "${tofSym}"`); }
     if (setIconsUsed.has(sym)) return;
     setIconsUsed.add(sym);
     clearTimeout(tmrSaveIconsUsed);
@@ -2705,7 +2705,7 @@ function getStoredIconsUsed() {
     if (storedIconsUsed != null) {
         const arrUsed = storedIconsUsed.split(",");
         arrUsed.forEach(sym => {
-            if (sym.length == 0) debugger;
+            if (sym.length == 0) throw Error("sym is empty string");
             setIconsUsed.add(sym);
         });
     }
@@ -2724,7 +2724,7 @@ function saveStoredIconsUsed() {
  * @param {string} action 
  */
 async function checkWoff2icons(action) {
-    if (!["justCheck", "dialog"].includes(action)) debugger;
+    if (!["justCheck", "dialog"].includes(action)) throw Error(`Unknown action parameter: "${action}"`);
     const urlWoff2File = "./ext/mdc-fonts/my-symbols.woff2";
     const woffIconsList = await getMdcSymbolsInWoff2File(urlWoff2File);
     const hasWoffIcons = woffIconsList != undefined;
@@ -2771,8 +2771,8 @@ async function mkWOFF2downloadLink() {
     // if (!navigator.onLine) return;
     const ourIcons = getOurIconList();
     const linkWOFF2css = `https://fonts.googleapis.com/css2?family=Material+Symbols+${mdcIconStyle}:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=${ourIcons}`;
-    const old = `https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=${ourIcons}`;
-    if (old != linkWOFF2css) { debugger; }
+    // const old = `https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=${ourIcons}`;
+    // if (old != linkWOFF2css) { debugger; }
     console.log(linkWOFF2css.slice(8));
     // return linkWOFF2css;
     let cssResponse;
@@ -2780,8 +2780,8 @@ async function mkWOFF2downloadLink() {
     try {
         cssResponse = await fetch(linkWOFF2css);
     } catch (err) {
-        console.log(linkWOFF2css, err);
-        debugger;
+        console.error(linkWOFF2css, err);
+        throw Error(err);
     }
     const txtCss = await cssResponse.text();
     const m = txtCss.match(/url\((.*?)\)/m);
@@ -2791,7 +2791,7 @@ async function mkWOFF2downloadLink() {
 
 
 function getOurIconList() {
-    if (setIconsUsed.has("")) debugger;
+    // if (setIconsUsed.has("")) debugger;
     return [...setIconsUsed].sort().join(",");
 }
 
