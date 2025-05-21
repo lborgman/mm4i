@@ -2697,8 +2697,11 @@ function addToUsedSymbols(sym) {
 }
 
 // Keep used icons across sessions, but only in development (localhost):
+iconsForApp
+const keyIcons = () => `used-mdc-symbols-${iconsForApp}`;
 function getStoredIconsUsed() {
-    const storedIconsUsed = localStorage.getItem("used-mdc-symbols")
+    // const storedIconsUsed = localStorage.getItem("used-mdc-symbols")
+    const storedIconsUsed = localStorage.getItem(keyIcons());
     if (storedIconsUsed != null) {
         const arrUsed = storedIconsUsed.split(",");
         arrUsed.forEach(sym => {
@@ -2712,7 +2715,8 @@ function saveStoredIconsUsed() {
     if (!iconsForApp) return;
     getStoredIconsUsed();
     if (setIconsUsed.size == 0) return;
-    localStorage.setItem("used-mdc-symbols", [...setIconsUsed].sort().join(","));
+    // localStorage.setItem("used-mdc-symbols", [...setIconsUsed].sort().join(","));
+    localStorage.setItem(keyIcons(), [...setIconsUsed].sort().join(","));
 }
 
 /**
@@ -2750,12 +2754,7 @@ async function checkWoff2icons(action) {
 }
 
 // const symbol2codepointUrl = "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsOutlined%5BFILL,GRAD,opsz,wght%5D.codepoints";
-/**
- * Make url to Google MDC codepoint to symbol map
- *  
- * @param {string} mdcIconStyle 
- * @returns {string}
- */
+/*
 async function mkSymbol2codepointUrl(mdcIconStyle) {
     // From perplexity.ai
     // https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsOutlined%5BFILL,GRAD,opsz,wght%5D.codepoints";
@@ -2766,6 +2765,8 @@ async function mkSymbol2codepointUrl(mdcIconStyle) {
     // return `https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbols${mdcIconStyle}%5BFILL,GRAD,opsz,wght%5D.codepoints";`;
     return `./ext/mdc-fonts/MaterialSymbols${mdcIconStyle}Codepoints.txt`;
 }
+ */
+
 async function mkWOFF2downloadLink() {
     // if (!navigator.onLine) return;
     const ourIcons = getOurIconList();
@@ -2787,7 +2788,6 @@ async function mkWOFF2downloadLink() {
     const linkWOFF2 = m[1];
     return linkWOFF2;
 }
-// window["woff2DownloadLink"] = mkWOFF2downloadLink;
 
 
 function getOurIconList() {
@@ -2798,14 +2798,12 @@ function getOurIconList() {
 async function getMdcSymbolsInWoff2File(woffUrl) {
     const modWoffCodepoints = await importFc4i("woff-codepoints");
     console.log(modWoffCodepoints);
-    debugger;
-    // const codepoints = await fontkitGetCodepoints(woffUrl);
     const codepoints = await modWoffCodepoints.getCodepoints(woffUrl);
     if (!codepoints) return;
-    const urlSymbolNames = await mkSymbol2codepointUrl(mdcIconStyle);
-    // const codepointToName = await fetchGoogleSymbolNameMap(urlSymbolNames);
+    // const urlSymbolNames = await mkSymbol2codepointUrl(mdcIconStyle);
     const modWoff2MdcSymbols = await importFc4i("woff2-mdc-symbols");
-    const codepointToName = modWoff2MdcSymbols.fetchGoogleSymbolNameMap(urlSymbolNames);
+    // const codepointToName = modWoff2MdcSymbols.fetchGoogleSymbolNameMap(urlSymbolNames);
+    const codepointToName = modWoff2MdcSymbols.fetchGoogleSymbolNameMap(mdcIconStyle);
     if (!codepointToName) return;
     // Now you can look up names:
     const names = codepoints.map(cp => codepointToName[cp]);
@@ -2814,74 +2812,4 @@ async function getMdcSymbolsInWoff2File(woffUrl) {
     console.log({ strNames });
     return strNames;
 
-    /*
-    async function fontkitGetCodepoints(woffUrl) {
-        // if (!navigator.onLine) { return; }
-        let response;
-        try {
-            response = await fetch(woffUrl);
-        } catch (err) {
-            console.error(woffUrl, err);
-            debugger;
-        }
-        if (!response.ok) {
-            if (response.status == 404) return;
-            debugger;
-        }
-        const arrayBuffer = await response.arrayBuffer();
-
-        const fontkitUrl = "https://esm.sh/fontkit";
-        const modFontkit = await (async () => {
-            try {
-                return await import(fontkitUrl);
-            } catch (err) {
-                console.error(err);
-                throw Error(`Could not get fontkit: ${fontkitUrl}`);
-            }
-        })();
-
-        const font = modFontkit.create(new Uint8Array(arrayBuffer));
-        // console.log({ font });
-        const codepoints = font.characterSet; // Array of codepoints (numbers)
-        // console.log({ codepoints });
-        return codepoints;
-    }
-    */
-    /*
-
-    async function fet
-    async function fetchGoogleSymbolNameMap(url) {
-        // const url = await mkSymbol2codepointUrl();
-        console.log("fetchGoogleSymbolNameMap", url);
-        // const response = await fetch(symbol2codepointUrl);
-        let response;
-        try {
-            response = await fetch(url);
-        } catch (err) {
-            console.log(err);
-            debugger;
-        }
-        if (!response.ok) {
-            if (response.status == 404 && response.type == "cors") {
-                // Looks like Github has blocked access to raw files in may 2025
-                debugger;
-                throw "Can't fetch codepoint mapping file from Github";
-            }
-            debugger;
-        }
-        // return undefined;
-        const text = await response.text();
-        const codepointToName = {};
-        text.split('\n').forEach(line => {
-            const [name, hex] = line.trim().split(/\s+/);
-            if (name && hex) {
-                const int = parseInt(hex, 16);
-                // codepointToName[parseInt(hex, 16)] = name;
-                codepointToName[int] = name;
-                if (line.startsWith("edit ")) { console.log("EDIT: ", line, name, hex, int); }
-            }
-        });
-        return codepointToName;
-    }
-    */
 }

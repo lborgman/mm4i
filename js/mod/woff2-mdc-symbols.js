@@ -5,16 +5,21 @@ window["logConsoleHereIs"](`here is woff2-mdc-symbols.js ${WOFF2_MDC_SYMBOLS_VER
 console.warn(`here is woff2-mdc-symbols.js ${WOFF2_MDC_SYMBOLS_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
-export async function fetchGoogleSymbolNameMap(url) {
-    // const url = await mkSymbol2codepointUrl();
-    console.log("fetchGoogleSymbolNameMap", url);
-    // const response = await fetch(symbol2codepointUrl);
+/**
+ * 
+ * @param {string} mdcIconStyle 
+ * @returns {Promise<Object>}
+ */
+export async function fetchGoogleSymbolNameMap(mdcIconStyle) {
+    console.log("fetchGoogleSymbolNameMap", mdcIconStyle);
+    const url = mkSymbol2codepointUrl(mdcIconStyle) ;
     let response;
     try {
         response = await fetch(url);
     } catch (err) {
         console.log(err);
         debugger;
+        throw Error(err);
     }
     if (!response.ok) {
         if (response.status == 404 && response.type == "cors") {
@@ -37,4 +42,22 @@ export async function fetchGoogleSymbolNameMap(url) {
         }
     });
     return codepointToName;
+}
+
+// const symbol2codepointUrl = "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsOutlined%5BFILL,GRAD,opsz,wght%5D.codepoints";
+/**
+ * Make url to Google MDC codepoint to symbol map
+ *  
+ * @param {string} mdcIconStyle 
+ * @returns {string}
+ */
+function mkSymbol2codepointUrl(mdcIconStyle) {
+    // From perplexity.ai
+    // https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsOutlined%5BFILL,GRAD,opsz,wght%5D.codepoints";
+    // https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsRounded%5BFILL,GRAD,opsz,wght%5D.codepoints";
+    // https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsSharp%5BFILL,GRAD,opsz,wght%5D.codepoints";
+
+    //// Github CORS blocked raw files in may 2025
+    // return `https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbols${mdcIconStyle}%5BFILL,GRAD,opsz,wght%5D.codepoints";`;
+    return `./ext/mdc-fonts/MaterialSymbols${mdcIconStyle}Codepoints.txt`;
 }
