@@ -1631,8 +1631,6 @@ string2SearchSym["rPar"] = symRpar;
 // const ourSearchOperators = new Set([symAdd, symOr, symNot]);
 
 
-// const modJssm = await importFc4i("jssm");
-
 export function checkFsmActionAndApply(fsm, action, newData, errHandler) {
     const oldState = fsm.state();
     const allowedActions = fsm.actions(oldState);

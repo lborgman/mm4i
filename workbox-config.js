@@ -2,7 +2,7 @@ module.exports = {
 	globDirectory: '.',
 	globPatterns: [
 		// '**/*.{html,svg,js,json}',
-		'**/*.{html,svg,js,json,woff2}',
+		'**/*.{html,svg,js,json,woff2,mjs}',
 	],
 	globIgnores: [
 		// Exclude rxdb
