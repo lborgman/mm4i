@@ -1,8 +1,8 @@
 // @ts-check
-debugger;
-const MM4I_IMPORTMAPS_VER = "0.2.6";
-window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
-console.warn(`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
+// debugger;
+const WOFF_CODEPOINTS_VER = "0.0.1";
+window["logConsoleHereIs"](`here is woff-codepoints.js ${WOFF_CODEPOINTS_VER}`);
+console.warn(`here is mm4i-importmaps ${WOFF_CODEPOINTS_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 export function getCodepoints(woffUrl) {
@@ -10,7 +10,6 @@ export function getCodepoints(woffUrl) {
 }
 
 async function fontkitGetCodepoints(woffUrl) {
-    // if (!navigator.onLine) { return; }
     let response;
     try {
         response = await fetch(woffUrl);

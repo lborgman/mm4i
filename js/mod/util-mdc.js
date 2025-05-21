@@ -2750,7 +2750,13 @@ async function checkWoff2icons(action) {
 }
 
 // const symbol2codepointUrl = "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsOutlined%5BFILL,GRAD,opsz,wght%5D.codepoints";
-async function mkSymbol2codepointUrl() {
+/**
+ * Make url to Google MDC codepoint to symbol map
+ *  
+ * @param {string} mdcIconStyle 
+ * @returns {string}
+ */
+async function mkSymbol2codepointUrl(mdcIconStyle) {
     // From perplexity.ai
     // https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsOutlined%5BFILL,GRAD,opsz,wght%5D.codepoints";
     // https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsRounded%5BFILL,GRAD,opsz,wght%5D.codepoints";
@@ -2796,7 +2802,10 @@ async function getMdcSymbolsInWoff2File(woffUrl) {
     // const codepoints = await fontkitGetCodepoints(woffUrl);
     const codepoints = await modWoffCodepoints.getCodepoints(woffUrl);
     if (!codepoints) return;
-    const codepointToName = await fetchGoogleSymbolNameMap();
+    const urlSymbolNames = await mkSymbol2codepointUrl(mdcIconStyle);
+    // const codepointToName = await fetchGoogleSymbolNameMap(urlSymbolNames);
+    const modWoff2MdcSymbols = await importFc4i("woff2-mdc-symbols");
+    const codepointToName = modWoff2MdcSymbols.fetchGoogleSymbolNameMap(urlSymbolNames);
     if (!codepointToName) return;
     // Now you can look up names:
     const names = codepoints.map(cp => codepointToName[cp]);
@@ -2838,10 +2847,12 @@ async function getMdcSymbolsInWoff2File(woffUrl) {
         return codepoints;
     }
     */
+    /*
 
-    async function fetchGoogleSymbolNameMap() {
-        const url = await mkSymbol2codepointUrl();
-        console.log({ url });
+    async function fet
+    async function fetchGoogleSymbolNameMap(url) {
+        // const url = await mkSymbol2codepointUrl();
+        console.log("fetchGoogleSymbolNameMap", url);
         // const response = await fetch(symbol2codepointUrl);
         let response;
         try {
@@ -2872,4 +2883,5 @@ async function getMdcSymbolsInWoff2File(woffUrl) {
         });
         return codepointToName;
     }
+    */
 }

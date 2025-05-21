@@ -130,6 +130,7 @@ const baseUrl = (() => {
         "toolsJs": "./js/mod/tools.js",
         "util-mdc": "./js/mod/util-mdc.js",
         "woff-codepoints": "./js/mod/woff-codepoints.js",
+        "woff2-mdc-symbols": "./js/mod/woff2-mdc-symbols.js",
         "webrtc-2-peers": "./js/mod/webrtc-2-peers.js",
 
         // Tests:

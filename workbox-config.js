@@ -10,6 +10,7 @@ module.exports = {
 		'manifest-mm4i.json', 
 		'node_modules/**/*',
 		'temp.js',
+		'woff-codepoints.js',
 	],
 	swSrc: 'sw-input.js',
 	swDest: 'sw-workbox.js',
