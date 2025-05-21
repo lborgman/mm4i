@@ -2665,7 +2665,7 @@ if (location.hostname == "localhost") {
     document.body.appendChild(btnSymbols);
     btnSymbols.addEventListener("click", evt => {
         evt.stopPropagation();
-        checkWoff2icons();
+        checkWoff2icons("dialog");
     });
 }
 
@@ -2721,7 +2721,8 @@ function saveStoredIconsUsed() {
  */
 async function checkWoff2icons(action) {
     if (!["justCheck", "dialog"].includes(action)) debugger;
-    const woffIconsList = await getWoffSymbols();
+    const urlWoff2File = "./ext/mdc-fonts/my-symbols.woff2";
+    const woffIconsList = await getMdcSymbolsInWoff2File(urlWoff2File);
     const hasWoffIcons = woffIconsList != undefined;
     const setIconsWoff2 = new Set(hasWoffIcons ? woffIconsList.split(",") : undefined);
     setIconsWoff2.add("edit"); // FIX-ME: mapping codepoints problem
@@ -2788,9 +2789,12 @@ function getOurIconList() {
     return [...setIconsUsed].sort().join(",");
 }
 
-async function getWoffSymbols() {
-    const woffUrl = "./ext/mdc-fonts/my-symbols.woff2";
-    const codepoints = await fontkitGetCodepoints(woffUrl);
+async function getMdcSymbolsInWoff2File(woffUrl) {
+    const modWoffCodepoints = await importFc4i("woff-codepoints");
+    console.log(modWoffCodepoints);
+    debugger;
+    // const codepoints = await fontkitGetCodepoints(woffUrl);
+    const codepoints = await modWoffCodepoints.getCodepoints(woffUrl);
     if (!codepoints) return;
     const codepointToName = await fetchGoogleSymbolNameMap();
     if (!codepointToName) return;
@@ -2801,20 +2805,9 @@ async function getWoffSymbols() {
     console.log({ strNames });
     return strNames;
 
+    /*
     async function fontkitGetCodepoints(woffUrl) {
-        if (!navigator.onLine) { return; }
-        // https://github.com/foliojs/fontkit/issues/358
-        const fontkitUrl = "https://esm.sh/fontkit";
-        const modFontkit = await (async () => {
-            // if (!navigator.onLine) return;
-            try {
-                return await import(fontkitUrl);
-            } catch (err) {
-                console.error(err);
-                // debugger;
-                return;
-            }
-        })();
+        // if (!navigator.onLine) { return; }
         let response;
         try {
             response = await fetch(woffUrl);
@@ -2827,13 +2820,24 @@ async function getWoffSymbols() {
             debugger;
         }
         const arrayBuffer = await response.arrayBuffer();
-        if (!modFontkit) return;
+
+        const fontkitUrl = "https://esm.sh/fontkit";
+        const modFontkit = await (async () => {
+            try {
+                return await import(fontkitUrl);
+            } catch (err) {
+                console.error(err);
+                throw Error(`Could not get fontkit: ${fontkitUrl}`);
+            }
+        })();
+
         const font = modFontkit.create(new Uint8Array(arrayBuffer));
-        console.log({ font });
+        // console.log({ font });
         const codepoints = font.characterSet; // Array of codepoints (numbers)
-        console.log({ codepoints });
+        // console.log({ codepoints });
         return codepoints;
     }
+    */
 
     async function fetchGoogleSymbolNameMap() {
         const url = await mkSymbol2codepointUrl();
@@ -2869,6 +2873,3 @@ async function getWoffSymbols() {
         return codepointToName;
     }
 }
-
-
-
