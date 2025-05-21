@@ -2647,54 +2647,105 @@ const mdcIconStyle = "Outlined";
 // const mdcIconStyle = "Rounded";
 // const mdcIconStyle = "Sharp";
 
-export const setIconsUsed = new Set();
-// const woffIconsList = "adb,clear,close,enhanced_encryption,info_i,menu,p2p,qr_code_2,route,search,shield_with_heart,visibility";
-const woffIconsList = await getWoffSymbols();
-const hasWoffIcons = woffIconsList != undefined;
+const setIconsUsed = new Set();
+let iconsForApp;
+const idBtnSym = "button-mdc-symbols"
+if (location.hostname == "localhost") {
+    const btnSymbols = mkElt("button", { id: idBtnSym }, "Get Woff2");
+    btnSymbols.style = `
+        position: fixed;
+        top: 5px;
+        right: 5px;
+        background-color: red;
+        padding: 20px;
+        border-radius: 5px;
+        display: none;
+        z-index: 9999;
+    `;
+    document.body.appendChild(btnSymbols);
+    btnSymbols.addEventListener("click", evt => {
+        evt.stopPropagation();
+        checkWoff2icons();
+    });
+}
 
-const setIconsWoff2 = new Set(hasWoffIcons ? woffIconsList.split(",") : undefined);
-setIconsWoff2.add("edit"); // FIX-ME: mapping codepoints problem
-const setIconsMissing = new Set();
-let tmrWoffSymbols;
+/**
+ * 
+ * @param {string} whichApp 
+ */
+export function setIconsFor(whichApp) {
+    iconsForApp = whichApp;
+    saveStoredIconsUsed();
+}
+let tmrSaveIconsUsed;
 function addToUsedSymbols(sym) {
     if (location.hostname != "localhost") return;
-    if (!navigator.onLine) return;
     const tofSym = typeof sym;
     if (tofSym != "string") { debugger; }
+    if (setIconsUsed.has(sym)) return;
     setIconsUsed.add(sym);
-    if (!setIconsWoff2.has(sym)) {
-        if (sym == "clear") {
-            console.warn("clear");
-            debugger;
+    clearTimeout(tmrSaveIconsUsed);
+    tmrSaveIconsUsed = setTimeout(async () => {
+        saveStoredIconsUsed();
+        const numMissing = await checkWoff2icons("justCheck");
+        if (numMissing > 0) {
+            const btn = document.getElementById(idBtnSym);
+            btn.style.display = "block";
+            btn.textContent = `Download missing in Woff2: ${numMissing}`;
         }
-        setIconsMissing.add(sym);
-        clearTimeout(tmrWoffSymbols);
-        tmrWoffSymbols = setTimeout(async () => {
-            debugger;
-            const linkWOFF2 = await mkWOFF2downloadLink();
-            try {
-                window.console.log("in tmwWoffSymbols", linkWOFF2);
-                window.console.warn("in tmwWoffSymbols");
-                window.console.error("in tmwWoffSymbols");
-            } catch (err) {
-                debugger;
-            }
-            getWOFFdownloadLink();
-            const missing = [...setIconsMissing].sort().join(",");
-            const used = [...setIconsUsed].sort().join(",");
-            const woff2 = [...setIconsWoff2].sort().join(",");
-            window.console.log(`Missing in woff file: "${missing}",\nsee console for .woff download link`);
-            // alert(`Missing in woff file: "${missing}",\nsee console for .woff download link`);
-            const body = mkElt("div", undefined, [
-                mkElt("h2", undefined, "Missing Material Symbols"),
-                mkElt("div", undefined, `Used: ${used}`),
-                mkElt("div", undefined, `WOFF2: ${woff2}`),
-                mkElt("div", undefined, `Missing: ${missing}`),
-                mkElt("a", { href: linkWOFF2 }, "Download WOFF2"),
-            ]);
-            mkMDCdialogAlert(body);
-        }, 2000);
+    }, 1000);
+}
+
+// Keep used icons across sessions, but only in development (localhost):
+function getStoredIconsUsed() {
+    const storedIconsUsed = localStorage.getItem("used-mdc-symbols")
+    if (storedIconsUsed != null) {
+        const arrUsed = storedIconsUsed.split(",");
+        arrUsed.forEach(sym => {
+            if (sym.length == 0) debugger;
+            setIconsUsed.add(sym);
+        });
     }
+}
+function saveStoredIconsUsed() {
+    if (location.hostname != "localhost") return;
+    if (!iconsForApp) return;
+    getStoredIconsUsed();
+    if (setIconsUsed.size == 0) return;
+    localStorage.setItem("used-mdc-symbols", [...setIconsUsed].sort().join(","));
+}
+
+/**
+ * 
+ * @param {string} action 
+ */
+async function checkWoff2icons(action) {
+    if (!["justCheck", "dialog"].includes(action)) debugger;
+    const woffIconsList = await getWoffSymbols();
+    const hasWoffIcons = woffIconsList != undefined;
+    const setIconsWoff2 = new Set(hasWoffIcons ? woffIconsList.split(",") : undefined);
+    setIconsWoff2.add("edit"); // FIX-ME: mapping codepoints problem
+    const setIconsMissing = new Set();
+    setIconsUsed.forEach(sym => {
+        if (!setIconsWoff2.has(sym)) { setIconsMissing.add(sym); }
+    });
+    if (action == "justCheck") return setIconsMissing.size;
+
+    const linkWOFF2 = await mkWOFF2downloadLink();
+    const missing = [...setIconsMissing].sort().join(",");
+    const used = [...setIconsUsed].sort().join(",");
+    const woff2 = [...setIconsWoff2].sort().join(",");
+    window.console.log(`Missing in woff file: "${missing}",\nsee console for .woff download link`);
+
+    // alert(`Missing in woff file: "${missing}",\nsee console for .woff download link`);
+    const body = mkElt("div", undefined, [
+        mkElt("h2", undefined, "Missing Material Symbols"),
+        mkElt("div", undefined, `Used (${setIconsUsed.size}): ${used}`),
+        mkElt("div", undefined, `WOFF2 (${setIconsWoff2.size}): ${woff2}`),
+        mkElt("div", undefined, `Missing (${setIconsMissing.size}): ${missing}`),
+        mkElt("a", { href: linkWOFF2 }, "Download WOFF2"),
+    ]);
+    mkMDCdialogAlert(body, "Close");
 }
 
 // const symbol2codepointUrl = "https://raw.githubusercontent.com/google/material-design-icons/master/variablefont/MaterialSymbolsOutlined%5BFILL,GRAD,opsz,wght%5D.codepoints";
@@ -2729,25 +2780,13 @@ async function mkWOFF2downloadLink() {
     const linkWOFF2 = m[1];
     return linkWOFF2;
 }
-window["woff2DownloadLink"] = mkWOFF2downloadLink;
+// window["woff2DownloadLink"] = mkWOFF2downloadLink;
 
-async function getWOFFdownloadLink() {
-    const linkWOFF2 = await mkWOFF2downloadLink();
-    // console.log({ ourIcons });
-    console.log({ setIconsWoff2 });
-    console.log({ setIconsMissing });
-    const ourIcons = getOurIconList();
-    console.log(`%cDownload WOFF2 icons (${ourIcons}):\n`, "color:red;font-size:20px;", linkWOFF2);
-}
+
 function getOurIconList() {
-    // return [...setUsedIcons].sort().reduce((tot, ico) => { return tot + "," + ico; }, "");
-    const setOurIcons = setIconsWoff2.union(setIconsUsed);
-    // return [...setUsedIcons].sort().join(",");
-    return [...setOurIcons].sort().join(",");
+    if (setIconsUsed.has("")) debugger;
+    return [...setIconsUsed].sort().join(",");
 }
-/*
-[...(await importFc4i("util-mdc")).usedIcons].sort().reduce((tot, ico)=>tot+","+ico)
-*/
 
 async function getWoffSymbols() {
     const woffUrl = "./ext/mdc-fonts/my-symbols.woff2";
@@ -2783,7 +2822,10 @@ async function getWoffSymbols() {
             console.error(woffUrl, err);
             debugger;
         }
-        if (!response.ok) { debugger; }
+        if (!response.ok) {
+            if (response.status == 404) return;
+            debugger;
+        }
         const arrayBuffer = await response.arrayBuffer();
         if (!modFontkit) return;
         const font = modFontkit.create(new Uint8Array(arrayBuffer));
