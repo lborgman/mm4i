@@ -14,7 +14,8 @@ MM4I (Mindmaps 4 Internet) offers that.
     </figure>
 </a>
 
-The mindmaps you create are stored locally in your web browser on your computer or mobile.  (But you still have to be connected to the Internet since MM4I is loaded from the its sources every time you start it.  I will change that soon so you can use MM4I when you are offline.)
+The mindmaps you create are stored locally in your web browser on your computer or mobile. 
+And even if this is a web page you can work offline. 
 
 
 ## Usage
@@ -34,7 +35,7 @@ There is currently no built in backup. And the mindmaps are only stored on your 
 
 So if you loose your device your mindmaps may also be gone.
 
-But there is one possible remedy: You can sync your mindmaps to other devices.  This mus be done manually, but it quite simple.
+But there is one possible remedy: You can sync your mindmaps to other devices.  (This must be done manually, but I believe it is quite simple.)
 
 
 
