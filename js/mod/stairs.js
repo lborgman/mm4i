@@ -447,6 +447,10 @@ async function stepPrevNext(forward) {
         toStep = arrSteps[idxCurrent + (forward ? 1 : -1)];
     }
     const toMark = objStairMarks[toStep];
+    if (!toMark) {
+        console.warn("toMark is undefined");
+        return; // FIX-ME: correct???
+    }
 
 
     const toJmnode = toMark.closest("jmnode");
