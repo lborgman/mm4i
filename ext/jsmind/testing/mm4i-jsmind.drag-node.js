@@ -74,7 +74,7 @@ function markAsLowerChild(jmnode, on) {
     if (on) unmarkLowerChild();
     markDragNode(jmnode, "lower-child", on);
 }
-function markAsDroppedAt(jmnode, on) { markDragNode(jmnode, "dropped-at", on); }
+// function markAsDroppedAt(jmnode, on) { markDragNode(jmnode, "dropped-at", on); }
 
 const markNames = ["dragged", "target", "tparent", "upper-child", "lower-child", "dropped-at"];
 function markDragNode(jmnode, how, on) {
@@ -330,9 +330,9 @@ function whenDragPauses() {
         if (entryAbove) our_parent = ourJm.get_node(entryAbove.id).parent;
         if (entryBelow) our_parent = ourJm.get_node(entryBelow.id).parent;
         if (nodeAbove && nodeBelow) {
-            const parent_above = ourJm.get_node(entryAbove.id).parent;
-            const parent_below = ourJm.get_node(entryBelow.id).parent;
-            if (parent_above.id !== parent_below.id) {
+            const parent_above = entryAbove? ourJm.get_node(entryAbove.id).parent : undefined;
+            const parent_below = entryBelow? ourJm.get_node(entryBelow.id).parent : undefined;
+            if (entryAbove && entryBelow && parent_above && parent_below && (parent_above.id !== parent_below.id)) {
                 function getDepth(node, depth) {
                     if (depth > 20) throw Error("Depth is too great");
                     if (!node) return depth;
