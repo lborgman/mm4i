@@ -1,4 +1,5 @@
 // @NOts-check
+// FIX-ME: ts-check does not work correct in this file, why?
 
 const SW_VERSION = "0.1.106";
 
