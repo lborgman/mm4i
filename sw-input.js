@@ -1,6 +1,6 @@
-// @ts-check
+// @NOts-check
 
-const SW_VERSION = "0.1.105";
+const SW_VERSION = "0.1.106";
 
 // https://www.npmjs.com/package/workbox-sw
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
