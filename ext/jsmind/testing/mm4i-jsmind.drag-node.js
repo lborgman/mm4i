@@ -214,7 +214,7 @@ export function stopNow() {
         // console.log("ourJm.move_node", { idDragged, idBelow, idParent, direction });
     }
     function unMarkAll() {
-        console.warn("----- unMarkAll");
+        // console.warn("----- unMarkAll");
         unmarkTParent();
         unmarkUpperChild();
         unmarkLowerChild();
@@ -236,11 +236,11 @@ function whenDragPauses() {
         // pointermove
         if (colClientX == undefined) throw Error("colClientX == undefined");
         if (colClientX < middleX) {
-            console.log("left side", colClientX, middleX);
+            // console.log("left side", colClientX, middleX);
             eltRoot.classList.add("jsmind-drag-root-leftside");
             eltRoot.classList.remove("jsmind-drag-root-rightside");
         } else {
-            console.log("right side", colClientX, middleX);
+            // console.log("right side", colClientX, middleX);
             eltRoot.classList.remove("jsmind-drag-root-leftside");
             eltRoot.classList.add("jsmind-drag-root-rightside");
         }

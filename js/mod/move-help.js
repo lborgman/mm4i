@@ -39,7 +39,7 @@ export class MoveEltAtFixedSpeed {
         // const msOverScreen = 4000;
         const msOverScreen = 3000;
         const pxlPerMs = window.innerWidth / msOverScreen;
-        console.log("startX", { pxlPerMs });
+        // console.log("startX", { pxlPerMs });
         const startTime = Date.now();
         const elt2move = this.elt2move
         const elt2show = this.elt2show

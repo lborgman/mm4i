@@ -1522,7 +1522,7 @@ export async function pageSetup() {
         // updateTheMirror();
     });
     async function checkOperationOnNode(operation_type, operation_node_id, datadata) {
-        console.log("checkOpOnNode", { operation_type, operation_node_id, jm_operation: jmDisplayed, datadata });
+        // console.log("checkOpOnNode", { operation_type, operation_node_id, jm_operation: jmDisplayed, datadata });
         switch (operation_type) {
             case "add_node":
                 const id_added = operation_node_id;
