@@ -1159,6 +1159,7 @@ export async function pageSetup() {
 
         // const btnSyncMm = modMdc.mkMDCiconButton("sync_alt", "Sync mindmaps to your devices", 40);
         const btnSyncMm = modMdc.mkMDCiconButton("p2p", "Sync mindmap devices", 40);
+        btnSyncMm.id = "btn-sync";
         btnSyncMm.addEventListener("click", async evt => {
             evt.stopPropagation();
             const modMm4iReplication = await importFc4i("mm4i-replication");
@@ -1248,6 +1249,22 @@ export async function pageSetup() {
     if (mindmapKey) {
         mind = await modMMhelpers.getMindmap(mindmapKey);
         window["current-mindmapKey"] = mindmapKey;
+        modMMhelpers.getMindmapPrivacy(mindmapKey).then(privacy => {
+            console.log({ privacy });
+            const eltJsMindContainer = document.getElementById("jsmind_container");
+            if (!eltJsMindContainer) throw Error("Could not find #jsmind_container");
+            const cl = eltJsMindContainer.classList;
+            switch (privacy) {
+                case "shared":
+                    cl.add("mindmap-is-shareable");
+                    break;
+                case "private":
+                    cl.remove("mindmap-is-shareable");
+                    break;
+                default:
+                    throw Error(`Bad privacy value: "${privacy}"`);
+            }
+        });
     }
     if (!mind) {
         if (funMindmapsDialog) {

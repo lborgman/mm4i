@@ -400,6 +400,7 @@ export function getNewMindmap(rootTopic, author, version, format) {
 
 
 export async function getMindmapPrivacy(key) {
+    const dbMindmaps = await importFc4i("db-mindmaps");
     const jsMindmap = await dbMindmaps.DBgetMindmap(key);
     return getMindmapPrivacyFromObject(jsMindmap);
 }
