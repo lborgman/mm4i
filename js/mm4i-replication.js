@@ -1027,11 +1027,9 @@ async function setupPeerConnection(remotePeerObj) {
                                 break;
                             }
                             const len = Object.keys(myMindmapsAllKeyUpdated).length;
-                            // const msg = `Got "hello" => ""have-keys (${len})`;
                             const arrInfo = ["R", '"hello"', "S", `"have-keys" (${len})`];
                             const objMessage = {
                                 "type": "have-keys",
-                                // myMindmaps: myMindmapsAllKeyUpdated,
                                 myMindmaps: myMindmapsSharedKeyUpdated,
                             }
                             sendToPeer(objMessage, arrInfo, data);
@@ -1039,11 +1037,8 @@ async function setupPeerConnection(remotePeerObj) {
                         break;
                     case "have-keys":
                         {
-                            // const msg = "Got have-keys";
-                            // logWSimportant(msg, { data });
                             peerMindmaps = data.myMindmaps;
                             if (peerMindmaps == undefined) throw Error(`data.myMindmaps is undefined`);
-                            // console.log({ peerMindmaps, myMindmaps });
                             tellWhatIneed(dataChannel);
                         }
                         break;
@@ -1517,121 +1512,19 @@ function tellWhatIneed(dataChannel) {
         type: "need-keys",
         needKeys
     }
-    // const msg = `Got "have-keys" => "need-keys" (${needKeys.length})`;
     const arrInfo = ["R", '"have-keys"', "S", `"need-keys" (${needKeys.length})`];
-    // sendToPeer(objNeedKeys, msg, objNeedKeys);
     sendToPeer(objNeedKeys, arrInfo, objNeedKeys);
 }
 
-/*
-async function doSync(dataChannel) {
-    console.log(dataChannel.id, { channelToPeer: dataChannel });
-    const wasOpenedBefore = handledOpenBefore;
-    // if (wasOpenedBefore) debugger; // FIX-ME:
-    handledOpenBefore = true;
-    debugger; // eslint-disable-line no-debugger
-    dataChannel.addEventListener("message", evt => {
-        // evt.stopPropagation();
-        debugger; // eslint-disable-line no-debugger
-        logDataChannel(dataChannel.id, "message synch", evt);
-        handleMessageSync(evt);
-    });
-    function handleMessageSync(evt) {
-        console.log("handleMessageSync", { evt });
-        const strData = evt.data;
-        const tofData = typeof strData;
-        if (tofData != "string") throw Error(`Expeced data to be type "string", but it is ${tofData}`);
-        let data;
-        try {
-            data = JSON.parse(strData);
-        } catch (err) {
-            const isJsonErr = err instanceof SyntaxError;
-            console.log({ isJsonErr, err });
-            if (!isJsonErr) throw err;
-            if (!strData.startsWith("Hi (")) throw Error(`Unexpected string: "${strData}"`);
-            const msg = `handleMessage, skipping test message "${strData}"`;
-            console.log(msg);
-            modMdc.mkMDCsnackbar(msg);
-            return;
-        }
-        console.log("%chandleMessage", "font-size:20px; color:red", { data });
-        switch (data.type) {
-            case "have-keys":
-                peerMindmaps = data.myMindmaps;
-                if (peerMindmaps == undefined) throw Error(`data.myMindmaps is undefined`);
-                console.log({ peerMindmaps, myMindmaps });
-                debugger; // eslint-disable-line no-debugger
-                tellWhatIneed(dataChannel);
-                break;
-            case "need-keys":
-                const neededKeys = data.needKeys;
-                console.log({ neededKeys });
-                const promNeededMm = [];
-                neededKeys.forEach(key => {
-                    const promMindmap = modDbMindmaps.DBgetMindmap(key);
-                    console.log({ promMindmap });
-                    promNeededMm.push(promMindmap);
-                });
-                (async () => {
-                    let arrSettled;
-                    try {
-                        arrSettled = await Promise.allSettled(promNeededMm);
-                    } catch (err) {
-                        console.error(err, arrSettled);
-                        throw Error("Could not find all needed mindmaps");
-                    }
-                    const arrNeededMindmaps = await Promise.all(promNeededMm);
-                    console.log({ arrNeededMindmaps });
-                    const obj = {
-                        type: "keys-you-needed",
-                        arrNeededMindmaps
-                    }
-                    // debugger;
-                    dataChannel.send(JSON.stringify(obj));
-                })();
-                break;
-            case "keys-you-needed":
-                const arrNeededMindmaps = data.arrNeededMindmaps;
-                arrNeededMindmaps.forEach(mm => {
-                    debugger; // eslint-disable-line no-debugger
-                    const key = mm.key;
-                    const [metaKey, metaUpdated] = mm.meta.name.split("/");
-                    if (key != metaKey) throw Error(`key:${key} != metaKey:${metaKey}`);
-                    modDbMindmaps.DBsetMindmap(key, mm, metaUpdated);
-                });
-                break;
-            default:
-                const errMsg = `Unrecognized data.type: ${data.type}`;
-                console.error(errMsg);
-                throw Error(errMsg);
-        }
-    }
-    logDataChannel(dataChannel.id, `doSync, wasOpenedBefore:${wasOpenedBefore}`);
-    console.log(`%cdoSync, wasOpenedBefore:${wasOpenedBefore}`, "font-size:30px");
-    // if (!wasOpenedBefore) return; // FIX-ME:
-
-
-    const objMessage = {
-        "type": "have-keys",
-        myMindmaps,
-    }
-    const json = JSON.stringify(objMessage);
-    dataChannel.send(json);
-}
-*/
 
 function _logWSinfo(...args) {
     return;
     const arg0 = args.shift();
     const msg = `WS: ${arg0}`;
     console.log(`%c ${msg}`, "background:blue; color:white;", ...args);
-    // _logSyncLog(msg);
 }
 function _logWSimportant(...args) {
-    // console.warn("%c WS: ", "background:blue; color:white; font-size:20px;", ...args);
     console.warn("%c WS: ", "background:blue; color:white; font-size:20px;", ...args);
-
-    // console.trace("%c WS: ", "background:blue; color:white; font-size:20px;", ...args);
 }
 function logWSimportant(...args) {
     _logWSimportant(...args);
