@@ -405,6 +405,14 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
 
     const objToolbarItems = [
         [
+            /*
+            {
+                name: 'tagButton',
+                tooltip: 'Add tag',
+                className: 'toastui-editor-toolbar-icons tag-button',
+                command: "tagCommand" // searchCommand
+            },
+            */
             {
                 name: 'searchButton',
                 tooltip: 'Add/update search link',
@@ -429,9 +437,16 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
         dialogLinkSearch(toastEditor);
     }
     function insertLinkCommand(dummy) {
-        console.log("searchCommand clicked", dummy);
+        console.log("linkCommand clicked", dummy);
         dialogLinkURL(toastEditor);
     }
+
+    /*
+    function insertTagCommand(dummy) {
+        console.log("tagCommand clicked", dummy);
+        dialogTag(toastEditor);
+    }
+    */
 
 
     toastEditor = makeFakedViewer();
@@ -456,6 +471,8 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
         editorViewer.addCommand("wysiwyg", "searchCommand", insertSearchCommand);
         editorViewer.addCommand("markdown", "myLinkCommand", insertLinkCommand);
         editorViewer.addCommand("wysiwyg", "myLinkCommand", insertLinkCommand);
+        // editorViewer.addCommand("markdown", "tagCommand", insertTagCommand);
+        // editorViewer.addCommand("wysiwyg", "tagCommand", insertTagCommand);
 
 
         editorViewer.options.el.classList.add("faked-viewer");
