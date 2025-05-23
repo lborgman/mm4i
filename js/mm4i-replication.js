@@ -634,24 +634,61 @@ export async function replicationDialog() {
 
     const iconPrivacy = modMdc.mkMDCicon("shield_with_heart");
     const btnPrivacy = modMdc.mkMDCbutton("Privacy", "outlined", iconPrivacy);
-    btnPrivacy.title = "Select mindmaps to sync";
+    btnPrivacy.title = "Set mindmaps to share";
 
     let _isReplicating = false;
 
-    const radCurrent = mkElt("input", { type: "radio", name: "select-sync" });
-    const lblCurrent = mkElt("label", undefined, [radCurrent, "Current mindmap"]);
+    const currentKey = window["current-mindmapKey"];
+    const currentPrivacy = await modMMhelpers.getMindmapPrivacy(currentKey);
+
+    const spanCurrent = mkElt("span", undefined, "Current mindmap")
+    const radCurrent = mkElt("input", { type: "radio", name: "select-sync", value: currentKey });
+    const lblCurrent = mkElt("label", undefined, [radCurrent, spanCurrent]);
     const divCurrent = mkElt("div", undefined, lblCurrent);
-    const radAll = mkElt("input", { type: "radio", name: "select-sync" });
+    const radAll = mkElt("input", { type: "radio", name: "select-sync", value: "all" });
+    switch (currentPrivacy) {
+        case "shared":
+            radCurrent.checked = true;
+            break;
+        case "private":
+            radAll.checked = true;
+            lblCurrent.inert = true;
+            spanCurrent.textContent = "Current mindmap (not shareable)";
+            break;
+        default:
+            throw Error(`Unknown privacy: "${currentPrivacy}"`);
+    }
+
+
+
     const lblAll = mkElt("label", undefined, [radAll, "All shareable mindmaps"]);
     const divAll = mkElt("div", undefined, lblAll);
-    const divSelectSync = mkElt("p", undefined, [
-        mkElt("div", undefined, "select sync (not implemented yet)"),
+
+    const divRad = mkElt("div", undefined, [
         divCurrent,
-        divAll,
+        divAll
     ]);
+    divRad.style = `
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-left: 10px;
+    `;
+    const divSelectSync = mkElt("p", undefined, [
+        mkElt("div", undefined, "Select mindmaps to share to peer (not implemented yet):"),
+        divRad
+    ]);
+    divSelectSync.style = `
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    `;
     btnSyncPeers.addEventListener("click", async (evt) => {
         evt.stopPropagation();
-        dialogSyncPeers();
+        const shareWhich = divSelectSync.querySelector("input[type=radio][name=select-sync]:checked").value;
+        console.log({shareWhich});
+        debugger;
+        dialogSyncPeers(shareWhich == "all"? undefined: shareWhich);
     });
     btnPrivacy.addEventListener("click", async evt => {
         dialogMindmapPrivacy();
@@ -743,7 +780,7 @@ window["S&R"] = SentAndRecieved;
 
 function finishPeer() {
     if (!peer) {
-        debugger;
+        // debugger;
         return;
     }
     // FIX-ME: how to handle the objects
@@ -990,7 +1027,7 @@ async function setupPeerConnection(remotePeerObj) {
                                 break;
                             }
                             const len = Object.keys(myMindmapsAllKeyUpdated).length;
-                            // const msg = `Got "hello" => "have-keys" (${len})`;
+                            // const msg = `Got "hello" => ""have-keys (${len})`;
                             const arrInfo = ["R", '"hello"', "S", `"have-keys" (${len})`];
                             const objMessage = {
                                 "type": "have-keys",
@@ -1112,7 +1149,7 @@ async function setupPeerConnection(remotePeerObj) {
     }
 }
 // let ourOkButton;
-async function dialogSyncPeers() {
+async function dialogSyncPeers(shareWhich) {
     const eltKnownPeers = mkElt("p", { id: "mm4i-known-peers" });
     listPeers();
     const iconNewPeer = modMdc.mkMDCicon("phone_android");
