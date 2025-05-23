@@ -327,6 +327,7 @@ export async function replicationDialog() {
 
 
 
+    /*
     const inpRoom = settingRoom.getInputElement();
     inpRoom.style = `
       margin-left: 10px;
@@ -346,7 +347,6 @@ export async function replicationDialog() {
     font-weight: 500;
     font-style: italic;
 `;
-    /*
     const divRoom = mkElt("p", undefined, [
         // `Name announced.`,
         // mkElt("br"),
@@ -446,18 +446,20 @@ export async function replicationDialog() {
         // debugger;
         const canvas = mkElt("canvas", { id: "mm4i-qrcode" });
         await modQR.toCanvas(canvas, ["mm4i", settingPeerjsId.valueS, secretKey].join("\n"));
-        const btnScanQR = modMdc.mkMDCbutton("Scan peer QR code", "raised");
+        const btnScanQR = modMdc.mkMDCbutton("Scan peer secret QR code", "raised");
         btnScanQR.addEventListener("click", async (evt) => {
             evt.stopPropagation();
             dialogScanningQR();
         });
+        const idDevice = settingPeerjsId.valueS;
         const body = mkElt("div", undefined, [
-            mkElt("h2", undefined, `Peer "${settingPeerjsId.valueS}"`),
+            mkElt("h2", undefined, `Peer "${idDevice}" secret key`),
             canvas,
-            mkElt("p", undefined, `Scan QR above with with MM4I. Or, type the secret key you see below:`),
-            mkElt("p", { style: "font-weight:700;" }, secretKey),
-            mkElt("hr", { style: "background-color:gray; width:80%; height: 1px;" }),
-            btnScanQR,
+            mkElt("p", undefined, ` Scan QR above with MM4I on your other device:`),
+            mkElt("div", undefined, btnScanQR),
+            // mkElt("hr", { style: "background-color:gray; width:80%; height: 1px;" }),
+            mkElt("p", { style: "width:100%;" }, `Or, type the secret key you see below:`),
+            mkElt("div", { style: "font-weight:700; background:white; color:darkred; padding:8px;" }, secretKey),
         ]);
         body.style = `
             display: flex;
@@ -500,7 +502,7 @@ export async function replicationDialog() {
     });
     getAndShowStrength(settingSecret.valueS);
 
-    const lblPeerjsId = mkElt("label", undefined, ["My name: ", inpPeerjsId]);
+    const lblPeerjsId = mkElt("label", undefined, ["My device name: ", inpPeerjsId]);
     lblPeerjsId.style = `
       display: grid;
       grid-template-columns: auto 1fr;
@@ -636,6 +638,17 @@ export async function replicationDialog() {
 
     let _isReplicating = false;
 
+    const radCurrent = mkElt("input", { type: "radio", name: "select-sync" });
+    const lblCurrent = mkElt("label", undefined, [radCurrent, "Current mindmap"]);
+    const divCurrent = mkElt("div", undefined, lblCurrent);
+    const radAll = mkElt("input", { type: "radio", name: "select-sync" });
+    const lblAll = mkElt("label", undefined, [radAll, "All shareable mindmaps"]);
+    const divAll = mkElt("div", undefined, lblAll);
+    const divSelectSync = mkElt("p", undefined, [
+        mkElt("div", undefined, "select sync (not implemented yet)"),
+        divCurrent,
+        divAll,
+    ]);
     btnSyncPeers.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         dialogSyncPeers();
@@ -661,6 +674,7 @@ export async function replicationDialog() {
         eltTitle,
         divInfoCollapsible,
         bodyKeys,
+        divSelectSync,
         divMainButtons,
         divSyncLog,
     ]);
