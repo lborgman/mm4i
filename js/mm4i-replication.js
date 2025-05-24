@@ -640,8 +640,9 @@ export async function replicationDialog() {
 
     const currentKey = window["current-mindmapKey"];
     const currentPrivacy = await modMMhelpers.getMindmapPrivacy(currentKey);
+    const currentName = await modMMhelpers.getMindmapTopic(currentKey);
 
-    const spanCurrent = mkElt("span", undefined, "Current mindmap")
+    const spanCurrent = mkElt("span", undefined, `Current mindmap (${currentName})`);
     const radCurrent = mkElt("input", { type: "radio", name: "select-sync", value: currentKey });
     const lblCurrent = mkElt("label", undefined, [radCurrent, spanCurrent]);
     const divCurrent = mkElt("div", undefined, lblCurrent);
@@ -653,7 +654,7 @@ export async function replicationDialog() {
         case "private":
             radAll.checked = true;
             lblCurrent.inert = true;
-            spanCurrent.textContent = "Current mindmap (not shareable)";
+            spanCurrent.textContent = `Current mindmap (${currentName}, not shareable)`;
             break;
         default:
             throw Error(`Unknown privacy: "${currentPrivacy}"`);
@@ -688,8 +689,9 @@ export async function replicationDialog() {
         const shareWhich = divSelectSync.querySelector("input[type=radio][name=select-sync]:checked").value;
         console.log({ shareWhich });
         // debugger;
-        const setShareSelection = new Set();
-        setShareSelection.add(shareWhich)
+        // const setShareSelection = new Set();
+        // setShareSelection.add(shareWhich)
+        const setShareSelection = new Set([shareWhich]);
         dialogSyncPeers(shareWhich == "all" ? undefined : setShareSelection);
     });
     btnPrivacy.addEventListener("click", async evt => {
@@ -1400,11 +1402,10 @@ async function dialogSyncPeers(setShareSelection) {
         const arrSettled = await Promise.allSettled(arrPromNames);
         console.log({ arrSettled });
         const arrNames = arrSettled.map(settled => settled.value);
-        const name = arrNames[0];
-        console.log({ name });
-        // debugger;
+        const names = arrNames.join(", ");
 
-        divShareSelection.textContent = `Offer mindmap "${name}"`;
+        divShareSelection.textContent = `Offer mindmaps: "${names}"`;
+        divShareSelection.appendChild(mkElt("span", { style: "color:red" }, " (not ready!)"));
     } else {
         divShareSelection.textContent = "Offer all non-private mindmaps";
     }
@@ -1433,12 +1434,11 @@ async function dialogSyncPeers(setShareSelection) {
 
 }
 async function dialogMindmapPrivacy() {
-    // const modMMhelpers = await importFc4i("mindmap-helpers");
     const divInfoPrivacy = mkElt("p", undefined, `
         By default mindmaps are private to the device where you create them.
         If you want to share them from this device to another device mark them as "shared" here.
         `);
-    const divSearch = mkElt("p", undefined, "div search here not ready");
+    const divSearch = mkElt("p", undefined, mkElt("span", { style: "color:red" }, "div search here not ready"));
     const divMindmaps = mkElt("p", undefined, "div mindmaps here not ready");
     const body = mkElt("div", undefined, [
         mkElt("h2", undefined, "Select mindmaps to share"),
@@ -1453,7 +1453,6 @@ async function dialogMindmapPrivacy() {
     const arrToShow = arrMindmaps.map(mh => {
         const key = mh.key;
         const j = mh.jsmindmap;
-        const hits = mh.hits;
         let topic;
         switch (j.format) {
             case "node_tree":
@@ -1469,8 +1468,9 @@ async function dialogMindmapPrivacy() {
             default:
                 throw Error(`Unknown mindmap format: ${j.format}`);
         }
-        return { key, j, topic, hits };
+        return { key, topic, j };
     });
+    const currentKey = window["current-mindmapKey"];
     const arrLi = arrToShow.map(m => {
         const topic = mkElt("span", undefined, m.topic);
         topic.style = `
@@ -1493,6 +1493,16 @@ async function dialogMindmapPrivacy() {
                 flex-direction: row;
                 gap: 20px;
             `;
+        if (m.key == currentKey) {
+            divMm.style.backgroundColor = "lightskyblue";
+            divMm.style.color = "blue";
+        }
+        if (m.key == currentKey) {
+            // divMm.style.backgroundColor = "lightskyblue";
+            divMm.style.backgroundColor = "#87cefa45";
+            divMm.style.color = "blue";
+        }
+
         return divMm;
     });
     const divAllMm = mkElt("div", undefined, arrLi);
