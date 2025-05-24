@@ -54,10 +54,32 @@ export async function createAndShowNewMindmap() {
 }
 
 export async function getMindmap(key) {
-    // const dbMindmaps = await getDbMindmaps();
     const dbMindmaps = await importFc4i("db-mindmaps");
     return dbMindmaps.DBgetMindmap(key);
 }
+
+export async function getMindmapTopic(key) {
+    const dbMindmaps = await importFc4i("db-mindmaps");
+    const jsMm = await dbMindmaps.DBgetMindmap(key);
+    // debugger;
+    let topic;
+    switch (jsMm.format) {
+        case "node_tree":
+            topic = jsMm.data.topic;
+            break;
+        case "node_array":
+            topic = jsMm.data[0].topic;
+            break;
+        case "freemind":
+            const s = jsMm.data;
+            topic = s.match(/<node .*?TEXT="([^"]*)"/)[1];
+            break;
+        default:
+            throw Error(`Unknown mindmap format: ${jsMm.format}`);
+    }
+    return topic;
+}
+
 
 async function dialogCreateMindMap() {
     const modMdc = await importFc4i("util-mdc");
@@ -449,6 +471,6 @@ export async function getSharedMindmaps() {
             const privacy = getMindmapPrivacyFromObject(j);
             return privacy == "shared";
         });
-        // .map(mm => mm.key);
+    // .map(mm => mm.key);
     return arrShared;
 }

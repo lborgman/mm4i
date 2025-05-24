@@ -686,9 +686,11 @@ export async function replicationDialog() {
     btnSyncPeers.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         const shareWhich = divSelectSync.querySelector("input[type=radio][name=select-sync]:checked").value;
-        console.log({shareWhich});
-        debugger;
-        dialogSyncPeers(shareWhich == "all"? undefined: shareWhich);
+        console.log({ shareWhich });
+        // debugger;
+        const setShareSelection = new Set();
+        setShareSelection.add(shareWhich)
+        dialogSyncPeers(shareWhich == "all" ? undefined : setShareSelection);
     });
     btnPrivacy.addEventListener("click", async evt => {
         dialogMindmapPrivacy();
@@ -1143,8 +1145,13 @@ async function setupPeerConnection(remotePeerObj) {
         });
     }
 }
-// let ourOkButton;
-async function dialogSyncPeers(shareWhich) {
+
+/**
+ * 
+ * @param {Set|undefined} setShareSelection 
+ * @returns 
+ */
+async function dialogSyncPeers(setShareSelection) {
     const eltKnownPeers = mkElt("p", { id: "mm4i-known-peers" });
     listPeers();
     const iconNewPeer = modMdc.mkMDCicon("phone_android");
@@ -1383,9 +1390,30 @@ async function dialogSyncPeers(shareWhich) {
 
 
 
+    const divShareSelection = mkElt("div");
+    if (setShareSelection) {
+        const arrPromNames = [...setShareSelection].map(key => {
+            console.log({ modMMhelpers });
+            const promName = modMMhelpers.getMindmapTopic(key);
+            return promName;
+        });
+        const arrSettled = await Promise.allSettled(arrPromNames);
+        console.log({ arrSettled });
+        const arrNames = arrSettled.map(settled => settled.value);
+        const name = arrNames[0];
+        console.log({ name });
+        // debugger;
+
+        divShareSelection.textContent = `Offer mindmap "${name}"`;
+    } else {
+        divShareSelection.textContent = "Offer all non-private mindmaps";
+    }
     const body = mkElt("div", undefined, [
         mkElt("h2", undefined, "Sync with peers"),
-        mkElt("p", undefined, ["This peer name: ", mkElt("b", undefined, settingPeerjsId.valueS)]),
+        mkElt("p", undefined, [
+            "This peer name: ", mkElt("b", undefined, settingPeerjsId.valueS),
+            divShareSelection,
+        ]),
         eltKnownPeers,
         divAddPeer,
     ]);
@@ -1413,7 +1441,7 @@ async function dialogMindmapPrivacy() {
     const divSearch = mkElt("p", undefined, "div search here not ready");
     const divMindmaps = mkElt("p", undefined, "div mindmaps here not ready");
     const body = mkElt("div", undefined, [
-        mkElt("h2", undefined, "Select mindmaps to sync"),
+        mkElt("h2", undefined, "Select mindmaps to share"),
         divSearch,
         divMindmaps,
     ]);
