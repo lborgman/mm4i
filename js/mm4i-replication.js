@@ -261,6 +261,7 @@ async function dialogScanningQR() {
     qrScanner.start();
 }
 
+let setOfferRestrictions;
 export async function replicationDialog() {
     const isOnline = await funIsOnline();
     if (!isOnline) {
@@ -646,13 +647,21 @@ export async function replicationDialog() {
     const radCurrent = mkElt("input", { type: "radio", name: "select-sync", value: currentKey });
     const lblCurrent = mkElt("label", undefined, [radCurrent, spanCurrent]);
     const divCurrent = mkElt("div", undefined, lblCurrent);
+
+    const radNone = mkElt("input", { type: "radio", name: "select-sync", value: "none" });
+    const lblNone = mkElt("label", undefined, [radNone, "Do not offer any mindmaps"]);
+    const divNone = mkElt("div", undefined, lblNone);
+
     const radAll = mkElt("input", { type: "radio", name: "select-sync", value: "all" });
+    const lblAll = mkElt("label", undefined, [radAll, "All shareable mindmaps"]);
+    const divAll = mkElt("div", undefined, lblAll);
+
     switch (currentPrivacy) {
         case "shared":
             radCurrent.checked = true;
             break;
         case "private":
-            radAll.checked = true;
+            radNone.checked = true;
             lblCurrent.inert = true;
             spanCurrent.textContent = `Current mindmap (${currentName}, not shareable)`;
             break;
@@ -662,11 +671,10 @@ export async function replicationDialog() {
 
 
 
-    const lblAll = mkElt("label", undefined, [radAll, "All shareable mindmaps"]);
-    const divAll = mkElt("div", undefined, lblAll);
 
     const divRad = mkElt("div", undefined, [
         divCurrent,
+        divNone,
         divAll
     ]);
     divRad.style = `
@@ -686,13 +694,18 @@ export async function replicationDialog() {
     `;
     btnSyncPeers.addEventListener("click", async (evt) => {
         evt.stopPropagation();
-        const shareWhich = divSelectSync.querySelector("input[type=radio][name=select-sync]:checked").value;
-        console.log({ shareWhich });
-        // debugger;
-        // const setShareSelection = new Set();
-        // setShareSelection.add(shareWhich)
-        const setShareSelection = new Set([shareWhich]);
-        dialogSyncPeers(shareWhich == "all" ? undefined : setShareSelection);
+        const offerWhich = divSelectSync.querySelector("input[type=radio][name=select-sync]:checked").value;
+        switch (offerWhich) {
+            case "none":
+                setOfferRestrictions = true;
+                break;
+            case "all":
+                setOfferRestrictions = false;
+                break;
+            default:
+                setOfferRestrictions = new Set([offerWhich]);
+        }
+        dialogSyncPeers();
     });
     btnPrivacy.addEventListener("click", async evt => {
         dialogMindmapPrivacy();
@@ -730,27 +743,10 @@ export async function replicationDialog() {
 const modDbMindmaps = await importFc4i("db-mindmaps");
 const modMMhelpers = await importFc4i("mindmap-helpers");
 
-// const modPWA = await importFc4i("pwa");
-// const funIsOnline = modPWA.PWAonline;
 const funIsOnline = window["PWAonline"];
 
-// debugger;
-const myMindmapsAllKeyUpdatedOLD = await (async () => {
-    const arrMm = await modDbMindmaps.DBgetAllMindmaps();
-    // const arrMm = await modMMhelpers.getSharedMindmaps();
-    const arrMetaName = arrMm.map(mm => {
-        const metaName = mm.jsmindmap.meta.name;
-        return metaName;
-    });
-    const mindmapsKeyUpdated = arrMetaName.reduce((current, item) => {
-        const [key, updated] = item.split("/");
-        current[key] = updated;
-        return current;
-    }, {});
-    return mindmapsKeyUpdated;
-})();
 
-function getMindmapsKeysUpdated(arrMm) {
+function getMindmapsKeysAndUpdated(arrMm) {
     const arrMetaName = arrMm.map(mm => {
         const metaName = mm.jsmindmap.meta.name;
         return metaName;
@@ -763,13 +759,7 @@ function getMindmapsKeysUpdated(arrMm) {
     return mindmapsKeyUpdated;
 }
 const arrAllMm = await modDbMindmaps.DBgetAllMindmaps();
-const myMindmapsAllKeyUpdated = getMindmapsKeysUpdated(arrAllMm);
-const arrSharedMm = await modMMhelpers.getSharedMindmaps();
-const myMindmapsSharedKeyUpdated = getMindmapsKeysUpdated(arrSharedMm);
-// debugger;
-if (JSON.stringify(myMindmapsAllKeyUpdatedOLD) != JSON.stringify(myMindmapsAllKeyUpdated)) {
-    debugger;
-}
+const myMindmapsAllKeyUpdated = getMindmapsKeysAndUpdated(arrAllMm);
 
 let peerMindmaps;
 function makePublicId(privateId) {
@@ -857,10 +847,30 @@ function sendToPeer(obj, arrInfo, otherData) {
     SentAndRecieved.push(strInfo);
     peerJsDataChannel.send(obj);
 }
+let mindmapsToOffer;
 async function setupPeerConnection(remotePeerObj) {
     const remotePrivateId = remotePeerObj.id;
     const modPeerjs = await importFc4i("peerjs");
     const myPublicId = makePublicId(settingPeerjsId.valueS);
+
+    const arrSharedMm = await modMMhelpers.getSharedMindmaps();
+    mindmapsToOffer = getMindmapsKeysAndUpdated(arrSharedMm);
+    debugger;
+    switch (setOfferRestrictions) {
+        case false:
+            break;
+        case true:
+            mindmapsToOffer = {};
+            break;
+        default:
+            if (!(setOfferRestrictions instanceof Set)) throw Error("setOfferRestrictions is not Set");
+            const arrKeys = Object.keys(mindmapsToOffer);
+            arrKeys.forEach(k => {
+                if (!setOfferRestrictions.has(k)) {
+                    delete mindmapsToOffer[k];
+                }
+            });
+    }
 
     let dlgWaitingForPeer;
     async function startDialogWaitPeer() {
@@ -883,12 +893,11 @@ async function setupPeerConnection(remotePeerObj) {
     }
     async function endDialogWaitPeer(dataMsg) {
         console.log({ dataMsg });
-        const re = /from:(.*?),shared:(.*?),all:(.*?)$/;
-        // const m = re.match(dataMsg);
+        const re = /o:(.*?),s:(.*?),a:(.*?)$/;
         const m = dataMsg.match(re);
         console.log({ m });
-        const peerShared = parseInt(m[2]);
-        const peerAll = parseInt(m[3]);
+        const peerNumOffered = parseInt(m[2]);
+        const peerNumAll = parseInt(m[3]);
         // debugger;
         const dlg = dlgWaitingForPeer;
         dlgWaitingForPeer = "done";
@@ -901,22 +910,23 @@ async function setupPeerConnection(remotePeerObj) {
 
         const arrMindmaps = await modDbMindmaps.DBgetAllMindmaps();
         const arrShared = await modMMhelpers.getSharedMindmaps();
-        const myAll = arrMindmaps.length;
-        const myShared = arrShared.length;
+        const myNumAll = arrMindmaps.length;
+        const myNumShared = arrShared.length;
+        const myNumOffered = setOfferRestrictions ? setOfferRestrictions.size : myNumShared;
         const liMy = mkElt("li", undefined, [
-            `Shared from this device: `,
-            mkElt("b", undefined, myShared),
-            ` of ${myAll} mindmaps.`
+            `Offered from this device: `,
+            mkElt("b", undefined, myNumOffered),
+            ` of ${myNumAll} mindmaps.`
         ]);
         const liPeer = mkElt("li", undefined, [
-            `Shared from peer: `,
-            mkElt("b", undefined, peerShared),
-            ` of ${peerAll} mindmaps.`
+            `Offered from peer: `,
+            mkElt("b", undefined, peerNumOffered),
+            ` of ${peerNumAll} mindmaps.`
         ]);
         const ul = mkElt("ul", undefined, [liMy, liPeer]);
         eltInstructions.appendChild(ul);
-        const totShared = myShared + peerShared;
-        if (totShared == 0) {
+        const totOffered = myNumOffered + peerNumOffered;
+        if (totOffered == 0) {
             const pNothingToSync = mkElt("p", undefined, "There was no mindmaps that could be synced");
             eltInstructions.appendChild(pNothingToSync);
         } else {
@@ -964,7 +974,10 @@ async function setupPeerConnection(remotePeerObj) {
             }
             saidHello = true;
             console.warn("peerJsDataConnection open", { dataChannel });
-            const msgHelloO = `Hello ON dataChannel OPEN, from:${myPublicId},shared:${numShared},all:${numMindmaps}`;
+            const offer = setOfferRestrictions instanceof Set ? "s" :
+                (setOfferRestrictions ? "n" : "a");
+            // FIX-ME: too much info on next line???
+            const msgHelloO = `Hello ON OPEN dataChannel < ${myPublicId} -- o:${offer},s:${numShared},a:${numMindmaps}`;
             const secretKey = settingSecret.valueS;
             const variant = (new Date()).toISOString();
             const secret = remotePeerObj.secret || secretKey;
@@ -1005,9 +1018,6 @@ async function setupPeerConnection(remotePeerObj) {
                             const mySecretSha512 = await makeSecret512(settingSecret.valueS, data.variant);
                             const peerSecretSha512 = data.secretSha512;
                             const secret512Ok = mySecretSha512 == peerSecretSha512;
-                            const secretOK = data.secret == settingSecret.valueS;
-                            // console.log({ secret512Ok, secretOK });
-                            // debugger;
                             if (!secret512Ok) {
                                 debugger;
                                 const peerHadMySecret =
@@ -1030,20 +1040,20 @@ async function setupPeerConnection(remotePeerObj) {
                                 finishPeer();
                                 break;
                             }
-                            const len = Object.keys(myMindmapsAllKeyUpdated).length;
-                            const arrInfo = ["R", '"hello"', "S", `"have-keys" (${len})`];
+                            const len = Object.keys(mindmapsToOffer).length;
+                            const arrInfo = ["R", '"hello"', "S", `"offer-keys" (${len})`];
                             const objMessage = {
-                                "type": "have-keys",
-                                myMindmaps: myMindmapsSharedKeyUpdated,
+                                "type": "offer-keys",
+                                myMindmaps: mindmapsToOffer,
                             }
                             sendToPeer(objMessage, arrInfo, data);
                         }
                         break;
-                    case "have-keys":
+                    case "offer-keys":
                         {
                             peerMindmaps = data.myMindmaps;
                             if (peerMindmaps == undefined) throw Error(`data.myMindmaps is undefined`);
-                            tellWhatIneed(dataChannel);
+                            tellWhatIneed();
                         }
                         break;
                     case "need-keys":
@@ -1150,10 +1160,10 @@ async function setupPeerConnection(remotePeerObj) {
 
 /**
  * 
- * @param {Set|undefined} setShareSelection 
  * @returns 
  */
-async function dialogSyncPeers(setShareSelection) {
+// async function dialogSyncPeers(setOfferRestriction) {
+async function dialogSyncPeers() {
     const eltKnownPeers = mkElt("p", { id: "mm4i-known-peers" });
     listPeers();
     const iconNewPeer = modMdc.mkMDCicon("phone_android");
@@ -1393,21 +1403,26 @@ async function dialogSyncPeers(setShareSelection) {
 
 
     const divShareSelection = mkElt("div");
-    if (setShareSelection) {
-        const arrPromNames = [...setShareSelection].map(key => {
-            console.log({ modMMhelpers });
-            const promName = modMMhelpers.getMindmapTopic(key);
-            return promName;
-        });
-        const arrSettled = await Promise.allSettled(arrPromNames);
-        console.log({ arrSettled });
-        const arrNames = arrSettled.map(settled => settled.value);
-        const names = arrNames.join(", ");
+    switch (setOfferRestrictions) {
+        case false:
+            divShareSelection.textContent = "Offer all non-private mindmaps";
+            break;
+        case true:
+            divShareSelection.textContent = "Don't offer any mindmaps";
+            break;
+        default:
+            const arrPromNames = [...setOfferRestrictions].map(key => {
+                console.log({ modMMhelpers });
+                const promName = modMMhelpers.getMindmapTopic(key);
+                return promName;
+            });
+            const arrSettled = await Promise.allSettled(arrPromNames);
+            console.log({ arrSettled });
+            const arrNames = arrSettled.map(settled => settled.value);
+            const names = arrNames.join(", ");
 
-        divShareSelection.textContent = `Offer mindmaps: "${names}"`;
-        divShareSelection.appendChild(mkElt("span", { style: "color:red" }, " (not ready!)"));
-    } else {
-        divShareSelection.textContent = "Offer all non-private mindmaps";
+            divShareSelection.textContent = `Offer mindmaps: "${names}"`;
+            divShareSelection.appendChild(mkElt("span", { style: "color:red" }, " (not ready!)"));
     }
     const body = mkElt("div", undefined, [
         mkElt("h2", undefined, "Sync with peers"),
@@ -1522,7 +1537,7 @@ async function dialogMindmapPrivacy() {
 
 }
 
-function tellWhatIneed(dataChannel) {
+function tellWhatIneed() {
     if (!myMindmapsAllKeyUpdated) {
         console.log(`tellWhatIneed, myMindmaps is ${myMindmapsAllKeyUpdated}`);
         return;
@@ -1531,11 +1546,13 @@ function tellWhatIneed(dataChannel) {
         console.log(`tellWhatIneed, peerMindmaps is ${peerMindmaps}`);
         return;
     }
-    const myKeys = Object.keys(myMindmapsAllKeyUpdated);
+    // offer-keys
+    const myKeyUpdated = Object.keys(myMindmapsAllKeyUpdated);
+    mindmapsToOffer
     const peerKeys = Object.keys(peerMindmaps);
     const needKeys = [];
     peerKeys.forEach(pk => {
-        if (!myKeys.includes(pk)) {
+        if (!myKeyUpdated.includes(pk)) {
             needKeys.push(pk);
         } else {
             const myUpdated = myMindmapsAllKeyUpdated[pk];
@@ -1550,7 +1567,7 @@ function tellWhatIneed(dataChannel) {
         type: "need-keys",
         needKeys
     }
-    const arrInfo = ["R", '"have-keys"', "S", `"need-keys" (${needKeys.length})`];
+    const arrInfo = ["R", '"offer-keys"', "S", `"need-keys" (${needKeys.length})`];
     sendToPeer(objNeedKeys, arrInfo, objNeedKeys);
 }
 
