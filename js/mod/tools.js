@@ -2373,3 +2373,21 @@ export function canVarsBeEq(varA, varB) {
     if (JSON.stringify(varA) !== JSON.stringify(varB)) return false;
     return true;
 }
+
+
+
+export function checkIsISOtime(str) {
+    const re = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d\d\dZ$/;
+    if (!re.test(str)) {
+        const msg = (`"${str}" in not in ISO format`);
+        console.error(msg);
+        debugger;
+        throw Error(msg);
+    }
+}
+export function leftISOtimeMoreRecent(leftTime, rightTime) {
+    checkIsISOtime(leftTime);
+    checkIsISOtime(rightTime);
+    return leftTime > rightTime;
+}
+// if (!leftISOtimeMoreRecent( (new Date()).toISOString(), (new Date("2000")).toISOString())) { debugger; }

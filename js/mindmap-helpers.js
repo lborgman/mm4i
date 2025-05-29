@@ -1,7 +1,7 @@
-// FIX-ME: Put minmaps in localStorage for now
+// @ts-check
 
-const VERSION = "0.1.0";
-logConsoleHereIs(`here is mindmap-helpers.js, module, ${VERSION}`);
+const VERSION = "0.1.001";
+window["logConsoleHereIs"](`here is mindmap-helpers.js, module, ${VERSION}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 const URL_MINDMAPS_PAGE = "./mm4i.html";
@@ -58,10 +58,7 @@ export async function getMindmap(key) {
     return dbMindmaps.DBgetMindmap(key);
 }
 
-export async function getMindmapTopic(key) {
-    const dbMindmaps = await importFc4i("db-mindmaps");
-    const jsMm = await dbMindmaps.DBgetMindmap(key);
-    // debugger;
+export function getMindmapTopicO(jsMm) {
     let topic;
     switch (jsMm.format) {
         case "node_tree":
@@ -78,6 +75,12 @@ export async function getMindmapTopic(key) {
             throw Error(`Unknown mindmap format: ${jsMm.format}`);
     }
     return topic;
+}
+export async function getMindmapTopic(key) {
+    const dbMindmaps = await importFc4i("db-mindmaps");
+    const jsMm = await dbMindmaps.DBgetMindmap(key);
+    // debugger;
+    return getMindmapTopicO(jsMm);
 }
 
 
@@ -453,7 +456,7 @@ export async function setMindmapPrivacy(key, newPrivacy) {
     checkIsPrivacyEnum(newPrivacy);
     const dbMindmaps = await importFc4i("db-mindmaps");
     const jsMindmap = await dbMindmaps.DBgetMindmap(key);
-    const { lastUpdated, lastSynced, privacy} = dbMindmaps.getMindmapMetaParts(jsMindmap);
+    const { lastUpdated, lastSynced, privacy } = dbMindmaps.getMindmapMetaParts(jsMindmap);
     if (privacy == newPrivacy) { return; }
     return dbMindmaps.DBsetMindmap(key, jsMindmap, lastUpdated, lastSynced, newPrivacy);
 }

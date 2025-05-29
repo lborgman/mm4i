@@ -134,20 +134,9 @@ btnSyncLogLog.style = `
 `;
 btnSyncLogLog.title = "Show/hide details";
 
-/*
-const divSyncLogHeader = mkElt("div", undefined, [
-    mkElt("div", { style: "display:flex; gap:10px;" }, ["Sync:", divSyncLogState]),
-    btnSyncLogLog,
-]);
-divSyncLogHeader.style = `
-    display: flex;
-    justify-content: space-between;
-`;
-*/
 
 let syncIsReady = false;
 const divSyncLogLog = mkElt("div", { id: "div-sync-log-log", class: "display-none" });
-// const divSyncingHeaderMain = mkElt("b", undefined, `Syncing with peer "${peer.id}"`)
 const divSyncingHeaderMain = mkElt("b");
 const divSyncingHeaderDots = mkElt("span");
 divSyncingHeaderDots.style = `
@@ -853,6 +842,7 @@ async function setupPeerConnection(remotePeerObj) {
     const modPeerjs = await importFc4i("peerjs");
     const myPublicId = makePublicId(settingPeerjsId.valueS);
 
+    const arrUpdated = [];
     let peerOfferedWithRestrictions;
     const arrSharedMm = await modMMhelpers.getSharedMindmaps();
     mindmapsToOffer = getMindmapsKeysAndUpdated(arrSharedMm);
@@ -1110,30 +1100,9 @@ async function setupPeerConnection(remotePeerObj) {
                                             const peerMmUpdated = peerMindmaps[myMm.key];
                                             const myMmMetaParts = modDbMindmaps.getMindmapMetaParts(myMm);
                                             const myMmUpdated = myMmMetaParts.lastUpdated;
-                                            // if (leftISOtimeMoreRecent(peerMmUpdated, myMmUpdated)) {
-                                            if (leftISOtimeMoreRecent(myMmUpdated, peerMmUpdated)) {
+                                            if (modTools.leftISOtimeMoreRecent(myMmUpdated, peerMmUpdated)) {
                                                 debugger;
                                                 arrNeededMindmaps.push(myMm);
-                                            }
-                                            function checkIsISOtime(str) {
-                                                const re = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d\d\dZ$/;
-                                                if (!re.test(str)) {
-                                                    const msg = (`"${str}" in not in ISO format`);
-                                                    console.error(msg);
-                                                    debugger;
-                                                    throw Error(msg);
-                                                }
-                                            }
-                                            function leftISOtimeMoreRecent(leftTime, rightTime) {
-                                                checkIsISOtime(leftTime);
-                                                checkIsISOtime(rightTime);
-                                                return leftTime > rightTime;
-                                            }
-                                            if (!leftISOtimeMoreRecent(
-                                                (new Date()).toISOString(),
-                                                (new Date("2000")).toISOString()
-                                            )) {
-                                                debugger;
                                             }
                                         }
                                     });
@@ -1159,9 +1128,10 @@ async function setupPeerConnection(remotePeerObj) {
                             logWSimportant(eltInfo, { data });
                         }
                         const currentKey = window["current-mindmapKey"];
-                        arrNeededMindmaps.forEach(mm => {
+                        // FIX-ME: arrProm is needed for some reason I do not understand
+                        const arrProm = arrNeededMindmaps.map(mm => {
                             const key = mm.key;
-                            const topic = mm.data[0].topic;
+                            const topic = modMMhelpers.getMindmapTopicO(mm);
                             if (key == currentKey) {
                                 const btnRefeshKey = mkElt("button", undefined, "Mindmap was updated, refresh");
                                 btnRefeshKey.style = `
@@ -1194,10 +1164,37 @@ async function setupPeerConnection(remotePeerObj) {
                             }
                             const [metaKey, metaUpdated] = mm.meta.name.split("/"); // FIX-ME:
                             if (key != metaKey) throw Error(`key:${key} != metaKey:${metaKey}`);
+                            arrUpdated.push(`Updated mindmap "${topic}"`);
                             console.log(`%cUpdating mindmap "${topic}" (${key})`, "color:orange; font-size: 18px;");
-                            modDbMindmaps.DBsetMindmap(key, mm, metaUpdated);
+                            return modDbMindmaps.DBsetMindmap(key, mm, metaUpdated);
+                        });
+                        const arrSettled = await Promise.allSettled(arrProm);
+                        console.log({ arrSettled });
+                        arrSettled.forEach((settled, idx) => {
+                            if (settled.status == "rejected") {
+                                const msg = `Error updating mindmap ${arrNeededMindmaps[idx].key}`;
+                                console.error(msg, settled.reason);
+                                debugger;
+                                throw Error(`${msg}: ${settled.reason.message}`);
+                            }
                         });
                         logWSready();
+                        const parent = divSyncLogLog.parentElement;
+                        if (!parent) { throw Error("divSyncLogLog has no parent"); }
+                        const divResultLog = mkElt("div", { id: "sync-result-log" });
+                        parent.appendChild(divResultLog);
+                        if (arrUpdated.length > 0) {
+                            const msg = `Updated ${arrUpdated.length} mindmap(s):`;
+                            logWSimportant(msg, { arrUpdated });
+                            divResultLog.appendChild(mkElt("div", {style:"font-weight:bold;"}, msg));
+                            arrUpdated.forEach(msg => {
+                                divResultLog.appendChild(mkElt("div", undefined, msg));
+                            });
+                        } else {
+                            const msg = `No mindmaps were updated`;
+                            logWSimportant(msg, { arrUpdated });
+                            divResultLog.appendChild(mkElt("p", {style:"font-weight:bold;"}, msg));
+                        }
                         finishPeer();
                         break;
 
@@ -1691,3 +1688,4 @@ function _logDataChannel(id, ...args) {
     // const id = args.shift();
     console.warn(`%c Data Channel ${id}: `, "background:cyan; color:black;", ...args);
 }
+
