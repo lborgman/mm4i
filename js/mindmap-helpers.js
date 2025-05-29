@@ -21,7 +21,7 @@ async function DBsaveNowThisMindmap(jmDisplayed) {
     const [keyName] = metaName.split("/");
     // const dbMindmaps = await getDbMindmaps();
     const dbMindmaps = await importFc4i("db-mindmaps");
-    await dbMindmaps.DBsetMindmap(keyName, objDataMind);
+    await dbMindmaps.DBsetMindmap(keyName, objDataMind, (new Date()).toISOString());
 }
 
 function getNextMindmapKey() { return "mm-" + new Date().toISOString(); }
@@ -446,14 +446,16 @@ function checkIsPrivacyEnum(privacy) {
 /**
  * 
  * @param {string} key 
- * @param {string} privacy 
+ * @param {string} newPrivacy 
  * @returns {Promise<any>} 
  */
-export async function setMindmapPrivacy(key, privacy) {
-    checkIsPrivacyEnum(privacy);
+export async function setMindmapPrivacy(key, newPrivacy) {
+    checkIsPrivacyEnum(newPrivacy);
     const dbMindmaps = await importFc4i("db-mindmaps");
     const jsMindmap = await dbMindmaps.DBgetMindmap(key);
-    return dbMindmaps.DBsetMindmap(key, jsMindmap, undefined, undefined, privacy);
+    const { lastUpdated, lastSynced, privacy} = dbMindmaps.getMindmapMetaParts(jsMindmap);
+    if (privacy == newPrivacy) { return; }
+    return dbMindmaps.DBsetMindmap(key, jsMindmap, lastUpdated, lastSynced, newPrivacy);
 }
 
 /**

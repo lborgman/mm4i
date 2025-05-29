@@ -42,6 +42,7 @@ export async function DBgetAllMindmaps() {
  * @param {Object} jsMindMap - mindmap in jsMind format (FIX-ME: name of format)
  * @param {string|undefined} lastUpdated - time in UTC format, use this as updated time if given
  * @param {string|undefined} lastSynced - time in UTC format, new time for last sync
+ * @param {string|undefined} privacy - "private" or "public", use this as privacy if given
  * @returns {Promise<any>} 
  */
 export async function DBsetMindmap(keyName, jsMindMap, lastUpdated, lastSynced, privacy) {
@@ -61,6 +62,22 @@ export async function DBsetMindmap(keyName, jsMindMap, lastUpdated, lastSynced, 
         return modIdbCmn.setDbKey(idbStoreMm, keyName, jsMindMap);
     }
 }
+/**
+ * 
+ * @param {Object} jsMindMap - mindmap in jsMind format (FIX-ME: name of format)
+ * @returns {Object} - parts of meta.name
+ * @throws {Error} if jsMindMap.meta.name is not defined
+ */
+export function getMindmapMetaParts(jsMindMap) {
+    if (!jsMindMap || !jsMindMap.meta || !jsMindMap.meta.name) {
+        console.error("jsMindMap.meta.name is not defined", jsMindMap);
+        throw Error("jsMindMap.meta.name is not defined");
+    }
+    const metaName = jsMindMap.meta.name;
+    const [key, lastUpdated, lastSynced, privacy] = metaName.split("/");
+    return { key, lastUpdated, lastSynced, privacy };
+}
+
 export async function DBgetMindmap(key) {
     if (useLocalStorage) {
         // throw Error("new obj.meta.name format not implemented yet for localStorage");

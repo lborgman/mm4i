@@ -853,9 +853,10 @@ async function setupPeerConnection(remotePeerObj) {
     const modPeerjs = await importFc4i("peerjs");
     const myPublicId = makePublicId(settingPeerjsId.valueS);
 
+    let peerOfferedWithRestrictions;
     const arrSharedMm = await modMMhelpers.getSharedMindmaps();
     mindmapsToOffer = getMindmapsKeysAndUpdated(arrSharedMm);
-    debugger;
+    // debugger;
     switch (setOfferRestrictions) {
         case false:
             break;
@@ -896,7 +897,11 @@ async function setupPeerConnection(remotePeerObj) {
         const re = /o:(.*?),s:(.*?),a:(.*?)$/;
         const m = dataMsg.match(re);
         console.log({ m });
-        const peerNumOffered = parseInt(m[2]);
+        if (!m) {
+            debugger;
+        }
+        const peerNumOffered = parseInt(m[1]);
+        const peerNumShared = parseInt(m[2]);
         const peerNumAll = parseInt(m[3]);
         // debugger;
         const dlg = dlgWaitingForPeer;
@@ -1046,6 +1051,7 @@ async function setupPeerConnection(remotePeerObj) {
                                 "type": "offer-keys",
                                 myMindmaps: mindmapsToOffer,
                             }
+                            objMessage.setOfferRestrictions = setOfferRestrictions instanceof Set;
                             sendToPeer(objMessage, arrInfo, data);
                         }
                         break;
@@ -1053,6 +1059,7 @@ async function setupPeerConnection(remotePeerObj) {
                         {
                             peerMindmaps = data.myMindmaps;
                             if (peerMindmaps == undefined) throw Error(`data.myMindmaps is undefined`);
+                            peerOfferedWithRestrictions = data.setOfferRestrictions;
                             tellWhatIneed();
                         }
                         break;
@@ -1080,28 +1087,81 @@ async function setupPeerConnection(remotePeerObj) {
                                 }
                                 const arrNeededMindmaps = await Promise.all(promNeededMm);
                                 // console.log({ arrNeededMindmaps });
+                                if (peerOfferedWithRestrictions) {
+                                    // console.log("peerOfferedWithRestrictions", { peerMindmaps });
+                                    // debugger;
+                                    const arrPeerKeys = Object.keys(peerMindmaps);
+                                    const promMoreMm = [];
+                                    arrPeerKeys.forEach(peerKey => {
+                                        const promMindmap = modDbMindmaps.DBgetMindmap(peerKey);
+                                        promMoreMm.push(promMindmap);
+                                    });
+                                    const arrMoreSettled = await Promise.allSettled(promMoreMm);
+                                    arrMoreSettled.forEach((settled, idx) => {
+                                        if (settled.status == "rejected") {
+                                            console.error(`Error getting mindmap ${arrPeerKeys[idx]}:`, settled.reason);
+                                        }
+                                        const myMm = arrMoreSettled[idx].value;
+                                        // debugger;
+                                        if (myMm == undefined) {
+                                            // console.error(`Mindmap ${arrPeerKeys[idx]} was undefined`);
+                                            console.log(`We did not have mindmap ${arrPeerKeys[idx]}:`, settled.reason);
+                                        } else {
+                                            const peerMmUpdated = peerMindmaps[myMm.key];
+                                            const myMmMetaParts = modDbMindmaps.getMindmapMetaParts(myMm);
+                                            const myMmUpdated = myMmMetaParts.lastUpdated;
+                                            // if (leftISOtimeMoreRecent(peerMmUpdated, myMmUpdated)) {
+                                            if (leftISOtimeMoreRecent(myMmUpdated, peerMmUpdated)) {
+                                                debugger;
+                                                arrNeededMindmaps.push(myMm);
+                                            }
+                                            function checkIsISOtime(str) {
+                                                const re = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d\.\d\d\dZ$/;
+                                                if (!re.test(str)) {
+                                                    const msg = (`"${str}" in not in ISO format`);
+                                                    console.error(msg);
+                                                    debugger;
+                                                    throw Error(msg);
+                                                }
+                                            }
+                                            function leftISOtimeMoreRecent(leftTime, rightTime) {
+                                                checkIsISOtime(leftTime);
+                                                checkIsISOtime(rightTime);
+                                                return leftTime > rightTime;
+                                            }
+                                            if (!leftISOtimeMoreRecent(
+                                                (new Date()).toISOString(),
+                                                (new Date("2000")).toISOString()
+                                            )) {
+                                                debugger;
+                                            }
+                                        }
+                                    });
+                                    // debugger;
+                                }
                                 const objMindmapsYouNeeded = {
-                                    type: "keys-you-needed",
+                                    type: "mindmaps-you-need",
                                     arrNeededMindmaps
                                 }
                                 arrInfo.push("S");
-                                arrInfo.push(`keys-you-needed (${arrNeededMindmaps.length})`);
+                                arrInfo.push(`mindmaps-you-need (${arrNeededMindmaps.length})`);
                                 sendToPeer(objMindmapsYouNeeded, arrInfo, data);
                             })();
                         }
                         break;
-                    case "keys-you-needed":
+                    case "mindmaps-you-need":
                         const arrNeededMindmaps = data.arrNeededMindmaps;
                         {
                             const len = arrNeededMindmaps.length;
                             const eltInfo = mkElt("span",
                                 { style: "color:orange" },
-                                `R:"keys-you-needed" (${len}), updating`);
+                                `R:"mindmaps-you-need" (${len}), updating`);
                             logWSimportant(eltInfo, { data });
                         }
                         const currentKey = window["current-mindmapKey"];
                         arrNeededMindmaps.forEach(mm => {
                             const key = mm.key;
+                            const topic = mm.data[0].topic;
                             if (key == currentKey) {
                                 const btnRefeshKey = mkElt("button", undefined, "Mindmap was updated, refresh");
                                 btnRefeshKey.style = `
@@ -1132,8 +1192,9 @@ async function setupPeerConnection(remotePeerObj) {
                                 if (container == null) { throw Error("Did not find jsmind_container"); }
                                 container.appendChild(shield);
                             }
-                            const [metaKey, metaUpdated] = mm.meta.name.split("/");
+                            const [metaKey, metaUpdated] = mm.meta.name.split("/"); // FIX-ME:
                             if (key != metaKey) throw Error(`key:${key} != metaKey:${metaKey}`);
+                            console.log(`%cUpdating mindmap "${topic}" (${key})`, "color:orange; font-size: 18px;");
                             modDbMindmaps.DBsetMindmap(key, mm, metaUpdated);
                         });
                         logWSready();
@@ -1162,7 +1223,6 @@ async function setupPeerConnection(remotePeerObj) {
  * 
  * @returns 
  */
-// async function dialogSyncPeers(setOfferRestriction) {
 async function dialogSyncPeers() {
     const eltKnownPeers = mkElt("p", { id: "mm4i-known-peers" });
     listPeers();
