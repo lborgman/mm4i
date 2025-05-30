@@ -26,11 +26,13 @@ const modLocalSettings = await importFc4i("local-settings");
 class SettingsRepl extends modLocalSettings.LocalSetting {
     constructor(key, defaultValue) { super("mm4i-repl-", key, defaultValue); }
 }
-const settingUseOpenRelay = new SettingsRepl("use-open-relay", false);
-const settingOpenRelayCred = new SettingsRepl("open-relay-cred", "");
-const settingRoom = new SettingsRepl("room", "");
+// const settingUseOpenRelay = new SettingsRepl("use-open-relay", false);
+// const settingOpenRelayCred = new SettingsRepl("open-relay-cred", "");
+// const settingRoom = new SettingsRepl("room", "");
 
 const settingSecret = new SettingsRepl("secret", "");
+const settingRouting = new SettingsRepl("routing", "");
+
 /**
  * 
  * @param {string} secret 
@@ -238,7 +240,7 @@ async function dialogScanningQR() {
             `;
         eltScannedQR.appendChild(divQRresult);
         divQRresult.appendChild(mkElt("div", undefined, [mkElt("i", undefined, "Name: "), peerName]));
-        divQRresult.appendChild(mkElt("div", undefined, [mkElt("i", undefined, "Secret: "), peerSecret]));
+        divQRresult.appendChild(mkElt("div", undefined, [mkElt("i", undefined, "Secret key: "), peerSecret]));
         addPeer(peerName, peerSecret);
         modMdc.mkMDCsnackbar("Scanned peer QR", 6000);
         qrScanner.stop();
@@ -304,7 +306,8 @@ export async function replicationDialog() {
     eltTitle.appendChild(btnInfo);
     btnInfo.style = `
         position: absolute;
-        bottom: -14px;
+        NObottom: -14px;
+        top: 0px;
         right: 14px;
         color: white;
         background-color: cornflowerblue;
@@ -388,8 +391,8 @@ export async function replicationDialog() {
     }
 
     // const btnGenerate = modMdc.mkMDCiconButton("vpn_key", "Generate random secret", 40);
-    const btnGenerate = modMdc.mkMDCiconButton("enhanced_encryption", "Generate random secret", 40);
-    btnGenerate.addEventListener("click", async (evt) => {
+    const btnGenerateSecret = modMdc.mkMDCiconButton("enhanced_encryption", "Generate random secret", 40);
+    btnGenerateSecret.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         // debugger;
         const hasSecretKey = settingSecret.valueS !== "";
@@ -466,14 +469,14 @@ export async function replicationDialog() {
         flex-direction: column;
         margin-left: 10px;
         `;
-    const lblSecret = mkElt("label", undefined, [
-        mkElt("span", { style: "margin-right:10px" }, "Secret:"),
-        btnGenerate,
+    const lblSecretKey = mkElt("label", undefined, [
+        mkElt("span", { style: "margin-right:10px" }, "Secret key:"),
+        btnGenerateSecret,
         btnQR,
         btnUnhide,
         spanSecret,
     ]);
-    lblSecret.style = `
+    lblSecretKey.style = `
       font-weight: 500;
       font-style: italic;
       display: flex;
@@ -491,6 +494,30 @@ export async function replicationDialog() {
         checkSyncKeys();
     });
     getAndShowStrength(settingSecret.valueS);
+
+
+    const inpRouting = settingRouting.getInputElement();
+    inpRouting.style = `
+        width: 4em;
+        `;
+    const btnGenerateRouting = modMdc.mkMDCiconButton("ifl", "Generate random secret", 40);
+    btnGenerateRouting.addEventListener("click", async (evt) => {
+        evt.stopPropagation();
+        const newKey = generateRobustRandomAsciiString(4);
+        settingSecret.value = newKey;
+    });
+    const lblRoutingKey = mkElt("label", undefined, [
+        mkElt("span", { style: "margin-right:10px" }, "Routing key:"),
+        inpRouting,
+        btnGenerateRouting,
+    ]);
+    lblRoutingKey.style = `
+        font-weight: 500;
+        font-style: italic;
+        display: flex;
+        align-items: center;
+        `;
+
 
     const lblPeerjsId = mkElt("label", undefined, ["My device name: ", inpPeerjsId]);
     lblPeerjsId.style = `
@@ -585,10 +612,34 @@ export async function replicationDialog() {
     // const robustRandomAscii = generateRobustRandomAsciiString(32);
     // console.log(robustRandomAscii);
 
-    const divSecret = mkElt("div", undefined, [
-        mkElt("p", undefined, lblPeerjsId),
-        mkElt("p", undefined, lblSecret),
+    const btnInfoKeys = modMdc.mkMDCiconButton("info_i", "What are these keys for?", 24);
+    btnInfoKeys.style = `
+        position: absolute;
+        top: 24px;
+        right: 14px;
+        color: white;
+        background-color: cornflowerblue;
+        border-radius: 50%;
+    `;
+    const divKeys = mkElt("div", undefined, [
+        lblRoutingKey,
+        lblSecretKey,
+        btnInfoKeys
     ]);
+    divKeys.style = `
+        padding-left: 20px;
+        position: relative;
+        `;
+
+    const divSecret = mkElt("div", { class: "mdc-card" }, [
+        mkElt("p", undefined, lblPeerjsId),
+        divKeys
+    ]);
+    divSecret.style = `
+        padding: 10px;
+        background-color: #ffffff30;
+        margin-bottom: 30px;
+        `;
 
 
 
@@ -673,7 +724,11 @@ export async function replicationDialog() {
         margin-left: 10px;
     `;
     const divSelectSync = mkElt("p", undefined, [
-        mkElt("div", undefined, "Select mindmaps to share to peer (not implemented yet):"),
+        mkElt("div", undefined, [
+            "Select mindmaps to share to peer (",
+            mkElt("span", { style: "color:red" }, "not fully implemented yet"),
+            "):",
+        ]),
         divRad
     ]);
     divSelectSync.style = `
@@ -1186,14 +1241,14 @@ async function setupPeerConnection(remotePeerObj) {
                         if (arrUpdated.length > 0) {
                             const msg = `Updated ${arrUpdated.length} mindmap(s):`;
                             logWSimportant(msg, { arrUpdated });
-                            divResultLog.appendChild(mkElt("div", {style:"font-weight:bold;"}, msg));
+                            divResultLog.appendChild(mkElt("div", { style: "font-weight:bold;" }, msg));
                             arrUpdated.forEach(msg => {
                                 divResultLog.appendChild(mkElt("div", undefined, msg));
                             });
                         } else {
                             const msg = `No mindmaps were updated`;
                             logWSimportant(msg, { arrUpdated });
-                            divResultLog.appendChild(mkElt("p", {style:"font-weight:bold;"}, msg));
+                            divResultLog.appendChild(mkElt("p", { style: "font-weight:bold;" }, msg));
                         }
                         finishPeer();
                         break;
@@ -1689,3 +1744,57 @@ function _logDataChannel(id, ...args) {
     console.warn(`%c Data Channel ${id}: `, "background:cyan; color:black;", ...args);
 }
 
+
+async function obfuscateName(name) {
+    // console.log("obfuscateName", { name });
+    if (name == undefined || name.length === 0) return "";
+    const { default: Hashids } = await importFc4i("hashids");
+    const hashids = new Hashids('your salt here', 20);
+    const obfuscated = hashids.encodeHex(stringToHex(name));
+    return obfuscated;
+
+    function stringToHex(str) {
+        return Array.from(str).map(c =>
+            c.charCodeAt(0).toString(16).padStart(2, '0')
+        ).join('');
+    }
+}
+async function deobfuscateName(obfuscatedName) {
+    if (obfuscateName == undefined || obfuscateName.length === 0) return "";
+    const { default: Hashids } = await importFc4i("hashids");
+    const hashids = new Hashids('your salt here', 20);
+    const originalHex = hashids.decodeHex(obfuscatedName);
+    const originalId = hexToString(originalHex);
+    return originalId;
+
+    function hexToString(hex) {
+        return hex.match(/.{1,2}/g).map(byte =>
+            String.fromCharCode(parseInt(byte, 16))
+        ).join('');
+    }
+}
+
+_testObfuscateName();
+async function _testObfuscateName() {
+    const names = [
+        "Alice",
+        "Bob",
+        "Charlie",
+        "Dave",
+        // "Eve",
+        // "Frank",
+        // "Grace",
+        // "Heidi",
+        // "Ivan",
+        // "Judy",
+    ];
+    await (async () => {
+        for (const name of names) {
+            const obfuscated = await obfuscateName(name);
+            console.log(`Obfuscated "${name}" to "${obfuscated}"`);
+            const deobfuscated = await deobfuscateName(obfuscated);
+            console.log(`Deobfuscated "${obfuscated}" to "${deobfuscated}"`);
+            if (name != deobfuscated) throw Error(`Deobfuscated name "${deobfuscated}" does not match original "${name}"`);
+        }
+    })();
+}   

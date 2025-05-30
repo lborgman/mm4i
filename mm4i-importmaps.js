@@ -163,6 +163,9 @@ const baseUrl = (() => {
         "stairs": "./js/mod/stairs.js",
         "shield-click": "./js/mod/shield-click.js",
 
+        // "hashids": "https://cdn.jsdelivr.net/npm/hashids@2.3.0/dist/hashids.esm.js",
+        "hashids": "https://esm.sh/hashids@2.3.0",
+
         // "rxdb-setup": "./js/mod/rxdb-setup.js",
         "rxdb-setup-esbuild": "./rxdb-setup-esbuild.js",
         // "rxdb-setup-webpack": "./rxdb-setup-webpack.js",
