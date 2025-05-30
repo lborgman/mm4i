@@ -390,8 +390,8 @@ export async function replicationDialog() {
         }
     }
 
-    // const btnGenerate = modMdc.mkMDCiconButton("vpn_key", "Generate random secret", 40);
-    const btnGenerateSecret = modMdc.mkMDCiconButton("enhanced_encryption", "Generate random secret", 40);
+    // const btnGenerate = modMdc.mkMDCiconButton("vpn_key", "Generate random secret key", 40);
+    const btnGenerateSecret = modMdc.mkMDCiconButton("enhanced_encryption", "Generate random secret key", 40);
     btnGenerateSecret.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         // debugger;
@@ -500,11 +500,11 @@ export async function replicationDialog() {
     inpRouting.style = `
         width: 4em;
         `;
-    const btnGenerateRouting = modMdc.mkMDCiconButton("ifl", "Generate random secret", 40);
+    const btnGenerateRouting = modMdc.mkMDCiconButton("ifl", "Generate random routing key", 40);
     btnGenerateRouting.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         const newKey = generateRobustRandomAsciiString(4);
-        settingSecret.value = newKey;
+        settingRouting.value = newKey;
     });
     const lblRoutingKey = mkElt("label", undefined, [
         mkElt("span", { style: "margin-right:10px" }, "Routing key:"),
@@ -631,11 +631,26 @@ export async function replicationDialog() {
         position: relative;
         `;
 
-    const divSecret = mkElt("div", { class: "mdc-card" }, [
-        mkElt("p", undefined, lblPeerjsId),
-        divKeys
+    const divKeysInfo = mkElt("div", { class: "height-expander" }, [
+        mkElt("div", { class: "height-expander-content" }, [
+            mkElt("p", undefined, `
+            The secret key and routing key are used to identify your device and to encrypt the mindmaps data.
+            The secret key is used to encrypt the mindmaps data on your device.
+            The routing key is used to route the mindmaps data between your devices.
+        `),
+        ]),
     ]);
-    divSecret.style = `
+    btnInfoKeys.addEventListener("click", (evt) => {
+        evt.stopPropagation();
+        modTools.toggleHeightExpander(divKeysInfo);
+    });
+
+    const divKeysContainer = mkElt("div", { class: "mdc-card" }, [
+        mkElt("p", undefined, lblPeerjsId),
+        divKeys,
+        divKeysInfo
+    ]);
+    divKeysContainer.style = `
         padding: 10px;
         background-color: #ffffff30;
         margin-bottom: 30px;
@@ -657,7 +672,7 @@ export async function replicationDialog() {
     sumKeys.id = "sum-sync-keys";
     sumKeys.style.minHeight = "unset";
     const bodyKeys = mkElt("div", undefined, [
-        divSecret,
+        divKeysContainer,
     ]);
 
 
