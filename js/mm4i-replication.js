@@ -272,6 +272,10 @@ async function dialogMyQR() {
     const btnAddPeer = document.getElementById("btn-add-peer");
     if (!btnAddPeer) { throw Error("Didn't find 'btn-add-peer"); }
     const eltBtnAddPeer = btnAddPeer.cloneNode(true);
+    eltBtnAddPeer.addEventListener("click", async (evt) => {
+        evt.stopPropagation();
+        modMdc.mkMDCsnackbarError("Click it there, not here!", 6000);
+    });
     const eltBtnAddPeerHtml = /** @type {HTMLElement} */ (eltBtnAddPeer);
     const eltBtnContainer = mkElt("span", undefined, eltBtnAddPeerHtml)
     eltBtnContainer.style = `
