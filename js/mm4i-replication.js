@@ -269,13 +269,26 @@ async function dialogMyQR() {
         dialogScanningQR();
     });
     const idDevice = settingPeerjsId.valueS;
+    const btnAddPeer = document.getElementById("btn-add-peer");
+    if (!btnAddPeer) { throw Error("Didn't find 'btn-add-peer"); }
+    const eltBtnAddPeer = btnAddPeer.cloneNode(true);
+    const eltBtnAddPeerHtml = /** @type {HTMLElement} */ (eltBtnAddPeer);
+    const eltBtnContainer = mkElt("span", undefined, eltBtnAddPeerHtml)
+    eltBtnContainer.style = `
+        display: inline-flex;
+        zoom: 0.7;
+    `;
     const body = mkElt("div", undefined, [
-        mkElt("h2", undefined,[ "Peer ", mkElt("i", undefined, `"${idDevice}"`), " connection info"]),
+        mkElt("h2", undefined, ["Peer ", mkElt("i", undefined, `"${idDevice}"`), " connection info"]),
         canvas,
-        mkElt("p", undefined, ` Scan QR above with MM4I from your other device. (Click the button "Add peer" there.)`),
+        mkElt("div", undefined, [
+            `Scan QR above with MM4I from your other device. (Click the button `,
+            eltBtnContainer,
+            ` there.)`,
+        ]),
         // mkElt("div", undefined, btnScanQR),
         // mkElt("hr", { style: "background-color:gray; width:80%; height: 1px;" }),
-        mkElt("p", { style: "width:100%;" }, `Or, type the keys you see below:`),
+        mkElt("div", { style: "width:100%;" }, `Or, type the keys you see below:`),
         mkElt("div", undefined, [
             "Secret: ",
             mkElt("span", { style: "font-weight:700; background:white; color:darkred; padding:8px;" }, secretKey),
@@ -289,6 +302,7 @@ async function dialogMyQR() {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
+                gap: 1em;
             `;
     await modMdc.mkMDCdialogAlert(body, "Close");
 }
@@ -1324,6 +1338,7 @@ async function dialogSyncPeers() {
     listPeers();
     const iconNewPeer = modMdc.mkMDCicon("phone_android");
     const btnNewPeer = modMdc.mkMDCbutton("Add peer", "raised", iconNewPeer);
+    btnNewPeer.id = "btn-add-peer";
     const divAddPeer = mkElt("div", undefined, [
         // lblAddPeer, btnAddPeer,
         btnNewPeer,
