@@ -935,13 +935,13 @@ export class CustomRenderer4jsMind {
             borderTabwasSetup = true;
             addSliBorderWidth();
             if (!sliBorderWidth) return;
+            /*
             debugger;
             inpBorderColor.value = initialShapeEtc.border?.color || "black";
             const borderStyle = initialShapeEtc.border?.style;
             divBorder.querySelectorAll("input[name=borderstyle]")
                 // @ts-ignore
                 .forEach((inp) => { if (inp.value == borderStyle) inp.checked = true });
-            /*
             */
         }
         function activateBorderTab() {
@@ -2471,11 +2471,13 @@ export class CustomRenderer4jsMind {
         /////////// Border
 
         // let initValSliBorderWidth;
+        /*
         function getCtrlValBorderWidth(val) {
             // FIX-ME:
             const mdc = sliBorderWidth?.myMdc;
             return mdc?.getValue();
         }
+        */
 
         function getCtrlValBorderStyle() {
             return divBorderStyle.querySelector("[name=borderstyle]:checked").value;
