@@ -723,7 +723,8 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
         const y = shadow.offY || 0;
         const b = shadow.blur;
         const c = shadow.color || "red";
-        eltShape.style.filter = `drop-shadow(${x}px ${y}px ${b}px ${c})`;
+        // eltShape.style.filter = `drop-shadow(${x}px ${y}px ${b}px ${c})`;
+        eltJmnode.style.filter = `drop-shadow(${x}px ${y}px ${b}px ${c})`;
         // FIX-ME: spread is currently not used, or???
         // const s = shadow.spread;
         // eltJmnode.style.filter = `drop-shadow(${x}px ${y}px ${b}px ${s}px ${c})`;
