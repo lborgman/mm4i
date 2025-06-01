@@ -697,6 +697,7 @@ export class CustomRenderer4jsMind {
             if (btnSave?.textContent != "save") throw Error("Did not find the save button");
             return btnSave;
         }
+        /*
         function setStateBtnSaveDisabled(disable) {
             const tof = typeof disable;
             if (tof != "boolean") throw Error(`Expected boolean, got ${tof} disable:${disable}`);
@@ -704,6 +705,7 @@ export class CustomRenderer4jsMind {
             if (!btn) return;
             btn.disabled = disable
         }
+        */
         // function setStateBtnSaveable() { setStateBtnSaveDisabled(!somethingToSaveNotes()); }
         // const debounceStateBtnSaveable = debounce(setStateBtnSaveable, 300);
         // function requestSetStateBtnSaveable() { debounceStateBtnSaveable(); }
@@ -758,6 +760,8 @@ export class CustomRenderer4jsMind {
             border: setBorderCopied,
             shadow: onCtrlsChgShadow,
         };
+        /*
+        */
         const ctrlsSliders = {}
 
         const eltCopied = eltJmnode.cloneNode(true);
@@ -860,12 +864,16 @@ export class CustomRenderer4jsMind {
             }
             // setBorderCopied();
         }
+        /*
+        */
 
         function setBorderCopied() {
             // FIX-ME: should not happen any more... soon
             debugger; // eslint-disable-line no-debugger
             return;
         }
+        /*
+        */
 
         const divSliBorderWidth = mkElt("div", undefined, "Width: ");
         let sliBorderWidth;
@@ -875,6 +883,8 @@ export class CustomRenderer4jsMind {
             const funChange = onCtrlChgBorderWidth;
             await mkSlider4shapeEtc("border.width", eltCont, 0, 20, 0, 2, title, funChange);
         }
+        /*
+        */
 
 
         const initialBorderStyle = initialShapeEtc.border?.style || "solid";
@@ -920,15 +930,19 @@ export class CustomRenderer4jsMind {
 
         let borderTabwasSetup = false;
         function setupBorderTab() {
+            // return; // No setup needed with new UI slider
+            if (borderTabwasSetup) return;
             borderTabwasSetup = true;
             addSliBorderWidth();
             if (!sliBorderWidth) return;
-            if (borderTabwasSetup) return;
+            debugger;
             inpBorderColor.value = initialShapeEtc.border?.color || "black";
             const borderStyle = initialShapeEtc.border?.style;
             divBorder.querySelectorAll("input[name=borderstyle]")
                 // @ts-ignore
                 .forEach((inp) => { if (inp.value == borderStyle) inp.checked = true });
+            /*
+            */
         }
         function activateBorderTab() {
             // FIX-ME:
@@ -1831,13 +1845,14 @@ export class CustomRenderer4jsMind {
 
 
 
-        const aLinkPreview = mkElt("a");
-        const divLinkPreview = mkElt("div", undefined, ["Link: ", aLinkPreview]);
+        // const aLinkPreview = mkElt("a");
+        // const divLinkPreview = mkElt("div", undefined, ["Link: ", aLinkPreview]);
 
-        const inpLink = modMdc.mkMDCtextFieldInput(undefined, "url");
-        const strLink = initialShapeEtc.nodeLink;
-        const tfLink = modMdc.mkMDCtextField("Topic link", inpLink, strLink);
+        // const inpLink = modMdc.mkMDCtextFieldInput(undefined, "url");
+        // const strLink = initialShapeEtc.nodeLink;
+        // const tfLink = modMdc.mkMDCtextField("Topic link", inpLink, strLink);
 
+        /*
         const onInpLink = async () => {
             console.log("inpLink input");
             const maybeUrl = inpLink.value.trim();
@@ -1862,12 +1877,15 @@ export class CustomRenderer4jsMind {
             }
             // onAnyCtrlChange();
         }
-        const debounceOnInpLink = debounce(onInpLink, 1000);
-        inpLink.addEventListener("input", debounceOnInpLink);
+        */
+        // const debounceOnInpLink = debounce(onInpLink, 1000);
+        // inpLink.addEventListener("input", debounceOnInpLink);
+        /*
         setTimeout(() => {
             // modMdc.setMdcInputValid(inpLink, true);
             onInpLink();
         }, 100);
+        */
 
 
         // let blobBg;
@@ -1879,12 +1897,14 @@ export class CustomRenderer4jsMind {
             // const eltInfoAdd = mkElt("p", undefined, `You can add a background image either as a link or as an image from cliboard.`);
             // const btnLink = modMdc.mkMDCbutton("Link", "raised");
 
+            /*
             const body = mkElt("div", { id: "dlg-body-node-background" }, [
                 mkElt("h2", undefined, "Node background"),
                 mkElt("div", { style: "color:red;" }, "Not ready!"),
                 divCurrentBg,
                 divBgChoices
             ]);
+            */
             // const save = await modMdc.mkMDCdialogConfirm(body, "save", "cancel");
         }
         async function getBgFromClipboard(toDiv) {
