@@ -162,6 +162,7 @@ const baseUrl = (() => {
         // new
         "stairs": "./js/mod/stairs.js",
         "shield-click": "./js/mod/shield-click.js",
+        "undo-redo-tree": "./js/mod/undo-redo-tree.js",
 
         // "hashids": "https://cdn.jsdelivr.net/npm/hashids@2.3.0/dist/hashids.esm.js",
         "hashids": "https://esm.sh/hashids@2.3.0",
