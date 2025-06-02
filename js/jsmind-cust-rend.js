@@ -756,11 +756,11 @@ export class CustomRenderer4jsMind {
             modJsEditCommon.applyShapeEtc(currentShapeEtc, eltCopied);
         }
 
+        /*
         const onCtrlsGrpChg = {
             border: setBorderCopied,
             shadow: onCtrlsChgShadow,
         };
-        /*
         */
         const ctrlsSliders = {}
 
@@ -867,12 +867,12 @@ export class CustomRenderer4jsMind {
         /*
         */
 
+        /*
         function setBorderCopied() {
             // FIX-ME: should not happen any more... soon
             debugger; // eslint-disable-line no-debugger
             return;
         }
-        /*
         */
 
         const divSliBorderWidth = mkElt("div", undefined, "Width: ");
@@ -1790,7 +1790,7 @@ export class CustomRenderer4jsMind {
                         const fgInp = divFgRadios.querySelector("input:checked")
                             || divFgRadios.querySelector("input");
                         if (!fgInp) {
-                            debugger;
+                            debugger; // eslint-disable-line no-debugger
                             return;
                         }
                         const fgId = fgInp.id;
@@ -2492,6 +2492,7 @@ export class CustomRenderer4jsMind {
             return mdc?.getValue();
         }
         */
+        /*
         function onCtrlsChgShadow() {
             // const b = getCtrlValShadowBlur();
             const b = getFromShapeEtc("shadow.blur", currentShapeEtc) || 0;
@@ -2506,6 +2507,7 @@ export class CustomRenderer4jsMind {
             const c = getFromShapeEtc("shadow.color", currentShapeEtc) || "red";
             eltCopied.style.filter = `drop-shadow(${x}px ${y}px ${b}px ${s}px ${c})`;
         }
+        */
 
         let btnSave;
         function getBtnSave() {
