@@ -984,6 +984,29 @@
             visibility: visible;
         }
     </style>
+    <style>
+        /* History */
+        #mm4i-btn-history {
+            position: fixed;
+            bottom: 0px;
+            left: 0px;
+            z-index: 1000;
+            background-color: #c0ca33;
+            color: black;
+        }
+
+        #mm4i-undo-redo-div {
+            opacity: 1;
+            display: block;
+            position: fixed;
+            bottom: 0px;
+            left: 50px;
+            z-index: 1000;
+            user-select: none;
+            background-color: #c0ca33;
+            color: black;
+        }
+    </style>
 
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind@0.5/es6/jsmind.js"></script> -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind/es6/jsmind.js"></script> -->
@@ -1099,18 +1122,38 @@
         eltBoth.appendChild(btnCloseBV);
         btnCloseBV.addEventListener("click", evt => { evt.stopPropagation(); eltBoth.remove(); });
 
-        // FIX-ME:
-        {
-            /*
-            const u = new URL(window.location.href);
-            if (u.hostname == "localhost") {
-                setTimeout(async () => {
-                    // const modStairs = await importFc4i("stairs");
-                    // modStairs.dialogStairs();
-                }, 1000);
-            }
-            */
-        }
+
+        const menuItemUndo = modMdc.mkMDCmenuItem("Undo");
+        menuItemUndo.id = "mm4i-undo-redo-menu-item-undo";
+        menuItemUndo.addEventListener("click", evt => {
+            evt.stopPropagation();
+            alert("Undo is not yet implemented");
+        });
+        const menuItemRedo = modMdc.mkMDCmenuItem("Redo");
+        menuItemRedo.id = "mm4i-undo-redo-menu-item-redo";
+        menuItemRedo.addEventListener("click", evt => {
+            evt.stopPropagation();
+            alert("Undo is not yet implemented");
+        });
+
+        const menuUndoRedo = modMdc.mkMDCmenuUl([menuItemUndo, menuItemRedo]);
+
+        const divUndoRedo = modMdc.mkMDCmenuDiv(menuUndoRedo);
+        divUndoRedo.id = "mm4i-undo-redo-div";
+        divUndoRedo.classList.add("display-none");
+        document.body.appendChild(divUndoRedo);
+
+
+        // const btnHistory = modMdc.mkMDCiconButton("deployed_code_history", "Undo/Redo");
+        const btnHistory = modMdc.mkMDCiconButton("history", "Undo/Redo");
+        btnHistory.id = "mm4i-btn-history";
+        btnHistory.addEventListener("click", evt => {
+            evt.stopPropagation();
+            // alert("Undo/Redo is not yet implemented");
+            divUndoRedo.classList.toggle("display-none");
+        });
+        document.body.appendChild(btnHistory);
+
     </script>
     <!-- 
     <script type="module">

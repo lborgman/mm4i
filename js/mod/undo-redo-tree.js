@@ -4,7 +4,7 @@ window["logConsoleHereIs"](`here is db-mindmaps.js, module ${UNDO_REDO_TREE_VERS
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 if ("function" !== typeof diff_match_patch) {
-    throw Error("Google diff_match_patch is not loaded, please import it before this module");
+  throw Error("Google diff_match_patch is not loaded, please import it before this module");
 }
 
 
@@ -97,8 +97,8 @@ export class UndoRedoTreeWithDiff {
 
     const patchesToApplyForUndo = this.currentNode.patchesToUndo;
     if (!patchesToApplyForUndo) {
-        console.error("Error: Current node is missing 'patchesToUndo'.");
-        return null;
+      console.error("Error: Current node is missing 'patchesToUndo'.");
+      return null;
     }
 
     const currentStateText = this._serialize(this.currentFullState);
@@ -125,8 +125,8 @@ export class UndoRedoTreeWithDiff {
     const patchesToApplyForRedo = childNodeToRedoTo.patchesToReach;
 
     if (!patchesToApplyForRedo) {
-        console.error("Error: Target child node is missing 'patchesToReach'.");
-        return null;
+      console.error("Error: Target child node is missing 'patchesToReach'.");
+      return null;
     }
 
     const currentStateText = this._serialize(this.currentFullState);
@@ -167,8 +167,8 @@ export class UndoRedoTreeWithDiff {
     for (const nodeOnPath of path) {
       const patches = nodeOnPath.patchesToReach;
       if (!patches) {
-          console.error("Node on path is missing patchesToReach:", nodeOnPath.id);
-          return null; // Or throw error
+        console.error("Node on path is missing patchesToReach:", nodeOnPath.id);
+        return null; // Or throw error
       }
       const currentStateText = this._serialize(reconstructedState);
       const [nextStateText, results] = this.dmp.patch_apply(patches, currentStateText);
@@ -199,86 +199,91 @@ export class UndoRedoTreeWithDiff {
 
   getPossibleRedoActions() {
     return this.currentNode.children.map((child, index) => ({
-        action: child.action,
-        branchIndex: index,
-        nodeId: child.id
+      action: child.action,
+      branchIndex: index,
+      nodeId: child.id
     }));
   }
 }
 
-////////////////////////////////////////////
-// Basic test
-// --- Assuming HistoryNode and UndoRedoTreeWithDiff classes are defined above ---
-// --- And diff_match_patch.js is loaded and `dmp` is available or instantiated in the class ---
-
-let appState = { counter: 0, message: "Start" };
-
-function updateMyAppUI(state) {
-  console.log("UI Updated:", JSON.stringify(state));
-  // In a real app, you'd update your DOM or framework components here
+export function getUndoRedoTreeVersion() {
+  return UNDO_REDO_TREE_VERSION;
 }
 
-const history = new UndoRedoTreeWithDiff(appState);
-updateMyAppUI(appState);
+////////////////////////////////////////////
+// Basic tests from AI
+function _basicTestAI() {
+  // --- Assuming HistoryNode and UndoRedoTreeWithDiff classes are defined above ---
+  // --- And diff_match_patch.js is loaded and `dmp` is available or instantiated in the class ---
+  let appState = { counter: 0, message: "Start" };
 
-// Action 1
-appState.counter = 10;
-appState.message = "First action";
-history.recordAction(appState, "Incremented counter, changed message");
-updateMyAppUI(appState);
+  function updateMyAppUI(state) {
+    console.log("UI Updated:", JSON.stringify(state));
+    // In a real app, you'd update your DOM or framework components here
+  }
 
-// Action 2
-appState.counter = 15;
-history.recordAction(appState, "Incremented counter again");
-updateMyAppUI(appState);
+  const history = new UndoRedoTreeWithDiff(appState);
+  updateMyAppUI(appState);
 
-// Undo Action 2
-appState = history.undo();
-if (appState) updateMyAppUI(appState); // Back to: { counter: 10, message: "First action" }
+  // Action 1
+  appState.counter = 10;
+  appState.message = "First action";
+  history.recordAction(appState, "Incremented counter, changed message");
+  updateMyAppUI(appState);
 
-// Undo Action 1
-appState = history.undo();
-if (appState) updateMyAppUI(appState); // Back to: { counter: 0, message: "Start" }
+  // Action 2
+  appState.counter = 15;
+  history.recordAction(appState, "Incremented counter again");
+  updateMyAppUI(appState);
 
-// Redo Action 1
-appState = history.redo(); // Assuming redo follows the main branch (branchIndex 0)
-if (appState) updateMyAppUI(appState); // Back to: { counter: 10, message: "First action" }
+  // Undo Action 2
+  appState = history.undo();
+  if (appState) updateMyAppUI(appState); // Back to: { counter: 10, message: "First action" }
 
-// Now, let's create a new branch from here
-let branchedState = JSON.parse(JSON.stringify(appState)); // Important to copy
-branchedState.message = "New Branch!";
-branchedState.user = "BranchUser";
-history.recordAction(branchedState, "Created a new branch from state 1");
-appState = branchedState; // Update our main appState variable
-updateMyAppUI(appState);
-// At this point, the old "Action 2" (counter: 15) is on a different, now dormant, branch.
+  // Undo Action 1
+  appState = history.undo();
+  if (appState) updateMyAppUI(appState); // Back to: { counter: 0, message: "Start" }
 
-// If we undo now:
-appState = history.undo();
-if (appState) updateMyAppUI(appState); // Back to: { counter: 10, message: "First action" }
+  // Redo Action 1
+  appState = history.redo(); // Assuming redo follows the main branch (branchIndex 0)
+  if (appState) updateMyAppUI(appState); // Back to: { counter: 10, message: "First action" }
 
-// If we redo, we go along the new branch:
-appState = history.redo();
-if (appState) updateMyAppUI(appState); // Back to: { counter: 10, message: "New Branch!", user: "BranchUser" }
+  // Now, let's create a new branch from here
+  let branchedState = JSON.parse(JSON.stringify(appState)); // Important to copy
+  branchedState.message = "New Branch!";
+  branchedState.user = "BranchUser";
+  history.recordAction(branchedState, "Created a new branch from state 1");
+  appState = branchedState; // Update our main appState variable
+  updateMyAppUI(appState);
+  // At this point, the old "Action 2" (counter: 15) is on a different, now dormant, branch.
 
-// To access the old Action 2 (counter: 15):
-// 1. Undo twice to get to root.
-// 2. Redo to state after Action 1.
-// 3. Now, the node for "Action 1" would have two children.
-//    You would need to call redo with the correct branchIndex.
-// console.log("Parent of current:", history.currentNode.parent);
-// console.log("Available redo branches from previous state:", history.currentNode.parent.children.map(c => c.action));
+  // If we undo now:
+  appState = history.undo();
+  if (appState) updateMyAppUI(appState); // Back to: { counter: 10, message: "First action" }
 
-// Example of checking branches (after undoing to the fork point):
-// history.undo(); // appState is now { counter: 10, message: "First action" }
-// const branches = history.getPossibleRedoActions();
-// console.log("Possible redo actions:", branches);
-// /* This would show something like:
-// [
-//   { action: "Incremented counter again", branchIndex: 0, nodeId: ... },
-//   { action: "Created a new branch from state 1", branchIndex: 1, nodeId: ... }
-// ]
-// */
-// // To go down the first original branch:
-// // appState = history.redo(0);
-// // updateMyAppUI(appState); // { counter: 15, message: "First action" }
+  // If we redo, we go along the new branch:
+  appState = history.redo();
+  if (appState) updateMyAppUI(appState); // Back to: { counter: 10, message: "New Branch!", user: "BranchUser" }
+
+  // To access the old Action 2 (counter: 15):
+  // 1. Undo twice to get to root.
+  // 2. Redo to state after Action 1.
+  // 3. Now, the node for "Action 1" would have two children.
+  //    You would need to call redo with the correct branchIndex.
+  // console.log("Parent of current:", history.currentNode.parent);
+  // console.log("Available redo branches from previous state:", history.currentNode.parent.children.map(c => c.action));
+
+  // Example of checking branches (after undoing to the fork point):
+  // history.undo(); // appState is now { counter: 10, message: "First action" }
+  // const branches = history.getPossibleRedoActions();
+  // console.log("Possible redo actions:", branches);
+  // /* This would show something like:
+  // [
+  //   { action: "Incremented counter again", branchIndex: 0, nodeId: ... },
+  //   { action: "Created a new branch from state 1", branchIndex: 1, nodeId: ... }
+  // ]
+  // */
+  // // To go down the first original branch:
+  // // appState = history.redo(0);
+  // // updateMyAppUI(appState); // { counter: 15, message: "First action" }
+}
