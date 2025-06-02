@@ -241,6 +241,7 @@ async function dialogScanningQR() {
         eltScannedQR.appendChild(divQRresult);
         divQRresult.appendChild(mkElt("div", undefined, [mkElt("i", undefined, "Name: "), peerName]));
         divQRresult.appendChild(mkElt("div", undefined, [mkElt("i", undefined, "Secret key: "), peerSecret]));
+        divQRresult.appendChild(mkElt("div", undefined, [mkElt("i", undefined, "Routing key: "), peerRouting]));
         addPeer(peerName, peerSecret);
         modMdc.mkMDCsnackbar("Scanned peer QR", 6000);
         qrScanner.stop();
@@ -914,7 +915,7 @@ function sendToPeer(obj, arrInfo, otherData) {
     const arrEltInfo = arrInfo.reduce(
         (tot, curr) => {
             const tofCurr = typeof curr;
-            if (tofCurr != "string") { debugger; throw Error(`Expected "curr" to be "string", but it was "${tofCurr}`); }
+            if (tofCurr != "string") { throw Error(`Expected "curr" to be "string", but it was "${tofCurr}`); }
             switch (curr) {
                 case "R":
                     tot.push(mkElt("span", { style: "color:blue" }, "R:"));
@@ -1006,7 +1007,8 @@ async function setupPeerConnection(remotePeerObj) {
         const m = dataMsg.match(re);
         console.log({ m });
         if (!m) {
-            debugger;
+            debugger; // eslint-disable-line no-debugger
+            throw Error(`Didn't find expected data in "${dataMsg}"`);
         }
         const peerNumOffered = parseInt(m[1]);
         const peerNumShared = parseInt(m[2]);
@@ -1082,7 +1084,7 @@ async function setupPeerConnection(remotePeerObj) {
             // if (what4 == "4CONNECTION") return;
             if (saidHello) {
                 logWSimportant("Second dataChannel ON OPEN");
-                debugger;
+                debugger; // eslint-disable-line no-debugger
                 return;
             }
             saidHello = true;
@@ -1132,7 +1134,7 @@ async function setupPeerConnection(remotePeerObj) {
                             const peerSecretSha512 = data.secretSha512;
                             const secret512Ok = mySecretSha512 == peerSecretSha512;
                             if (!secret512Ok) {
-                                debugger;
+                                debugger; // eslint-disable-line no-debugger
                                 const peerHadMySecret =
                                     Object.keys(data).includes("hasRemoteSecret")
                                     && data.hasRemoteSecret;
@@ -1207,24 +1209,22 @@ async function setupPeerConnection(remotePeerObj) {
                                     const arrMoreSettled = await Promise.allSettled(promMoreMm);
                                     arrMoreSettled.forEach((settled, idx) => {
                                         if (settled.status == "rejected") {
-                                            console.error(`Error getting mindmap ${arrPeerKeys[idx]}:`, settled.reason);
+                                            const msg = `Error getting mindmap ${arrPeerKeys[idx]}: ${settled.reason}`;
+                                            console.error(msg);
+                                            throw Error(msg);
                                         }
-                                        const myMm = arrMoreSettled[idx].value;
-                                        // debugger;
+                                        const myMm = settled.value;
                                         if (myMm == undefined) {
-                                            // console.error(`Mindmap ${arrPeerKeys[idx]} was undefined`);
-                                            console.log(`We did not have mindmap ${arrPeerKeys[idx]}:`, settled.reason);
+                                            console.log(`We did not have mindmap ${arrPeerKeys[idx]}`);
                                         } else {
                                             const peerMmUpdated = peerMindmaps[myMm.key];
                                             const myMmMetaParts = modDbMindmaps.getMindmapMetaParts(myMm);
                                             const myMmUpdated = myMmMetaParts.lastUpdated;
                                             if (modTools.leftISOtimeMoreRecent(myMmUpdated, peerMmUpdated)) {
-                                                debugger;
                                                 arrNeededMindmaps.push(myMm);
                                             }
                                         }
                                     });
-                                    // debugger;
                                 }
                                 const objMindmapsYouNeeded = {
                                     type: "mindmaps-you-need",
@@ -1292,7 +1292,7 @@ async function setupPeerConnection(remotePeerObj) {
                             if (settled.status == "rejected") {
                                 const msg = `Error updating mindmap ${arrNeededMindmaps[idx].key}`;
                                 console.error(msg, settled.reason);
-                                debugger;
+                                debugger; // eslint-disable-line no-debugger
                                 throw Error(`${msg}: ${settled.reason.message}`);
                             }
                         });
@@ -1324,7 +1324,7 @@ async function setupPeerConnection(remotePeerObj) {
             }
         });
         dataChannel.on("error", (err) => {
-            debugger;
+            debugger; // eslint-disable-line no-debugger
             console.error("peerJsDataConnection error", { err });
         });
         dataChannel.on("close", () => {
@@ -1594,7 +1594,14 @@ async function dialogSyncPeers() {
             });
             const arrSettled = await Promise.allSettled(arrPromNames);
             console.log({ arrSettled });
-            const arrNames = arrSettled.map(settled => settled.value);
+            const arrNames = arrSettled.map(settled => {
+                if (settled.status == "rejected") {
+                    const msg = `Error getting mindmap name: ${settled.reason}`;
+                    console.error(msg);
+                    throw Error(msg);
+                }
+                settled.value;
+            });
             const names = arrNames.join(", ");
 
             divShareSelection.textContent = `Offer mindmaps: "${names}"`;
@@ -1638,13 +1645,12 @@ async function dialogSyncPeers() {
 async function dialogMindmapPrivacy() {
     const divInfoPrivacy = mkElt("p", undefined, `
         By default mindmaps are private to the device where you create them.
-        If you want to share them from this device to another device mark them as "shared" here.
+        If you want to share them from this device to another device mark them with "share" here.
         `);
-    const divSearch = mkElt("p", undefined, mkElt("span", { style: "color:red" }, "div search here not ready"));
     const divMindmaps = mkElt("p", undefined, "div mindmaps here not ready");
     const body = mkElt("div", undefined, [
         mkElt("h2", undefined, "Select mindmaps to share"),
-        divSearch,
+        divInfoPrivacy,
         divMindmaps,
     ]);
 
@@ -1679,7 +1685,7 @@ async function dialogMindmapPrivacy() {
                 font-weight: bold;
             `;
         const chkShared = mkElt("input", { type: "checkbox", id: m.key });
-        chkShared.addEventListener("input", evt => {
+        chkShared.addEventListener("input", _evt => {
             // debugger;
             console.log(`input chkShared, ${chkShared.checked}, ${m.key}`);
             const privacy = chkShared.checked ? "shared" : "private";

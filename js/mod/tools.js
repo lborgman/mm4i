@@ -2381,7 +2381,6 @@ export function checkIsISOtime(str) {
     if (!re.test(str)) {
         const msg = (`"${str}" in not in ISO format`);
         console.error(msg);
-        debugger;
         throw Error(msg);
     }
 }

@@ -5,6 +5,7 @@ window["logConsoleHereIs"](`here is mindmap-helpers.js, module, ${VERSION}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 const mkElt = window["mkElt"];
+const importFc4i = window["importFc4i"];
 const makeAbsLink = window["makeAbsLink"];
 
 const URL_MINDMAPS_PAGE = "./mm4i.html";
@@ -191,10 +192,7 @@ export function mkEltLinkMindmapA(topic, mkey, mhits, provider) {
     const absLink = makeAbsLink(URL_MINDMAPS_PAGE);
     const url = new URL(absLink);
     url.searchParams.set("mindmap", mkey);
-    if (!noCache) {
-        // url.searchParams.set("cachemodules", "");
-        url.searchParams.delete("cachemodules");
-    }
+    // if (!noCache) { url.searchParams.delete("cachemodules"); }
     if (mhits) {
         url.searchParams.set("provider", provider);
         const hits = mhits.map(h => h.id);
