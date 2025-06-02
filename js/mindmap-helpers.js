@@ -4,6 +4,9 @@ const VERSION = "0.1.001";
 window["logConsoleHereIs"](`here is mindmap-helpers.js, module, ${VERSION}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
+const mkElt = window["mkElt"];
+const makeAbsLink = window["makeAbsLink"];
+
 const URL_MINDMAPS_PAGE = "./mm4i.html";
 
 

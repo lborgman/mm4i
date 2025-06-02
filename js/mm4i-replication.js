@@ -814,6 +814,7 @@ export async function replicationDialog() {
         dialogSyncPeers();
     });
     btnPrivacy.addEventListener("click", async evt => {
+        evt.stopPropagation();
         dialogMindmapPrivacy();
     });
 
@@ -1033,7 +1034,7 @@ async function setupPeerConnection(remotePeerObj) {
         const liPeer = mkElt("li", undefined, [
             `Offered from peer: `,
             mkElt("b", undefined, peerNumOffered),
-            ` of ${peerNumAll} mindmaps.`
+            ` of ${peerNumShared} shared mindmaps (total ${peerNumAll}).`
         ]);
         const ul = mkElt("ul", undefined, [liMy, liPeer]);
         eltInstructions.appendChild(ul);

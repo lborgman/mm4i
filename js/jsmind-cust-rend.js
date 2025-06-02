@@ -126,10 +126,12 @@ export class CustomRenderer4jsMind {
         return this.#providers[providerName].img;
     }
 
+    /*
     async updateJmnodeFromCustom() {
         console.error("updateJmnodeFromCustom is obsolete");
         debugger; // eslint-disable-line no-debugger
     }
+    */
 
     async editMindmapDialog() {
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
@@ -156,6 +158,7 @@ export class CustomRenderer4jsMind {
         ]);
         */
         const oldGlobals = rend.getMindmapGlobals();
+        /** @type {{ themeCls: any, backgroundCss?: string, line_color?: any, line_width?: any }} */
         let tempGlobals;
         if (oldGlobals) tempGlobals = JSON.parse(JSON.stringify(oldGlobals));
         // const oldThemeCls = getJsmindTheme(eltJmnodes);
@@ -1038,7 +1041,7 @@ export class CustomRenderer4jsMind {
                             }
                             const inpTextChoice = document.getElementById(idText);
                             if (!inpTextChoice) throw Error(`Could not find #${idText}`);
-                            inpTextChoice.checked = true;
+                            /** @type {HTMLInputElement} */ (inpTextChoice).checked = true;
                             applyTextToPreviewImage(inpTextChoice);
                         })();
 
@@ -2585,6 +2588,7 @@ export class CustomRenderer4jsMind {
 
                     // FIX-ME: use lastElementChild instead???
                     // if (node_copied.data.fc4i) this.updateJmnodeFromCustom(eltJmnode);
+                    /*
                     const eltLast = eltJmnode.lastElementChild;
                     if (!eltLast) return;
                     const strCustom = eltLast.dataset.jsmindCustom;
@@ -2593,6 +2597,7 @@ export class CustomRenderer4jsMind {
                         // } else {
                         // this.updateEltNodeLink(eltJmnode);
                     }
+                    */
                 }, 1100);
 
 
