@@ -1,14 +1,15 @@
+// @ts-check
 // See pwa.js for documentation
 
-const version = "1.1.8";
-export function getVersion() { return version; }
+const PWA_NOT_CACHED_VERSION = "1.2.00";
+export function getVersion() { return PWA_NOT_CACHED_VERSION; }
 
 const doSwReset = false;
 let pwaFuns;
 
 const logStyle = "background:yellowgreen; color:black; padding:2px; border-radius:2px;";
 const logStrongStyle = logStyle + " font-size:18px;";
-const styleInstallEvents = logStrongStyle + "color:red;";
+// const styleInstallEvents = logStrongStyle + "color:red;";
 function logConsole(...msg) {
     // console.log(`%cpwa-nc.js`, logStyle, ...msg);
 }
@@ -16,10 +17,10 @@ function logStrongConsole(...msg) {
     console.log(`%cpwa-nc.js`, logStrongStyle, ...msg);
     addScreenDebugRow(...msg);
 }
-function logInstallEvent(...msg) { console.log("%cpwa-nc", styleInstallEvents, ...msg); }
+// function logInstallEvent(...msg) { console.log("%cpwa-nc", styleInstallEvents, ...msg); }
 
 
-logStrongConsole(`here is pwa-not-cached.js, module ${version}`);
+logStrongConsole(`here is pwa-not-cached.js, module ${PWA_NOT_CACHED_VERSION}`);
 if (document.currentScript) throw Error("pwa-not-cached.js not loaded as module");
 
 
@@ -62,7 +63,7 @@ export async function startSW(urlSW) {
     logStrongConsole("startSW", ourUrlSW);
     await addDebugSWinfo();
     await checkPWA();
-    setupForInstall();
+    // setupForInstall();
     await setupServiceWorker();
 }
 
@@ -260,7 +261,8 @@ async function setupServiceWorker() {
 }
 
 
-function setupForInstall() {
+/*
+function OLDsetupForInstall() {
     // FIX-ME: leave this here (instead of moving it to pwa.js)
     //    for now because it does not seem to be stable in Chromium.
     // Maybe have a close look on these?
@@ -338,7 +340,7 @@ function setupForInstall() {
     }
 
 }
-
+*/
 
 function mkSnackbar(msg, color, bgColor, left, bottom, msTime) {
     const snackbar = mkElt("aside");
@@ -374,21 +376,24 @@ async function getWorkbox() {
 }
 
 
-async function NOupdateNow() {
+/*
+async function updateNow() {
     logConsole("pwa.updateNow, calling wb.messageSkipWaiting() 1");
     const wb = await getWorkbox();
     logConsole("pwa.updateNow, calling wb.messageSkipWaiting() 2");
     wb.messageSkipWaiting();
 }
+*/
 
 export function setPWAfuns(objFuns) {
     pwaFuns = objFuns;
-    // pwaFuns = {}; // FIX-ME: error handling test
+    if (!window["mkElt"]) {
+        window["mkElt"] = pwaFuns["mkElt"];
+    }
 }
-function mkElt(type, attrib, inner) { return pwaFuns["mkElt"](type, attrib, inner); }
 
 async function promptForUpdate() {
-    logConsole("prompt4update 1");
+    logConsole("prompt4update pwa-not-cached.js");
     const wb = await getWorkbox();
     const waitingVersion = await wb.messageSW({ type: 'GET_VERSION' });
     return pwaFuns["promptForUpdate"](waitingVersion);

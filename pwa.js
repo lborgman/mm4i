@@ -1,3 +1,4 @@
+// @ts-check
 const version = "1.6.7";
 
 /*
@@ -81,8 +82,10 @@ const version = "1.6.7";
 
 const logStyle = "background:yellowgreen; color:black; padding:2px; border-radius:2px;";
 const logStrongStyle = logStyle + " font-size:18px;";
+const styleInstallEvents = logStrongStyle + "color:red;";
 function logConsole(...msg) { console.log(`%cpwa.js`, logStyle, ...msg); }
 function logStrongConsole(...msg) { console.log(`%cpwa.js`, logStrongStyle, ...msg); }
+function logInstallEvent(...msg) { console.log("%cpwa-nc", styleInstallEvents, ...msg); }
 
 logStrongConsole(`Here is pwa.js, module ${version}`, import.meta.url);
 
@@ -193,11 +196,11 @@ class WaitUntil {
 }
 const waitUntilNotCachedLoaded = new WaitUntil("pwa-loaded-not-cached");
 
-if (await PWAonline()) {
+if (await PWAhasInternet()) {
     loadNotCached();
 } else {
     window.addEventListener("online", async evt => {
-        if (!await PWAonline()) return;
+        if (!await PWAhasInternet()) return;
         loadNotCached();
     });
 }
@@ -262,7 +265,7 @@ async function loadNotCached() {
     versions["pwa-not-cached.js"] = modNotCached.getVersion();
     const myFuns = {
         "addScreenDebugRow": addScreenDebugRow,
-        "getDisplayMode": getDisplayMode,
+        // "getDisplayMode": getDisplayMode,
         "mkElt": mkElt,
         "promptForUpdate": promptForUpdate,
     }
@@ -419,7 +422,7 @@ async function startSW() {
     try {
         await modNotCached.startSW(theSWurl);
     } catch (err) {
-        console.log({ err });
+        console.error({ err });
         const dlgErr = startDlgErr("Can't start service worker", err);
         finishAndShowDlgErr(dlgErr, true);
     }
@@ -619,29 +622,28 @@ async function promptForUpdate(waitingVersion) {
 
 function getRandomString() { return Math.random().toString(36).substring(2, 15) }
 
-// https://dev.to/maxmonteil/is-your-app-online-here-s-how-to-reliably-know-in-just-10-lines-of-js-guide-3in7
-// Saving this, looks useful...
-export async function PWAonline() {
+export async function PWAhasInternet() {
+    // https://dev.to/maxmonteil/is-your-app-online-here-s-how-to-reliably-know-in-just-10-lines-of-js-guide-3in7
     if (!window.navigator.onLine) return false
 
     // avoid CORS errors with a request to your own origin
     const url = new URL(window.location.origin)
 
     // random value to prevent cached responses
-    url.searchParams.set('PWAonlineRand', getRandomString())
+    url.searchParams.set('PWAhasInternetRand', getRandomString())
     let urlHref = url.href;
-    // console.trace("PWAonline: try to fetch", urlHref);
+    // console.trace("PWAhasInternet: try to fetch", urlHref);
 
     try {
         const response = await fetch(urlHref, { method: 'HEAD' },)
-        console.log(`PWAonline is online, (any response is actually ok here) response.ok: ${response.ok}`)
+        console.log(`PWAhasInternet is online, (any response is actually ok here) response.ok: ${response.ok}`)
         return true;
     } catch {
-        console.log("PWAonline not online: didn't get response");
+        console.log("PWAhasInternet not online: didn't get response");
         return false
     }
 }
-window["PWAonline"] = PWAonline;
+window["PWAhasInternet"] = PWAhasInternet;
 
 export function getDisplayMode() {
     let displayMode = 'browser';
@@ -711,6 +713,86 @@ function finishAndShowDlgErr(dlgErr, moreInConsole) {
     showDialogModal(dlgErr);
 }
 
+setupForInstall();
+function setupForInstall() {
+    // FIX-ME: leave this here (instead of moving it to pwa.js)
+    //    for now because it does not seem to be stable in Chromium.
+    // Maybe have a close look on these?
+    // https://love2dev.com/pwa/add-to-homescreen-library/
+    // https://web.dev/learn/pwa/detection
+
+    logStrongConsole("setupForInstall");
+    // const getDisplayMode = pwaFuns["getDisplayMode"];
+    // logConsole({ getDisplayMode });
+    const displayMode = getDisplayMode ? getDisplayMode() : undefined;
+    logConsole({ displayMode });
+    if (displayMode != "standalone") { logConsole("using default install!"); return; }
+
+    // https://web.dev/customize-install/#criteria
+    // Initialize deferredPrompt for use later to show browser install prompt.
+    let deferredPrompt;
+
+    window.addEventListener('beforeinstallprompt', (evt) => {
+        logStrongConsole(`**** beforeinstallprompt' event was fired.`);
+        // Prevent the mini-infobar from appearing on mobile
+        evt.preventDefault();
+        // Stash the event so it can be triggered later.
+        deferredPrompt = evt;
+
+        // Update UI notify the user they can install the PWA
+        // This is only nessacary if standalone!
+        // Otherwise the builtin browser install prompt can be used.
+        if (getDisplayMode() != "browser") { createEltInstallPromotion(); }
+    });
+
+    window.addEventListener('appinstalled', () => {
+        hideInstallPromotion();
+        // Clear the deferredPrompt so it can be garbage collected
+        deferredPrompt = null;
+        logConsole('PWA was installed');
+    });
+
+    const dialogInstallPromotion = mkElt("dialog", { id: "pwa2-dialog-install", class: "pwa2-dialog" }, [
+        mkElt("h2", undefined, "Please install this app"),
+        mkElt("p", undefined, [
+            `This will add an icon to your home screen (or desktop).
+            If relevant it also make it possible to share from other apps to this app.`,
+        ]),
+        mkElt("p", undefined, ["navigator.userAgentData.platform: ", navigator.userAgentData?.platform]),
+    ]);
+    const btnInstall = mkElt("button", undefined, "Install");
+    btnInstall.addEventListener("click", async (evt) => {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        logConsole(`User response to the install prompt: ${outcome}`);
+        deferredPrompt = null;
+    });
+
+    const btnLater = mkElt("button", undefined, "Later");
+    btnLater.addEventListener("click", (evt) => {
+        logInstallEvent("dialog .remove");
+        dialogInstallPromotion.remove();
+    });
+
+    dialogInstallPromotion.appendChild(btnInstall);
+    dialogInstallPromotion.appendChild(btnLater);
+    function showInstallPromotion() {
+        logInstallEvent("showInstallPromotion");
+        document.body.appendChild(dialogInstallPromotion);
+        dialogInstallPromotion.showModal();
+    }
+    function hideInstallPromotion() {
+        logInstallEvent("hideInstallPromotion");
+    }
+    async function createEltInstallPromotion() {
+        logInstallEvent("createEltInstallPromotion START");
+        await promiseDOMready();
+        logInstallEvent("createEltInstallPromotion END, display = null");
+        showInstallPromotion();
+    }
+
+}
+
 /*
 // Add a global error handler
 window.addEventListener("error", evt => {
@@ -719,3 +801,11 @@ window.addEventListener("error", evt => {
     finishAndShowDlgErr(dlgErr, true);
 });
 */
+(async () => {
+    const promModPWA = import(import.meta.url);
+    window["PWApromMod"] = promModPWA;
+    window["PWAmod"] = await promModPWA;
+})().catch(err => {
+    console.error("Error in pwa.js", err);
+    throw Error("Error in pwa.js", err);
+});

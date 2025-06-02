@@ -313,9 +313,9 @@ async function dialogMyQR() {
 }
 
 export async function replicationDialog() {
-    const isOnline = await funIsOnline();
-    if (!isOnline) {
-        modMdc.mkMDCdialogAlert("Can't sync because device is not online.");
+    const hasInternet = await funHasInternet();
+    if (!hasInternet) {
+        modMdc.mkMDCdialogAlert("Can't sync because device is no internet access.");
         return;
     }
     const notReady = mkElt("div", undefined, `Usable (${MM4I_REPL_VER})`);
@@ -851,7 +851,7 @@ export async function replicationDialog() {
 const modDbMindmaps = await importFc4i("db-mindmaps");
 const modMMhelpers = await importFc4i("mindmap-helpers");
 
-const funIsOnline = window["PWAonline"];
+const funHasInternet = window["PWAhasInternet"];
 
 
 function getMindmapsKeysAndUpdated(arrMm) {
