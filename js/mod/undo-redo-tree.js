@@ -3,14 +3,17 @@ const UNDO_REDO_TREE_VERSION = "0.0.00";
 window["logConsoleHereIs"](`here is db-mindmaps.js, module ${UNDO_REDO_TREE_VERSION}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
-if ("function" !== typeof diff_match_patch) {
+if (typeof window["diff_match_patch"] !== "function") {
   throw Error("Google diff_match_patch is not loaded, please import it before this module");
 }
 
+export function getUndoRedoTreeVersion() { return UNDO_REDO_TREE_VERSION; }
+
+const undoRedos = {};
 
 ////////////////////////////////////////////
-//// Code suggestions from Google Gemini AI:
-export class HistoryNode {
+//// START: Code suggestions for tree from Google Gemini AI:
+export class HistoryTreeNode {
   constructor(parent, patchesToReachThisNode, patchesToUndoThisNode, action = null) {
     this.parent = parent; // Reference to the parent node
     this.children = [];   // Array of child nodes (branches)
@@ -24,7 +27,7 @@ export class HistoryNode {
   }
 
   addChild(patchesToReach, patchesToUndo, action) {
-    const newNode = new HistoryNode(this, patchesToReach, patchesToUndo, action);
+    const newNode = new HistoryTreeNode(this, patchesToReach, patchesToUndo, action);
     this.children.push(newNode);
     return newNode;
   }
@@ -35,7 +38,7 @@ export class UndoRedoTreeWithDiff {
     this.dmp = new diff_match_patch();
 
     // The root node stores the full initial state directly, as it has no parent/patches.
-    this.rootNode = new HistoryNode(null, null, null, "Initial State");
+    this.rootNode = new HistoryTreeNode(null, null, null, "Initial State");
     // We'll store the actual state on the root node because it's the base.
     this.rootNode.fullStateSnapshot = this._deepCopy(initialState);
 
@@ -205,9 +208,33 @@ export class UndoRedoTreeWithDiff {
     }));
   }
 }
+//// END: Code suggestions for tree from Google Gemini AI:
+////////////////////////////////////////////
 
-export function getUndoRedoTreeVersion() {
-  return UNDO_REDO_TREE_VERSION;
+/**
+ * 
+ * @param {any} initialValue 
+ * @param {Object} actionDetails 
+ */
+export function actionNewItem(initialValue, actionDetails) {
+  const {redoStyle, itemId} = actionDetails;
+  if (!["linear", "branch"].includes(redoStyle)) {
+    throw Error(`Invalid redoStyle: ${redoStyle}, expected "linear" or "branch""`);
+  }
+  if (redoStyle === "branch") {
+    throw Error("Branching redo not implemented yet");
+  }
+  debugger;
+}
+
+/**
+ * @returns {Promise<any>}
+ */
+export function actionUndo() {
+  debugger;
+}
+export function actionRedo() {
+  debugger;
 }
 
 ////////////////////////////////////////////

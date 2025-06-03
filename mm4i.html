@@ -992,6 +992,7 @@
             left: 0px;
             z-index: 1000;
             background-color: #c0ca33;
+            background-color: lightseagreen;
             color: black;
         }
 
@@ -1004,6 +1005,7 @@
             z-index: 1000;
             user-select: none;
             background-color: #c0ca33;
+            background-color: lightseagreen;
             color: black;
         }
     </style>
@@ -1127,13 +1129,13 @@
         menuItemUndo.id = "mm4i-undo-redo-menu-item-undo";
         menuItemUndo.addEventListener("click", evt => {
             evt.stopPropagation();
-            alert("Undo is not yet implemented");
+            modMdc.mkMDCsnackbar("Undo is not yet implemented");
         });
         const menuItemRedo = modMdc.mkMDCmenuItem("Redo");
         menuItemRedo.id = "mm4i-undo-redo-menu-item-redo";
         menuItemRedo.addEventListener("click", evt => {
             evt.stopPropagation();
-            alert("Undo is not yet implemented");
+            modMdc.mkMDCsnackbar("Redo is not yet implemented");
         });
 
         const menuUndoRedo = modMdc.mkMDCmenuUl([menuItemUndo, menuItemRedo]);
