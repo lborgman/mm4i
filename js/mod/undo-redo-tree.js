@@ -1,6 +1,7 @@
 // @ts-check
 const UNDO_REDO_TREE_VERSION = "0.0.00";
 window["logConsoleHereIs"](`here is db-mindmaps.js, module ${UNDO_REDO_TREE_VERSION}`);
+console.warn(`here is db-mindmaps.js, module ${UNDO_REDO_TREE_VERSION}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 if (typeof window["diff_match_patch"] !== "function") {
@@ -8,6 +9,14 @@ if (typeof window["diff_match_patch"] !== "function") {
 }
 
 export function getUndoRedoTreeVersion() { return UNDO_REDO_TREE_VERSION; }
+const logClassStyle = "background:white; color:blue; padding:2px; border-radius:2px;";
+const logClassImportantStyle = logClassStyle + " font-size:18px;";
+function logClass(what, ...msg) { console.log(`%c${what}`, logClassStyle, ...msg); }
+function logClassImportant(what, ...msg) { console.log(`%c${what}`, logClassImportantStyle, ...msg); }
+
+
+
+
 
 const undoRedos = {};
 
@@ -33,8 +42,10 @@ export class HistoryTreeNode {
   }
 }
 
+const diff_match_patch = window["diff_match_patch"];
 export class UndoRedoTreeWithDiff {
   constructor(initialState) {
+    logClassImportant("UndoRedoTreeWithDiff", initialState);
     this.dmp = new diff_match_patch();
 
     // The root node stores the full initial state directly, as it has no parent/patches.
@@ -68,6 +79,7 @@ export class UndoRedoTreeWithDiff {
   }
 
   recordAction(newFullState, actionDetails = null) {
+    logClass("recordAction()", newFullState, actionDetails);
     const oldStateText = this._serialize(this.currentFullState);
     const newStateText = this._serialize(newFullState);
 
@@ -93,6 +105,7 @@ export class UndoRedoTreeWithDiff {
   }
 
   undo() {
+    logClass("undo()");
     if (!this.currentNode.parent) {
       console.log("Already at root. Nothing to undo.");
       return null;
@@ -119,6 +132,7 @@ export class UndoRedoTreeWithDiff {
   }
 
   redo(branchIndex = 0) { // Default to the first child (most common redo path)
+    logClass(`redo(${branchIndex})`);
     if (this.currentNode.children.length === 0 || !this.currentNode.children[branchIndex]) {
       console.log("No child to redo to on this branch or invalid branch index.");
       return null;
@@ -216,8 +230,8 @@ export class UndoRedoTreeWithDiff {
  * @param {any} initialValue 
  * @param {Object} actionDetails 
  */
-export function actionNewItem(initialValue, actionDetails) {
-  const {redoStyle, itemId} = actionDetails;
+export function actionAdd(key, initialValue, actionDetails) {
+  const { redoStyle, itemId } = actionDetails;
   if (!["linear", "branch"].includes(redoStyle)) {
     throw Error(`Invalid redoStyle: ${redoStyle}, expected "linear" or "branch""`);
   }
@@ -226,71 +240,82 @@ export function actionNewItem(initialValue, actionDetails) {
   }
   debugger;
 }
+export function actionRemove(key) {
+}
 
 /**
  * @returns {Promise<any>}
  */
-export function actionUndo() {
+export function actionUndo(key) {
   debugger;
 }
-export function actionRedo() {
+export function actionRedo(key) {
   debugger;
 }
 
 ////////////////////////////////////////////
 // Basic tests from AI
-function _basicTestAI() {
+_basicTest();
+function _basicTest() {
+  console.log("%c_basicTest", "font-size:20px; color:white; background:blue; padding:2px; border-radius:2px;");
   // --- Assuming HistoryNode and UndoRedoTreeWithDiff classes are defined above ---
   // --- And diff_match_patch.js is loaded and `dmp` is available or instantiated in the class ---
-  let appState = { counter: 0, message: "Start" };
+  let appState = { message: "state0" };
 
+  function deepCopy4test(obj) { return JSON.parse(JSON.stringify(obj)); }
   function updateMyAppUI(state) {
-    console.log("UI Updated:", JSON.stringify(state));
-    // In a real app, you'd update your DOM or framework components here
+    // console.log("UI Updated:", JSON.stringify(state));
   }
 
   const history = new UndoRedoTreeWithDiff(appState);
   updateMyAppUI(appState);
+  const state0 = deepCopy4test(appState);
 
   // Action 1
-  appState.counter = 10;
-  appState.message = "First action";
-  history.recordAction(appState, "Incremented counter, changed message");
+  appState.message = "state1";
+  history.recordAction(appState, "Action 1");
   updateMyAppUI(appState);
+  const state1 = deepCopy4test(appState);
 
   // Action 2
-  appState.counter = 15;
-  history.recordAction(appState, "Incremented counter again");
+  appState.message = "state2";
+  history.recordAction(appState, "Action 2");
   updateMyAppUI(appState);
+  const state2 = deepCopy4test(appState);
 
   // Undo Action 2
   appState = history.undo();
-  if (appState) updateMyAppUI(appState); // Back to: { counter: 10, message: "First action" }
+  if (appState) updateMyAppUI(appState); 
+  assertObjectEqual("After undo Action 2", appState, state1);
 
   // Undo Action 1
   appState = history.undo();
-  if (appState) updateMyAppUI(appState); // Back to: { counter: 0, message: "Start" }
+  if (appState) updateMyAppUI(appState);
+  assertObjectEqual("After undo Action 1", appState, state0);
+
 
   // Redo Action 1
   appState = history.redo(); // Assuming redo follows the main branch (branchIndex 0)
-  if (appState) updateMyAppUI(appState); // Back to: { counter: 10, message: "First action" }
+  if (appState) updateMyAppUI(appState);
+  assertObjectEqual("After redo Action 1", appState, state1);
 
   // Now, let's create a new branch from here
   let branchedState = JSON.parse(JSON.stringify(appState)); // Important to copy
   branchedState.message = "New Branch!";
-  branchedState.user = "BranchUser";
   history.recordAction(branchedState, "Created a new branch from state 1");
   appState = branchedState; // Update our main appState variable
   updateMyAppUI(appState);
-  // At this point, the old "Action 2" (counter: 15) is on a different, now dormant, branch.
+  const stateB0 = deepCopy4test(appState);
 
   // If we undo now:
   appState = history.undo();
-  if (appState) updateMyAppUI(appState); // Back to: { counter: 10, message: "First action" }
+  if (appState) updateMyAppUI(appState);
+  assertObjectEqual("After if we undo now", appState, state1);
 
   // If we redo, we go along the new branch:
   appState = history.redo();
-  if (appState) updateMyAppUI(appState); // Back to: { counter: 10, message: "New Branch!", user: "BranchUser" }
+  if (appState) updateMyAppUI(appState);
+  assertObjectEqual("After if we redo, we go along the new branch", appState, stateB0);
 
   // To access the old Action 2 (counter: 15):
   // 1. Undo twice to get to root.
@@ -313,4 +338,16 @@ function _basicTestAI() {
   // // To go down the first original branch:
   // // appState = history.redo(0);
   // // updateMyAppUI(appState); // { counter: 15, message: "First action" }
+
+}
+
+
+
+
+function assertObjectEqual(where, actual, expected) {
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    console.error("%cNot equal", "color:white; background:red; padding:2px; font-size:1.2em", `${where}: ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+  } else {
+    console.log("%cequal:", "color:white; background:green; padding:2px; font-size:1.2em", `${where}: ${JSON.stringify(actual)}`);
+  }
 }
