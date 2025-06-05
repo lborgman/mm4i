@@ -336,7 +336,7 @@ export function actionRedo(_key) {
 ////////////////////////////////////////////
 // Basic tests from AI
 
-await _basicTest(); // linear
+await _basicTest({}); // linear
 
 /**
  * 
@@ -348,19 +348,35 @@ const ourFunBranch = async (defaultBranch, arrBranches) => {
   if (!Number.isInteger(defaultBranch) || defaultBranch < 0) {
     throw Error(`Invalid defaultBranch "${defaultBranch}" for ourFunBranch. Must be a non-negative integer.`);
   }
-  console.log({ arrBranches });
+  // console.log({ arrBranches });
   // This function can be used to determine how to branch based on the actionDetails
+  console.log(`  ourFunBranch called with defaultBranch: ${defaultBranch}, arrBranches:`, arrBranches);
   return defaultBranch; // Always return the default branch for now
 }
-await _basicTest(ourFunBranch); // branched
+await _basicTest({ funBranch: ourFunBranch }); // branched
 
-async function _basicTest(funBranch) {
+async function _basicTest(opts) {
   console.log("%c_basicTest", "font-size:20px; color:white; background:blue; padding:2px; border-radius:2px;");
 
-  function deepCopy4test(obj) { return JSON.parse(JSON.stringify(obj)); }
-  function updateMyAppUI(_state) {
-    // console.log("UI Updated:", JSON.stringify(state));
+  const tofOpts = typeof opts;
+  if (tofOpts !== "object") {
+    throw Error(`Invalid opts type: ${tofOpts}, expected "object"`);
   }
+  if (Array.isArray(opts)) {
+    throw Error(`Invalid opts type: Array, expected "object"`);
+  }
+  if (opts === null) {
+    throw Error(`Invalid opts type: null, expected "object"`);
+  }
+  const validKeys = ["funBranch", "ourUndoRedo"];
+  for (const key in opts) {
+    if (!validKeys.includes(key)) {
+      throw Error(`Invalid key in opts: ${key}, expected one of ${validKeys.join(", ")}`);
+    }
+  }
+
+  const funBranch = opts.funBranch || undefined;
+  const ourUndoRedo = opts.ourUndoRedo || false;
 
   let alreayCalledLogTreeStructure = false;
   let appState = { message: "state0" };
@@ -371,31 +387,35 @@ async function _basicTest(funBranch) {
 
   // Action 1
   appState.message = "state1";
-  history.recordAction(appState, "Action 1");
+  // history.recordAction(appState, "Action 1");
+  doRecordAction(appState, "Action 1");
   updateMyAppUI(appState);
   const state1 = deepCopy4test(appState);
   assertObjectEqual("After Action 1", appState, state1);
 
   // Action 2
   appState.message = "state2";
-  history.recordAction(appState, "Action 2");
+  // history.recordAction(appState, "Action 2");
+  doRecordAction(appState, "Action 2");
   updateMyAppUI(appState);
   const state2 = deepCopy4test(appState);
   assertObjectEqual("After Action 2", appState, state2);
 
   // Undo Action 2
-  appState = history.undo();
+  // appState = history.undo();
+  appState = doUndo();
   if (appState) updateMyAppUI(appState);
   assertObjectEqual("After undo Action 2", appState, state1);
 
   // Undo Action 1
-  appState = history.undo();
+  // appState = history.undo();
+  appState = doUndo();
   if (appState) updateMyAppUI(appState);
   assertObjectEqual("After undo Action 1", appState, state0);
 
 
   // Redo Action 1
-  appState = await history.redo(); // Assuming redo follows the main branch (branchIndex 0)
+  appState = await doRedo();
   if (appState) updateMyAppUI(appState);
   assertObjectEqual("After redo Action 1", appState, state1);
 
@@ -404,20 +424,22 @@ async function _basicTest(funBranch) {
   branchedState.message = history.isTreeStructured ? "New Branch!" : "New Linear!";
 
   // debugger; // eslint-disable-line no-debugger
-  history.recordAction(branchedState, "new node from state 1");
+  // history.recordAction(branchedState, "new node from state 1");
+  doRecordAction(branchedState, "new node from state 1");
   appState = branchedState; // Update our main appState variable
   updateMyAppUI(appState);
   const stateB0 = deepCopy4test(appState);
   assertObjectEqual("After new node from state 1", appState, stateB0);
 
   // If we undo now:
-  appState = history.undo();
+  // appState = history.undo();
+  appState = doUndo();
   if (appState) updateMyAppUI(appState);
   assertObjectEqual("After if we undo now", appState, state1);
 
   // redo, add a new node:
   // debugger; // eslint-disable-line no-debugger
-  appState = await history.redo();
+  appState = await doRedo();
   if (appState) updateMyAppUI(appState);
   if (history.isTreeStructured) {
     assertObjectEqual("After redo, add a new node", appState, stateB0);
@@ -461,4 +483,20 @@ async function _basicTest(funBranch) {
       setTimeout(() => { history._logTreeStructure(); }, 1000);
     }
   }
+
+  function deepCopy4test(obj) { return JSON.parse(JSON.stringify(obj)); }
+  function updateMyAppUI(_state) {
+    // console.log("UI Updated:", JSON.stringify(state));
+  }
+
+  function doUndo() {
+    return history.undo();
+  }
+  async function doRedo() {
+    return history.redo();
+  }
+  function doRecordAction(state, action) {
+    history.recordAction(state, action);
+  }
+
 }
