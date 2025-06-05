@@ -18,7 +18,7 @@ function logClassImportant(what, ...msg) { console.log(`%c${what}`, logClassImpo
 
 
 
-// const undoRedos = {};
+const histories = {};
 
 ////////////////////////////////////////////
 //// START: Code suggestions for tree from Google Gemini AI (modified):
@@ -320,40 +320,57 @@ export class UndoRedoTreeWithDiff {
 ////////////////////////////////////////////
 
 
-export function actionAdd(_key, _initialValue, _actionDetails) {
-  debugger; // eslint-disable-line no-debugger
-}
-export function actionRemove(_key) {
-}
+// export function actionAdd(_key, _initialValue, _actionDetails) { }
+// export function actionRemove(_key) { }
 
-export function actionUndo(_key) {
-  debugger; // eslint-disable-line no-debugger
+export function addUndoRedo(_key, appState, funBranch) {
+  // debugger; // eslint-disable-line no-debugger
+  logClass("addHistoryKey()", _key);
+  histories[_key] = new UndoRedoTreeWithDiff(appState, funBranch);
 }
-export function actionRedo(_key) {
-  debugger; // eslint-disable-line no-debugger
+function getHistory(_key) {
+  const history = histories[_key];
+  if (!history) {
+    throw Error(`No history found for key: ${_key}`);
+  }
+  return history;
+}
+export async function actionRecordAction(_key, newFullState, actionDetails) {
+  // debugger; // eslint-disable-line no-debugger
+  const history = getHistory(_key);
+  return history.recordAction(newFullState, actionDetails);
+}
+export function actionUndo(_key) {
+  // debugger; // eslint-disable-line no-debugger
+  const history = getHistory(_key);
+  return history.undo();
+}
+export async function actionRedo(_key) {
+  // debugger; // eslint-disable-line no-debugger
+  const history = getHistory(_key);
+  return history.redo();
 }
 
 ////////////////////////////////////////////
 // Basic tests from AI
 
 await _basicTest({}); // linear
+await _basicTest({ ourUndoRedo: true }); // linear
+await _basicTest({ funBranch: _ourFunBranch }); // branched
+await _basicTest({ funBranch: _ourFunBranch, ourUndoRedo: true }); // branched
 
 /**
- * 
  * @param {number} defaultBranch 
  * @param {string[]} arrBranches 
- * @returns 
+ * @returns {Promise<number>}
  */
-const ourFunBranch = async (defaultBranch, arrBranches) => {
-  if (!Number.isInteger(defaultBranch) || defaultBranch < 0) {
-    throw Error(`Invalid defaultBranch "${defaultBranch}" for ourFunBranch. Must be a non-negative integer.`);
-  }
-  // console.log({ arrBranches });
-  // This function can be used to determine how to branch based on the actionDetails
+async function _ourFunBranch(defaultBranch, arrBranches) {
+  if (!Number.isInteger(defaultBranch) || defaultBranch < 0) { throw Error(`Invalid defaultBranch "${defaultBranch}"`); }
   console.log(`  ourFunBranch called with defaultBranch: ${defaultBranch}, arrBranches:`, arrBranches);
   return defaultBranch; // Always return the default branch for now
 }
-await _basicTest({ funBranch: ourFunBranch }); // branched
+
+
 
 async function _basicTest(opts) {
   console.log("%c_basicTest", "font-size:20px; color:white; background:blue; padding:2px; border-radius:2px;");
@@ -381,7 +398,9 @@ async function _basicTest(opts) {
   let alreayCalledLogTreeStructure = false;
   let appState = { message: "state0" };
 
-  const history = new UndoRedoTreeWithDiff(appState, funBranch);
+  let history;
+  // history = new UndoRedoTreeWithDiff(appState, funBranch);
+  doCreateHistory();
   updateMyAppUI(appState);
   const state0 = deepCopy4test(appState);
 
@@ -421,7 +440,8 @@ async function _basicTest(opts) {
 
   // Now, let's create a new node from here
   let branchedState = JSON.parse(JSON.stringify(appState)); // Important to copy
-  branchedState.message = history.isTreeStructured ? "New Branch!" : "New Linear!";
+  // branchedState.message = history.isTreeStructured ? "New Branch!" : "New Linear!";
+  branchedState.message = doIsTreeStructured() ? "New Branch!" : "New Linear!";
 
   // debugger; // eslint-disable-line no-debugger
   // history.recordAction(branchedState, "new node from state 1");
@@ -441,7 +461,8 @@ async function _basicTest(opts) {
   // debugger; // eslint-disable-line no-debugger
   appState = await doRedo();
   if (appState) updateMyAppUI(appState);
-  if (history.isTreeStructured) {
+  // if (history.isTreeStructured) {
+  if (doIsTreeStructured()) {
     assertObjectEqual("After redo, add a new node", appState, stateB0);
   } else {
     assertObjectEqual("After redo, add a new node", appState, stateB0);
@@ -480,7 +501,10 @@ async function _basicTest(opts) {
       console.log("%cequal:", "color:white; background:green; padding:2px; font-size:1.2em", `${where}: ${JSON.stringify(actual)}`);
       if (alreayCalledLogTreeStructure) return;
       alreayCalledLogTreeStructure = true;
-      setTimeout(() => { history._logTreeStructure(); }, 1000);
+      setTimeout(() => {
+        const history = doHistory();
+        history._logTreeStructure();
+      }, 1000);
     }
   }
 
@@ -489,14 +513,54 @@ async function _basicTest(opts) {
     // console.log("UI Updated:", JSON.stringify(state));
   }
 
+
+
+  function doKey() {
+    Object.keys(histories).join(", ");
+  }
+  function doHistory() {
+    // if (history) { throw Error("history was set in doHistory"); }
+    if (ourUndoRedo) {
+      const key = doKey();
+      const ourHistory = histories[key];
+      if (!ourHistory) { throw Error(`No history found for key: ${_key}`); }
+      return ourHistory;
+    }
+    return history;
+  }
+  function doCreateHistory() {
+    if (ourUndoRedo) {
+      const key = doKey();
+      addUndoRedo(key, appState, funBranch);
+      doHistory(); // Just check it is created
+      return;
+    }
+    history = new UndoRedoTreeWithDiff(appState, funBranch);
+  }
   function doUndo() {
+    if (ourUndoRedo) {
+      return actionUndo(doKey());
+    }
     return history.undo();
   }
   async function doRedo() {
+    if (ourUndoRedo) {
+      return actionRedo(doKey());
+    }
     return history.redo();
   }
   function doRecordAction(state, action) {
+    if (ourUndoRedo) {
+      actionRecordAction(doKey(), state, action);
+      return;
+    }
     history.recordAction(state, action);
+  }
+  function doIsTreeStructured() {
+    if (ourUndoRedo) {
+      return getHistory(doKey()).isTreeStructured;
+    }
+    return history.isTreeStructured;
   }
 
 }
