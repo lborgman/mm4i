@@ -1,5 +1,5 @@
 // @ts-check
-const UNDO_REDO_TREE_VERSION = "0.0.00";
+const UNDO_REDO_TREE_VERSION = "0.0.001";
 window["logConsoleHereIs"](`here is undo-redo-tree.js, module ${UNDO_REDO_TREE_VERSION}`);
 console.warn(`here is undo-redo-tree.js, module ${UNDO_REDO_TREE_VERSION}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
@@ -21,7 +21,7 @@ function logClassImportant(what, ...msg) { console.log(`%c${what}`, logClassImpo
 const histories = {};
 
 ////////////////////////////////////////////
-//// START: Code suggestions for tree from Google Gemini AI (modified):
+//// START: Code suggestions for tree from Google Gemini AI (heavily modified):
 export class HistoryTreeNode {
   /**
    * @param {UndoRedoTreeWithDiff} objUndoRedo 
@@ -316,7 +316,7 @@ export class UndoRedoTreeWithDiff {
     }));
   }
 }
-//// END: Code suggestions for tree from Google Gemini AI:
+//// END: Code suggestions for tree from Google Gemini AI
 ////////////////////////////////////////////
 
 
@@ -352,10 +352,11 @@ export async function actionRedo(_key) {
 }
 
 ////////////////////////////////////////////
-// Basic tests from AI
+// Basic tests
 
 _doSomeTests();
 async function _doSomeTests() {
+  ////// All tests passed in version "0.0.001"
   // await _basicTest({}); // linear
   // await _basicTest({ ourUndoRedo: true }); // linear
   // await _basicTest({ funBranch: _ourFunBranch }); // branched
