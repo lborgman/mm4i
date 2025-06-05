@@ -18,12 +18,20 @@ function logClassImportant(what, ...msg) { console.log(`%c${what}`, logClassImpo
 
 
 
-const undoRedos = {};
+// const undoRedos = {};
 
 ////////////////////////////////////////////
-//// START: Code suggestions for tree from Google Gemini AI:
+//// START: Code suggestions for tree from Google Gemini AI (modified):
 export class HistoryTreeNode {
-  constructor(parent, patchesToReachThisNode, patchesToUndoThisNode, action = null) {
+  /**
+   * @param {UndoRedoTreeWithDiff} objUndoRedo 
+   * @param {HistoryTreeNode} parent 
+   * @param {Object} patchesToReachThisNode 
+   * @param {Object} patchesToUndoThisNode 
+   * @param {string|null} action 
+   */
+  constructor(objUndoRedo, parent, patchesToReachThisNode, patchesToUndoThisNode, action = null) {
+    this.objUndoRedo = objUndoRedo; // Reference to the UndoRedoTreeWithDiff instance
     this.parent = parent; // Reference to the parent node
     this.children = [];   // Array of child nodes (branches)
 
@@ -36,26 +44,65 @@ export class HistoryTreeNode {
   }
 
   addChild(patchesToReach, patchesToUndo, action) {
-    const newNode = new HistoryTreeNode(this, patchesToReach, patchesToUndo, action);
+    if (!this.objUndoRedo.isTreeStructured) {
+      this.children.length = 0; // Clear existing children if linear
+    }
+    const newNode = new HistoryTreeNode(this.objUndoRedo, this, patchesToReach, patchesToUndo, action);
     this.children.push(newNode);
+    this.currentBranchIndex = this.children.length - 1; // Update current branch index to the new child
     return newNode;
   }
 }
 
 const diff_match_patch = window["diff_match_patch"];
 export class UndoRedoTreeWithDiff {
-  constructor(initialState) {
-    logClassImportant("UndoRedoTreeWithDiff", initialState);
+  #treeStructured = false;
+  constructor(initialState, funBranch = null) {
+    let txtLinOrTree = "ERROR";
+    if (funBranch == null) {
+      this.#treeStructured = false;
+      txtLinOrTree = "**LINEAR**";
+      // logClassImportant("UndoRedoTreeWithDiff", "Using linear undo/redo structure");
+    } else {
+      this.#treeStructured = true;
+      txtLinOrTree = "**BRANCH**";
+      // logClassImportant("UndoRedoTreeWithDiff", "Using tree undo/redo structure");
+      this.funBranch = funBranch; // Function to handle branching logic
+      const tofFunBranch = typeof funBranch;
+      if (tofFunBranch !== "function") {
+        throw Error(`Invalid funBranch type: ${tofFunBranch}, expected "function"`);
+      }
+      const lenFunBranch = funBranch.length;
+      if (lenFunBranch !== 2) {
+        throw Error(`Invalid funBranch length: ${lenFunBranch}, expected 2`);
+      }
+    }
+    logClassImportant("UndoRedoTreeWithDiff", txtLinOrTree, initialState);
     this.dmp = new diff_match_patch();
 
     // The root node stores the full initial state directly, as it has no parent/patches.
-    this.rootNode = new HistoryTreeNode(null, null, null, "Initial State");
+    this.rootNode = new HistoryTreeNode(this, null, null, null, "Initial State");
     // We'll store the actual state on the root node because it's the base.
     this.rootNode.fullStateSnapshot = this._deepCopy(initialState);
 
     this.currentNode = this.rootNode;
     // This holds the fully rehydrated state of `this.currentNode`.
     this.currentFullState = this._deepCopy(initialState);
+  }
+
+  _logTreeStructure() {
+    logClass("Current tree structure:");
+    // debugger;
+    const current = this.currentNode;
+    const traverse = (node, depth = 0) => {
+      const markCurrent = (node === current) ? "> " : "";
+      const styleCurrent = (node === current) ? "background:darkblue;color:white;" : "";
+      console.log("%c" + "  ".repeat(depth) + `${markCurrent}Node ID: ${node.id}, Action: ${node.action || "N/A"} `, styleCurrent);
+      if (node.children.length > 0) {
+        node.children.forEach(child => traverse(child, depth + 1));
+      }
+    }
+    traverse(this.rootNode);
   }
 
   _serialize(state) {
@@ -76,6 +123,10 @@ export class UndoRedoTreeWithDiff {
 
   _deepCopy(obj) {
     return JSON.parse(JSON.stringify(obj));
+  }
+
+  get isTreeStructured() {
+    return this.#treeStructured;
   }
 
   recordAction(newFullState, actionDetails = null) {
@@ -131,14 +182,29 @@ export class UndoRedoTreeWithDiff {
     return this.currentFullState;
   }
 
-  redo(branchIndex = 0) { // Default to the first child (most common redo path)
+  // redo(branchIndex = 0) {
+  redo() {
+    // debugger;
+    /*
+    if (!Number.isInteger(branchIndex) || branchIndex < 0) {
+      throw Error(`Invalid branch index "${branchIndex} for redo. Must be a non-negative integer.`);
+    }
     logClass(`redo(${branchIndex})`);
-    if (this.currentNode.children.length === 0 || !this.currentNode.children[branchIndex]) {
-      console.log("No child to redo to on this branch or invalid branch index.");
+    */
+    logClass("redo()");
+    const currentNode = this.currentNode;
+    if (currentNode.children.length === 0) {
+      console.log("Nothing to redo.");
       return null;
     }
 
-    const childNodeToRedoTo = this.currentNode.children[branchIndex];
+    const defaultBranchIndex = this.currentNode.currentBranchIndex || 0;
+    let branchIndex = defaultBranchIndex;
+    if (this.funBranch) {
+      const arrChildren = this.currentNode.children.map(c => c.action);
+      branchIndex = this.funBranch(defaultBranchIndex, arrChildren);
+    }
+    const childNodeToRedoTo = currentNode.children[branchIndex];
     const patchesToApplyForRedo = childNodeToRedoTo.patchesToReach;
 
     if (!patchesToApplyForRedo) {
@@ -255,19 +321,36 @@ export function actionRedo(key) {
 
 ////////////////////////////////////////////
 // Basic tests from AI
-_basicTest();
-function _basicTest() {
+
+// _basicTest(); // linear
+/**
+ * 
+ * @param {number} defaultBranch 
+ * @param {*} arrBranches 
+ * @returns 
+ */
+const ourFunBranch = (defaultBranch, arrBranches) => {
+  if (!Number.isInteger(defaultBranch) || defaultBranch < 0) {
+    throw Error(`Invalid defaultBranch "${defaultBranch}" for ourFunBranch. Must be a non-negative integer.`);
+  }
+  console.log({arrBranches});
+  // This function can be used to determine how to branch based on the actionDetails
+  return defaultBranch; // Always return the default branch for now
+}
+_basicTest(ourFunBranch); // branched
+
+function _basicTest(funBranch) {
   console.log("%c_basicTest", "font-size:20px; color:white; background:blue; padding:2px; border-radius:2px;");
-  // --- Assuming HistoryNode and UndoRedoTreeWithDiff classes are defined above ---
-  // --- And diff_match_patch.js is loaded and `dmp` is available or instantiated in the class ---
-  let appState = { message: "state0" };
 
   function deepCopy4test(obj) { return JSON.parse(JSON.stringify(obj)); }
-  function updateMyAppUI(state) {
+  function updateMyAppUI(_state) {
     // console.log("UI Updated:", JSON.stringify(state));
   }
 
-  const history = new UndoRedoTreeWithDiff(appState);
+  let alreayCalledLogTreeStructure = false;
+  let appState = { message: "state0" };
+
+  const history = new UndoRedoTreeWithDiff(appState, funBranch);
   updateMyAppUI(appState);
   const state0 = deepCopy4test(appState);
 
@@ -276,16 +359,18 @@ function _basicTest() {
   history.recordAction(appState, "Action 1");
   updateMyAppUI(appState);
   const state1 = deepCopy4test(appState);
+  assertObjectEqual("After Action 1", appState, state1);
 
   // Action 2
   appState.message = "state2";
   history.recordAction(appState, "Action 2");
   updateMyAppUI(appState);
   const state2 = deepCopy4test(appState);
+  assertObjectEqual("After Action 2", appState, state2);
 
   // Undo Action 2
   appState = history.undo();
-  if (appState) updateMyAppUI(appState); 
+  if (appState) updateMyAppUI(appState);
   assertObjectEqual("After undo Action 2", appState, state1);
 
   // Undo Action 1
@@ -299,23 +384,31 @@ function _basicTest() {
   if (appState) updateMyAppUI(appState);
   assertObjectEqual("After redo Action 1", appState, state1);
 
-  // Now, let's create a new branch from here
+  // Now, let's create a new node from here
   let branchedState = JSON.parse(JSON.stringify(appState)); // Important to copy
-  branchedState.message = "New Branch!";
-  history.recordAction(branchedState, "Created a new branch from state 1");
+  branchedState.message = history.isTreeStructured ? "New Branch!" : "New Linear!";
+
+  // debugger;
+  history.recordAction(branchedState, "new node from state 1");
   appState = branchedState; // Update our main appState variable
   updateMyAppUI(appState);
   const stateB0 = deepCopy4test(appState);
+  assertObjectEqual("After new node from state 1", appState, stateB0);
 
   // If we undo now:
   appState = history.undo();
   if (appState) updateMyAppUI(appState);
   assertObjectEqual("After if we undo now", appState, state1);
 
-  // If we redo, we go along the new branch:
+  // redo, add a new node:
+  // debugger;
   appState = history.redo();
   if (appState) updateMyAppUI(appState);
-  assertObjectEqual("After if we redo, we go along the new branch", appState, stateB0);
+  if (history.isTreeStructured) {
+    assertObjectEqual("After redo, add a new node", appState, stateB0);
+  } else {
+    assertObjectEqual("After redo, add a new node", appState, stateB0);
+  }
 
   // To access the old Action 2 (counter: 15):
   // 1. Undo twice to get to root.
@@ -339,15 +432,18 @@ function _basicTest() {
   // // appState = history.redo(0);
   // // updateMyAppUI(appState); // { counter: 15, message: "First action" }
 
-}
 
 
 
 
-function assertObjectEqual(where, actual, expected) {
-  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
-    console.error("%cNot equal", "color:white; background:red; padding:2px; font-size:1.2em", `${where}: ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
-  } else {
-    console.log("%cequal:", "color:white; background:green; padding:2px; font-size:1.2em", `${where}: ${JSON.stringify(actual)}`);
+  function assertObjectEqual(where, actual, expected) {
+    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+      console.error("%cNot equal", "color:white; background:red; padding:2px; font-size:1.2em", `${where}: ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+    } else {
+      console.log("%cequal:", "color:white; background:green; padding:2px; font-size:1.2em", `${where}: ${JSON.stringify(actual)}`);
+      if (alreayCalledLogTreeStructure) return;
+      alreayCalledLogTreeStructure = true;
+      setTimeout(() => { history._logTreeStructure(); }, 1000);
+    }
   }
 }
