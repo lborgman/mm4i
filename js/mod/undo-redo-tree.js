@@ -1,7 +1,7 @@
 // @ts-check
 const UNDO_REDO_TREE_VERSION = "0.0.00";
-window["logConsoleHereIs"](`here is db-mindmaps.js, module ${UNDO_REDO_TREE_VERSION}`);
-console.warn(`here is db-mindmaps.js, module ${UNDO_REDO_TREE_VERSION}`);
+window["logConsoleHereIs"](`here is undo-redo-tree.js, module ${UNDO_REDO_TREE_VERSION}`);
+console.warn(`here is undo-redo-tree.js, module ${UNDO_REDO_TREE_VERSION}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 if (typeof window["diff_match_patch"] !== "function") {
@@ -354,213 +354,218 @@ export async function actionRedo(_key) {
 ////////////////////////////////////////////
 // Basic tests from AI
 
-await _basicTest({}); // linear
-await _basicTest({ ourUndoRedo: true }); // linear
-await _basicTest({ funBranch: _ourFunBranch }); // branched
-await _basicTest({ funBranch: _ourFunBranch, ourUndoRedo: true }); // branched
+_doSomeTests();
+async function _doSomeTests() {
+  // await _basicTest({}); // linear
+  // await _basicTest({ ourUndoRedo: true }); // linear
+  // await _basicTest({ funBranch: _ourFunBranch }); // branched
+  // await _basicTest({ funBranch: _ourFunBranch, ourUndoRedo: true }); // branched
 
-/**
- * @param {number} defaultBranch 
- * @param {string[]} arrBranches 
- * @returns {Promise<number>}
- */
-async function _ourFunBranch(defaultBranch, arrBranches) {
-  if (!Number.isInteger(defaultBranch) || defaultBranch < 0) { throw Error(`Invalid defaultBranch "${defaultBranch}"`); }
-  console.log(`  ourFunBranch called with defaultBranch: ${defaultBranch}, arrBranches:`, arrBranches);
-  return defaultBranch; // Always return the default branch for now
-}
-
-
-
-async function _basicTest(opts) {
-  console.log("%c_basicTest", "font-size:20px; color:white; background:blue; padding:2px; border-radius:2px;");
-
-  const tofOpts = typeof opts;
-  if (tofOpts !== "object") {
-    throw Error(`Invalid opts type: ${tofOpts}, expected "object"`);
+  /**
+   * @param {number} defaultBranch 
+   * @param {string[]} arrBranches 
+   * @returns {Promise<number>}
+   */
+  async function _ourFunBranch(defaultBranch, arrBranches) {
+    if (!Number.isInteger(defaultBranch) || defaultBranch < 0) { throw Error(`Invalid defaultBranch "${defaultBranch}"`); }
+    console.log(`  ourFunBranch called with defaultBranch: ${defaultBranch}, arrBranches:`, arrBranches);
+    const importFc4i = window["importFc4i"];
+    const modTools = await importFc4i("toolsJs");
+    await modTools.waitSeconds(0.5); // Simulate some delay
+    return defaultBranch; // Always return the default branch for now
   }
-  if (Array.isArray(opts)) {
-    throw Error(`Invalid opts type: Array, expected "object"`);
-  }
-  if (opts === null) {
-    throw Error(`Invalid opts type: null, expected "object"`);
-  }
-  const validKeys = ["funBranch", "ourUndoRedo"];
-  for (const key in opts) {
-    if (!validKeys.includes(key)) {
-      throw Error(`Invalid key in opts: ${key}, expected one of ${validKeys.join(", ")}`);
+
+
+
+  async function _basicTest(opts) {
+    console.log("%c_basicTest", "font-size:20px; color:white; background:blue; padding:2px; border-radius:2px;");
+
+    const tofOpts = typeof opts;
+    if (tofOpts !== "object") {
+      throw Error(`Invalid opts type: ${tofOpts}, expected "object"`);
     }
-  }
+    if (Array.isArray(opts)) {
+      throw Error(`Invalid opts type: Array, expected "object"`);
+    }
+    if (opts === null) {
+      throw Error(`Invalid opts type: null, expected "object"`);
+    }
+    const validKeys = ["funBranch", "ourUndoRedo"];
+    for (const key in opts) {
+      if (!validKeys.includes(key)) {
+        throw Error(`Invalid key in opts: ${key}, expected one of ${validKeys.join(", ")}`);
+      }
+    }
 
-  const funBranch = opts.funBranch || undefined;
-  const ourUndoRedo = opts.ourUndoRedo || false;
+    const funBranch = opts.funBranch || undefined;
+    const ourUndoRedo = opts.ourUndoRedo || false;
 
-  let alreayCalledLogTreeStructure = false;
-  let appState = { message: "state0" };
+    let alreayCalledLogTreeStructure = false;
+    let appState = { message: "state0" };
 
-  let history;
-  // history = new UndoRedoTreeWithDiff(appState, funBranch);
-  doCreateHistory();
-  updateMyAppUI(appState);
-  const state0 = deepCopy4test(appState);
+    let history;
+    // history = new UndoRedoTreeWithDiff(appState, funBranch);
+    doCreateHistory();
+    updateMyAppUI(appState);
+    const state0 = deepCopy4test(appState);
 
-  // Action 1
-  appState.message = "state1";
-  // history.recordAction(appState, "Action 1");
-  doRecordAction(appState, "Action 1");
-  updateMyAppUI(appState);
-  const state1 = deepCopy4test(appState);
-  assertObjectEqual("After Action 1", appState, state1);
+    // Action 1
+    appState.message = "state1";
+    // history.recordAction(appState, "Action 1");
+    doRecordAction(appState, "Action 1");
+    updateMyAppUI(appState);
+    const state1 = deepCopy4test(appState);
+    assertObjectEqual("After Action 1", appState, state1);
 
-  // Action 2
-  appState.message = "state2";
-  // history.recordAction(appState, "Action 2");
-  doRecordAction(appState, "Action 2");
-  updateMyAppUI(appState);
-  const state2 = deepCopy4test(appState);
-  assertObjectEqual("After Action 2", appState, state2);
+    // Action 2
+    appState.message = "state2";
+    // history.recordAction(appState, "Action 2");
+    doRecordAction(appState, "Action 2");
+    updateMyAppUI(appState);
+    const state2 = deepCopy4test(appState);
+    assertObjectEqual("After Action 2", appState, state2);
 
-  // Undo Action 2
-  // appState = history.undo();
-  appState = doUndo();
-  if (appState) updateMyAppUI(appState);
-  assertObjectEqual("After undo Action 2", appState, state1);
+    // Undo Action 2
+    // appState = history.undo();
+    appState = doUndo();
+    if (appState) updateMyAppUI(appState);
+    assertObjectEqual("After undo Action 2", appState, state1);
 
-  // Undo Action 1
-  // appState = history.undo();
-  appState = doUndo();
-  if (appState) updateMyAppUI(appState);
-  assertObjectEqual("After undo Action 1", appState, state0);
-
-
-  // Redo Action 1
-  appState = await doRedo();
-  if (appState) updateMyAppUI(appState);
-  assertObjectEqual("After redo Action 1", appState, state1);
-
-  // Now, let's create a new node from here
-  let branchedState = JSON.parse(JSON.stringify(appState)); // Important to copy
-  // branchedState.message = history.isTreeStructured ? "New Branch!" : "New Linear!";
-  branchedState.message = doIsTreeStructured() ? "New Branch!" : "New Linear!";
-
-  // debugger; // eslint-disable-line no-debugger
-  // history.recordAction(branchedState, "new node from state 1");
-  doRecordAction(branchedState, "new node from state 1");
-  appState = branchedState; // Update our main appState variable
-  updateMyAppUI(appState);
-  const stateB0 = deepCopy4test(appState);
-  assertObjectEqual("After new node from state 1", appState, stateB0);
-
-  // If we undo now:
-  // appState = history.undo();
-  appState = doUndo();
-  if (appState) updateMyAppUI(appState);
-  assertObjectEqual("After if we undo now", appState, state1);
-
-  // redo, add a new node:
-  // debugger; // eslint-disable-line no-debugger
-  appState = await doRedo();
-  if (appState) updateMyAppUI(appState);
-  // if (history.isTreeStructured) {
-  if (doIsTreeStructured()) {
-    assertObjectEqual("After redo, add a new node", appState, stateB0);
-  } else {
-    assertObjectEqual("After redo, add a new node", appState, stateB0);
-  }
-
-  // To access the old Action 2 (counter: 15):
-  // 1. Undo twice to get to root.
-  // 2. Redo to state after Action 1.
-  // 3. Now, the node for "Action 1" would have two children.
-  //    You would need to call redo with the correct branchIndex.
-  // console.log("Parent of current:", history.currentNode.parent);
-  // console.log("Available redo branches from previous state:", history.currentNode.parent.children.map(c => c.action));
-
-  // Example of checking branches (after undoing to the fork point):
-  // history.undo(); // appState is now { counter: 10, message: "First action" }
-  // const branches = history.getPossibleRedoActions();
-  // console.log("Possible redo actions:", branches);
-  // /* This would show something like:
-  // [
-  //   { action: "Incremented counter again", branchIndex: 0, nodeId: ... },
-  //   { action: "Created a new branch from state 1", branchIndex: 1, nodeId: ... }
-  // ]
-  // */
-  // // To go down the first original branch:
-  // // appState = history.redo(0);
-  // // updateMyAppUI(appState); // { counter: 15, message: "First action" }
+    // Undo Action 1
+    // appState = history.undo();
+    appState = doUndo();
+    if (appState) updateMyAppUI(appState);
+    assertObjectEqual("After undo Action 1", appState, state0);
 
 
+    // Redo Action 1
+    appState = await doRedo();
+    if (appState) updateMyAppUI(appState);
+    assertObjectEqual("After redo Action 1", appState, state1);
 
+    // Now, let's create a new node from here
+    let branchedState = JSON.parse(JSON.stringify(appState)); // Important to copy
+    // branchedState.message = history.isTreeStructured ? "New Branch!" : "New Linear!";
+    branchedState.message = doIsTreeStructured() ? "New Branch!" : "New Linear!";
 
+    // debugger; // eslint-disable-line no-debugger
+    // history.recordAction(branchedState, "new node from state 1");
+    doRecordAction(branchedState, "new node from state 1");
+    appState = branchedState; // Update our main appState variable
+    updateMyAppUI(appState);
+    const stateB0 = deepCopy4test(appState);
+    assertObjectEqual("After new node from state 1", appState, stateB0);
 
-  function assertObjectEqual(where, actual, expected) {
-    if (JSON.stringify(actual) !== JSON.stringify(expected)) {
-      console.error("%cNot equal", "color:white; background:red; padding:2px; font-size:1.2em", `${where}: ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+    // If we undo now:
+    // appState = history.undo();
+    appState = doUndo();
+    if (appState) updateMyAppUI(appState);
+    assertObjectEqual("After if we undo now", appState, state1);
+
+    // redo, add a new node:
+    // debugger; // eslint-disable-line no-debugger
+    appState = await doRedo();
+    if (appState) updateMyAppUI(appState);
+    if (doIsTreeStructured()) {
+      assertObjectEqual("After redo, add a new node", appState, stateB0);
     } else {
-      console.log("%cequal:", "color:white; background:green; padding:2px; font-size:1.2em", `${where}: ${JSON.stringify(actual)}`);
-      if (alreayCalledLogTreeStructure) return;
-      alreayCalledLogTreeStructure = true;
-      setTimeout(() => {
-        const history = doHistory();
-        history._logTreeStructure();
-      }, 1000);
+      assertObjectEqual("After redo, add a new node", appState, stateB0);
     }
-  }
 
-  function deepCopy4test(obj) { return JSON.parse(JSON.stringify(obj)); }
-  function updateMyAppUI(_state) {
-    // console.log("UI Updated:", JSON.stringify(state));
-  }
+    // To access the old Action 2 (counter: 15):
+    // 1. Undo twice to get to root.
+    // 2. Redo to state after Action 1.
+    // 3. Now, the node for "Action 1" would have two children.
+    //    You would need to call redo with the correct branchIndex.
+    // console.log("Parent of current:", history.currentNode.parent);
+    // console.log("Available redo branches from previous state:", history.currentNode.parent.children.map(c => c.action));
+
+    // Example of checking branches (after undoing to the fork point):
+    // history.undo(); // appState is now { counter: 10, message: "First action" }
+    // const branches = history.getPossibleRedoActions();
+    // console.log("Possible redo actions:", branches);
+    // /* This would show something like:
+    // [
+    //   { action: "Incremented counter again", branchIndex: 0, nodeId: ... },
+    //   { action: "Created a new branch from state 1", branchIndex: 1, nodeId: ... }
+    // ]
+    // */
+    // // To go down the first original branch:
+    // // appState = history.redo(0);
+    // // updateMyAppUI(appState); // { counter: 15, message: "First action" }
 
 
 
-  function doKey() {
-    Object.keys(histories).join(", ");
-  }
-  function doHistory() {
-    // if (history) { throw Error("history was set in doHistory"); }
-    if (ourUndoRedo) {
-      const key = doKey();
-      const ourHistory = histories[key];
-      if (!ourHistory) { throw Error(`No history found for key: ${_key}`); }
-      return ourHistory;
-    }
-    return history;
-  }
-  function doCreateHistory() {
-    if (ourUndoRedo) {
-      const key = doKey();
-      addUndoRedo(key, appState, funBranch);
-      doHistory(); // Just check it is created
-      return;
-    }
-    history = new UndoRedoTreeWithDiff(appState, funBranch);
-  }
-  function doUndo() {
-    if (ourUndoRedo) {
-      return actionUndo(doKey());
-    }
-    return history.undo();
-  }
-  async function doRedo() {
-    if (ourUndoRedo) {
-      return actionRedo(doKey());
-    }
-    return history.redo();
-  }
-  function doRecordAction(state, action) {
-    if (ourUndoRedo) {
-      actionRecordAction(doKey(), state, action);
-      return;
-    }
-    history.recordAction(state, action);
-  }
-  function doIsTreeStructured() {
-    if (ourUndoRedo) {
-      return getHistory(doKey()).isTreeStructured;
-    }
-    return history.isTreeStructured;
-  }
 
+
+    function assertObjectEqual(where, actual, expected) {
+      if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+        console.error("%cNot equal", "color:white; background:red; padding:2px; font-size:1.2em", `${where}: ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+      } else {
+        console.log("%cequal:", "color:white; background:green; padding:2px; font-size:1.2em", `${where}: ${JSON.stringify(actual)}`);
+        if (alreayCalledLogTreeStructure) return;
+        alreayCalledLogTreeStructure = true;
+        setTimeout(() => {
+          const history = doHistory();
+          history._logTreeStructure();
+        }, 1000);
+      }
+    }
+
+    function deepCopy4test(obj) { return JSON.parse(JSON.stringify(obj)); }
+    function updateMyAppUI(_state) {
+      // console.log("UI Updated:", JSON.stringify(state));
+    }
+
+
+
+    function doKey() {
+      Object.keys(histories).join(", ");
+    }
+    function doHistory() {
+      // if (history) { throw Error("history was set in doHistory"); }
+      if (ourUndoRedo) {
+        const key = doKey();
+        const ourHistory = histories[key];
+        if (!ourHistory) { throw Error(`No history found for key: ${_key}`); }
+        return ourHistory;
+      }
+      return history;
+    }
+    function doCreateHistory() {
+      if (ourUndoRedo) {
+        const key = doKey();
+        addUndoRedo(key, appState, funBranch);
+        doHistory(); // Just check it is created
+        return;
+      }
+      history = new UndoRedoTreeWithDiff(appState, funBranch);
+    }
+    function doUndo() {
+      if (ourUndoRedo) {
+        return actionUndo(doKey());
+      }
+      return history.undo();
+    }
+    async function doRedo() {
+      if (ourUndoRedo) {
+        return actionRedo(doKey());
+      }
+      return history.redo();
+    }
+    function doRecordAction(state, action) {
+      if (ourUndoRedo) {
+        actionRecordAction(doKey(), state, action);
+        return;
+      }
+      history.recordAction(state, action);
+    }
+    function doIsTreeStructured() {
+      if (ourUndoRedo) {
+        return getHistory(doKey()).isTreeStructured;
+      }
+      return history.isTreeStructured;
+    }
+
+  }
 }
