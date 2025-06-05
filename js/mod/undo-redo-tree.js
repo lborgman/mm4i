@@ -82,6 +82,9 @@ export class UndoRedoTreeWithDiff {
       if (tofFunBranch !== "function") {
         throw Error(`Invalid funBranch type: ${tofFunBranch}, expected "function"`);
       }
+      if (funBranch.constructor.name !== "AsyncFunction") {
+        throw Error(`funBranch is not async`);
+      }
       const lenFunBranch = funBranch.length;
       if (lenFunBranch !== 2) {
         throw Error(`Invalid funBranch length: ${lenFunBranch}, expected 2`);
@@ -200,7 +203,7 @@ export class UndoRedoTreeWithDiff {
   }
 
   // redo(branchIndex = 0) {
-  redo() {
+  async redo() {
     // debugger; // eslint-disable-line no-debugger
     /*
     if (!Number.isInteger(branchIndex) || branchIndex < 0) {
@@ -219,7 +222,7 @@ export class UndoRedoTreeWithDiff {
     let branchIndex = defaultBranchIndex;
     if (this.funBranch) {
       const arrChildren = this.currentNode.children.map(c => c.action);
-      const idxFun = this.funBranch(defaultBranchIndex, arrChildren);
+      const idxFun = await this.funBranch(defaultBranchIndex, arrChildren);
       if (!Number.isInteger(idxFun)) {
         throw Error(`funBranch returned non-integer: ${idxFun}`);
       }
@@ -333,7 +336,7 @@ export function actionRedo(_key) {
 ////////////////////////////////////////////
 // Basic tests from AI
 
-_basicTest(); // linear
+await _basicTest(); // linear
 
 /**
  * 
@@ -341,7 +344,7 @@ _basicTest(); // linear
  * @param {string[]} arrBranches 
  * @returns 
  */
-const ourFunBranch = (defaultBranch, arrBranches) => {
+const ourFunBranch = async (defaultBranch, arrBranches) => {
   if (!Number.isInteger(defaultBranch) || defaultBranch < 0) {
     throw Error(`Invalid defaultBranch "${defaultBranch}" for ourFunBranch. Must be a non-negative integer.`);
   }
@@ -349,9 +352,9 @@ const ourFunBranch = (defaultBranch, arrBranches) => {
   // This function can be used to determine how to branch based on the actionDetails
   return defaultBranch; // Always return the default branch for now
 }
-_basicTest(ourFunBranch); // branched
+await _basicTest(ourFunBranch); // branched
 
-function _basicTest(funBranch) {
+async function _basicTest(funBranch) {
   console.log("%c_basicTest", "font-size:20px; color:white; background:blue; padding:2px; border-radius:2px;");
 
   function deepCopy4test(obj) { return JSON.parse(JSON.stringify(obj)); }
@@ -392,7 +395,7 @@ function _basicTest(funBranch) {
 
 
   // Redo Action 1
-  appState = history.redo(); // Assuming redo follows the main branch (branchIndex 0)
+  appState = await history.redo(); // Assuming redo follows the main branch (branchIndex 0)
   if (appState) updateMyAppUI(appState);
   assertObjectEqual("After redo Action 1", appState, state1);
 
@@ -414,7 +417,7 @@ function _basicTest(funBranch) {
 
   // redo, add a new node:
   // debugger; // eslint-disable-line no-debugger
-  appState = history.redo();
+  appState = await history.redo();
   if (appState) updateMyAppUI(appState);
   if (history.isTreeStructured) {
     assertObjectEqual("After redo, add a new node", appState, stateB0);
