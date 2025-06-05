@@ -25,7 +25,7 @@ function logClassImportant(what, ...msg) { console.log(`%c${what}`, logClassImpo
 export class HistoryTreeNode {
   /**
    * @param {UndoRedoTreeWithDiff} objUndoRedo 
-   * @param {HistoryTreeNode} parent 
+   * @param {HistoryTreeNode|null} parent 
    * @param {Object} patchesToReachThisNode 
    * @param {Object} patchesToUndoThisNode 
    * @param {string|null} action 
@@ -57,7 +57,11 @@ export class HistoryTreeNode {
 const diff_match_patch = window["diff_match_patch"];
 export class UndoRedoTreeWithDiff {
   #treeStructured = false;
-  constructor(initialState, funBranch = null) {
+  /**
+   * @param {any} initialState - string or json object representing the initial state of the application.
+   * @param {(defaultBranch: number, arrBranches: string[]) => number | null} [funBranch]
+   */
+  constructor(initialState, funBranch = undefined) {
     let txtLinOrTree = "ERROR";
     if (funBranch == null) {
       this.#treeStructured = false;
@@ -91,8 +95,9 @@ export class UndoRedoTreeWithDiff {
   }
 
   _logTreeStructure() {
-    logClass("Current tree structure:");
-    // debugger;
+    const linearOrTree = this.isTreeStructured ? "Tree" : "Linear";
+    logClass(`Current tree structure (${linearOrTree}):`);
+  // debugger; // eslint-disable-line no-debugger
     const current = this.currentNode;
     const traverse = (node, depth = 0) => {
       const markCurrent = (node === current) ? "> " : "";
@@ -129,7 +134,13 @@ export class UndoRedoTreeWithDiff {
     return this.#treeStructured;
   }
 
-  recordAction(newFullState, actionDetails = null) {
+  /**
+   * 
+   * @param {any} newFullState -- string or json object representing the new state of the application.
+   * @param {string} actionDetails 
+   * @returns 
+   */
+  recordAction(newFullState, actionDetails) {
     logClass("recordAction()", newFullState, actionDetails);
     const oldStateText = this._serialize(this.currentFullState);
     const newStateText = this._serialize(newFullState);
@@ -184,7 +195,7 @@ export class UndoRedoTreeWithDiff {
 
   // redo(branchIndex = 0) {
   redo() {
-    // debugger;
+  // debugger; // eslint-disable-line no-debugger
     /*
     if (!Number.isInteger(branchIndex) || branchIndex < 0) {
       throw Error(`Invalid branch index "${branchIndex} for redo. Must be a non-negative integer.`);
@@ -291,42 +302,29 @@ export class UndoRedoTreeWithDiff {
 //// END: Code suggestions for tree from Google Gemini AI:
 ////////////////////////////////////////////
 
-/**
- * 
- * @param {any} initialValue 
- * @param {Object} actionDetails 
- */
-export function actionAdd(key, initialValue, actionDetails) {
-  const { redoStyle, itemId } = actionDetails;
-  if (!["linear", "branch"].includes(redoStyle)) {
-    throw Error(`Invalid redoStyle: ${redoStyle}, expected "linear" or "branch""`);
-  }
-  if (redoStyle === "branch") {
-    throw Error("Branching redo not implemented yet");
-  }
-  debugger;
+
+export function actionAdd(_key, _initialValue, _actionDetails) {
+  debugger; // eslint-disable-line no-debugger
 }
-export function actionRemove(key) {
+export function actionRemove(_key) {
 }
 
-/**
- * @returns {Promise<any>}
- */
-export function actionUndo(key) {
-  debugger;
+export function actionUndo(_key) {
+  debugger; // eslint-disable-line no-debugger
 }
-export function actionRedo(key) {
-  debugger;
+export function actionRedo(_key) {
+  debugger; // eslint-disable-line no-debugger
 }
 
 ////////////////////////////////////////////
 // Basic tests from AI
 
-// _basicTest(); // linear
+_basicTest(); // linear
+
 /**
  * 
  * @param {number} defaultBranch 
- * @param {*} arrBranches 
+ * @param {string[]} arrBranches 
  * @returns 
  */
 const ourFunBranch = (defaultBranch, arrBranches) => {
@@ -388,7 +386,7 @@ function _basicTest(funBranch) {
   let branchedState = JSON.parse(JSON.stringify(appState)); // Important to copy
   branchedState.message = history.isTreeStructured ? "New Branch!" : "New Linear!";
 
-  // debugger;
+  // debugger; // eslint-disable-line no-debugger
   history.recordAction(branchedState, "new node from state 1");
   appState = branchedState; // Update our main appState variable
   updateMyAppUI(appState);
@@ -401,7 +399,7 @@ function _basicTest(funBranch) {
   assertObjectEqual("After if we undo now", appState, state1);
 
   // redo, add a new node:
-  // debugger;
+  // debugger; // eslint-disable-line no-debugger
   appState = history.redo();
   if (appState) updateMyAppUI(appState);
   if (history.isTreeStructured) {
