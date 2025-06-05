@@ -30,6 +30,7 @@ export class HistoryTreeNode {
    * @param {Object} patchesToUndoThisNode 
    * @param {string|null} action 
    */
+
   constructor(objUndoRedo, parent, patchesToReachThisNode, patchesToUndoThisNode, action = null) {
     this.objUndoRedo = objUndoRedo; // Reference to the UndoRedoTreeWithDiff instance
     this.parent = parent; // Reference to the parent node
@@ -42,6 +43,11 @@ export class HistoryTreeNode {
     this.action = action; // Optional: Description of the action
     this.id = Date.now() + Math.random().toString(36).substring(2); // A simple unique ID for debugging or advanced navigation
   }
+
+  /**
+   * @type {any}
+   */
+  fullStateSnapshot = undefined;
 
   addChild(patchesToReach, patchesToUndo, action) {
     if (!this.objUndoRedo.isTreeStructured) {
@@ -97,7 +103,7 @@ export class UndoRedoTreeWithDiff {
   _logTreeStructure() {
     const linearOrTree = this.isTreeStructured ? "Tree" : "Linear";
     logClass(`Current tree structure (${linearOrTree}):`);
-  // debugger; // eslint-disable-line no-debugger
+    // debugger; // eslint-disable-line no-debugger
     const current = this.currentNode;
     const traverse = (node, depth = 0) => {
       const markCurrent = (node === current) ? "> " : "";
@@ -195,7 +201,7 @@ export class UndoRedoTreeWithDiff {
 
   // redo(branchIndex = 0) {
   redo() {
-  // debugger; // eslint-disable-line no-debugger
+    // debugger; // eslint-disable-line no-debugger
     /*
     if (!Number.isInteger(branchIndex) || branchIndex < 0) {
       throw Error(`Invalid branch index "${branchIndex} for redo. Must be a non-negative integer.`);
@@ -213,7 +219,15 @@ export class UndoRedoTreeWithDiff {
     let branchIndex = defaultBranchIndex;
     if (this.funBranch) {
       const arrChildren = this.currentNode.children.map(c => c.action);
-      branchIndex = this.funBranch(defaultBranchIndex, arrChildren);
+      const idxFun = this.funBranch(defaultBranchIndex, arrChildren);
+      if (!Number.isInteger(idxFun)) {
+        throw Error(`funBranch returned non-integer: ${idxFun}`);
+      }
+      // @ts-ignore -- ts bug
+      if (idxFun < 0 || idxFun >= this.currentNode.children.length) {
+        throw Error(`Invalid branch index returned by funBranch: ${idxFun}`);
+      }
+      branchIndex = (typeof idxFun === "number" && idxFun !== null) ? idxFun : defaultBranchIndex;
     }
     const childNodeToRedoTo = currentNode.children[branchIndex];
     const patchesToApplyForRedo = childNodeToRedoTo.patchesToReach;
@@ -331,7 +345,7 @@ const ourFunBranch = (defaultBranch, arrBranches) => {
   if (!Number.isInteger(defaultBranch) || defaultBranch < 0) {
     throw Error(`Invalid defaultBranch "${defaultBranch}" for ourFunBranch. Must be a non-negative integer.`);
   }
-  console.log({arrBranches});
+  console.log({ arrBranches });
   // This function can be used to determine how to branch based on the actionDetails
   return defaultBranch; // Always return the default branch for now
 }
