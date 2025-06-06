@@ -16,6 +16,11 @@ const URL_MINDMAPS_PAGE = "./mm4i.html";
 const modTools = await importFc4i("toolsJs");
 const throttleSaveMindmap = modTools.throttleTO(DBsaveNowThisMindmap, 300);
 
+async function saveMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy) {
+    // const dbMindmaps = await getDbMindmaps();
+    const dbMindmaps = await importFc4i("db-mindmaps");
+    return await dbMindmaps.DBsetMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy);
+}
 
 export function DBrequestSaveThisMindmap(jmDisplayed) { throttleSaveMindmap(jmDisplayed); }
 async function DBsaveNowThisMindmap(jmDisplayed) {
@@ -23,9 +28,11 @@ async function DBsaveNowThisMindmap(jmDisplayed) {
     const metaName = objDataMind.meta.name;
     if (!metaName) throw Error("Current mindmap has no meta.key");
     const [keyName] = metaName.split("/");
-    // const dbMindmaps = await getDbMindmaps();
-    const dbMindmaps = await importFc4i("db-mindmaps");
-    await dbMindmaps.DBsetMindmap(keyName, objDataMind, (new Date()).toISOString());
+
+    // const dbMindmaps = await importFc4i("db-mindmaps");
+    // await dbMindmaps.DBsetMindmap(keyName, objDataMind, (new Date()).toISOString());
+    // saveMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy) {
+    await saveMindmap(keyName, objDataMind, (new Date()).toISOString());
 }
 
 function getNextMindmapKey() { return "mm-" + new Date().toISOString(); }
@@ -37,7 +44,6 @@ export function showMindmap(key) {
     location.href = url.href;
 }
 
-// export async function createAndShowNewMindmap(linkMindmapsPage) {
 export async function createAndShowNewMindmap() {
     if (arguments.length != 0) throw Error("This function should no longer have a parameter");
     const jsMindMap = await dialogCreateMindMap();
@@ -52,8 +58,11 @@ export async function createAndShowNewMindmap() {
     root.shapeEtc = {};
     root.shapeEtc.shape = "jsmind-shape-ellipse";
 
-    const dbMindmaps = await importFc4i("db-mindmaps");
-    await dbMindmaps.DBsetMindmap(keyName, jsMindMap);
+    // const dbMindmaps = await importFc4i("db-mindmaps");
+    // await dbMindmaps.DBsetMindmap(keyName, jsMindMap);
+    // saveMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy) {
+    await saveMindmap(keyName, jsMindMap);
+
     showMindmap(keyName);
 }
 
@@ -459,7 +468,10 @@ export async function setMindmapPrivacy(key, newPrivacy) {
     const jsMindmap = await dbMindmaps.DBgetMindmap(key);
     const { lastUpdated, lastSynced, privacy } = dbMindmaps.getMindmapMetaParts(jsMindmap);
     if (privacy == newPrivacy) { return; }
-    return dbMindmaps.DBsetMindmap(key, jsMindmap, lastUpdated, lastSynced, newPrivacy);
+
+    // return dbMindmaps.DBsetMindmap(key, jsMindmap, lastUpdated, lastSynced, newPrivacy);
+    // saveMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy) {
+    return saveMindmap(key, jsMindmap, lastUpdated, lastSynced, newPrivacy);
 }
 
 /**

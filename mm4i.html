@@ -1138,7 +1138,12 @@
             modMdc.mkMDCsnackbar("Redo is not yet implemented");
         });
 
-        const menuUndoRedo = modMdc.mkMDCmenuUl([menuItemUndo, menuItemRedo]);
+        const menuItemNot = modMdc.mkMDCmenuItem(mkElt("span", {style:"background:red;padding:8px;"},"Not ready!"));
+        const menuUndoRedo = modMdc.mkMDCmenuUl([
+            menuItemNot,
+            menuItemUndo,
+            menuItemRedo
+        ]);
 
         const divUndoRedo = modMdc.mkMDCmenuDiv(menuUndoRedo);
         divUndoRedo.id = "mm4i-undo-redo-div";
