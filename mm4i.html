@@ -1114,7 +1114,7 @@
         // const modEditFc4iMM = await importFc4i("jsmind-edit-spec-fc4i");
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
         modJsEditCommon.basicInit4jsmind();
-        modJsEditCommon.pageSetup();
+        const mindmapKey = await modJsEditCommon.pageSetup();
         const aboutLink = makeAbsLink("https://lborgman.github.io/mm4i/");
         modJsEditCommon.addToPageMenu("About", aboutLink);
 
@@ -1127,18 +1127,10 @@
 
         const menuItemUndo = modMdc.mkMDCmenuItem("Undo");
         menuItemUndo.id = "mm4i-undo-redo-menu-item-undo";
-        menuItemUndo.addEventListener("click", evt => {
-            evt.stopPropagation();
-            modMdc.mkMDCsnackbar("Undo is not yet implemented");
-        });
         const menuItemRedo = modMdc.mkMDCmenuItem("Redo");
         menuItemRedo.id = "mm4i-undo-redo-menu-item-redo";
-        menuItemRedo.addEventListener("click", evt => {
-            evt.stopPropagation();
-            modMdc.mkMDCsnackbar("Redo is not yet implemented");
-        });
 
-        const menuItemNot = modMdc.mkMDCmenuItem(mkElt("span", {style:"background:red;padding:8px;"},"Not ready!"));
+        const menuItemNot = modMdc.mkMDCmenuItem(mkElt("span", { style: "background:red;padding:20px;" }, "Not ready!"));
         const menuUndoRedo = modMdc.mkMDCmenuUl([
             menuItemNot,
             menuItemUndo,
@@ -1154,10 +1146,43 @@
         // const btnHistory = modMdc.mkMDCiconButton("deployed_code_history", "Undo/Redo");
         const btnHistory = modMdc.mkMDCiconButton("history", "Undo/Redo");
         btnHistory.id = "mm4i-btn-history";
-        btnHistory.addEventListener("click", evt => {
+        let undoIsSetup = false;
+        btnHistory.addEventListener("click", async evt => {
             evt.stopPropagation();
-            // alert("Undo/Redo is not yet implemented");
             divUndoRedo.classList.toggle("display-none");
+            if (divUndoRedo.classList.contains("display-none")) return;
+            const modUndo = await importFc4i("undo-redo-tree");
+            if (!undoIsSetup) {
+                if (!(await modUndo.hasUndoRedo(mindmapKey))) {
+                    menuItemUndo.inert = true;
+                    menuItemRedo.inert = true;
+                    return;
+                }
+                undoIsSetup = true;
+                const modMMhelpers = await importFc4i("mindmap-helpers");
+                menuItemUndo.addEventListener("click", evt => {
+                    evt.stopPropagation();
+                    divUndoRedo.classList.add("display-none");
+                    // modUndo.actionUndo(mindmapKey);
+                    debugger;
+                    modMMhelpers.DBundo(mindmapKey);
+                });
+                menuItemRedo.addEventListener("click", evt => {
+                    evt.stopPropagation();
+                    divUndoRedo.classList.add("display-none");
+                    // modUndo.actionRedo(mindmapKey);
+                    debugger;
+                });
+            }
+            const undoTopic = modUndo.canUndo(mindmapKey);
+            if (undoTopic) {
+                menuItemUndo.textContent = `Undo: ${undoTopic}`;
+                menuItemUndo.inert = false;
+            } else {
+                menuItemUndo.textContent = "Undo";
+                menuItemUndo.inert = true;
+            }
+            menuItemRedo.inert = !modUndo.canRedo(mindmapKey);
         });
         document.body.appendChild(btnHistory);
 

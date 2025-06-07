@@ -950,23 +950,124 @@ function hidePageMenu() {
     setTimeout(() => { pageMenu.remove(); }, 300);
 }
 
+const idDivJsmindContainer = "jsmind_container";
+const defaultOptJmDisplay = {
+    container: idDivJsmindContainer,
+    editable: true,
+    view: {
+        // draggable: true,
+        draggable: false,
+        hide_scrollbars_when_draggable: false,
+        engine: "svg",
+        line_width: 10,
+        line_color: "green",
+    },
+    layout: {
+        pspace: 32,
+    },
+    shortcut: {
+        enable: true, 		// whether to enable shortcut
+        handles: {}, 			// Named shortcut key event processor
+        mapping: { 			// shortcut key mapping
+            // FIX-ME: these does not work
+            addchild: [45, 4096 + 13], 	// <Insert>, <Ctrl> + <Enter>
+            addbrother: 13, // <Enter>
+            editnode: 113, 	// <F2>
+            delnode: 46, 	// <Delete>
+            toggle: 32, 	// <Space>
+            left: 37, 		// <Left>
+            up: 38, 		// <Up>
+            right: 39, 		// <Right>
+            down: 40, 		// <Down>
+        }
+    },
+};
+function getUsedOptJmDisplay(mind) {
+    function getMindmapGlobals0(mind) {
+        const format = mind.format;
+        let root_node;
+        switch (format) {
+            case "node_array":
+                for (const idx in mind.data) {
+                    const n = mind.data[idx];
+                    if (n.id == "root") {
+                        root_node = n;
+                        break;
+                    }
+                }
+                break;
+            default:
+                throw Error(`Can't get mindmapGlobals when mind format is ${format}`);
+        }
+        const globals = root_node.mindmapGlobals;
+        // console.log({ root_node, globals });
+        return globals;
+    }
+    const usedOptJmDisplay = JSON.parse(JSON.stringify(defaultOptJmDisplay));
+    const savedGlobals = getMindmapGlobals0(mind);
+    // Merge in savedGlobals:
+    if (savedGlobals) {
+        if (savedGlobals.line_width) {
+            usedOptJmDisplay.view.line_width = savedGlobals.line_width;
+        }
+        if (savedGlobals.line_color) {
+            usedOptJmDisplay.view.line_color = savedGlobals.line_color;
+        }
+    }
+    return usedOptJmDisplay;
+}
+function connectFsm() {
+    ourFsm?.hook_any_action(fsmEvent);
+    ourFsm?.hook_any_transition((...args) => {
+        const newState = args[0].to;
+        logJssmState(newState);
+    });
+    const eltFsm = getEltFsm();
+
+
+    ////// FSL hooks
+    function hookStartMovePointHandle(hookData) {
+        // pointHandle.setupPointHandle();
+        const { eltJmnode, pointerType } = hookData.data;
+        // debugger;
+        modJsmindDraggable.setJmnodeDragged(eltJmnode);
+        // For pointerdown to save pos:
+        // setTimeout(() => {
+        pointHandle.initializePointHandle(eltJmnode, pointerType);
+        // }, 300);
+    }
+    ourFsm?.post_hook_entry("n_Move", (hookData) => {
+        hookStartMovePointHandle(hookData);
+    });
+    ourFsm?.hook_exit("n_Move", () => pointHandle.teardownPointHandle());
+
+    let funStopScroll;
+    ourFsm?.post_hook_entry("c_Move", (hookData) => {
+        // const { eltJmnode, pointerType } = hookData.data;
+        const { eltJmnode } = hookData.data;
+        if (eltJmnode && (!eltJmnode.classList.contains("root"))) throw Error("eltJmnode in c_Move");
+        funStopScroll = undefined;
+        const jmnodes = getJmnodesFromJm(jmDisplayed);
+        const eltScroll = jmnodes.closest("div.zoom-move");
+        funStopScroll = startGrabMove(eltScroll);
+    });
+    ourFsm?.hook_exit("c_Move", () => {
+        if (funStopScroll) funStopScroll();
+    });
+
+    ourFsm?.post_hook_entry("c_Dblclick", () => { dialogEditMindmap(); });
+    ourFsm?.post_hook_entry("n_Dblclick", async (hookData) => {
+        // const eltJmnode = hookData.data;
+        const { eltJmnode } = hookData.data;
+        const renderer = await modCustRend.getOurCustomRenderer();
+        renderer.editNodeDialog(eltJmnode);
+    });
+
+    modMm4iFsm.setupFsmListeners(eltFsm);
+}
 export async function pageSetup() {
     const nodeHits = new URLSearchParams(location.search).get("nodehits");
     const nodeProvider = new URLSearchParams(location.search).get("provider");
-    // let inpSearch;
-    // let useCanvas = true;
-    // setCustomRenderer();
-    // let useCanvas = false;
-    // useCanvas = confirm("Use canvas?");
-
-
-    const idDivJsmindContainer = "jsmind_container";
-    // const idDivJmnodesMirror = "jsmind-draggable-container4mirror";
-    // let mirrorContainer;
-
-    // const idDivScreenMirror = "jsmindtest-div-mirror";
-    // const idMirroredWrapper = "jsmindtest-div-mirrored-wrapper";
-    // let divMirroredWrapper;
 
     const jsMindContainer = document.getElementById(idDivJsmindContainer);
     if (!jsMindContainer) throw Error(`Could not find ${idDivJsmindContainer}`);
@@ -980,42 +1081,8 @@ export async function pageSetup() {
 
     const idDivHits = "jsmind-div-hits";
 
-    const defaultOptJmDisplay = {
-        container: idDivJsmindContainer,
-        editable: true,
-        view: {
-            // draggable: true,
-            draggable: false,
-            hide_scrollbars_when_draggable: false,
-            engine: "svg",
-            line_width: 10,
-            line_color: "green",
-        },
-        layout: {
-            pspace: 32,
-        },
-        shortcut: {
-            enable: true, 		// whether to enable shortcut
-            handles: {}, 			// Named shortcut key event processor
-            mapping: { 			// shortcut key mapping
-                // FIX-ME: these does not work
-                addchild: [45, 4096 + 13], 	// <Insert>, <Ctrl> + <Enter>
-                addbrother: 13, // <Enter>
-                editnode: 113, 	// <F2>
-                delnode: 46, 	// <Delete>
-                toggle: 32, 	// <Space>
-                left: 37, 		// <Left>
-                up: 38, 		// <Up>
-                right: 39, 		// <Right>
-                down: 40, 		// <Down>
-            }
-        },
-    };
 
     // Use this??? copy canvas https://jsfiddle.net/lborgman/5L1bfhow/3/
-
-
-
 
     const btnDebugLogClear = mkElt("button", undefined, "Clear");
     btnDebugLogClear.addEventListener("click", () => {
@@ -1289,40 +1356,10 @@ export async function pageSetup() {
     modJsmindDraggable.setupNewDragging();
 
 
-    function getMindmapGlobals0(mind) {
-        const format = mind.format;
-        let root_node;
-        switch (format) {
-            case "node_array":
-                for (const idx in mind.data) {
-                    const n = mind.data[idx];
-                    if (n.id == "root") {
-                        root_node = n;
-                        break;
-                    }
-                }
-                break;
-            default:
-                throw Error(`Can't get mindmapGlobals when mind format is ${format}`);
-        }
-        const globals = root_node.mindmapGlobals;
-        // console.log({ root_node, globals });
-        return globals;
-    }
-    const usedOptJmDisplay = JSON.parse(JSON.stringify(defaultOptJmDisplay));
-    const savedGlobals = getMindmapGlobals0(mind);
-    // Merge in savedGlobals:
-    if (savedGlobals) {
-        if (savedGlobals.line_width) {
-            usedOptJmDisplay.view.line_width = savedGlobals.line_width;
-        }
-        if (savedGlobals.line_color) {
-            usedOptJmDisplay.view.line_color = savedGlobals.line_color;
-        }
-    }
-
 
     const nowBefore = Date.now();
+
+    const usedOptJmDisplay = getUsedOptJmDisplay(mind);
     jmDisplayed = await displayMindMap(mind, usedOptJmDisplay);
 
 
@@ -1349,57 +1386,10 @@ export async function pageSetup() {
 
 
 
-    // modTools.addPosListeners();
 
 
     ////// modFsm
-    ourFsm?.hook_any_action(fsmEvent);
-    ourFsm?.hook_any_transition((...args) => {
-        const newState = args[0].to;
-        logJssmState(newState);
-    });
-    const eltFsm = getEltFsm();
-
-
-    ////// FSL hooks
-    function hookStartMovePointHandle(hookData) {
-        // pointHandle.setupPointHandle();
-        const { eltJmnode, pointerType } = hookData.data;
-        // debugger;
-        modJsmindDraggable.setJmnodeDragged(eltJmnode);
-        // For pointerdown to save pos:
-        // setTimeout(() => {
-        pointHandle.initializePointHandle(eltJmnode, pointerType);
-        // }, 300);
-    }
-    ourFsm?.post_hook_entry("n_Move", (hookData) => {
-        hookStartMovePointHandle(hookData);
-    });
-    ourFsm?.hook_exit("n_Move", () => pointHandle.teardownPointHandle());
-
-    let funStopScroll;
-    ourFsm?.post_hook_entry("c_Move", (hookData) => {
-        // const { eltJmnode, pointerType } = hookData.data;
-        const { eltJmnode } = hookData.data;
-        if (eltJmnode && (!eltJmnode.classList.contains("root"))) throw Error("eltJmnode in c_Move");
-        funStopScroll = undefined;
-        const jmnodes = getJmnodesFromJm(jmDisplayed);
-        const eltScroll = jmnodes.closest("div.zoom-move");
-        funStopScroll = startGrabMove(eltScroll);
-    });
-    ourFsm?.hook_exit("c_Move", () => {
-        if (funStopScroll) funStopScroll();
-    });
-
-    ourFsm?.post_hook_entry("c_Dblclick", () => { dialogEditMindmap(); });
-    ourFsm?.post_hook_entry("n_Dblclick", async (hookData) => {
-        // const eltJmnode = hookData.data;
-        const { eltJmnode } = hookData.data;
-        const renderer = await modCustRend.getOurCustomRenderer();
-        renderer.editNodeDialog(eltJmnode);
-    });
-
-    modMm4iFsm.setupFsmListeners(eltFsm);
+    connectFsm();
 
 
 
@@ -1536,7 +1526,7 @@ export async function pageSetup() {
         const node_id = data.node;
         // console.log({ evt_type, type, datadata, data });
         checkOperationOnNode(evt_type, node_id, datadata);
-        modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed); // FIX-ME: delay
+        modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, evt_type); // FIX-ME: delay
         // updateTheMirror();
     });
     async function checkOperationOnNode(operation_type, operation_node_id, datadata) {
@@ -2059,7 +2049,7 @@ export async function pageSetup() {
 
     // https://javascript.info/bezier-curve
 
-
+    return mindmapKey;
 }
 
 function hasTouchEvents() {

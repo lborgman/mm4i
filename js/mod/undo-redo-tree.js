@@ -184,7 +184,11 @@ export class UndoRedoTreeWithDiff {
     this.currentFullState = this._deepCopy(newFullState); // Update the materialized state
   }
 
-  canUndo() { return !!this.currentNode.parent; }
+  canUndo() {
+    if (!this.currentNode.parent) return undefined; // No parent means no undo possible
+    // return this.currentNode.parent.actionTopic || null; // Return the action topic of the parent node
+    return this.currentNode.actionTopic; // Return the action topic of current node
+  }
   /**
    * Undo the last action, returning the previous state.
    * @returns {any} The state after undoing
@@ -216,7 +220,7 @@ export class UndoRedoTreeWithDiff {
     return this.currentFullState;
   }
 
-  async canRedo() { return this.currentNode.children.length > 0; }
+  canRedo() { return this.currentNode.children.length > 0; }
   /**
    * Redo the last undone action, returning the new state.
    * @returns {Promise<any>} The state after redoing
@@ -337,23 +341,21 @@ export class UndoRedoTreeWithDiff {
 ////////////////////////////////////////////
 
 
-// export function actionAdd(_key, _initialValue, _actionDetails) { }
-// export function actionRemove(_key) { }
 
-export function addUndoRedo(_key, appState, funBranch) {
+export function addUndoRedo(key, appState, funBranch) {
   // debugger; // eslint-disable-line no-debugger
-  logClass("addHistoryKey()", _key);
-  histories[_key] = new UndoRedoTreeWithDiff(appState, funBranch);
+  logClass("addHistoryKey()", key);
+  histories[key] = new UndoRedoTreeWithDiff(appState, funBranch);
 }
-export function hasUndoRedo(_key) {
-  const history = histories[_key];
+export function hasUndoRedo(key) {
+  const history = histories[key];
   return !!history;
 }
 
-function getHistory(_key) {
-  const history = histories[_key];
+function getHistory(key) {
+  const history = histories[key];
   if (!history) {
-    throw Error(`No history found for key: ${_key}`);
+    throw Error(`No history found for key: ${key}`);
   }
   return history;
 }
@@ -372,7 +374,7 @@ export async function actionRecordAction(key, newFullState, actionTopic) {
 
 /**
  * @param {string} key
- * @return {boolean}
+ * @return {undefined|string} - action topic of the current node
  */
 export function canUndo(key) {
   const history = getHistory(key);
@@ -382,9 +384,18 @@ export function actionUndo(key) {
   const history = getHistory(key);
   return history.undo();
 }
-export async function actionRedo(_key) {
+
+/**
+ * @param {string} key
+ * @return {boolean}
+ */
+export function canRedo(key) {
+  const history = getHistory(key);
+  return history.canRedo();
+}
+export async function actionRedo(key) {
   // debugger; // eslint-disable-line no-debugger
-  const history = getHistory(_key);
+  const history = getHistory(key);
   return history.redo();
 }
 
@@ -573,7 +584,7 @@ async function _doSomeTests() {
       if (ourUndoRedo) {
         const key = doKey();
         const ourHistory = histories[key];
-        if (!ourHistory) { throw Error(`No history found for key: ${_key}`); }
+        if (!ourHistory) { throw Error(`No history found for key: ${key}`); }
         return ourHistory;
       }
       return history;

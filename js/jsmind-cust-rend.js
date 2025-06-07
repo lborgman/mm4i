@@ -372,7 +372,7 @@ export class CustomRenderer4jsMind {
         /** @param {string} val @returns {void} */
         const onChangeMMdesc = (val) => {
             root_node.data.shapeEtc.notes = val.trimEnd();
-            modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed);
+            modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed, "Edit description");
         };
 
 
@@ -527,7 +527,6 @@ export class CustomRenderer4jsMind {
             }
             rend.setMindmapGlobals(tempGlobals);
             rend.applyThisMindmapGlobals();
-            // modMMhelpers.DBrequestSaveThisMindmap(rend.getJm());
             this.requestSaveMindMap();
         }));
         btnTestMm.addEventListener("click", evt => {
@@ -629,7 +628,7 @@ export class CustomRenderer4jsMind {
     // FIX-ME: use this!
     requestSaveMindMap() {
         const jmDisplayed = this.THEjmDisplayed;
-        modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed);
+        modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, "Edit mindmap");
     }
     async editNotesDialog(eltJmnode) {
         let btnSave;
@@ -655,7 +654,7 @@ export class CustomRenderer4jsMind {
         /** @type {Object | undefined} */ let toastNotesEditor;
         const onChange = (val) => {
             shapeEtc.notes = val.trimEnd();
-            modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed);
+            modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, "Edit notes");
         };
 
         body.appendChild(divEasyMdeOuterWrapper);

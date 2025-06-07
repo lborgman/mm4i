@@ -17,12 +17,11 @@ const modTools = await importFc4i("toolsJs");
 const throttleSaveMindmap = modTools.throttleTO(DBsaveNowThisMindmap, 300);
 
 async function saveMindmap(keyName, objDataMind, actionTopic, lastUpdated, lastSynced, privacy) {
-    // const dbMindmaps = await getDbMindmaps();
     const dbMindmaps = await importFc4i("db-mindmaps");
     const modUndo = await importFc4i("undo-redo-tree");
-    debugger; // eslint-disable-line no-debugger
+    // debugger; // eslint-disable-line no-debugger
     if (!modUndo.hasUndoRedo(keyName)) {
-        const objBaseMm = await dbMindmaps.DBgetMindmap(keyName);
+        const objBaseMm = (await dbMindmaps.DBgetMindmap(keyName)) || objDataMind;
         const fun = undefined; // FIX-ME: should be a function to undo/redo
         modUndo.addUndoRedo(keyName, objBaseMm, fun);
     }
@@ -30,16 +29,38 @@ async function saveMindmap(keyName, objDataMind, actionTopic, lastUpdated, lastS
     return await dbMindmaps.DBsetMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy);
 }
 
-export function DBrequestSaveThisMindmap(jmDisplayed) { throttleSaveMindmap(jmDisplayed); }
-async function DBsaveNowThisMindmap(jmDisplayed) {
+export async function DBundo(keyName) {
+    if (arguments.length != 1) { throw Error(`Should have 1 argument: ${arguments.length}`); }
+    if (typeof keyName != "string") { throw Error(`keyName is not string: ${typeof keyName}`); }
+    const modUndo = await importFc4i("undo-redo-tree");
+    debugger; // eslint-disable-line no-debugger
+    const objDataMind = modUndo.actionUndo(keyName);
+    // return await dbMindmaps.DBsetMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy);
+    const dbMindmaps = await importFc4i("db-mindmaps");
+    // return await dbMindmaps.DBsetMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy);
+    return await dbMindmaps.DBsetMindmap(keyName, objDataMind);
+// 
+}
+export function DBrequestSaveThisMindmap(jmDisplayed, actionTopic) {
+    if (arguments.length != 2) {
+        throw Error(`Wrong number of arguments: ${arguments.length} (should be 2)`);
+    }
+    if (typeof actionTopic != "string") {
+        console.error(`actionTopic is not string: ${typeof actionTopic}`);
+        debugger; // eslint-disable-line no-debugger
+        throw Error(`actionTopic is not string: ${typeof actionTopic}`);
+    }
+    throttleSaveMindmap(jmDisplayed, actionTopic);
+}
+async function DBsaveNowThisMindmap(jmDisplayed, actionTopic) {
+    const tofTopic = typeof actionTopic;
+    if (tofTopic != "string") { throw Error(`Wrong actionTopic type: ${tofTopic} (should be string)`); }
     const objDataMind = jmDisplayed.get_data("node_array");
     const metaName = objDataMind.meta.name;
     if (!metaName) throw Error("Current mindmap has no meta.key");
     const [keyName] = metaName.split("/");
 
-    const topic = "dummy"; // FIX-ME: should be a topic
-    // saveMindmap(keyName, objDataMind, actionTopic, lastUpdated, lastSynced, privacy) {
-    await saveMindmap(keyName, objDataMind, topic, (new Date()).toISOString());
+    await saveMindmap(keyName, objDataMind, actionTopic, (new Date()).toISOString());
 }
 
 function getNextMindmapKey() { return "mm-" + new Date().toISOString(); }
@@ -65,7 +86,6 @@ export async function createAndShowNewMindmap() {
     root.shapeEtc = {};
     root.shapeEtc.shape = "jsmind-shape-ellipse";
 
-    // saveMindmap(keyName, objDataMind, actionTopic, lastUpdated, lastSynced, privacy) {
     await saveMindmap(keyName, jsMindMap, "new mindmap");
 
     showMindmap(keyName);
@@ -474,7 +494,6 @@ export async function setMindmapPrivacy(key, newPrivacy) {
     const { lastUpdated, lastSynced, privacy } = dbMindmaps.getMindmapMetaParts(jsMindmap);
     if (privacy == newPrivacy) { return; }
 
-    // saveMindmap(keyName, objDataMind, actionTopic, lastUpdated, lastSynced, privacy) {
     return saveMindmap(key, jsMindmap, "set privacy", lastUpdated, lastSynced, newPrivacy);
 }
 
