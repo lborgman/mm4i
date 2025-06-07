@@ -950,7 +950,10 @@ function hidePageMenu() {
     setTimeout(() => { pageMenu.remove(); }, 300);
 }
 
+
+
 const idDivJsmindContainer = "jsmind_container";
+const idDivHits = "jsmind-div-hits";
 const defaultOptJmDisplay = {
     container: idDivJsmindContainer,
     editable: true,
@@ -1065,7 +1068,52 @@ function connectFsm() {
 
     modMm4iFsm.setupFsmListeners(eltFsm);
 }
+const modMoveHelp = await importFc4i("move-help");
+function startGrabMove(elt2move) {
+    console.log("startGrabMove", elt2move);
+    let isMoving = true;
+    // const ourElement2move = elt2move;
+    // let n = 0;
+
+    elt2move.style.cursor = "grabbing";
+    elt2move.style.filter = "grayscale(0.5)";
+    // const savedPointerPos = modTools.getSavedPointerPos();
+    const movingData = modMoveHelp.setInitialMovingData(elt2move);
+    function requestMove() {
+        if (!isMoving) return;
+        const oldLeft = movingData.left;
+        const oldTop = movingData.top;
+        const savedPointerPos = modTools.getSavedPointerPos();
+        const dx = modMoveHelp.getMovingDx(movingData, savedPointerPos.clientX);
+        const dy = modMoveHelp.getMovingDy(movingData, savedPointerPos.clientY);
+        const newLeft = oldLeft + dx;
+        const newTop = oldTop + dy;
+        if (isNaN(newLeft) || isNaN(newTop)) {
+            debugger; // eslint-disable-line no-debugger
+            throw Error(`isNan: newLeft:${newLeft}, newTop:${newTop}`);
+        }
+        const newLeftPx = `${newLeft}px`.replace("-0px", "0px");
+        const newTopPx = `${newTop}px`.replace("-0px", "0px");
+        elt2move.style.left = newLeftPx;
+        elt2move.style.top = newTopPx;
+
+        requestAnimationFrame(requestMove);
+    }
+    requestMove();
+    return () => {
+        // ourElement2move.style.cursor = "";
+        movingData.movingElt.style.cursor = "";
+        movingData.movingElt.style.filter = "";
+        isMoving = false;
+    }
+}
 export async function pageSetup() {
+    checkParamNames();
+
+    const mindmapKey = new URLSearchParams(location.search).get("mindmap");
+    if (typeof mindmapKey === "string" && mindmapKey.length === 0) {
+        throw Error("Parameter mindmapname should have a value (key/name of a mindmap)");
+    }
     const nodeHits = new URLSearchParams(location.search).get("nodehits");
     const nodeProvider = new URLSearchParams(location.search).get("provider");
 
@@ -1079,7 +1127,6 @@ export async function pageSetup() {
     }
 
 
-    const idDivHits = "jsmind-div-hits";
 
 
     // Use this??? copy canvas https://jsfiddle.net/lborgman/5L1bfhow/3/
@@ -1287,7 +1334,7 @@ export async function pageSetup() {
     }
 
     // https://github.com/hizzgdev/jsmind/blob/master/docs/en/1.usage.md#12-data-format
-    function checkParams() {
+    function checkParamNames() {
         const sp = new URLSearchParams(location.search);
         if (sp.size == 0) return true;
         const arrParNames = [...sp.keys()].sort();
@@ -1300,19 +1347,8 @@ export async function pageSetup() {
             }
         }
         return true;
-        const strParNames = JSON.stringify(arrParNames);
-        if (strParNames == '["mindmap"]') return true;
-        if (strParNames == '["mindmap","nodehits","cacheEs6Modules"]') return true;
-        debugger; // eslint-disable-line no-debugger
-        alert("invalid params: " + strParNames);
-        return false;
     }
-    checkParams();
 
-    const mindmapKey = new URLSearchParams(location.search).get("mindmap");
-    if (typeof mindmapKey === "string" && mindmapKey.length === 0) {
-        throw Error("Parameter mindmapname should have a value (key/name of a mindmap)");
-    }
     let mind;
     if (mindmapKey) {
         mind = await modMMhelpers.getMindmap(mindmapKey);
@@ -1404,7 +1440,6 @@ export async function pageSetup() {
     jmDisplayed.disable_event_handle("dblclick");
     const eltJmnodes = getJmnodesFromJm(jmDisplayed);
 
-    const modMoveHelp = await importFc4i("move-help");
     const eltScroll = eltJmnodes.closest("div.zoom-move");
     const eltShow = eltJmnodes.closest("div.jsmind-inner");
     instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60, eltShow);
@@ -2006,44 +2041,6 @@ export async function pageSetup() {
 
 
     // const modMoveHelp = await importFc4i("move-help");
-    function startGrabMove(elt2move) {
-        console.log("startGrabMove", elt2move);
-        let isMoving = true;
-        // const ourElement2move = elt2move;
-        // let n = 0;
-
-        elt2move.style.cursor = "grabbing";
-        elt2move.style.filter = "grayscale(0.5)";
-        // const savedPointerPos = modTools.getSavedPointerPos();
-        const movingData = modMoveHelp.setInitialMovingData(elt2move);
-        function requestMove() {
-            if (!isMoving) return;
-            const oldLeft = movingData.left;
-            const oldTop = movingData.top;
-            const savedPointerPos = modTools.getSavedPointerPos();
-            const dx = modMoveHelp.getMovingDx(movingData, savedPointerPos.clientX);
-            const dy = modMoveHelp.getMovingDy(movingData, savedPointerPos.clientY);
-            const newLeft = oldLeft + dx;
-            const newTop = oldTop + dy;
-            if (isNaN(newLeft) || isNaN(newTop)) {
-                debugger; // eslint-disable-line no-debugger
-                throw Error(`isNan: newLeft:${newLeft}, newTop:${newTop}`);
-            }
-            const newLeftPx = `${newLeft}px`.replace("-0px", "0px");
-            const newTopPx = `${newTop}px`.replace("-0px", "0px");
-            elt2move.style.left = newLeftPx;
-            elt2move.style.top = newTopPx;
-
-            requestAnimationFrame(requestMove);
-        }
-        requestMove();
-        return () => {
-            // ourElement2move.style.cursor = "";
-            movingData.movingElt.style.cursor = "";
-            movingData.movingElt.style.filter = "";
-            isMoving = false;
-        }
-    }
 
 
 
