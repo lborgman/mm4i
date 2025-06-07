@@ -16,9 +16,17 @@ const URL_MINDMAPS_PAGE = "./mm4i.html";
 const modTools = await importFc4i("toolsJs");
 const throttleSaveMindmap = modTools.throttleTO(DBsaveNowThisMindmap, 300);
 
-async function saveMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy) {
+async function saveMindmap(keyName, objDataMind, actionTopic, lastUpdated, lastSynced, privacy) {
     // const dbMindmaps = await getDbMindmaps();
     const dbMindmaps = await importFc4i("db-mindmaps");
+    const modUndo = await importFc4i("undo-redo-tree");
+    debugger; // eslint-disable-line no-debugger
+    if (!modUndo.hasUndoRedo(keyName)) {
+        const objBaseMm = await dbMindmaps.DBgetMindmap(keyName);
+        const fun = undefined; // FIX-ME: should be a function to undo/redo
+        modUndo.addUndoRedo(keyName, objBaseMm, fun);
+    }
+    modUndo.actionRecordAction(keyName, objDataMind, actionTopic);
     return await dbMindmaps.DBsetMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy);
 }
 
@@ -29,10 +37,9 @@ async function DBsaveNowThisMindmap(jmDisplayed) {
     if (!metaName) throw Error("Current mindmap has no meta.key");
     const [keyName] = metaName.split("/");
 
-    // const dbMindmaps = await importFc4i("db-mindmaps");
-    // await dbMindmaps.DBsetMindmap(keyName, objDataMind, (new Date()).toISOString());
-    // saveMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy) {
-    await saveMindmap(keyName, objDataMind, (new Date()).toISOString());
+    const topic = "dummy"; // FIX-ME: should be a topic
+    // saveMindmap(keyName, objDataMind, actionTopic, lastUpdated, lastSynced, privacy) {
+    await saveMindmap(keyName, objDataMind, topic, (new Date()).toISOString());
 }
 
 function getNextMindmapKey() { return "mm-" + new Date().toISOString(); }
@@ -58,10 +65,8 @@ export async function createAndShowNewMindmap() {
     root.shapeEtc = {};
     root.shapeEtc.shape = "jsmind-shape-ellipse";
 
-    // const dbMindmaps = await importFc4i("db-mindmaps");
-    // await dbMindmaps.DBsetMindmap(keyName, jsMindMap);
-    // saveMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy) {
-    await saveMindmap(keyName, jsMindMap);
+    // saveMindmap(keyName, objDataMind, actionTopic, lastUpdated, lastSynced, privacy) {
+    await saveMindmap(keyName, jsMindMap, "new mindmap");
 
     showMindmap(keyName);
 }
@@ -469,9 +474,8 @@ export async function setMindmapPrivacy(key, newPrivacy) {
     const { lastUpdated, lastSynced, privacy } = dbMindmaps.getMindmapMetaParts(jsMindmap);
     if (privacy == newPrivacy) { return; }
 
-    // return dbMindmaps.DBsetMindmap(key, jsMindmap, lastUpdated, lastSynced, newPrivacy);
-    // saveMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy) {
-    return saveMindmap(key, jsMindmap, lastUpdated, lastSynced, newPrivacy);
+    // saveMindmap(keyName, objDataMind, actionTopic, lastUpdated, lastSynced, privacy) {
+    return saveMindmap(key, jsMindmap, "set privacy", lastUpdated, lastSynced, newPrivacy);
 }
 
 /**

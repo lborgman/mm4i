@@ -28,10 +28,9 @@ export class HistoryTreeNode {
    * @param {HistoryTreeNode|null} parent 
    * @param {Object} patchesToReachThisNode 
    * @param {Object} patchesToUndoThisNode 
-   * @param {string|null} action 
+   * @param {string} actionTopic 
    */
-
-  constructor(objUndoRedo, parent, patchesToReachThisNode, patchesToUndoThisNode, action = null) {
+  constructor(objUndoRedo, parent, patchesToReachThisNode, patchesToUndoThisNode, actionTopic) {
     this.objUndoRedo = objUndoRedo; // Reference to the UndoRedoTreeWithDiff instance
     this.parent = parent; // Reference to the parent node
     this.children = [];   // Array of child nodes (branches)
@@ -40,20 +39,30 @@ export class HistoryTreeNode {
     this.patchesToReach = patchesToReachThisNode; // Patches to apply to PARENT's state to get THIS node's state
     this.patchesToUndo = patchesToUndoThisNode;   // Patches to apply to THIS node's state to get PARENT's state
 
-    this.action = action; // Optional: Description of the action
+    if (typeof actionTopic !== "string") {
+      throw Error(`Invalid action type: ${typeof actionTopic}, expected "string" or null`);
+    }
+    this.actionTopic = actionTopic; // Optional: Description of the action
     this.id = Date.now() + Math.random().toString(36).substring(2); // A simple unique ID for debugging or advanced navigation
   }
 
   /**
    * @type {any}
    */
-  fullStateSnapshot = undefined;
+  fullStateSnapshot = undefined; // FIX-ME: ??
 
-  addChild(patchesToReach, patchesToUndo, action) {
+  /**
+   * Adds a child node to this node, representing a new action in the history.
+   * @param {Object[]} patchesToReach - Patches to apply to the parent node's state to reach this new child node's state.
+   * @param {Object[]} patchesToUndo - Patches to apply to this child node's state to undo back to the parent node's state.
+   * @param {string} actionTopic - Description of the action that led to this new child node.
+   * @returns {HistoryTreeNode} The newly created child node.
+   */
+  addChild(patchesToReach, patchesToUndo, actionTopic) {
     if (!this.objUndoRedo.isTreeStructured) {
       this.children.length = 0; // Clear existing children if linear
     }
-    const newNode = new HistoryTreeNode(this.objUndoRedo, this, patchesToReach, patchesToUndo, action);
+    const newNode = new HistoryTreeNode(this.objUndoRedo, this, patchesToReach, patchesToUndo, actionTopic);
     this.children.push(newNode);
     this.currentBranchIndex = this.children.length - 1; // Update current branch index to the new child
     return newNode;
@@ -146,11 +155,11 @@ export class UndoRedoTreeWithDiff {
   /**
    * 
    * @param {any} newFullState -- string or json object representing the new state of the application.
-   * @param {string} actionDetails 
+   * @param {string} actionTopic 
    * @returns 
    */
-  recordAction(newFullState, actionDetails) {
-    logClass("recordAction()", newFullState, actionDetails);
+  recordAction(newFullState, actionTopic) {
+    logClass("recordAction()", newFullState, actionTopic);
     const oldStateText = this._serialize(this.currentFullState);
     const newStateText = this._serialize(newFullState);
 
@@ -170,14 +179,19 @@ export class UndoRedoTreeWithDiff {
     // Pruning or managing 'active' redo branches can be added if needed.
     // Example: this.currentNode.children = []; // If new action prunes old redo branches
 
-    const newNode = this.currentNode.addChild(patchesToReachNew, patchesToUndoNew, actionDetails);
+    const newNode = this.currentNode.addChild(patchesToReachNew, patchesToUndoNew, actionTopic);
     this.currentNode = newNode;
     this.currentFullState = this._deepCopy(newFullState); // Update the materialized state
   }
 
+  canUndo() { return !!this.currentNode.parent; }
+  /**
+   * Undo the last action, returning the previous state.
+   * @returns {any} The state after undoing
+   */
   undo() {
     logClass("undo()");
-    if (!this.currentNode.parent) {
+    if (!this.canUndo()) {
       console.log("Already at root. Nothing to undo.");
       return null;
     }
@@ -202,27 +216,24 @@ export class UndoRedoTreeWithDiff {
     return this.currentFullState;
   }
 
-  // redo(branchIndex = 0) {
+  async canRedo() { return this.currentNode.children.length > 0; }
+  /**
+   * Redo the last undone action, returning the new state.
+   * @returns {Promise<any>} The state after redoing
+   */
   async redo() {
-    // debugger; // eslint-disable-line no-debugger
-    /*
-    if (!Number.isInteger(branchIndex) || branchIndex < 0) {
-      throw Error(`Invalid branch index "${branchIndex} for redo. Must be a non-negative integer.`);
-    }
-    logClass(`redo(${branchIndex})`);
-    */
     logClass("redo()");
     const currentNode = this.currentNode;
-    if (currentNode.children.length === 0) {
-      console.log("Nothing to redo.");
+    if (!this.canRedo()) {
+      throw Error("Nothing to redo.");
       return null;
     }
 
     const defaultBranchIndex = this.currentNode.currentBranchIndex || 0;
     let branchIndex = defaultBranchIndex;
     if (this.funBranch) {
-      const arrChildren = this.currentNode.children.map(c => c.action);
-      const idxFun = await this.funBranch(defaultBranchIndex, arrChildren);
+      const arrChildTopics = this.currentNode.children.map(c => c.actionTopic);
+      const idxFun = await this.funBranch(defaultBranchIndex, arrChildTopics);
       if (!Number.isInteger(idxFun)) {
         throw Error(`funBranch returned non-integer: ${idxFun}`);
       }
@@ -308,6 +319,11 @@ export class UndoRedoTreeWithDiff {
     return null;
   }
 
+  /*
+   * Get a list of possible redo actions from the current node.
+   * @return {Array<{action: string, branchIndex: number, nodeId: string}>}
+   */
+  /*
   getPossibleRedoActions() {
     return this.currentNode.children.map((child, index) => ({
       action: child.action,
@@ -315,6 +331,7 @@ export class UndoRedoTreeWithDiff {
       nodeId: child.id
     }));
   }
+  */
 }
 //// END: Code suggestions for tree from Google Gemini AI
 ////////////////////////////////////////////
@@ -328,6 +345,11 @@ export function addUndoRedo(_key, appState, funBranch) {
   logClass("addHistoryKey()", _key);
   histories[_key] = new UndoRedoTreeWithDiff(appState, funBranch);
 }
+export function hasUndoRedo(_key) {
+  const history = histories[_key];
+  return !!history;
+}
+
 function getHistory(_key) {
   const history = histories[_key];
   if (!history) {
@@ -335,14 +357,29 @@ function getHistory(_key) {
   }
   return history;
 }
-export async function actionRecordAction(_key, newFullState, actionDetails) {
-  // debugger; // eslint-disable-line no-debugger
-  const history = getHistory(_key);
-  return history.recordAction(newFullState, actionDetails);
+
+/**
+ * 
+ * @param {string} key 
+ * @param {Object} newFullState 
+ * @param {string} actionTopic 
+ * @returns 
+ */
+export async function actionRecordAction(key, newFullState, actionTopic) {
+  const history = getHistory(key);
+  return history.recordAction(newFullState, actionTopic);
 }
-export function actionUndo(_key) {
-  // debugger; // eslint-disable-line no-debugger
-  const history = getHistory(_key);
+
+/**
+ * @param {string} key
+ * @return {boolean}
+ */
+export function canUndo(key) {
+  const history = getHistory(key);
+  return history.canUndo();
+}
+export function actionUndo(key) {
+  const history = getHistory(key);
   return history.undo();
 }
 export async function actionRedo(_key) {
@@ -359,21 +396,29 @@ async function _doSomeTests() {
   ////// All tests passed in version "0.0.001"
   // await _basicTest({}); // linear
   // await _basicTest({ ourUndoRedo: true }); // linear
-  // await _basicTest({ funBranch: _ourFunBranch }); // branched
+  await _basicTest({ funBranch: _ourFunBranch }); // branched
   // await _basicTest({ funBranch: _ourFunBranch, ourUndoRedo: true }); // branched
 
   /**
    * @param {number} defaultBranch 
-   * @param {string[]} arrBranches 
+   * @param {string[]} arrBrancheTopics 
    * @returns {Promise<number>}
    */
-  async function _ourFunBranch(defaultBranch, arrBranches) {
+  async function _ourFunBranch(defaultBranch, arrBrancheTopics) {
+    // debugger;
     if (!Number.isInteger(defaultBranch) || defaultBranch < 0) { throw Error(`Invalid defaultBranch "${defaultBranch}"`); }
-    console.log(`  ourFunBranch called with defaultBranch: ${defaultBranch}, arrBranches:`, arrBranches);
+    console.log(`  ourFunBranch called with defaultBranch: ${defaultBranch}, arrBranches:`, arrBrancheTopics);
     const importFc4i = window["importFc4i"];
     const modTools = await importFc4i("toolsJs");
     await modTools.waitSeconds(0.5); // Simulate some delay
-    return defaultBranch; // Always return the default branch for now
+    const branch = defaultBranch;
+    const topic = arrBrancheTopics[branch];
+    if (!topic) {
+      debugger;
+      throw Error(`No topic found for branch ${branch}`);
+    }
+    console.log(`  will redo "${topic}", branch: ${branch}`);
+    return branch; // Always return the default branch for now
   }
 
 
