@@ -1160,18 +1160,19 @@
                 }
                 undoIsSetup = true;
                 const modMMhelpers = await importFc4i("mindmap-helpers");
-                menuItemUndo.addEventListener("click", evt => {
+                const modJsEditCommon = await importFc4i("jsmind-edit-common");
+                menuItemUndo.addEventListener("click", async evt => {
                     evt.stopPropagation();
                     divUndoRedo.classList.add("display-none");
-                    // modUndo.actionUndo(mindmapKey);
-                    debugger;
-                    modMMhelpers.DBundo(mindmapKey);
+                    const res = await modMMhelpers.DBundo(mindmapKey);
+                    const mind = await modMMhelpers.getMindmap(mindmapKey);
+                    modJsEditCommon.displayOurMindmap(mind);
                 });
-                menuItemRedo.addEventListener("click", evt => {
+                menuItemRedo.addEventListener("click", async evt => {
                     evt.stopPropagation();
                     divUndoRedo.classList.add("display-none");
-                    // modUndo.actionRedo(mindmapKey);
-                    debugger;
+                    const mind = await modMMhelpers.DBredo(mindmapKey);
+                    modJsEditCommon.displayOurMindmap(mind);
                 });
             }
             const undoTopic = modUndo.canUndo(mindmapKey);

@@ -1145,10 +1145,13 @@ function addDragBorders(jmDisplayed) {
     instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60, eltShow);
 }
 export async function displayOurMindmap(mind) {
-    const eltJmdisplayContainer = document.getElementById(usedOptJmDisplay.container);
+    const opts = getUsedOptJmDisplay(mind);
+    const eltJmdisplayContainer = document.getElementById(opts.container);
     if (!eltJmdisplayContainer) { throw Error(`Could not find #${usedOptJmDisplay.container}`); }
-    const oldJmnodes = eltJmdisplayContainer.querySelector("jmnodes");
-    oldJmnodes?.remove(); // Remove old jmnodes, FIX-ME: maybe remove when this is fixed in jsmind?
+    // const oldJmnodes = eltJmdisplayContainer.querySelector("jmnodes");
+    // oldJmnodes?.remove(); // Remove old jmnodes, FIX-ME: maybe remove when this is fixed in jsmind?
+    const oldZoomMove = eltJmdisplayContainer.querySelector("div.zoom-move");
+    oldZoomMove?.remove(); // Remove old jmnodes, FIX-ME: maybe remove when this is fixed in jsmind?
 
     jmDisplayed = await displayMindMap(mind);
     initialUpdateCustomAndShapes(jmDisplayed); // FIX-ME: maybe remove when this is fixed in jsmind?
@@ -1161,6 +1164,12 @@ export async function displayOurMindmap(mind) {
 
     applyOurMindmapGlobals(jmDisplayed);
     addDragBorders(jmDisplayed);
+}
+async function displayMindMap(mind) {
+    const usedOptJmDisplay = getUsedOptJmDisplay(mind);
+    const jm = new jsMind(usedOptJmDisplay);
+    await jm.show_async(mind);
+    return jm;
 }
 
 export async function pageSetup() {
@@ -1974,14 +1983,6 @@ export async function pageSetup() {
         return divMenu;
     }
 
-    // async function displayMindMap(mind, options) {
-    async function displayMindMap(mind) {
-        // const jm = new jsMind(options);
-        const usedOptJmDisplay = getUsedOptJmDisplay(mind);
-        const jm = new jsMind(usedOptJmDisplay);
-        await jm.show_async(mind);
-        return jm;
-    }
 
     // addScrollIntoViewOnSelect(jmDisplayed);
     addScrollIntoViewOnSelect();

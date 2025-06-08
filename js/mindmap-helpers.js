@@ -33,13 +33,20 @@ export async function DBundo(keyName) {
     if (arguments.length != 1) { throw Error(`Should have 1 argument: ${arguments.length}`); }
     if (typeof keyName != "string") { throw Error(`keyName is not string: ${typeof keyName}`); }
     const modUndo = await importFc4i("undo-redo-tree");
-    debugger; // eslint-disable-line no-debugger
+    // debugger; // eslint-disable-line no-debugger
     const objDataMind = modUndo.actionUndo(keyName);
-    // return await dbMindmaps.DBsetMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy);
     const dbMindmaps = await importFc4i("db-mindmaps");
-    // return await dbMindmaps.DBsetMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy);
     return await dbMindmaps.DBsetMindmap(keyName, objDataMind);
-// 
+}
+export async function DBredo(keyName) {
+    if (arguments.length != 1) { throw Error(`Should have 1 argument: ${arguments.length}`); }
+    if (typeof keyName != "string") { throw Error(`keyName is not string: ${typeof keyName}`); }
+    const modUndo = await importFc4i("undo-redo-tree");
+    // debugger; // eslint-disable-line no-debugger
+    const objDataMind = await modUndo.actionRedo(keyName);
+    const dbMindmaps = await importFc4i("db-mindmaps");
+    await dbMindmaps.DBsetMindmap(keyName, objDataMind);
+    return objDataMind
 }
 export function DBrequestSaveThisMindmap(jmDisplayed, actionTopic) {
     if (arguments.length != 2) {
