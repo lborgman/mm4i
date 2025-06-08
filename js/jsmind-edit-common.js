@@ -1131,6 +1131,37 @@ async function dialogEditMindmap() {
     const rend = await modCustRend.getOurCustomRenderer();
     await rend.editMindmapDialog();
 }
+async function applyOurMindmapGlobals(jmDisplayed) {
+    const modCustRend = await importFc4i("jsmind-cust-rend");
+    modCustRend.setOurCustomRendererJm(jmDisplayed);
+    modCustRend.setOurCustomRendererJmOptions(defaultOptJmDisplay);
+    const render = await modCustRend.getOurCustomRenderer();
+    render.applyThisMindmapGlobals();
+}
+function addDragBorders(jmDisplayed) {
+    const eltJmnodes = getJmnodesFromJm(jmDisplayed);
+    const eltScroll = eltJmnodes.closest("div.zoom-move");
+    const eltShow = eltJmnodes.closest("div.jsmind-inner");
+    instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60, eltShow);
+}
+export async function displayOurMindmap(mind) {
+    const eltJmdisplayContainer = document.getElementById(usedOptJmDisplay.container);
+    if (!eltJmdisplayContainer) { throw Error(`Could not find #${usedOptJmDisplay.container}`); }
+    const oldJmnodes = eltJmdisplayContainer.querySelector("jmnodes");
+    oldJmnodes?.remove(); // Remove old jmnodes, FIX-ME: maybe remove when this is fixed in jsmind?
+
+    jmDisplayed = await displayMindMap(mind);
+    initialUpdateCustomAndShapes(jmDisplayed); // FIX-ME: maybe remove when this is fixed in jsmind?
+
+    jmDisplayed.disable_event_handle("dblclick"); // Double click on Windows and Android
+    connectFsm();
+
+    // We need another layer to handle zoom/move:
+    addZoomMoveLayer(eltJmdisplayContainer);
+
+    applyOurMindmapGlobals(jmDisplayed);
+    addDragBorders(jmDisplayed);
+}
 
 export async function pageSetup() {
     checkParamNames();
@@ -1421,16 +1452,7 @@ export async function pageSetup() {
 
     const nowBefore = Date.now();
 
-
-    // jmDisplayed = await displayMindMap(mind, usedOptJmDisplay);
-    jmDisplayed = await displayMindMap(mind);
-
-    connectFsm();
-    jmDisplayed.disable_event_handle("dblclick"); // Double click on Windows and Android
-
-    // We need another layer to handle zoom/move:
-    const eltJmdisplayContainer = document.getElementById(usedOptJmDisplay.container);
-    addZoomMoveLayer(eltJmdisplayContainer);
+    await displayOurMindmap(mind);
 
 
 
@@ -1443,31 +1465,16 @@ export async function pageSetup() {
 
 
 
-    const modCustRend = await importFc4i("jsmind-cust-rend");
-    modCustRend.setOurCustomRendererJm(jmDisplayed);
-    modCustRend.setOurCustomRendererJmOptions(defaultOptJmDisplay);
-    const render = await modCustRend.getOurCustomRenderer();
 
-
-
-    const eltJmnodes = getJmnodesFromJm(jmDisplayed);
-    const eltScroll = eltJmnodes.closest("div.zoom-move");
-    const eltShow = eltJmnodes.closest("div.jsmind-inner");
-    instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60, eltShow);
-
-
-
-    render.applyThisMindmapGlobals();
-
-    switchDragTouchAccWay(theDragTouchAccWay);
 
     const nowAfter = Date.now();
     const msDisplay = nowAfter - nowBefore;
     if (msDisplay > 100) { console.log(`*** display MindMap, custom rendering: ${msDisplay} ms`); }
 
 
+    switchDragTouchAccWay(theDragTouchAccWay);
 
-    initialUpdateCustomAndShapes(jmDisplayed); // FIX-ME: maybe remove when this is fixed in jsmind?
+
 
     async function setNodeHitsFromArray(arrIdHits, hitType) {
         const eltJmnodes = getJmnodesFromJm(jmDisplayed);
@@ -2087,7 +2094,6 @@ function getJmnodesFromJm(jmDisplayed) {
 
 function initialUpdateCustomAndShapes(jmDisplayed) {
     setTimeout(() => {
-        // console.log("initialUpdateCustomAndShapes (in setTimeout fun)");
         addDebugLog("initialUpdateCustomAndShapes (in setTimeout fun)");
         const eltJmnodes = getJmnodesFromJm(jmDisplayed);
         [...eltJmnodes.getElementsByTagName("jmnode")].forEach(async eltJmnode => {
