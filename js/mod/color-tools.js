@@ -115,7 +115,7 @@ function toRgba(color) {
     if (res == "rgba(-1,-1,-1,-1)") throw Error(`Invalid color ${color}`);
     return res;
 }
-function toRgbaArr(color) {
+export function toRgbaArr(color) {
     // debugger;
     const tofColor = typeof color;
     if (tofColor != "string") throw Error(`Expected "string", got "${tofColor}"`);
@@ -123,7 +123,7 @@ function toRgbaArr(color) {
     if (res.join(",") == "-1,-1,-1,-1") throw Error(`Invalid color ${color}`);
     return res;
 }
-function arrToRgba(arrColor) {
+export function arrToRgba(arrColor) {
     // debugger;
     const a = arrColor;
     return `rgba(${a[0]},${a[1]},${a[2]},${a[3] / 255})`;

@@ -327,7 +327,8 @@ export class CustomRenderer4jsMind {
             bgTabInitialized = true;
             const modColorTools = await importFc4i("color-tools");
             const s = getComputedStyle(eltJmnodes.closest(".jsmind-inner"));
-            const hex = modColorTools.toHex6(s.backgroundColor);
+            // const hex = modColorTools.toHex6(s.backgroundColor);
+            const hex = modColorTools.standardizeColorTo6Hex(s.backgroundColor);
             inpBgMmColor.value = hex;
             const arrRgba = modColorTools.toRgbaArr(s.backgroundColor);
             const opacity = arrRgba[3] / 255;
@@ -464,7 +465,8 @@ export class CustomRenderer4jsMind {
             inpChkChangeLines.checked = old_line;
             const line_width = old_line_width || defaultLineW;
             const line_color = old_line_color || defaultLineC;
-            inpLineColor.value = modColorTools.toHex6(line_color);
+            // inpLineColor.value = modColorTools.toHex6(line_color);
+            inpLineColor.value = modColorTools.standardizeColorTo6Hex(line_color);
             sliLineWidth["myMdc"].setValue(line_width);
             divPreviewLine.style.height = `${line_width}px`;
             divPreviewLine.style.backgroundColor = line_color;
@@ -2583,7 +2585,7 @@ export class CustomRenderer4jsMind {
                     delete currTemp.height;
                     // await modJsEditCommon.fixJmnodeProblem(eltJmnode);
                     modJsEditCommon.applyNodeShapeEtc(node_copied, eltJmnode);
-                    modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed);
+                    modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed, "Edited node");
 
                     // FIX-ME: use lastElementChild instead???
                     // if (node_copied.data.fc4i) this.updateJmnodeFromCustom(eltJmnode);

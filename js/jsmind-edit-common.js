@@ -1062,6 +1062,7 @@ function connectFsm() {
     ourFsm?.post_hook_entry("n_Dblclick", async (hookData) => {
         // const eltJmnode = hookData.data;
         const { eltJmnode } = hookData.data;
+        const modCustRend = await importFc4i("jsmind-cust-rend");
         const renderer = await modCustRend.getOurCustomRenderer();
         renderer.editNodeDialog(eltJmnode);
     });
@@ -1107,6 +1108,30 @@ function startGrabMove(elt2move) {
         isMoving = false;
     }
 }
+function addZoomMoveLayer(eltContainer) {
+    if (!eltContainer) throw Error("Could not find jsmind container");
+    const eltInner = eltContainer?.querySelector("div.jsmind-inner");
+    if (!eltInner) throw Error("Could not find div.jsmind-inner");
+    if (!eltInner.closest("div.zoom-move")) {
+        // debugger;
+        const eltZoomMove = document.createElement("div");
+        eltZoomMove.classList.add("zoom-move");
+        // @ts-ignore
+        eltZoomMove.style = `
+                position: relative;
+                outline: 4px dotted black;
+            `;
+        eltInner.remove();
+        eltZoomMove.appendChild(eltInner);
+        eltContainer.appendChild(eltZoomMove);
+    }
+}
+async function dialogEditMindmap() {
+    const modCustRend = await importFc4i("jsmind-cust-rend");
+    const rend = await modCustRend.getOurCustomRenderer();
+    await rend.editMindmapDialog();
+}
+
 export async function pageSetup() {
     checkParamNames();
 
@@ -1376,9 +1401,7 @@ export async function pageSetup() {
         } else {
             const dbMindmaps = await importFc4i("db-mindmaps");
             const arrMaps = await dbMindmaps.DBgetAllMindmaps()
-            // debugger;
             if (arrMaps.length == 0) {
-                // await modMMhelpers.createAndShowNewMindmap("./mm4i.html");
                 await modMMhelpers.createAndShowNewMindmap();
             } else {
                 // dialogMindMaps(location.pathname);
@@ -1387,45 +1410,35 @@ export async function pageSetup() {
         }
         return;
     }
-
     modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
     modJsmindDraggable.setupNewDragging();
+
+    const usedOptJmDisplay = getUsedOptJmDisplay(mind);
+
+
 
 
 
     const nowBefore = Date.now();
 
-    const usedOptJmDisplay = getUsedOptJmDisplay(mind);
-    jmDisplayed = await displayMindMap(mind, usedOptJmDisplay);
 
+    // jmDisplayed = await displayMindMap(mind, usedOptJmDisplay);
+    jmDisplayed = await displayMindMap(mind);
+
+    connectFsm();
+    jmDisplayed.disable_event_handle("dblclick"); // Double click on Windows and Android
 
     // We need another layer to handle zoom/move:
-    const eltContainer = document.getElementById(usedOptJmDisplay.container);
-    if (!eltContainer) throw Error("Could not find jsmind container");
-    const eltInner = eltContainer?.querySelector("div.jsmind-inner");
-    if (!eltInner) throw Error("Could not find div.jsmind-inner");
-    // if (false && !eltInner.closest("div.zoom-move")) {
-    if (!eltInner.closest("div.zoom-move")) {
-        // debugger;
-        const eltZoomMove = document.createElement("div");
-        eltZoomMove.classList.add("zoom-move");
-        // @ts-ignore
-        eltZoomMove.style = `
-                position: relative;
-                outline: 4px dotted black;
-            `;
-        eltInner.remove();
-        eltZoomMove.appendChild(eltInner);
-        eltContainer.appendChild(eltZoomMove);
-    }
+    const eltJmdisplayContainer = document.getElementById(usedOptJmDisplay.container);
+    addZoomMoveLayer(eltJmdisplayContainer);
 
 
 
 
 
 
-    ////// modFsm
-    connectFsm();
+
+
 
 
 
@@ -1436,10 +1449,8 @@ export async function pageSetup() {
     const render = await modCustRend.getOurCustomRenderer();
 
 
-    // Double click on Windows and Android
-    jmDisplayed.disable_event_handle("dblclick");
-    const eltJmnodes = getJmnodesFromJm(jmDisplayed);
 
+    const eltJmnodes = getJmnodesFromJm(jmDisplayed);
     const eltScroll = eltJmnodes.closest("div.zoom-move");
     const eltShow = eltJmnodes.closest("div.jsmind-inner");
     instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60, eltShow);
@@ -1452,9 +1463,8 @@ export async function pageSetup() {
 
     const nowAfter = Date.now();
     const msDisplay = nowAfter - nowBefore;
-    if (msDisplay > 100) {
-        console.log(`*** displayMindMap, custom rendering: ${msDisplay} ms`);
-    }
+    if (msDisplay > 100) { console.log(`*** display MindMap, custom rendering: ${msDisplay} ms`); }
+
 
 
     initialUpdateCustomAndShapes(jmDisplayed); // FIX-ME: maybe remove when this is fixed in jsmind?
@@ -1693,11 +1703,6 @@ export async function pageSetup() {
         divMenu.style.opacity = 1;
     }
 
-    async function dialogEditMindmap() {
-        const modCustRend = await importFc4i("jsmind-cust-rend");
-        const rend = await modCustRend.getOurCustomRenderer();
-        await rend.editMindmapDialog();
-    }
 
     async function mkPageMenu() {
         let toJmDisplayed;
@@ -1962,8 +1967,11 @@ export async function pageSetup() {
         return divMenu;
     }
 
-    async function displayMindMap(mind, options) {
-        const jm = new jsMind(options);
+    // async function displayMindMap(mind, options) {
+    async function displayMindMap(mind) {
+        // const jm = new jsMind(options);
+        const usedOptJmDisplay = getUsedOptJmDisplay(mind);
+        const jm = new jsMind(usedOptJmDisplay);
         await jm.show_async(mind);
         return jm;
     }
