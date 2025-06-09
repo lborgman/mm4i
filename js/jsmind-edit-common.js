@@ -1190,7 +1190,7 @@ export async function pageSetup() {
     if (typeof mindmapKey === "string" && mindmapKey.length === 0) {
         throw Error("Parameter mindmapname should have a value (key/name of a mindmap)");
     }
-    const nodeHits = new URLSearchParams(location.search).get("nodehits");
+    // const nodeHits = new URLSearchParams(location.search).get("nodehits");
     // const nodeProvider = new URLSearchParams(location.search).get("provider");
 
     const jsMindContainer = document.getElementById(idDivJsmindContainer);
@@ -1325,15 +1325,15 @@ export async function pageSetup() {
             if (visibleSearchInputs()) {
                 const divInputs = document.getElementById("jsmind-search-inputs");
                 if (!divInputs) { throw Error(`Could not find #jsmind-search-inputs`); }
-                if (divInputs.classList.contains("showing-provider-hits")) {
-                    setProviderNodeHits();
-                } else {
-                    inpSearch.focus();
-                    const strSearch = inpSearch.value.trim();
-                    if (strSearch.length > 0) {
-                        restartJsmindSearch();
-                    }
+                // if (divInputs.classList.contains("showing-provider-hits")) {
+                // setProviderNodeHits();
+                // } else {
+                inpSearch.focus();
+                const strSearch = inpSearch.value.trim();
+                if (strSearch.length > 0) {
+                    restartJsmindSearch();
                 }
+                // }
             } else {
                 const divHits = document.getElementById(idDivHits);
                 divHits?.classList.add("display-none");
