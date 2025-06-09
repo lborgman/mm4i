@@ -82,7 +82,7 @@ export class UndoRedoTreeWithDiff {
       try {
         const strJson = JSON.stringify(state); // Check if state can be serialized
         const objJson = JSON.parse(strJson); // Check if state can be deserialized
-        const str= JSON.stringify(objJson);
+        const str = JSON.stringify(objJson);
         if (str !== strJson) {
           throw Error(`state is not a JSON object`);
         }
@@ -250,7 +250,16 @@ export class UndoRedoTreeWithDiff {
     return this.currentFullState;
   }
 
-  canRedo() { return this.currentNode.children.length > 0; }
+  canRedo() {
+    const children = this.currentNode.children;
+    const num = children.length;
+    if (num == 0) return false;
+    if (num > 1) return num;
+    const child0 = children[0];
+    // debugger;
+    const actionTopic = child0.actionTopic;
+    return actionTopic;
+  }
   /**
    * Redo the last undone action, returning the new state.
    * @returns {Promise<any>} The state after redoing

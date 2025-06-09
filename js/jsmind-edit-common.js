@@ -1147,7 +1147,7 @@ function addDragBorders(jmDisplayed) {
 export async function displayOurMindmap(mind) {
     const opts = getUsedOptJmDisplay(mind);
     const eltJmdisplayContainer = document.getElementById(opts.container);
-    if (!eltJmdisplayContainer) { throw Error(`Could not find #${usedOptJmDisplay.container}`); }
+    if (!eltJmdisplayContainer) { throw Error(`Could not find #${opts.container}`); }
     // const oldJmnodes = eltJmdisplayContainer.querySelector("jmnodes");
     // oldJmnodes?.remove(); // Remove old jmnodes, FIX-ME: maybe remove when this is fixed in jsmind?
     const oldZoomMove = eltJmdisplayContainer.querySelector("div.zoom-move");
@@ -1172,8 +1172,17 @@ async function displayMindMap(mind) {
     return jm;
 }
 
-let nodeTopic4undoRedo;
-export function getNodeTopic4undoRedo() { return nodeTopic4undoRedo; }
+let topic4undoRedo;
+export function getTopic4undoRedo() {
+    if (topic4undoRedo == undefined) throw Error(`topic4undoRedo == undefined`);
+    const topic = topic4undoRedo;
+    topic4undoRedo = undefined;
+    return topic;
+}
+export function setTopic4undoRedo(topic) {
+    // if (topic4undoRedo != undefined) throw Error(`topic4undoRedo != undefined`);
+    topic4undoRedo = topic;
+}
 export async function pageSetup() {
     checkParamNames();
 
@@ -1455,7 +1464,7 @@ export async function pageSetup() {
     modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
     modJsmindDraggable.setupNewDragging();
 
-    const usedOptJmDisplay = getUsedOptJmDisplay(mind);
+    // const usedOptJmDisplay = getUsedOptJmDisplay(mind);
 
 
 
@@ -1589,7 +1598,7 @@ export async function pageSetup() {
         const node_id = data.node;
         // console.log({ evt_type, type, datadata, data });
         checkOperationOnNode(evt_type, node_id, datadata);
-        const actionAndNode = `${evt_type} "${getNodeTopic4undoRedo()}"`;
+        const actionAndNode = `${evt_type} "${getTopic4undoRedo()}"`;
         // modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, evt_type); // FIX-ME: delay
         modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, actionAndNode); // FIX-ME: delay
         // updateTheMirror();
@@ -1734,7 +1743,8 @@ export async function pageSetup() {
         console.log({ toJmDisplayed });
         const selected_node = toJmDisplayed && jmDisplayed?.get_selected_node();
         // Save node topic for undo/redo:
-        nodeTopic4undoRedo = selected_node?.topic;
+        // nodeTopic4undoRedo = selected_node?.topic;
+        if (selected_node) setTopic4undoRedo(selected_node.topic);
 
         function getSelected_node() {
             if (!selected_node) {
@@ -1851,6 +1861,7 @@ export async function pageSetup() {
 
             // if (!save) return;
             const new_node_topic = inpTopic.value.trim();
+            setTopic4undoRedo(new_node_topic);
             // const notes = taNotes.value.trim();
             let new_node;
             switch (rel) {

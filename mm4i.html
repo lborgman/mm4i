@@ -1184,7 +1184,18 @@
                 menuItemUndo.textContent = "Undo";
                 menuItemUndo.inert = true;
             }
-            menuItemRedo.inert = !modUndo.canRedo(mindmapKey);
+            // menuItemRedo.inert = !modUndo.canRedo(mindmapKey);
+            const toRedo = modUndo.canRedo(mindmapKey);
+            menuItemRedo.inert = !toRedo;
+            if (!toRedo) {
+                menuItemRedo.textContent = "Redo";
+            } else {
+                if (Number.isInteger(toRedo)) {
+                    menuItemRedo.textContent = `Redo (${toRedo})`;
+                } else {
+                    menuItemRedo.textContent = `Redo: ${toRedo}`;
+                }
+            }
         });
         document.body.appendChild(btnHistory);
 
