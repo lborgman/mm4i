@@ -229,6 +229,7 @@ export class UndoRedoTreeWithDiff {
       console.log("Already at root. Nothing to undo.");
       return null;
     }
+    if (!this.currentNode.parent) throw Error("undo but no .parent");
 
     const patchesToApplyForUndo = this.currentNode.patchesToUndo;
     if (!patchesToApplyForUndo) {
@@ -449,9 +450,9 @@ export async function actionRedo(key) {
 _doSomeTests();
 async function _doSomeTests() {
   ////// All tests passed in version "0.0.001"
-  // await _basicTest({}); // linear
+  await _basicTest({}); // linear
   // await _basicTest({ ourUndoRedo: true }); // linear
-  await _basicTest({ funBranch: _ourFunBranch }); // branched
+  // await _basicTest({ funBranch: _ourFunBranch }); // branched
   // await _basicTest({ funBranch: _ourFunBranch, ourUndoRedo: true }); // branched
 
   /**
@@ -621,7 +622,8 @@ async function _doSomeTests() {
 
 
     function doKey() {
-      Object.keys(histories).join(", ");
+      Object.keys(histories).join(", "); // Just testing...
+      return "the-do-key";
     }
     function doHistory() {
       // if (history) { throw Error("history was set in doHistory"); }
