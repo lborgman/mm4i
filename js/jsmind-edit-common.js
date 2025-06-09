@@ -880,9 +880,9 @@ function mkMenuItem(lbl, fun, keyHint) {
     li.addEventListener("click", evt => {
         evt.preventDefault();
         evt.stopPropagation();
-        console.log(li);
+        // console.log(li);
         const ul = li.closest("ul");
-        console.log(ul);
+        // console.log(ul);
         [...ul.children].forEach(li => {
             if (li.tagName != "LI") throw Error("is not li");
             li.style.backgroundColor = "";
@@ -1613,8 +1613,8 @@ export async function pageSetup() {
         switch (operation_type) {
             case "add_node":
                 const id_added = operation_node_id;
-                const added_node = jmDisplayed.get_node(id_added);
-                console.log({ operation_type, id_added, added_node });
+                // const added_node = jmDisplayed.get_node(id_added);
+                // console.log({ operation_type, id_added, added_node });
                 if (id_added != datadata[1]) throw Error(`id_added (${id_added}) != datadata[1] (${datadata[1]})`);
                 break;
             case "update_node":
@@ -1640,8 +1640,8 @@ export async function pageSetup() {
                     break;
                 }
             case "remove_node":
-                const id_removed = datadata[0];
-                console.log({ operation_type, id_removed, operation_node_id });
+                // const id_removed = datadata[0];
+                // console.log({ operation_type, id_removed, operation_node_id });
                 break;
             default:
                 console.warn(`unknown operation_type: ${operation_type}`);
@@ -1745,7 +1745,7 @@ export async function pageSetup() {
         } catch (err) {
             console.log({ err });
         }
-        console.log({ toJmDisplayed });
+        // console.log({ toJmDisplayed });
         const selected_node = toJmDisplayed && jmDisplayed?.get_selected_node();
         // Save node topic for undo/redo:
         // nodeTopic4undoRedo = selected_node?.topic;
@@ -1856,11 +1856,11 @@ export async function pageSetup() {
                     const action = evt.detail.action;
                     const topic = inpTopic.value.trim();
                     const result = topic.length > 0;
-                    console.log({ action, result });
+                    // console.log({ action, result });
                     resolve(result);
                 }));
             });
-            console.log({ res });
+            // console.log({ res });
             if (!res) return;
 
 
@@ -1872,7 +1872,7 @@ export async function pageSetup() {
             switch (rel) {
                 case "child":
                     new_node = await jm.add_node(selected_node, new_node_id, new_node_topic);
-                    console.log(`child .add_node(${selected_node.id}, ${new_node_id}, ${new_node_topic})`);
+                    // console.log(`child .add_node(${selected_node.id}, ${new_node_id}, ${new_node_topic})`);
                     break;
                 case "brother":
                     const mother_node = selected_node.parent;
