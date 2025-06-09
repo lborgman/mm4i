@@ -373,7 +373,7 @@ export class CustomRenderer4jsMind {
         /** @param {string} val @returns {void} */
         const onChangeMMdesc = (val) => {
             root_node.data.shapeEtc.notes = val.trimEnd();
-            modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed, "Edit description");
+            modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed, "Edit mindmap description");
         };
 
 
@@ -656,7 +656,7 @@ export class CustomRenderer4jsMind {
         /** @type {Object | undefined} */ let toastNotesEditor;
         const onChange = (val) => {
             shapeEtc.notes = val.trimEnd();
-            modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, "Edit notes");
+            modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, `Edit notes "${node.topic}"`);
         };
 
         body.appendChild(divEasyMdeOuterWrapper);
@@ -2585,7 +2585,7 @@ export class CustomRenderer4jsMind {
                     delete currTemp.height;
                     // await modJsEditCommon.fixJmnodeProblem(eltJmnode);
                     modJsEditCommon.applyNodeShapeEtc(node_copied, eltJmnode);
-                    modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed, "Edited node");
+                    modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed, `Edited "${node_copied.topic}`);
 
                     // FIX-ME: use lastElementChild instead???
                     // if (node_copied.data.fc4i) this.updateJmnodeFromCustom(eltJmnode);

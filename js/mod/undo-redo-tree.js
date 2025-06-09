@@ -12,7 +12,7 @@ export function getUndoRedoTreeVersion() { return UNDO_REDO_TREE_VERSION; }
 const logClassStyle = "background:white; color:blue; padding:2px; border-radius:2px;";
 const logClassImportantStyle = logClassStyle + " font-size:18px;";
 function logClass(what, ...msg) { console.log(`%c${what}`, logClassStyle, ...msg); }
-function logClassImportant(what, ...msg) { console.log(`%c${what}`, logClassImportantStyle, ...msg); }
+function logClassImportant(what, ...msg) { console.warn(`%c${what}`, logClassImportantStyle, ...msg); }
 
 
 
@@ -72,11 +72,38 @@ export class HistoryTreeNode {
 const diff_match_patch = window["diff_match_patch"];
 export class UndoRedoTreeWithDiff {
   #treeStructured = false;
+  #stateType;
+  #checkStateType(state) {
+    const tofState = typeof state;
+    if (tofState !== this.#stateType) {
+      throw Error(`type of state: "${tofState}", expected "${this.#stateType}"`);
+    }
+    if (tofState === "object") {
+      try {
+        const strJson = JSON.stringify(state); // Check if state can be serialized
+        const objJson = JSON.parse(strJson); // Check if state can be deserialized
+        const str= JSON.stringify(objJson);
+        if (str !== strJson) {
+          throw Error(`state is not a JSON object`);
+        }
+      } catch (e) {
+        throw Error(`Invalid initialState object: ${e.message}`);
+      }
+    }
+  }
   /**
    * @param {any} initialState - string or json object representing the initial state of the application.
    * @param {(defaultBranch: number, arrBranches: string[]) => number | null} [funBranch]
    */
   constructor(initialState, funBranch = undefined) {
+    const tofState = typeof initialState;
+    const arrAllowedTypes = ["string", "object"];
+    if (!arrAllowedTypes.includes(tofState)) {
+      throw Error(`Invalid initialState type: ${tofState}, expected one of ${arrAllowedTypes.join(", ")}`);
+    }
+    this.#stateType = tofState;
+    this.#checkStateType(initialState); // Validate the initial state type
+
     let txtLinOrTree = "ERROR";
     if (funBranch == null) {
       this.#treeStructured = false;
@@ -112,15 +139,17 @@ export class UndoRedoTreeWithDiff {
     this.currentFullState = this._deepCopy(initialState);
   }
 
-  _logTreeStructure() {
+  logTreeStructure() {
     const linearOrTree = this.isTreeStructured ? "Tree" : "Linear";
-    logClass(`Current tree structure (${linearOrTree}):`);
+    const h = this;
+    logClassImportant(`Current tree structure (${linearOrTree}):`, { h });
     // debugger; // eslint-disable-line no-debugger
     const current = this.currentNode;
     const traverse = (node, depth = 0) => {
-      const markCurrent = (node === current) ? "> " : "";
-      const styleCurrent = (node === current) ? "background:darkblue;color:white;" : "";
-      console.log("%c" + "  ".repeat(depth) + `${markCurrent}Node ID: ${node.id}, Action: ${node.action || "N/A"} `, styleCurrent);
+      const markCurrent = (node === current) ? ">" : "";
+      const styleCurrent = (node === current) ? "background:darkblue;color:white;" : "background:black;color:lightgray;";
+      // console.log("%c" + "  ".repeat(depth) + `${markCurrent}Node ID: ${node.id}, Action: ${node.action || "N/A"} `, styleCurrent);
+      console.log("%c" + "  ".repeat(depth) + `${markCurrent}Node: ${node.actionTopic || "N/A"} `, styleCurrent);
       if (node.children.length > 0) {
         node.children.forEach(child => traverse(child, depth + 1));
       }
@@ -160,6 +189,7 @@ export class UndoRedoTreeWithDiff {
    */
   recordAction(newFullState, actionTopic) {
     logClass("recordAction()", newFullState, actionTopic);
+    this.#checkStateType(newFullState); // Validate the new state type
     const oldStateText = this._serialize(this.currentFullState);
     const newStateText = this._serialize(newFullState);
 
@@ -358,6 +388,11 @@ function getHistory(key) {
     throw Error(`No history found for key: ${key}`);
   }
   return history;
+}
+
+export function logHistoryTree(key) {
+  const history = getHistory(key);
+  history.logTreeStructure();
 }
 
 /**
@@ -564,7 +599,7 @@ async function _doSomeTests() {
         alreayCalledLogTreeStructure = true;
         setTimeout(() => {
           const history = doHistory();
-          history._logTreeStructure();
+          history.logTreeStructure();
         }, 1000);
       }
     }

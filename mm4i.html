@@ -1175,6 +1175,7 @@
                     modJsEditCommon.displayOurMindmap(mind);
                 });
             }
+            modUndo.logHistoryTree(mindmapKey);
             const undoTopic = modUndo.canUndo(mindmapKey);
             if (undoTopic) {
                 menuItemUndo.textContent = `Undo: ${undoTopic}`;

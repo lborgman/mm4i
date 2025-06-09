@@ -1172,6 +1172,8 @@ async function displayMindMap(mind) {
     return jm;
 }
 
+let nodeTopic4undoRedo;
+export function getNodeTopic4undoRedo() { return nodeTopic4undoRedo; }
 export async function pageSetup() {
     checkParamNames();
 
@@ -1587,7 +1589,9 @@ export async function pageSetup() {
         const node_id = data.node;
         // console.log({ evt_type, type, datadata, data });
         checkOperationOnNode(evt_type, node_id, datadata);
-        modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, evt_type); // FIX-ME: delay
+        const actionAndNode = `${evt_type} "${getNodeTopic4undoRedo()}"`;
+        // modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, evt_type); // FIX-ME: delay
+        modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, actionAndNode); // FIX-ME: delay
         // updateTheMirror();
     });
     async function checkOperationOnNode(operation_type, operation_node_id, datadata) {
@@ -1729,6 +1733,8 @@ export async function pageSetup() {
         }
         console.log({ toJmDisplayed });
         const selected_node = toJmDisplayed && jmDisplayed?.get_selected_node();
+        // Save node topic for undo/redo:
+        nodeTopic4undoRedo = selected_node?.topic;
 
         function getSelected_node() {
             if (!selected_node) {
