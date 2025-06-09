@@ -656,7 +656,7 @@ export function mkMDCmenuUl(arrLiMenu) {
     return mkElt("ul", {
         class: "mdc-list",
         role: "menu",
-        "aria-hidden": "true",
+        // "aria-hidden": "true",
         "aria-orientation": "vertical",
         tabindex: -1,
     }, arrLiMenu);
