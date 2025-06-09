@@ -1191,7 +1191,7 @@ export async function pageSetup() {
         throw Error("Parameter mindmapname should have a value (key/name of a mindmap)");
     }
     const nodeHits = new URLSearchParams(location.search).get("nodehits");
-    const nodeProvider = new URLSearchParams(location.search).get("provider");
+    // const nodeProvider = new URLSearchParams(location.search).get("provider");
 
     const jsMindContainer = document.getElementById(idDivJsmindContainer);
     if (!jsMindContainer) throw Error(`Could not find ${idDivJsmindContainer}`);
@@ -1364,6 +1364,7 @@ export async function pageSetup() {
         btnSyncMm.style.borderLeft = "1px solid rgb(0,0,0,0.4)";
 
 
+        /*
         const eltTellProvider = mkElt("span");
         eltTellProvider.id = "elt-tell-provider";
         if (nodeProvider) {
@@ -1376,6 +1377,7 @@ export async function pageSetup() {
         } else {
             eltTellProvider.appendChild(mkElt("span", undefined, "dummy (no provider)"));
         }
+        */
         // eltProvHits.textContent = "";
         // eltProvHits.appendChild(eltTellProvider);
         // eltProvHits.appendChild(btnCloseProvHits);
@@ -1496,9 +1498,10 @@ export async function pageSetup() {
 
 
 
-    async function setNodeHitsFromArray(arrIdHits, hitType) {
+    async function setNodeHitsFromArray(arrIdHits) {
         const eltJmnodes = getJmnodesFromJm(jmDisplayed);
         eltJmnodes.classList.add("showing-hits");
+        /*
         if (hitType == "provider") {
             // @ts-ignore
             jsMindContainer.classList.add("display-jsmind-search");
@@ -1506,6 +1509,9 @@ export async function pageSetup() {
             if (!divInputs) { throw Error(`Could not find #jsmind-search-inputs`); }
             divInputs.classList.add("showing-provider-hits");
         }
+        */
+
+
         console.log({ arrHits: arrIdHits });
         function addSpanHitMark(eltJmnode) {
             if (eltJmnode.querySelector("span.hit-mark")) return;
@@ -1525,11 +1531,7 @@ export async function pageSetup() {
         });
 
         if (arrIdHits.length == 0) {
-            if (hitType == "provider") {
-                divHits.textContent = "No link to provider item";
-            } else {
-                divHits.textContent = "No search hits";
-            }
+            divHits.textContent = "No search hits";
             return;
         }
         const btnCurr = await modMdc.mkMDCbutton("wait");
@@ -1583,12 +1585,15 @@ export async function pageSetup() {
     }
 
     // if (nodeHits) { setProviderNodeHits(); }
-    setProviderNodeHits();
+    // setProviderNodeHits();
+    /*
     async function setProviderNodeHits() {
+        debugger;
         if (!nodeHits) return;
         const arrIdHits = nodeHits.split(",");
         setNodeHitsFromArray(arrIdHits, "provider");
     }
+    */
 
     jmDisplayed.add_event_listener((type, data) => {
         if (type !== 3) return;
@@ -1882,13 +1887,11 @@ export async function pageSetup() {
             jm.select_node(new_node);
         }
 
-        const liEditNode = mkMenuItem("Edit node", editNode, "Dblclick");
+        const liEditNode = mkMenuItem("Edit node", editNodeFromMenu, "Dblclick");
         markIfNoSelected(liEditNode);
-        async function editNode() {
-            // FIX-ME: ???
-            // const selected_node = getSelected_node();
+        async function editNodeFromMenu() {
             const eltJmnode = document.querySelector("jmnode.selected");
-            const renderer = await modCustRend.getOurCustomRenderer();
+            const renderer = await getCustomRenderer();
             renderer.editNodeDialog(eltJmnode);
         }
 
@@ -2026,15 +2029,7 @@ export async function pageSetup() {
         }
         // debugger;
         const arrIdHits = [...setNodes].map(n => jsMind.my_get_nodeID_from_DOM_element(n));
-        setNodeHitsFromArray(arrIdHits, "search");
-        return;
-        // const searchTree = await modTools.string2searchTree(strSearch);
-        // const resultSearch = modTools.string2searchTree(strSearch);
-        // const searchTree = resultSearch.tree;
-        // const setNodes = modTools.searchBySearchTree(searchTree, jsmindSearchWordNodes);
-        // const arrIdHits = matchingNodes.map(n => jsMind.my_get_nodeID_from_DOM_element(n));
-        // const arrIdHits = [...setNodes].map(n => jsMind.my_get_nodeID_from_DOM_element(n));
-        // setNodeHitsFromArray(arrIdHits, "search");
+        setNodeHitsFromArray(arrIdHits);
     }
     function jsmindSearchWordNodes(strSearch) {
         // @ts-ignore
@@ -2060,10 +2055,6 @@ export async function pageSetup() {
             return false;
         });
         return new Set(matchingNodes);
-        const arrIdHits = matchingNodes.map(n => jsMind.my_get_nodeID_from_DOM_element(n));
-        setNodeHitsFromArray(arrIdHits, "search");
-        console.log({ matchingNodes });
-        return matchingNodes;
     }
 
 
