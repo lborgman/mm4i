@@ -11,7 +11,7 @@ if (typeof window["diff_match_patch"] !== "function") {
 export function getUndoRedoTreeVersion() { return UNDO_REDO_TREE_VERSION; }
 const logClassStyle = "background:white; color:blue; padding:2px; border-radius:2px;";
 const logClassImportantStyle = logClassStyle + " font-size:18px;";
-function logClass(what, ...msg) { console.log(`%c${what}`, logClassStyle, ...msg); }
+function logClass(what, ...msg) { console.warn(`%c${what}`, logClassStyle, ...msg); }
 function logClassImportant(what, ...msg) { console.warn(`%c${what}`, logClassImportantStyle, ...msg); }
 
 
@@ -69,6 +69,9 @@ export class HistoryTreeNode {
   }
 }
 
+function jsonStringifySorted(obj) {
+  return JSON.stringify(Object.keys(obj).sort().reduce((acc, key) => {acc[key]=obj[key]; return acc; }, {}));
+}
 const diff_match_patch = window["diff_match_patch"];
 export class UndoRedoTreeWithDiff {
   #treeStructured = false;
@@ -80,7 +83,7 @@ export class UndoRedoTreeWithDiff {
     }
     if (tofState === "object") {
       try {
-        const strJson = JSON.stringify(state); // Check if state can be serialized
+        const strJson = jsonStringifySorted(state); // Check if state can be serialized
         const objJson = JSON.parse(strJson); // Check if state can be deserialized
         const str = JSON.stringify(objJson);
         if (str !== strJson) {
@@ -160,7 +163,7 @@ export class UndoRedoTreeWithDiff {
   _serialize(state) {
     // Ensure consistent serialization, e.g., by sorting keys if order doesn't matter
     // but can affect diffs. For simple JSON, stringify is usually enough.
-    return JSON.stringify(state);
+    return jsonStringifySorted(state);
   }
 
   _deserialize(stateString) {
@@ -174,7 +177,7 @@ export class UndoRedoTreeWithDiff {
   }
 
   _deepCopy(obj) {
-    return JSON.parse(JSON.stringify(obj));
+    return JSON.parse(jsonStringifySorted(obj));
   }
 
   get isTreeStructured() {
@@ -188,7 +191,7 @@ export class UndoRedoTreeWithDiff {
    * @returns 
    */
   recordAction(newFullState, actionTopic) {
-    logClass("recordAction()", newFullState, actionTopic);
+    logClass("recordAction()", actionTopic, newFullState);
     this.#checkStateType(newFullState); // Validate the new state type
     const oldStateText = this._serialize(this.currentFullState);
     const newStateText = this._serialize(newFullState);
@@ -546,7 +549,7 @@ async function _doSomeTests() {
     assertObjectEqual("After redo Action 1", appState, state1);
 
     // Now, let's create a new node from here
-    let branchedState = JSON.parse(JSON.stringify(appState)); // Important to copy
+    let branchedState = JSON.parse(jsonStringifySorted(appState)); // Important to copy
     // branchedState.message = history.isTreeStructured ? "New Branch!" : "New Linear!";
     branchedState.message = doIsTreeStructured() ? "New Branch!" : "New Linear!";
 

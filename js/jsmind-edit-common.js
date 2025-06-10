@@ -1174,7 +1174,10 @@ async function displayMindMap(mind) {
 
 let topic4undoRedo;
 export function getTopic4undoRedo() {
-    if (topic4undoRedo == undefined) throw Error(`topic4undoRedo == undefined`);
+    if (topic4undoRedo == undefined) {
+        console.error(`topic4undoRedo == undefined`);
+        return "NO-NODE-TOPIC";
+    }
     const topic = topic4undoRedo;
     topic4undoRedo = undefined;
     return topic;
@@ -1601,8 +1604,10 @@ export async function pageSetup() {
         const evt_type = data.evt;
         const datadata = data.data;
         const node_id = data.node;
-        // console.log({ evt_type, type, datadata, data });
+        console.log({ evt_type, type, datadata, data });
         checkOperationOnNode(evt_type, node_id, datadata);
+        const topic = jmDisplayed.mind.nodes[node_id].topic;
+        setTopic4undoRedo(topic);
         const actionAndNode = `${evt_type} "${getTopic4undoRedo()}"`;
         // modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, evt_type); // FIX-ME: delay
         modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, actionAndNode); // FIX-ME: delay
