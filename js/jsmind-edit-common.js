@@ -1071,7 +1071,7 @@ function connectFsm() {
 }
 const modMoveHelp = await importFc4i("move-help");
 function startGrabMove(elt2move) {
-    console.log("startGrabMove", elt2move);
+    // console.log("startGrabMove", elt2move);
     let isMoving = true;
     // const ourElement2move = elt2move;
     // let n = 0;
@@ -1437,7 +1437,7 @@ export async function pageSetup() {
         mind = await modMMhelpers.getMindmap(mindmapKey);
         window["current-mindmapKey"] = mindmapKey;
         modMMhelpers.getMindmapPrivacy(mindmapKey).then(privacy => {
-            console.log({ privacy });
+            // console.log({ privacy });
             const eltJsMindContainer = document.getElementById("jsmind_container");
             if (!eltJsMindContainer) throw Error("Could not find #jsmind_container");
             const cl = eltJsMindContainer.classList;

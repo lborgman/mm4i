@@ -2545,7 +2545,7 @@
             }
             if (node.topic) {
                 const dTxt = element.querySelector(".jmnode-text");
-                console.log({ dTxt });
+                // console.log({ dTxt });
                 if (!dTxt.classList.contains("jmnode-text")) throw Error("Not div.jmnode-text");
                 if (this.opts.support_html) {
                     $.h(dTxt, node.topic);
@@ -3199,7 +3199,6 @@
 
     // FIX-ME: unregister seems safe to implement, but give a warning for now.
     function unregister(pluginName) {
-        debugger;
         if (typeof pluginName != "string") {
             throw Error("pluginName should be a string");
         }

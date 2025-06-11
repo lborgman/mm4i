@@ -168,7 +168,7 @@ function displayZoomed(scaled) {
  * @returns 
  */
 export function mkZoomButtons(elt, horOrVer) {
-    console.log({ elt, horOrVer });
+    // console.log({ elt, horOrVer });
     if (!(elt instanceof HTMLElement)) throw Error("elt is not HTMLElement");
     const tofHorOrVer = typeof horOrVer;
     if ("string" != tofHorOrVer) throw Error(`Expected string, got ${tofHorOrVer}`);

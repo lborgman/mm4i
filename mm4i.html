@@ -1251,7 +1251,7 @@
                 // modMdc.mkMDCsnackbar(`Switching to ${visibleName}`);
                 const history = modUndo.getHistory(mindmapKey);
                 const objMm = history.navigateToNode(node);
-                console.log({ objMm });
+                // console.log({ objMm });
                 const dbMindmaps = await importFc4i("db-mindmaps");
                 // await dbMindmaps.DBsetMindmap(keyName, objMm, lastUpdated, lastSynced, privacy);
                 await dbMindmaps.DBsetMindmap(mindmapKey, objMm);

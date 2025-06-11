@@ -636,10 +636,10 @@ export async function PWAhasInternet() {
 
     try {
         const response = await fetch(urlHref, { method: 'HEAD' },)
-        console.log(`PWAhasInternet is online, (any response is actually ok here) response.ok: ${response.ok}`)
+        logConsole(`PWAhasInternet: YES (any response is actually ok here) response.ok: ${response.ok}`)
         return true;
     } catch {
-        console.log("PWAhasInternet not online: didn't get response");
+        logConsole("PWAhasInternet: NO (didn't get response)");
         return false
     }
 }
