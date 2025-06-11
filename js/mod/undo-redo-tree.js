@@ -385,7 +385,8 @@ export class UndoRedoTreeWithDiff {
       this.currentFullState = state;
       return this.currentFullState;
     }
-    console.warn("Could not navigate to node.");
+    console.error("Could not navigate to node.");
+    throw Error("Could not navigate to node.");
     return null;
   }
 
@@ -418,7 +419,7 @@ export function hasUndoRedo(key) {
   return !!history;
 }
 
-function getHistory(key) {
+export function getHistory(key) {
   const history = histories[key];
   if (!history) {
     throw Error(`No history found for key: ${key}`);

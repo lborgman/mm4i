@@ -72,7 +72,7 @@
     <script type="module" src="./pwa.js"></script>
     <script type="module" src="./anchors-with-base.js"></script>
     <script src="./mm4i-importmaps.js"></script>
-    <script type="module" src="./js/mod/tools.js"></script>
+    <!-- <script type="module" src="./js/mod/tools.js"></script> -->
 
 
     <link rel="manifest" href="./manifest-mm4i.json">
@@ -1154,17 +1154,17 @@
         const menuItemRedo = modMdc.mkMDCmenuItem("Redo");
         menuItemRedo.id = "mm4i-undo-redo-menu-item-redo";
 
-        const menuItemMore = modMdc.mkMDCmenuItem("More...");
-        menuItemMore.id = "mm4i-undo-redo-menu-item-more";
+        const menuItemHistory = modMdc.mkMDCmenuItem("History...");
+        menuItemHistory.id = "mm4i-undo-redo-menu-item-more";
 
-        const menuItemNot = modMdc.mkMDCmenuItem(mkElt("span", { style: "background:red;padding:20px;" }, "Not ready!"));
+        // const menuItemNot = modMdc.mkMDCmenuItem(mkElt("span", { style: "background:darkblue;color:white;padding:20px;" }, "Not finished..."));
         const menuUndoRedo = modMdc.mkMDCmenuUl([
-            menuItemNot,
+            // menuItemNot,
+            menuItemHistory,
             menuItemUndo,
             menuItemRedo,
-            menuItemMore
         ]);
-        menuItemMore.addEventListener("click", async evt => {
+        menuItemHistory.addEventListener("click", async evt => {
             evt.stopPropagation();
             showHistory();
         });
@@ -1172,10 +1172,18 @@
             divUndoRedo.classList.add("display-none");
             console.log("showMore", { eltHistory });
             eltHistory.textContent = "";
+            const divHistoryHeader = mkElt("div",
+                { style: "background:darkblue;color:white;padding:10px;" },
+                "History");
+            eltHistory.appendChild(divHistoryHeader);
             let dummyVal = 0;
             const fun = (node, depth, current) => {
                 const markCurrent = (node === current) ? ">" : "";
-                const radNode = mkElt("input", { type: "radio", name: "undo-redo-state", value: dummyVal++ });
+                const radNode = mkElt("input", {
+                    type: "radio", name: "undo-redo-state",
+                    value: dummyVal++
+                });
+                radNode.valueAsObject = node;
                 radNode.checked = node === current;
                 const eltNode = mkElt("label", undefined, [
                     radNode,
@@ -1186,11 +1194,24 @@
                 eltHistory.appendChild(eltNode);
             }
             const modUndo = await importFc4i("undo-redo-tree");
+            const hasHistory = modUndo.hasUndoRedo(mindmapKey);
+            if (!hasHistory) {
+                modMdc.mkMDCsnackbar("No changes yet");
+                return;
+            }
             modUndo.mapHistoryTree(mindmapKey, fun);
             eltHistory.classList.remove("display-none");
         }
 
 
+        /*
+        const divUndoRedo = mkElt("div", undefined, [
+            // mkElt("div", undefined, "Undo/Redo edits"),
+            mkElt("div", { style: "position:relative;" },
+                modMdc.mkMDCmenuDiv(menuUndoRedo)
+            )
+        ]);
+        */
         const divUndoRedo = modMdc.mkMDCmenuDiv(menuUndoRedo);
         divUndoRedo.id = "mm4i-undo-redo-div";
         divUndoRedo.classList.add("display-none");
@@ -1202,11 +1223,39 @@
         eltHistory.id = "mm4i-history-more";
         eltHistory.classList.add("display-none");
         document.body.appendChild(eltHistory);
-        eltHistory.addEventListener("change", evt => {
+        eltHistory.addEventListener("change", async evt => {
             const target = evt.target;
             if (target.name == "undo-redo-state") {
+                const divZM = document.querySelector("jmnodes").closest(".zoom-move");
+                // divZM.inert = true;
+                divZM.style.filter = "grayScale(0.5)";
+                divZM.style.transition = "opacity 0.5s";
+                divZM.style.opacity = 0;
+                const modTools = await importFc4i("toolsJs");
+                await modTools.waitSeconds(0.5);
+                /*
+                setTimeout(() => {
+                    const divZM = document.querySelector("jmnodes").closest(".zoom-move");
+                    divZM.style.transition = "opacity 0.5s";
+                    divZM.style.opacity = 1;
+                });
+                */
+                // const modTools = await importFc4i("toolsJs");
+                // await modTools.waitSeconds(0.5);
+                // debugger;
+                // setTimeout(() => divZM.inert = false, 1000);
+                const modUndo = await importFc4i("undo-redo-tree");
                 const val = target.value;
-                modMdc.mkMDCsnackbar(`Clicked ${val}, handling not implemented yet`);
+                const node = target.valueAsObject;
+                const visibleName = target.parentElement.textContent;
+                // modMdc.mkMDCsnackbar(`Switching to ${visibleName}`);
+                const history = modUndo.getHistory(mindmapKey);
+                const objMm = history.navigateToNode(node);
+                console.log({ objMm });
+                const dbMindmaps = await importFc4i("db-mindmaps");
+                // await dbMindmaps.DBsetMindmap(keyName, objMm, lastUpdated, lastSynced, privacy);
+                await dbMindmaps.DBsetMindmap(mindmapKey, objMm);
+                modJsEditCommon.displayOurMindmap(objMm);
             }
         });
 
