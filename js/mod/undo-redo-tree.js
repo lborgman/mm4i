@@ -70,7 +70,7 @@ export class HistoryTreeNode {
 }
 
 function jsonStringifySorted(obj) {
-  return JSON.stringify(Object.keys(obj).sort().reduce((acc, key) => {acc[key]=obj[key]; return acc; }, {}));
+  return JSON.stringify(Object.keys(obj).sort().reduce((acc, key) => { acc[key] = obj[key]; return acc; }, {}));
 }
 const diff_match_patch = window["diff_match_patch"];
 export class UndoRedoTreeWithDiff {
@@ -142,22 +142,45 @@ export class UndoRedoTreeWithDiff {
     this.currentFullState = this._deepCopy(initialState);
   }
 
-  logTreeStructure() {
+  OLDlogTreeStructure() {
     const linearOrTree = this.isTreeStructured ? "Tree" : "Linear";
     const h = this;
     logClassImportant(`Current tree structure (${linearOrTree}):`, { h });
-    // debugger; // eslint-disable-line no-debugger
     const current = this.currentNode;
     const traverse = (node, depth = 0) => {
       const markCurrent = (node === current) ? ">" : "";
       const styleCurrent = (node === current) ? "background:darkblue;color:white;" : "background:black;color:lightgray;";
-      // console.log("%c" + "  ".repeat(depth) + `${markCurrent}Node ID: ${node.id}, Action: ${node.action || "N/A"} `, styleCurrent);
       console.log("%c" + "  ".repeat(depth) + `${markCurrent}Node: ${node.actionTopic || "N/A"} `, styleCurrent);
       if (node.children.length > 0) {
         node.children.forEach(child => traverse(child, depth + 1));
       }
     }
     traverse(this.rootNode);
+  }
+  logTreeStructure() {
+    const linearOrTree = this.isTreeStructured ? "Tree" : "Linear";
+    const h = this;
+    logClassImportant(`New current tree structure (${linearOrTree}):`, { h });
+    const fun = (node, depth, current) => {
+      const markCurrent = (node === current) ? ">" : "";
+      const style = (node === current) ? "background:darkblue;color:white;" : "background:black;color:lightgray;";
+      console.log("%c" + "  ".repeat(depth) + `${markCurrent}Node: ${node.actionTopic || "N/A"} `, style);
+    }
+    this.startWalkSubtree(this.rootNode, fun);
+  }
+  startWalkSubtree(node, fun) {
+    const current = this.currentNode;
+    walkSubtree(node, 0);
+    function walkSubtree(node, depth) {
+      fun(node, depth, current);
+      if (node.children.length > 0) {
+        node.children.forEach(child => walkSubtree(child, depth + 1));
+      }
+
+    }
+  }
+  startWalkTree(fun) {
+    this.startWalkSubtree(this.rootNode, fun);
   }
 
   _serialize(state) {
@@ -407,6 +430,14 @@ export function logHistoryTree(key) {
   const history = getHistory(key);
   history.logTreeStructure();
 }
+export function mapHistoryTree(key, fun) {
+  const tofFun = typeof fun;
+  if (tofFun != "function") throw Error(`parameter fun should be "function", was "${tofFun}"`);
+  const funLen = fun.length;
+  if (funLen != 3) throw Error(`Parameter function fun should take 3 args, but takes ${funLen} args`);
+  const history = getHistory(key);
+  history.startWalkTree(fun);
+}
 
 /**
  * 
@@ -608,6 +639,7 @@ async function _doSomeTests() {
         console.error("%cNot equal", "color:white; background:red; padding:2px; font-size:1.2em", `${where}: ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
       } else {
         console.log("%cequal:", "color:white; background:green; padding:2px; font-size:1.2em", `${where}: ${JSON.stringify(actual)}`);
+        return;
         if (alreayCalledLogTreeStructure) return;
         alreayCalledLogTreeStructure = true;
         setTimeout(() => {

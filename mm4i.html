@@ -1008,6 +1008,30 @@
             background-color: lightseagreen;
             color: black;
         }
+
+        .mm4i-history-node {
+            height: 32px;
+            padding: 4px;
+            display: flex;
+            flex-direction: row;
+            gap: 4px;
+            align-items: center;
+            background-color: lightseagreen;
+            color: black;
+        }
+
+        #mm4i-history-more {
+            position: fixed;
+            z-index: 1000;
+            background: gray;
+            outline: 4px dotted green;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            left: 80px;
+            bottom: 0px;
+
+        }
     </style>
 
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind@0.5/es6/jsmind.js"></script> -->
@@ -1130,17 +1154,61 @@
         const menuItemRedo = modMdc.mkMDCmenuItem("Redo");
         menuItemRedo.id = "mm4i-undo-redo-menu-item-redo";
 
+        const menuItemMore = modMdc.mkMDCmenuItem("More...");
+        menuItemMore.id = "mm4i-undo-redo-menu-item-more";
+
         const menuItemNot = modMdc.mkMDCmenuItem(mkElt("span", { style: "background:red;padding:20px;" }, "Not ready!"));
         const menuUndoRedo = modMdc.mkMDCmenuUl([
             menuItemNot,
             menuItemUndo,
-            menuItemRedo
+            menuItemRedo,
+            menuItemMore
         ]);
+        menuItemMore.addEventListener("click", async evt => {
+            evt.stopPropagation();
+            showHistory();
+        });
+        async function showHistory() {
+            divUndoRedo.classList.add("display-none");
+            console.log("showMore", { eltHistory });
+            eltHistory.textContent = "";
+            let dummyVal = 0;
+            const fun = (node, depth, current) => {
+                const markCurrent = (node === current) ? ">" : "";
+                const radNode = mkElt("input", { type: "radio", name: "undo-redo-state", value: dummyVal++ });
+                radNode.checked = node === current;
+                const eltNode = mkElt("label", undefined, [
+                    radNode,
+                    `${node.actionTopic || "N/A"} `,
+                ]);
+                eltNode.classList.add("mm4i-history-node");
+                eltNode.style.paddingLeft = `${4 + depth * 20}px`;
+                eltHistory.appendChild(eltNode);
+            }
+            const modUndo = await importFc4i("undo-redo-tree");
+            modUndo.mapHistoryTree(mindmapKey, fun);
+            eltHistory.classList.remove("display-none");
+        }
+
 
         const divUndoRedo = modMdc.mkMDCmenuDiv(menuUndoRedo);
         divUndoRedo.id = "mm4i-undo-redo-div";
         divUndoRedo.classList.add("display-none");
         document.body.appendChild(divUndoRedo);
+
+        const eltHistory = mkElt("div", undefined, [
+            mkElt("div", undefined, "show more")
+        ]);
+        eltHistory.id = "mm4i-history-more";
+        eltHistory.classList.add("display-none");
+        document.body.appendChild(eltHistory);
+        eltHistory.addEventListener("change", evt => {
+            const target = evt.target;
+            if (target.name == "undo-redo-state") {
+                const val = target.value;
+                modMdc.mkMDCsnackbar(`Clicked ${val}, handling not implemented yet`);
+            }
+        });
 
 
         // const btnHistory = modMdc.mkMDCiconButton("deployed_code_history", "Undo/Redo");
@@ -1150,6 +1218,7 @@
         btnHistory.addEventListener("click", async evt => {
             evt.stopPropagation();
             divUndoRedo.classList.toggle("display-none");
+            eltHistory.classList.add("display-none");
             if (divUndoRedo.classList.contains("display-none")) return;
             const modUndo = await importFc4i("undo-redo-tree");
             if (!undoIsSetup) {
@@ -1184,7 +1253,6 @@
                 menuItemUndo.textContent = "Undo";
                 menuItemUndo.inert = true;
             }
-            // menuItemRedo.inert = !modUndo.canRedo(mindmapKey);
             const toRedo = modUndo.canRedo(mindmapKey);
             menuItemRedo.inert = !toRedo;
             if (!toRedo) {
