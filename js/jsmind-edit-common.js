@@ -1166,6 +1166,8 @@ export async function displayOurMindmap(mind) {
     addDragBorders(jmDisplayed);
 }
 async function displayMindMap(mind) {
+    modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
+    modJsmindDraggable.setupNewDragging();
     const usedOptJmDisplay = getUsedOptJmDisplay(mind);
     const jm = new jsMind(usedOptJmDisplay);
     await jm.show_async(mind);
@@ -1466,8 +1468,8 @@ export async function pageSetup() {
         }
         return;
     }
-    modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
-    modJsmindDraggable.setupNewDragging();
+    // modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
+    // modJsmindDraggable.setupNewDragging();
 
     // const usedOptJmDisplay = getUsedOptJmDisplay(mind);
 

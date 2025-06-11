@@ -38,8 +38,10 @@ let jmnodeTarget;
 let childDragLine;
 // let instMoveAtDragBorder;
 export async function setupNewDragging() {
+    const pluginName = "draggable_nodes";
+    jsMind.unregister_plugin(pluginName);
     ourJm = await new Promise((resolve) => {
-        const draggablePlugin = new jsMind.plugin('draggable_nodes', function (thisIsOurJm) {
+        const draggablePlugin = new jsMind.plugin(pluginName, function (thisIsOurJm) {
             resolve(thisIsOurJm);
         });
         jsMind.register_plugin(draggablePlugin);
@@ -186,6 +188,7 @@ export function stopNow() {
     const idDragged = getNodeIdFromDOMelt(eltDragged);
     const root_node = ourJm.get_root();
     const eltRoot = getDOMeltFromNode(root_node);
+    if (!eltRoot.isConnected) throw Error("!eltRoot.isConnected");
     const bcrRoot = eltRoot.getBoundingClientRect();
     const rootMiddleX = (bcrRoot.left + bcrRoot.right) / 2;
 

@@ -3197,6 +3197,17 @@
         plugin_data.plugins.push(plugin);
     }
 
+    // FIX-ME: unregister seems safe to implement, but give a warning for now.
+    function unregister(pluginName) {
+        debugger;
+        if (typeof pluginName != "string") {
+            throw Error("pluginName should be a string");
+        }
+        const idx = plugin_data.plugins.map(p => p.name).indexOf(pluginName);
+        if (idx < 0) return;
+        plugin_data.plugins.splice(idx, 1);
+    }
+
     function apply(jm, options) {
         $.w.setTimeout(function () {
             _apply(jm, options);
@@ -3244,6 +3255,7 @@
         static $ = $;
         static plugin = Plugin;
         static register_plugin = register;
+        static unregister_plugin = unregister;
         static util = util;
 
         constructor(options) {
