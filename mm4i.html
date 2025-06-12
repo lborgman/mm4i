@@ -1264,7 +1264,7 @@
             const startY = resizingHistory.client.startY;
             const dX = startX - clientX;
             const dY = startY - clientY;
-            console.log("resizeHistory, dX, dY", dX, dY);
+            // console.log("resizeHistory, dX, dY", dX, dY);
             if (Number.isNaN(dX) || Number.isNaN(dY)) { debugger; }
             // console.log("resizeHistory", dX, dY, JSON.parse(JSON.stringify(objSizes)));
             const oldWidth = resizingHistory.bcr.width;
@@ -1278,18 +1278,34 @@
             requestAnimationFrame(resizeHistory);
         }
         divHistoryResizer.addEventListener("pointerdown", async evt => {
+            // This will be handled before the handler on the document.
+            // So get clientX/clientY here!
+            evt.stopPropagation();
             divHistoryResizer.setPointerCapture(evt.pointerId);
             resizingHistory.active = true;
+
+            const clientX = evt.clientX;
+            const clientY = evt.clientY;
+            if (Number.isNaN(clientX) || Number.isNaN(clientY)) { debugger; }
+
             resizingHistory.bcr = eltHistory.getBoundingClientRect();
 
-            const startPos = await modTools.getAndClearStartPointerPos();
-            resizingHistory.client = startPos;
-            const currentPos = modTools.getSavedPointerPos(); // Just for test
+            resizingHistory.client = {};
+            resizingHistory.client.startX = clientX;
+            resizingHistory.client.startY = clientY;
+            resizingHistory.currentPos = {};
+            resizingHistory.currentPos.clientX = clientX;
+            resizingHistory.currentPos.clientY = clientY;
+
+            // const startPos = await modTools.getAndClearStartPointerPos();
+            // resizingHistory.client = startPos;
+            // const currentPos = modTools.getSavedPointerPos(); // Just for test
 
             // Object.seal(resizingHistory.bcr);
             // Object.seal(resizingHistory.client);
 
-            console.log(">>>>> pointerdown", { startPos, currentPos }, JSON.parse(JSON.stringify(resizingHistory)));
+            // console.log(">>>>> pointerdown", { startPos, currentPos }, JSON.parse(JSON.stringify(resizingHistory)));
+            console.log(">>>>> pointerdown", JSON.parse(JSON.stringify(resizingHistory)));
             eltHistory.style.outline = "1px dotted yellow";
             divHistoryResizer.addEventListener("pointerup", evt => {
                 console.log("<<<<<< pointerup");
