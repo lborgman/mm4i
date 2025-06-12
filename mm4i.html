@@ -1045,6 +1045,7 @@
             aspect-ratio: 1 / 1;
             width: 18px;
             cursor: nesw-resize;
+            cursor: crosshair;
             background: red;
         }
 
@@ -1144,7 +1145,9 @@
         // console.log("here is mm4i.html");
         // https://michaelwornow.net/2024/01/02/display-x-y-coords-chrome-debugger
         debugAddFollowPointer();
-        // (async () => {
+
+        const modTools = await importFc4i("toolsJs");
+
         const modLocalSettings = await importFc4i("local-settings");
         class SettingsMm4i extends modLocalSettings.LocalSetting {
             constructor(key, defaultValue) { super("mm4i-settings-", key, defaultValue); }
@@ -1154,13 +1157,16 @@
 
         const modMdc = await importFc4i("util-mdc");
         modMdc.setIconsFor("mm4i");
+
         const modJsMind = await importFc4i("jsmind");
+
         // const modEditFc4iMM = await importFc4i("jsmind-edit-spec-fc4i");
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
         modJsEditCommon.basicInit4jsmind();
         const mindmapKey = await modJsEditCommon.pageSetup();
         const aboutLink = makeAbsLink("https://lborgman.github.io/mm4i/");
         modJsEditCommon.addToPageMenu("About", aboutLink);
+
 
         const eltBoth = document.getElementById("both-versions");
         eltBoth.addEventListener("click", evt => { evt.stopPropagation(); });
@@ -1235,7 +1241,7 @@
 
         const divHistoryResizer = mkElt("span");
         divHistoryResizer.id = "mm4i-history-resizer";
-        const divHistoryHeader = mkElt("div", undefined, [ "History", divHistoryResizer ]);
+        const divHistoryHeader = mkElt("div", undefined, ["History", divHistoryResizer]);
         divHistoryHeader.id = "mm4i-history-header";
         const divHistoryList = mkElt("div");
         divHistoryList.id = "mm4i-history-list";
@@ -1248,6 +1254,61 @@
 
         document.body.appendChild(eltHistory);
 
+        const resizingHistory = { active: false, bcr: undefined, client: undefined };
+        // Object.seal(resizingHistory);
+        function resizeHistory() {
+            if (!resizingHistory.active) return;
+            const objSizes = modTools.getSavedPointerPos();
+            const { clientX, clientY } = objSizes;
+            const startX = resizingHistory.client.startX;
+            const startY = resizingHistory.client.startY;
+            const dX = startX - clientX;
+            const dY = startY - clientY;
+            console.log("resizeHistory, dX, dY", dX, dY);
+            if (Number.isNaN(dX) || Number.isNaN(dY)) { debugger; }
+            // console.log("resizeHistory", dX, dY, JSON.parse(JSON.stringify(objSizes)));
+            const oldWidth = resizingHistory.bcr.width;
+            const newX = oldWidth - dX;
+            const oldHeight = resizingHistory.bcr.height;
+            const newY = oldHeight + dY;
+            if (Number.isNaN(newX) || Number.isNaN(newY)) { debugger; }
+            if ((newX < 0) || (newY < 0)) { debugger; }
+            eltHistory.style.width = `${newX}px`;
+            eltHistory.style.height = `${newY}px`;
+            requestAnimationFrame(resizeHistory);
+        }
+        divHistoryResizer.addEventListener("pointerdown", async evt => {
+            divHistoryResizer.setPointerCapture(evt.pointerId);
+            resizingHistory.active = true;
+            resizingHistory.bcr = eltHistory.getBoundingClientRect();
+
+            const startPos = await modTools.getAndClearStartPointerPos();
+            resizingHistory.client = startPos;
+            const currentPos = modTools.getSavedPointerPos(); // Just for test
+
+            // Object.seal(resizingHistory.bcr);
+            // Object.seal(resizingHistory.client);
+
+            console.log(">>>>> pointerdown", { startPos, currentPos }, JSON.parse(JSON.stringify(resizingHistory)));
+            eltHistory.style.outline = "1px dotted yellow";
+            divHistoryResizer.addEventListener("pointerup", evt => {
+                console.log("<<<<<< pointerup");
+                divHistoryResizer.releasePointerCapture(evt.pointerId);
+                resizingHistory.active = false;
+                resizingHistory.bcr = undefined;
+                resizingHistory.client = undefined;
+                eltHistory.style.outline = null;
+            }, { once: true });
+            resizeHistory();
+        });
+        divHistoryResizer.addEventListener("NOpointerleave", evt => {
+            console.log("<<<<<< pointerleave");
+            resizingHistory.active = false;
+            resizingHistory.bcr = undefined;
+            resizingHistory.client = undefined;
+            eltHistory.style.outline = null;
+        });
+
 
 
         eltHistory.addEventListener("change", async evt => {
@@ -1258,7 +1319,6 @@
                 divZM.style.filter = "grayScale(0.5)";
                 divZM.style.transition = "opacity 0.5s";
                 divZM.style.opacity = 0;
-                const modTools = await importFc4i("toolsJs");
                 await modTools.waitSeconds(0.5);
                 /*
                 setTimeout(() => {
