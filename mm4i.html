@@ -1024,13 +1024,33 @@
             position: fixed;
             z-index: 1000;
             background: gray;
-            outline: 4px dotted green;
             display: flex;
             flex-direction: column;
             gap: 1px;
             left: 80px;
-            bottom: 0px;
+            bottom: 10px;
+        }
 
+        #mm4i-history-header {
+            background: darkblue;
+            color: white;
+            padding: 4px;
+            position: relative;
+        }
+
+        #mm4i-history-resizer {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            aspect-ratio: 1 / 1;
+            width: 18px;
+            cursor: nesw-resize;
+            background: red;
+        }
+
+        #mm4i-history-list {
+            overflow-y: auto;
+            max-height: 100px;
         }
     </style>
 
@@ -1171,11 +1191,7 @@
         async function showHistory() {
             divUndoRedo.classList.add("display-none");
             console.log("showMore", { eltHistory });
-            eltHistory.textContent = "";
-            const divHistoryHeader = mkElt("div",
-                { style: "background:darkblue;color:white;padding:10px;" },
-                "History");
-            eltHistory.appendChild(divHistoryHeader);
+            divHistoryList.textContent = "";
             let dummyVal = 0;
             const fun = (node, depth, current) => {
                 const markCurrent = (node === current) ? ">" : "";
@@ -1191,7 +1207,7 @@
                 ]);
                 eltNode.classList.add("mm4i-history-node");
                 eltNode.style.paddingLeft = `${4 + depth * 20}px`;
-                eltHistory.appendChild(eltNode);
+                divHistoryList.appendChild(eltNode);
             }
             const modUndo = await importFc4i("undo-redo-tree");
             const hasHistory = modUndo.hasUndoRedo(mindmapKey);
@@ -1217,12 +1233,23 @@
         divUndoRedo.classList.add("display-none");
         document.body.appendChild(divUndoRedo);
 
+        const divHistoryResizer = mkElt("span");
+        divHistoryResizer.id = "mm4i-history-resizer";
+        const divHistoryHeader = mkElt("div", undefined, [ "History", divHistoryResizer ]);
+        divHistoryHeader.id = "mm4i-history-header";
+        const divHistoryList = mkElt("div");
+        divHistoryList.id = "mm4i-history-list";
         const eltHistory = mkElt("div", undefined, [
-            mkElt("div", undefined, "show more")
+            divHistoryHeader,
+            divHistoryList
         ]);
         eltHistory.id = "mm4i-history-more";
         eltHistory.classList.add("display-none");
+
         document.body.appendChild(eltHistory);
+
+
+
         eltHistory.addEventListener("change", async evt => {
             const target = evt.target;
             if (target.name == "undo-redo-state") {
