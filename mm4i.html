@@ -1042,11 +1042,13 @@
             position: absolute;
             top: 0px;
             right: 0px;
+            background-image: url(./img/top-right-resizer.svg);
+            background-color: rgba(0, 0, 0, 0.5);
+            background-size: cover;
+            margin: 2px;
             aspect-ratio: 1 / 1;
-            width: 18px;
-            cursor: nesw-resize;
-            cursor: crosshair;
-            background: red;
+            height: calc(100% - 4px);
+            cursor: move;
         }
 
         #mm4i-history-list {
@@ -1240,6 +1242,7 @@
         document.body.appendChild(divUndoRedo);
 
         const divHistoryResizer = mkElt("span");
+        divHistoryResizer.title = "Resize";
         divHistoryResizer.id = "mm4i-history-resizer";
         const divHistoryHeader = mkElt("div", undefined, ["History", divHistoryResizer]);
         divHistoryHeader.id = "mm4i-history-header";
