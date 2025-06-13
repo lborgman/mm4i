@@ -1204,7 +1204,7 @@
             console.log("showMore", { eltHistory });
             divHistoryList.textContent = "";
             let dummyVal = 0;
-            const fun = (node, depth, current) => {
+            const funAddStateRow = (node, depth, current) => {
                 const markCurrent = (node === current) ? ">" : "";
                 const radNode = mkElt("input", {
                     type: "radio", name: "undo-redo-state",
@@ -1218,7 +1218,8 @@
                 ]);
                 eltNode.classList.add("mm4i-history-node");
                 eltNode.style.paddingLeft = `${4 + depth * 20}px`;
-                divHistoryList.appendChild(eltNode);
+                // divHistoryList.appendChild(eltNode);
+                divHistoryList.insertBefore(eltNode, divHistoryList.children[0]);
             }
             const modUndo = await importFc4i("undo-redo-tree");
             const hasHistory = modUndo.hasUndoRedo(mindmapKey);
@@ -1226,7 +1227,7 @@
                 modMdc.mkMDCsnackbar("No changes yet");
                 return;
             }
-            modUndo.mapHistoryTree(mindmapKey, fun);
+            modUndo.mapHistoryTree(mindmapKey, funAddStateRow);
             eltHistory.classList.remove("display-none");
         }
 
@@ -1413,21 +1414,6 @@
                 undoIsSetup = true;
                 const modMMhelpers = await importFc4i("mindmap-helpers");
                 const modJsEditCommon = await importFc4i("jsmind-edit-common");
-                /*
-                menuItemUndo.addEventListener("click", async evt => {
-                    evt.stopPropagation();
-                    divUndoRedo.classList.add("display-none");
-                    const res = await modMMhelpers.DBundo(mindmapKey);
-                    const mind = await modMMhelpers.getMindmap(mindmapKey);
-                    modJsEditCommon.displayOurMindmap(mind);
-                });
-                menuItemRedo.addEventListener("click", async evt => {
-                    evt.stopPropagation();
-                    divUndoRedo.classList.add("display-none");
-                    const mind = await modMMhelpers.DBredo(mindmapKey);
-                    modJsEditCommon.displayOurMindmap(mind);
-                });
-                */
             }
             modUndo.logHistoryTree(mindmapKey);
             const undoTopic = modUndo.canUndo(mindmapKey);
