@@ -1413,6 +1413,7 @@
                 undoIsSetup = true;
                 const modMMhelpers = await importFc4i("mindmap-helpers");
                 const modJsEditCommon = await importFc4i("jsmind-edit-common");
+                /*
                 menuItemUndo.addEventListener("click", async evt => {
                     evt.stopPropagation();
                     divUndoRedo.classList.add("display-none");
@@ -1426,6 +1427,7 @@
                     const mind = await modMMhelpers.DBredo(mindmapKey);
                     modJsEditCommon.displayOurMindmap(mind);
                 });
+                */
             }
             modUndo.logHistoryTree(mindmapKey);
             const undoTopic = modUndo.canUndo(mindmapKey);
