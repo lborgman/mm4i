@@ -35,6 +35,10 @@ export async function DBundo(keyName) {
     const modUndo = await importFc4i("undo-redo-tree");
     // debugger; // eslint-disable-line no-debugger
     const objDataMind = modUndo.actionUndo(keyName);
+    if (!objDataMind) {
+        console.error("objDataMind is null");
+        debugger;
+    }
     const dbMindmaps = await importFc4i("db-mindmaps");
     return await dbMindmaps.DBsetMindmap(keyName, objDataMind);
 }

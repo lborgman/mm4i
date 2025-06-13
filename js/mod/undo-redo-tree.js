@@ -253,13 +253,18 @@ export class UndoRedoTreeWithDiff {
     logClass("undo()");
     if (!this.canUndo()) {
       console.log("Already at root. Nothing to undo.");
+      debugger;
       return null;
     }
-    if (!this.currentNode.parent) throw Error("undo but no .parent");
+    if (!this.currentNode.parent) {
+      debugger;
+      throw Error("undo but no .parent");
+    }
 
     const patchesToApplyForUndo = this.currentNode.patchesToUndo;
     if (!patchesToApplyForUndo) {
       console.error("Error: Current node is missing 'patchesToUndo'.");
+      debugger;
       return null;
     }
 
@@ -269,6 +274,7 @@ export class UndoRedoTreeWithDiff {
     if (patchResults.some(applied => !applied)) {
       console.error("Undo patch application failed. Results:", patchResults);
       // State might be inconsistent. You might want to try to recover or log.
+      debugger;
       return null;
     }
 
@@ -462,7 +468,12 @@ export function canUndo(key) {
 }
 export function actionUndo(key) {
   const history = getHistory(key);
-  return history.undo();
+  const undoRedoState = history.undo();
+  if (!undoRedoState) {
+    console.error("undoRedoState is null");
+    debugger;
+  }
+  return undoRedoState;
 }
 
 /**
