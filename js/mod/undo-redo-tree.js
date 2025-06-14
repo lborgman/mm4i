@@ -173,7 +173,10 @@ export class UndoRedoTreeWithDiff {
     walkSubtree(node, 0);
     function walkSubtree(node, depth) {
       fun(node, depth, current);
-      if (node.children.length > 0) {
+      const actionTopic = node.actionTopic;
+      const numChildren = node.children.length ;
+      if (numChildren > 0) {
+        console.log("walkSubtree", actionTopic, numChildren);
         node.children.forEach(child => walkSubtree(child, depth + 1));
       }
 

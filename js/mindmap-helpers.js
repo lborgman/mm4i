@@ -10,11 +10,26 @@ const makeAbsLink = window["makeAbsLink"];
 
 const URL_MINDMAPS_PAGE = "./mm4i.html";
 
-
-// importFc4i("jsmind-cust-rend");
-
 const modTools = await importFc4i("toolsJs");
 const throttleSaveMindmap = modTools.throttleTO(DBsaveNowThisMindmap, 300);
+
+let undoRedoTreeStyle;
+/**
+ * Use tree or linear style undo.
+ *  
+ * @param {boolean} useTreeStyle 
+ */
+export function setUndoRedoTreeStyle(useTreeStyle) {
+    const tofStyle = typeof useTreeStyle;
+    if (tofStyle != "boolean") throw Error(`Parameter useTreeStyle must be boolean, was "${useTreeStyle}"`)
+    undoRedoTreeStyle = useTreeStyle;
+}
+/**
+ * Return true if tree style undo/redo.
+ * 
+ * @returns boolean
+ */
+export function getUndoRedoTreeStyle() { return undoRedoTreeStyle; }
 
 async function saveMindmap(keyName, objDataMind, actionTopic, lastUpdated, lastSynced, privacy) {
     const dbMindmaps = await importFc4i("db-mindmaps");
@@ -22,8 +37,28 @@ async function saveMindmap(keyName, objDataMind, actionTopic, lastUpdated, lastS
     // debugger; // eslint-disable-line no-debugger
     if (!modUndo.hasUndoRedo(keyName)) {
         const objBaseMm = (await dbMindmaps.DBgetMindmap(keyName)) || objDataMind;
-        const fun = undefined; // FIX-ME: should be a function to undo/redo
-        modUndo.addUndoRedo(keyName, objBaseMm, fun);
+        // const funBranch = undefined; // FIX-ME: should be a function to undo/redo
+        if (undoRedoTreeStyle === undefined) {
+            throw Error("setUndoRedoTreeStyle(true/false) has not been called");
+        }
+        const funBranch = undoRedoTreeStyle ? _ourFunBranch : undefined;
+        async function _ourFunBranch(defaultBranch, arrBrancheTopics) {
+            // debugger;
+            if (!Number.isInteger(defaultBranch) || defaultBranch < 0) { throw Error(`Invalid defaultBranch "${defaultBranch}"`); }
+            console.log(`  ourFunBranch called with defaultBranch: ${defaultBranch}, arrBranches:`, arrBrancheTopics);
+            const importFc4i = window["importFc4i"];
+            const modTools = await importFc4i("toolsJs");
+            await modTools.waitSeconds(0.5); // Simulate some delay
+            const branch = defaultBranch;
+            const topic = arrBrancheTopics[branch];
+            if (!topic) {
+                debugger;
+                throw Error(`No topic found for branch ${branch}`);
+            }
+            console.log(`  will redo "${topic}", branch: ${branch}`);
+            return branch; // Always return the default branch for now
+        }
+        modUndo.addUndoRedo(keyName, objBaseMm, funBranch);
     }
     modUndo.actionRecordAction(keyName, objDataMind, actionTopic);
     return await dbMindmaps.DBsetMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy);
@@ -54,6 +89,7 @@ export async function DBredo(keyName) {
 }
 export function DBrequestSaveThisMindmap(jmDisplayed, actionTopic) {
     if (arguments.length != 2) {
+        debugger; // eslint-disable-line no-debugger
         throw Error(`Wrong number of arguments: ${arguments.length} (should be 2)`);
     }
     if (typeof actionTopic != "string") {
@@ -64,6 +100,7 @@ export function DBrequestSaveThisMindmap(jmDisplayed, actionTopic) {
     throttleSaveMindmap(jmDisplayed, actionTopic);
 }
 async function DBsaveNowThisMindmap(jmDisplayed, actionTopic) {
+    debugger;
     const tofTopic = typeof actionTopic;
     if (tofTopic != "string") { throw Error(`Wrong actionTopic type: ${tofTopic} (should be string)`); }
     const objDataMind = jmDisplayed.get_data("node_array");

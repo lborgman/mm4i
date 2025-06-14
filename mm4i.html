@@ -1169,6 +1169,11 @@
         const aboutLink = makeAbsLink("https://lborgman.github.io/mm4i/");
         modJsEditCommon.addToPageMenu("About", aboutLink);
 
+        const modMMhelpers = await importFc4i("mindmap-helpers");
+        modMMhelpers.setUndoRedoTreeStyle(false);
+        const txtHistoryTitle = modMMhelpers.getUndoRedoTreeStyle() ? "History (tree)": "History (linear)";
+
+
 
         const eltBoth = document.getElementById("both-versions");
         eltBoth.addEventListener("click", evt => { evt.stopPropagation(); });
@@ -1224,10 +1229,16 @@
             const modUndo = await importFc4i("undo-redo-tree");
             const hasHistory = modUndo.hasUndoRedo(mindmapKey);
             if (!hasHistory) {
-                modMdc.mkMDCsnackbar("No changes yet");
-                return;
+                // modMdc.mkMDCsnackbar("No changes yet");
+                const eltNoChanges = mkElt("div", undefined, "No changes yet");
+                eltNoChanges.style = `
+                        padding: 20px;
+                    `;
+                divHistoryList.appendChild(eltNoChanges);
+                // return;
+            } else {
+                modUndo.mapHistoryTree(mindmapKey, funAddStateRow);
             }
-            modUndo.mapHistoryTree(mindmapKey, funAddStateRow);
             eltHistory.classList.remove("display-none");
         }
 
@@ -1236,7 +1247,7 @@
         const divHistoryResizer = mkElt("span");
         divHistoryResizer.title = "Resize";
         divHistoryResizer.id = "mm4i-history-resizer";
-        const divHistoryHeader = mkElt("div", undefined, ["History", divHistoryResizer]);
+        const divHistoryHeader = mkElt("div", undefined, [txtHistoryTitle, divHistoryResizer]);
         divHistoryHeader.id = "mm4i-history-header";
         const divHistoryList = mkElt("div");
         divHistoryList.id = "mm4i-history-list";
@@ -1383,7 +1394,7 @@
             menuItemUndo.addEventListener("click", async evt => {
                 evt.stopPropagation();
                 divUndoRedo.classList.add("display-none");
-                const modMMhelpers = await importFc4i("mindmap-helpers");
+                // const modMMhelpers = await importFc4i("mindmap-helpers");
                 const res = await modMMhelpers.DBundo(mindmapKey);
                 const mind = await modMMhelpers.getMindmap(mindmapKey);
                 modJsEditCommon.displayOurMindmap(mind);
@@ -1391,7 +1402,7 @@
             menuItemRedo.addEventListener("click", async evt => {
                 evt.stopPropagation();
                 divUndoRedo.classList.add("display-none");
-                const modMMhelpers = await importFc4i("mindmap-helpers");
+                // const modMMhelpers = await importFc4i("mindmap-helpers");
                 const mind = await modMMhelpers.DBredo(mindmapKey);
                 modJsEditCommon.displayOurMindmap(mind);
             });
@@ -1412,7 +1423,7 @@
                     return objRes;
                 }
                 undoIsSetup = true;
-                const modMMhelpers = await importFc4i("mindmap-helpers");
+                // const modMMhelpers = await importFc4i("mindmap-helpers");
                 const modJsEditCommon = await importFc4i("jsmind-edit-common");
             }
             modUndo.logHistoryTree(mindmapKey);
