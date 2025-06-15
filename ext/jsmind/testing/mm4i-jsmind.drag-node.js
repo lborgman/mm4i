@@ -21,7 +21,13 @@ const jsMind = window["jsMind"];
 ///////////////////////////////////////////////
 // Utility functions. FIX-ME: Should be in jsmind core
 
-function getDOMeltFromNode(node) { return jsMind.my_get_DOM_element_from_node(node); }
+function getDOMeltFromNode(node) {
+    if (jsMind.my_get_DOM_element_from_node(node)) {
+        return jsMind.my_get_DOM_element_from_node(node);
+    }
+    // FIX-ME:
+    return node._data.view.element;
+}
 function getNodeIdFromDOMelt(elt) {
     const tn = elt.tagName;
     if (tn !== "JMNODE") throw Error(`Not jmnode: <${tn}>`);
@@ -36,17 +42,23 @@ let ourJm;
 let eltDragged;
 let jmnodeTarget;
 let childDragLine;
+
+export function setOurJm(jm) {
+    debugger;
+    ourJm = jm;
+}
+
 // let instMoveAtDragBorder;
 export async function setupNewDragging() {
     const pluginName = "draggable_nodes";
-    jsMind.unregister_plugin(pluginName);
-    ourJm = await new Promise((resolve) => {
+    // jsMind.unregister_plugin(pluginName);
+    const jm = await new Promise((resolve) => {
         const draggablePlugin = new jsMind.plugin(pluginName, function (thisIsOurJm) {
             resolve(thisIsOurJm);
         });
         jsMind.register_plugin(draggablePlugin);
     });
-
+    setOurJm(jm);
 }
 
 let oldElementAtPoint;
@@ -333,8 +345,8 @@ function whenDragPauses() {
         if (entryAbove) our_parent = ourJm.get_node(entryAbove.id).parent;
         if (entryBelow) our_parent = ourJm.get_node(entryBelow.id).parent;
         if (nodeAbove && nodeBelow) {
-            const parent_above = entryAbove? ourJm.get_node(entryAbove.id).parent : undefined;
-            const parent_below = entryBelow? ourJm.get_node(entryBelow.id).parent : undefined;
+            const parent_above = entryAbove ? ourJm.get_node(entryAbove.id).parent : undefined;
+            const parent_below = entryBelow ? ourJm.get_node(entryBelow.id).parent : undefined;
             if (entryAbove && entryBelow && parent_above && parent_below && (parent_above.id !== parent_below.id)) {
                 function getDepth(node, depth) {
                     if (depth > 20) throw Error("Depth is too great");

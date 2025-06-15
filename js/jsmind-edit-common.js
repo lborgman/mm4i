@@ -509,7 +509,15 @@ export function shapeCanHaveBorder(shapeName) {
 
 export function applyNodeShapeEtc(node, eltJmnode) {
     const shapeEtc = node.data.shapeEtc;
-    if (!shapeEtc) return;
+    if (!shapeEtc) {
+        const useOrig = window["useOrigJsmind"];
+        if (typeof useOrig != "boolean") { debugger; }
+        if (useOrig) {
+            eltJmnode.style.color = "yellow";
+            eltJmnode.style.backgroundColor = "black";
+        }
+        return;
+    }
     applyShapeEtc(shapeEtc, eltJmnode);
 }
 const jmnodesBgNames = [
@@ -681,7 +689,13 @@ async function editNotes(eltJmnode) {
 
 export async function applyShapeEtc(shapeEtc, eltJmnode) {
     const eltShape = eltJmnode.querySelector(".jmnode-bg");
-    if (!eltShape) { throw Error("eltShape is null, no .jmnode-bg found"); }
+    if (!eltShape) {
+        console.error("eltShape is null, no .jmnode-bg found");
+        eltJmnode.style.color = "yellow";
+        eltJmnode.style.backgroundColor = "red";
+        return;
+        throw Error("eltShape is null, no .jmnode-bg found");
+    }
 
     clearShapes(eltShape);
     const shape = shapeEtc.shape;
@@ -824,7 +838,7 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
 
 
 
-let modJsmindDraggable;
+const modJsmindDraggable = window["modJsmindDraggable"];
 // basicInit4jsmind();
 export function basicInit4jsmind() {
     // console.log("jsMind", typeof jsMind);
@@ -833,7 +847,11 @@ export function basicInit4jsmind() {
         const tn = elt.tagName;
         if (tn !== "JMNODE") throw Error(`Not jmnode: <${tn}>`);
         const id = elt.getAttribute("nodeid");
-        if (!id) throw Error("Could not find jmnode id");
+        if (!id) {
+            // Orig jsmind draggable shadow node:
+            if (elt.classList.contains("jsmind-draggable-shadow-node")) return;
+            throw Error("Could not find jmnode id");
+        }
         return id;
     }
 
@@ -1055,7 +1073,13 @@ function connectFsm() {
         funStopScroll = startGrabMove(eltScroll);
     });
     ourFsm?.hook_exit("c_Move", () => {
-        if (funStopScroll) funStopScroll();
+        if (funStopScroll) {
+            if (typeof funStopScroll != "function") {
+                debugger;
+                return;
+            }
+            funStopScroll();
+        }
     });
 
     ourFsm?.post_hook_entry("c_Dblclick", () => { dialogEditMindmap(); });
@@ -1067,10 +1091,14 @@ function connectFsm() {
         renderer.editNodeDialog(eltJmnode);
     });
 
-    modMm4iFsm.setupFsmListeners(eltFsm);
+    // FIX-ME: for testing original jsMind dragging 
+    if (modJsmindDraggable.setJmnodeDragged) {
+        modMm4iFsm.setupFsmListeners(eltFsm);
+    }
 }
-const modMoveHelp = await importFc4i("move-help");
-function startGrabMove(elt2move) {
+// FIX-ME:
+async function startGrabMove(elt2move) {
+    const modMoveHelp = await importFc4i("move-help");
     // console.log("startGrabMove", elt2move);
     let isMoving = true;
     // const ourElement2move = elt2move;
@@ -1138,10 +1166,11 @@ async function applyOurMindmapGlobals(jmDisplayed) {
     const render = await modCustRend.getOurCustomRenderer();
     render.applyThisMindmapGlobals();
 }
-function addDragBorders(jmDisplayed) {
+async function addDragBorders(jmDisplayed) {
     const eltJmnodes = getJmnodesFromJm(jmDisplayed);
     const eltScroll = eltJmnodes.closest("div.zoom-move");
     const eltShow = eltJmnodes.closest("div.jsmind-inner");
+    const modMoveHelp = await importFc4i("move-help");
     instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60, eltShow);
 }
 export async function displayOurMindmap(mind) {
@@ -1157,20 +1186,30 @@ export async function displayOurMindmap(mind) {
     initialUpdateCustomAndShapes(jmDisplayed); // FIX-ME: maybe remove when this is fixed in jsmind?
 
     jmDisplayed.disable_event_handle("dblclick"); // Double click on Windows and Android
-    connectFsm();
+    // if (modJsmindDraggable.setJmnodeDragged) {
+    connectFsm(); // Using mm4i version
+    // }
 
     // We need another layer to handle zoom/move:
-    addZoomMoveLayer(eltJmdisplayContainer);
+    if (modJsmindDraggable.setJmnodeDragged) {
+        addZoomMoveLayer(eltJmdisplayContainer);
+        addDragBorders(jmDisplayed);
+    }
 
     applyOurMindmapGlobals(jmDisplayed);
-    addDragBorders(jmDisplayed);
+    // addDragBorders(jmDisplayed);
 }
 async function displayMindMap(mind) {
-    modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
-    modJsmindDraggable.setupNewDragging();
     const usedOptJmDisplay = getUsedOptJmDisplay(mind);
     const jm = new jsMind(usedOptJmDisplay);
-    await jm.show_async(mind);
+    modJsmindDraggable.setOurJm(jm);
+
+    // FIX-ME: Testing orig jsMind:
+    if (jm.show_async) {
+        await jm.show_async(mind);
+    } else {
+        jm.show(mind);
+    }
     return jm;
 }
 
@@ -1468,10 +1507,6 @@ export async function pageSetup() {
         }
         return;
     }
-    // modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
-    // modJsmindDraggable.setupNewDragging();
-
-    // const usedOptJmDisplay = getUsedOptJmDisplay(mind);
 
 
 
@@ -2114,6 +2149,7 @@ function initialUpdateCustomAndShapes(jmDisplayed) {
         const eltJmnodes = getJmnodesFromJm(jmDisplayed);
         [...eltJmnodes.getElementsByTagName("jmnode")].forEach(async eltJmnode => {
             const node_id = jsMind.my_get_nodeID_from_DOM_element(eltJmnode);
+            if (!node_id) return; // Orig jsMind draggable shadow node
             if (node_id == 21) console.warn("node_id 21");
             const node = jmDisplayed.get_node(node_id);
             applyNodeShapeEtc(node, eltJmnode);

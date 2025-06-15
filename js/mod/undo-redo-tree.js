@@ -8,6 +8,10 @@ if (typeof window["diff_match_patch"] !== "function") {
   throw Error("Google diff_match_patch is not loaded, please import it before this module");
 }
 
+const eventName = "undoredo-tree-recordAction";
+// FIX-ME:
+document.addEventListener(eventName, evt => { console.log("%cTEST document event", "font-size:24px;color:red;", evt); })
+
 export function getUndoRedoTreeVersion() { return UNDO_REDO_TREE_VERSION; }
 const logClassStyle = "background:white; color:blue; padding:2px; border-radius:2px;";
 const logClassImportantStyle = logClassStyle + " font-size:18px;";
@@ -76,6 +80,7 @@ const diff_match_patch = window["diff_match_patch"];
 export class UndoRedoTreeWithDiff {
   #treeStructured = false;
   #stateType;
+  #historyKey;
   #checkStateType(state) {
     const tofState = typeof state;
     if (tofState !== this.#stateType) {
@@ -97,8 +102,9 @@ export class UndoRedoTreeWithDiff {
   /**
    * @param {any} initialState - string or json object representing the initial state of the application.
    * @param {(defaultBranch: number, arrBranches: string[]) => number | null} [funBranch]
+   * @param {any} historyKey
    */
-  constructor(initialState, funBranch = undefined) {
+  constructor(initialState, funBranch = undefined, historyKey = undefined) {
     const tofState = typeof initialState;
     const arrAllowedTypes = ["string", "object"];
     if (!arrAllowedTypes.includes(tofState)) {
@@ -129,6 +135,7 @@ export class UndoRedoTreeWithDiff {
         throw Error(`Invalid funBranch length: ${lenFunBranch}, expected 2`);
       }
     }
+    this.#historyKey = historyKey;
     logClassImportant("UndoRedoTreeWithDiff", txtLinOrTree, initialState);
     this.dmp = new diff_match_patch();
 
@@ -140,6 +147,16 @@ export class UndoRedoTreeWithDiff {
     this.currentNode = this.rootNode;
     // This holds the fully rehydrated state of `this.currentNode`.
     this.currentFullState = this._deepCopy(initialState);
+  }
+
+  setHistoryKey(key) {
+    if (this.#historyKey != undefined) {
+      const msg = `#historyKey is already set to "${this.#historyKey}", can't change it to "${key}"`;
+      console.error(msg);
+      debugger;
+      throw Error(msg);
+    }
+    this.#historyKey = key;
   }
 
   OLDlogTreeStructure() {
@@ -174,7 +191,7 @@ export class UndoRedoTreeWithDiff {
     function walkSubtree(node, depth) {
       fun(node, depth, current);
       const actionTopic = node.actionTopic;
-      const numChildren = node.children.length ;
+      const numChildren = node.children.length;
       if (numChildren > 0) {
         console.log("walkSubtree", actionTopic, numChildren);
         node.children.forEach(child => walkSubtree(child, depth + 1));
@@ -241,6 +258,11 @@ export class UndoRedoTreeWithDiff {
     const newNode = this.currentNode.addChild(patchesToReachNew, patchesToUndoNew, actionTopic);
     this.currentNode = newNode;
     this.currentFullState = this._deepCopy(newFullState); // Update the materialized state
+
+    if (this.#historyKey == "undefined") return;
+    const evtRecordAction = new CustomEvent(eventName, { detail: { key: this.#historyKey } });
+    console.log("document.dispatchEvent(evtRecordAction)", evtRecordAction);
+    document.dispatchEvent(evtRecordAction);
   }
 
   canUndo() {
@@ -421,7 +443,7 @@ export class UndoRedoTreeWithDiff {
 export function addUndoRedo(key, appState, funBranch) {
   // debugger; // eslint-disable-line no-debugger
   logClass("addHistoryKey()", key);
-  histories[key] = new UndoRedoTreeWithDiff(appState, funBranch);
+  histories[key] = new UndoRedoTreeWithDiff(appState, funBranch, key);
 }
 export function hasUndoRedo(key) {
   const history = histories[key];

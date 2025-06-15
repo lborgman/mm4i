@@ -1160,9 +1160,30 @@
         const modMdc = await importFc4i("util-mdc");
         modMdc.setIconsFor("mm4i");
 
-        const modJsMind = await importFc4i("jsmind");
 
-        // const modEditFc4iMM = await importFc4i("jsmind-edit-spec-fc4i");
+        // let useOrigJsmind = true;
+        let useOrigJsmind = confirm("Use orig jsMind?");
+        window["useOrigJsmind"] = useOrigJsmind;
+
+        if (useOrigJsmind) {
+            console.log("%cUsing orig jsMind", "color:red; font-size:20px;");
+            const modJsMind = await importFc4i("jsmind-es6");
+            // const modJsmindDraggable = await importFc4i("jsmind.drag-node-es6");
+            const modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
+            window["modJsmindDraggable"] = modJsmindDraggable;
+            // FIX-ME:
+            modJsmindDraggable.setupNewDragging();
+        } else {
+            console.log("%cUsing mm4i jsMind", "color:green; font-size:20px;");
+            const modJsMind = await importFc4i("jsmind");
+            const modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
+            window["modJsmindDraggable"] = modJsmindDraggable;
+            modJsmindDraggable.setupNewDragging();
+        }
+
+
+
+
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
         modJsEditCommon.basicInit4jsmind();
         const mindmapKey = await modJsEditCommon.pageSetup();
@@ -1170,8 +1191,8 @@
         modJsEditCommon.addToPageMenu("About", aboutLink);
 
         const modMMhelpers = await importFc4i("mindmap-helpers");
-        modMMhelpers.setUndoRedoTreeStyle(false);
-        const txtHistoryTitle = modMMhelpers.getUndoRedoTreeStyle() ? "History (tree)": "History (linear)";
+        modMMhelpers.setUndoRedoTreeStyle(true);
+        const txtHistoryTitle = modMMhelpers.getUndoRedoTreeStyle() ? "History (tree)" : "History (linear)";
 
 
 
@@ -1182,31 +1203,8 @@
         btnCloseBV.addEventListener("click", evt => { evt.stopPropagation(); eltBoth.remove(); });
 
 
-        const menuUndoRedo = modMdc.mkMDCmenuUl([]);
-        const divUndoRedo = modMdc.mkMDCmenuDiv(menuUndoRedo);
-        divUndoRedo.id = "mm4i-undo-redo-div";
-        divUndoRedo.classList.add("display-none");
-        document.body.appendChild(divUndoRedo);
 
-        // makeHistoryMenu();
-        async function makeHistoryMenu() {
-            const { menuItemUndo, menuItemRedo } = await mkUndos();
-            menuUndoRedo.textContent = "";
-            const menuItemHistory = modMdc.mkMDCmenuItem("History...");
-            menuItemHistory.id = "mm4i-undo-redo-menu-item-more";
-            menuUndoRedo.appendChild(menuItemHistory)
-            if (menuItemUndo) menuUndoRedo.appendChild(menuItemUndo);
-            if (menuItemRedo) menuUndoRedo.appendChild(menuItemRedo);
-
-            menuItemHistory.addEventListener("click", async evt => {
-                evt.stopPropagation();
-                showHistoryPanel();
-            });
-        }
-
-        async function showHistoryPanel() {
-            divUndoRedo.classList.add("display-none");
-            console.log("showMore", { eltHistory });
+        async function updateHistoryPanel() {
             divHistoryList.textContent = "";
             let dummyVal = 0;
             const funAddStateRow = (node, depth, current) => {
@@ -1242,8 +1240,6 @@
             eltHistory.classList.remove("display-none");
         }
 
-
-
         const divHistoryResizer = mkElt("span");
         divHistoryResizer.title = "Resize";
         divHistoryResizer.id = "mm4i-history-resizer";
@@ -1261,7 +1257,6 @@
         document.body.appendChild(eltHistory);
 
         const resizingHistory = { active: false, bcr: undefined, client: undefined };
-        // Object.seal(resizingHistory);
         function resizeHistory() {
             if (!resizingHistory.active) return;
             const objSizes = modTools.getSavedPointerPos();
@@ -1336,11 +1331,12 @@
         eltHistory.addEventListener("change", async evt => {
             const target = evt.target;
             if (target.name == "undo-redo-state") {
-                const divZM = document.querySelector("jmnodes").closest(".zoom-move");
-                // divZM.inert = true;
-                divZM.style.filter = "grayScale(0.5)";
-                divZM.style.transition = "opacity 0.5s";
-                divZM.style.opacity = 0;
+                const jmN = document.querySelector("jmnodes");
+                const divZM = jmN.closest(".zoom-move");
+                const divFilter = divZM || jmN
+                divFilter.style.filter = "grayScale(0.5)";
+                divFilter.style.transition = "opacity 0.5s";
+                divFilter.style.opacity = 0;
                 await modTools.waitSeconds(0.5);
                 /*
                 setTimeout(() => {
@@ -1349,10 +1345,6 @@
                     divZM.style.opacity = 1;
                 });
                 */
-                // const modTools = await importFc4i("toolsJs");
-                // await modTools.waitSeconds(0.5);
-                // debugger;
-                // setTimeout(() => divZM.inert = false, 1000);
                 const modUndo = await importFc4i("undo-redo-tree");
                 const val = target.value;
                 const node = target.valueAsObject;
@@ -1360,10 +1352,14 @@
                 // modMdc.mkMDCsnackbar(`Switching to ${visibleName}`);
                 const history = modUndo.getHistory(mindmapKey);
                 const objMm = history.navigateToNode(node);
-                // console.log({ objMm });
                 const dbMindmaps = await importFc4i("db-mindmaps");
-                // await dbMindmaps.DBsetMindmap(keyName, objMm, lastUpdated, lastSynced, privacy);
                 await dbMindmaps.DBsetMindmap(mindmapKey, objMm);
+                if (!divZM) {
+                    const divInner = jmN.closest(".jsmind-inner");
+                    divInner.remove();
+                } else {
+                    divZM.remove();
+                }
                 modJsEditCommon.displayOurMindmap(objMm);
             }
         });
@@ -1375,15 +1371,14 @@
         let undoIsSetup = false;
         btnHistory.addEventListener("click", async evt => {
             evt.stopPropagation();
-            divUndoRedo.classList.toggle("display-none");
-            eltHistory.classList.add("display-none");
-            // mkUndos();
-            if (!divUndoRedo.classList.contains("display-none")) {
-                makeHistoryMenu();
+            eltHistory.classList.toggle("display-none");
+            if (!eltHistory.classList.contains("display-none")) {
+                updateHistoryPanel();
             }
         });
         document.body.appendChild(btnHistory);
 
+        /*
         async function mkUndos() {
             console.log("mkUndos()");
             const menuItemUndo = modMdc.mkMDCmenuItem("Undo");
@@ -1448,7 +1443,7 @@
             }
             return objRes;
         }
-
+        */
     </script>
     <!-- 
     <script type="module">

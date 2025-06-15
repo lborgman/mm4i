@@ -116,6 +116,10 @@ const baseUrl = (() => {
         // "jsmind": "./ext/jsmind/es6/jsmind-mm4i.js",
         // "jsmind": "./ext/jsmind/testing/OKjsmind-mm4i.js",
         "jsmind": "./ext/jsmind/testing/jsmind-mm4i.js",
+        "jsmind-es6": "./ext/jsmind/es6/jsmind.js",
+        // dragging
+        "mm4i-jsmind.drag-node": "./ext/jsmind/testing/mm4i-jsmind.drag-node.js",
+        "jsmind.drag-node-es6": "./ext/jsmind/es6/jsmind.draggable-node.js",
 
         "jsmind-edit-common": "./js/jsmind-edit-common.js",
         // "jsmind-edit-spec-fc4i": "./js/jsmind-edit-spec-fc4i.js",
@@ -124,7 +128,6 @@ const baseUrl = (() => {
         "local-settings": "./js/mod/local-settings.js",
         "mindmap-helpers": "./js/mindmap-helpers.js",
         "my-svg": "./js/mod/my-svg.js",
-        "mm4i-jsmind.drag-node": "./ext/jsmind/testing/mm4i-jsmind.drag-node.js",
         "sharing-params": "./src/js/mod/sharing-params.js",
         "move-help": "./js/mod/move-help.js",
         "toolsJs": "./js/mod/tools.js",
