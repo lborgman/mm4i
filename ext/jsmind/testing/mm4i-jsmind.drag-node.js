@@ -44,7 +44,7 @@ let jmnodeTarget;
 let childDragLine;
 
 export function setOurJm(jm) {
-    debugger;
+    console.warn("setOurJm", jm);
     ourJm = jm;
 }
 

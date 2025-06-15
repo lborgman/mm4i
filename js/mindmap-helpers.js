@@ -58,6 +58,7 @@ async function saveMindmap(keyName, objDataMind, actionTopic, lastUpdated, lastS
             console.log(`  will redo "${topic}", branch: ${branch}`);
             return branch; // Always return the default branch for now
         }
+        // const funUpdateHistory = (keyName) => console.log("funUpdateHistory", keyName);
         modUndo.addUndoRedo(keyName, objBaseMm, funBranch);
     }
     modUndo.actionRecordAction(keyName, objDataMind, actionTopic);

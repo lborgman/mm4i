@@ -1027,7 +1027,7 @@
             display: flex;
             flex-direction: column;
             gap: 1px;
-            left: 80px;
+            left: 50px;
             bottom: 10px;
         }
 
@@ -1239,6 +1239,9 @@
             }
             eltHistory.classList.remove("display-none");
         }
+        function updateHistoryPanelIfDisplayed() {
+            if (!eltHistory.classList.contains("display-none")) { updateHistoryPanel(); }
+        }
 
         const divHistoryResizer = mkElt("span");
         divHistoryResizer.title = "Resize";
@@ -1372,11 +1375,16 @@
         btnHistory.addEventListener("click", async evt => {
             evt.stopPropagation();
             eltHistory.classList.toggle("display-none");
-            if (!eltHistory.classList.contains("display-none")) {
-                updateHistoryPanel();
-            }
+            updateHistoryPanelIfDisplayed();
         });
         document.body.appendChild(btnHistory);
+
+        const modUndo = await importFc4i("undo-redo-tree");
+        document.addEventListener(modUndo.getRecordEventName(), evt => {
+            if (evt.detail.key == mindmapKey) {
+                updateHistoryPanelIfDisplayed();
+            }
+        });
 
         /*
         async function mkUndos() {
