@@ -1074,11 +1074,16 @@ function connectFsm() {
     });
     ourFsm?.hook_exit("c_Move", () => {
         if (funStopScroll) {
-            if (typeof funStopScroll != "function") {
-                debugger;
+            if (funStopScroll instanceof Promise) {
+                funStopScroll.then(fun => fun());
                 return;
             }
-            funStopScroll();
+            if (typeof funStopScroll == "function") {
+                funStopScroll();
+                return;
+            }
+            debugger;
+            throw Error("funStopScroll was neither Promise or function");
         }
     });
 

@@ -289,13 +289,14 @@ outline: 4px groove ${F};
 
     const modTools = await importFc4i("toolsJs");
     eltFsm.addEventListener("pointerdown", evt => {
+        modTools.savePointerdownPos(evt); // pos listener needs this
+        console.log("eltFsm, pointerdown", evt);
+        const target = evt.target;
+        if (!eltFsm.contains(target)) return;
+
         evt.preventDefault();
         evt.stopImmediatePropagation();
         evt.stopPropagation();
-        modTools.savePointerdownPos(evt); // pos listener needs this
-        // console.log("eltFsm, pointerdown", evt);
-        const target = evt.target;
-        if (!eltFsm.contains(target)) return;
         let actionWhere = "c";
         const eltJmnode = target.closest("jmnode");
         // if (eltJmnode && (!eltJmnode.classList.contains("root"))) { actionWhere = "n"; }

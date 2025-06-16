@@ -1022,13 +1022,18 @@
 
         #mm4i-history-more {
             position: fixed;
-            z-index: 1000;
+            z-index: 1001;
             background: gray;
             display: flex;
             flex-direction: column;
             gap: 1px;
             left: 50px;
-            bottom: 10px;
+            bottom: 3px;
+        }
+
+        #mm4i-history-no-more {
+            padding: 20px;
+            background-color: lightseagreen;
         }
 
         #mm4i-history-header {
@@ -1161,8 +1166,9 @@
         modMdc.setIconsFor("mm4i");
 
 
+        // let useOrigJsmind = confirm("Use orig jsMind?");
+        let useOrigJsmind = false;
         // let useOrigJsmind = true;
-        let useOrigJsmind = confirm("Use orig jsMind?");
         window["useOrigJsmind"] = useOrigJsmind;
 
         if (useOrigJsmind) {
@@ -1227,11 +1233,8 @@
             const modUndo = await importFc4i("undo-redo-tree");
             const hasHistory = modUndo.hasUndoRedo(mindmapKey);
             if (!hasHistory) {
-                // modMdc.mkMDCsnackbar("No changes yet");
                 const eltNoChanges = mkElt("div", undefined, "No changes yet");
-                eltNoChanges.style = `
-                        padding: 20px;
-                    `;
+                eltNoChanges.id = "mm4i-history-no-more";
                 divHistoryList.appendChild(eltNoChanges);
                 // return;
             } else {
@@ -1262,23 +1265,32 @@
         const resizingHistory = { active: false, bcr: undefined, client: undefined };
         function resizeHistory() {
             if (!resizingHistory.active) return;
-            const objSizes = modTools.getSavedPointerPos();
-            const { clientX, clientY } = objSizes;
-            const startX = resizingHistory.client.startX;
-            const startY = resizingHistory.client.startY;
-            const dX = startX - clientX;
-            const dY = startY - clientY;
-            // console.log("resizeHistory, dX, dY", dX, dY);
-            if (Number.isNaN(dX) || Number.isNaN(dY)) { debugger; }
-            // console.log("resizeHistory", dX, dY, JSON.parse(JSON.stringify(objSizes)));
-            const oldWidth = resizingHistory.bcr.width;
-            const newX = oldWidth - dX;
-            const oldHeight = resizingHistory.bcr.height;
-            const newY = oldHeight + dY;
-            if (Number.isNaN(newX) || Number.isNaN(newY)) { debugger; }
-            if ((newX < 0) || (newY < 0)) { debugger; }
-            eltHistory.style.width = `${newX}px`;
-            eltHistory.style.height = `${newY}px`;
+            try {
+                const objSizes = modTools.getSavedPointerPos();
+                const { clientX, clientY } = objSizes;
+                const startX = resizingHistory.client.startX;
+                const startY = resizingHistory.client.startY;
+                const dX = startX - clientX;
+                const dY = startY - clientY;
+                // console.log("resizeHistory, dX, dY", dX, dY);
+                if (Number.isNaN(dX) || Number.isNaN(dY)) { debugger; }
+                // console.log("resizeHistory", dX, dY, JSON.parse(JSON.stringify(objSizes)));
+                const oldWidth = resizingHistory.bcr.width;
+                const newX = oldWidth - dX;
+                const oldHeight = resizingHistory.bcr.height;
+                const newY = oldHeight + dY;
+                if (Number.isNaN(newX) || Number.isNaN(newY)) { debugger; }
+                if ((newX < 0) || (newY < 0)) {
+                    console.log(`${newX}<0, ${newY}<0`, { clientX, clientY, resizingHistory });
+                    // debugger;
+                    requestAnimationFrame(resizeHistory);
+                    return;
+                }
+                eltHistory.style.width = `${newX}px`;
+                eltHistory.style.height = `${newY}px`;
+            } catch (err) {
+                console.error("resizeHistory", err);
+            }
             requestAnimationFrame(resizeHistory);
         }
         divHistoryResizer.addEventListener("pointerdown", async evt => {
@@ -1287,10 +1299,13 @@
             evt.stopPropagation();
             divHistoryResizer.setPointerCapture(evt.pointerId);
             resizingHistory.active = true;
+            console.log(">>>>> HR pointerdown");
 
             const clientX = evt.clientX;
             const clientY = evt.clientY;
             if (Number.isNaN(clientX) || Number.isNaN(clientY)) { debugger; }
+
+            modTools.savePointerdownPos(evt);
 
             resizingHistory.bcr = eltHistory.getBoundingClientRect();
 
@@ -1310,24 +1325,29 @@
 
             // console.log(">>>>> pointerdown", { startPos, currentPos }, JSON.parse(JSON.stringify(resizingHistory)));
             console.log(">>>>> pointerdown", JSON.parse(JSON.stringify(resizingHistory)));
-            eltHistory.style.outline = "1px dotted yellow";
+            eltHistory.style.outline = "5px dotted red";
             divHistoryResizer.addEventListener("pointerup", evt => {
-                console.log("<<<<<< pointerup");
-                divHistoryResizer.releasePointerCapture(evt.pointerId);
-                resizingHistory.active = false;
-                resizingHistory.bcr = undefined;
-                resizingHistory.client = undefined;
-                eltHistory.style.outline = null;
-            }, { once: true });
+                console.log("<<<<<< HR pointerup");
+                afterCaptureResizer();
+            });
             resizeHistory();
         });
-        divHistoryResizer.addEventListener("NOpointerleave", evt => {
-            console.log("<<<<<< pointerleave");
+        divHistoryResizer.addEventListener("pointerleave", evt => {
+            console.log("<<<<<< HR pointerleave");
+            afterCaptureResizer();
+        });
+        function afterCaptureResizer() {
+            // https://javascript.info/pointer-events
+            // divHistoryResizer.releasePointerCapture(evt.pointerId);
+            divHistoryResizer.onpointerup = null;
+            divHistoryResizer.onpointermove = null;
+
             resizingHistory.active = false;
             resizingHistory.bcr = undefined;
             resizingHistory.client = undefined;
             eltHistory.style.outline = null;
-        });
+
+        }
 
 
 
