@@ -121,8 +121,28 @@ export class MoveAtDragBorder {
         });
     }
     hideVisuals() { this.visuals.forEach(v => v.style.display = "none"); }
-    updateScreenLimits() {
+    /**
+     * Update limits for visual drag borders
+     * 
+     * @param {boolean|undefined} secondCall 
+     */
+    updateScreenLimits(secondCall = undefined) {
         const elt2moveParent = this.elt2move.parentElement;
+        if (!elt2moveParent) {
+            if (secondCall) {
+                const msg = "elt2moveParent was not found in second call";
+                debugger;
+                console.error(msg);
+                return;
+            }
+            const msg = "elt2moveParent was not found";
+            debugger;
+            console.error(msg);
+            // throw Error(msg);
+            // FIX: Probably called to early
+            const fun = this.updateScreenLimits;
+            setTimeout(() => fun(true), 1000);
+        }
         // const scrollbarW = elt2moveParent.offsetWidth - elt2moveParent.clientWidth;
         const bcr = elt2moveParent.getBoundingClientRect();
         this.limits = {
