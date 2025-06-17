@@ -53,7 +53,7 @@ async function saveMindmap(keyName, objDataMind, actionTopic, lastUpdated, lastS
             const branch = defaultBranch;
             const topic = arrBrancheTopics[branch];
             if (!topic) {
-                debugger;
+                debugger; // eslint-disable-line no-debugger
                 throw Error(`No topic found for branch ${branch}`);
             }
             console.log(`  will redo "${topic}", branch: ${branch}`);
@@ -74,7 +74,7 @@ export async function DBundo(keyName) {
     const objDataMind = modUndo.actionUndo(keyName);
     if (!objDataMind) {
         console.error("objDataMind is null");
-        debugger;
+        debugger; // eslint-disable-line no-debugger
     }
     const dbMindmaps = await importFc4i("db-mindmaps");
     return await dbMindmaps.DBsetMindmap(keyName, objDataMind);

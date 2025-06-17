@@ -511,7 +511,9 @@ export function applyNodeShapeEtc(node, eltJmnode) {
     const shapeEtc = node.data.shapeEtc;
     if (!shapeEtc) {
         const useOrig = window["useOrigJsmind"];
-        if (typeof useOrig != "boolean") { debugger; }
+        if (typeof useOrig != "boolean") {
+            debugger; // eslint-disable-line no-debugger
+        }
         if (useOrig) {
             eltJmnode.style.color = "yellow";
             eltJmnode.style.backgroundColor = "black";
@@ -1082,7 +1084,7 @@ function connectFsm() {
                 funStopScroll();
                 return;
             }
-            debugger;
+            debugger; // eslint-disable-line no-debugger
             throw Error("funStopScroll was neither Promise or function");
         }
     });
@@ -1983,8 +1985,8 @@ export async function pageSetup() {
             const dlg = await modMdc.mkMDCdialog(body, eltActions);
             // function closeDialog() { dlg.mdc.close(); }
             const res = await new Promise((resolve) => {
-                dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async evt => {
-                    const action = evt.detail.action;
+                dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async _evt => {
+                    // const action = evt.detail.action;
                     const topic = inpTopic.value.trim();
                     const result = topic.length > 0;
                     // console.log({ action, result });

@@ -14,6 +14,7 @@ window["logConsoleHereIs"](`here is mm4i-jsmind.drag-node.js, module ${version}`
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 const mkElt = window["mkElt"];
+const importFc4i = window["importFc4i"];
 const jsMind = window["jsMind"];
 
 

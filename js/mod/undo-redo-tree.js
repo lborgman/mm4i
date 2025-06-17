@@ -87,7 +87,9 @@ function _OLDjsonStringifySorted(obj) {
 function jsonStringifySorted(obj) {
   // Handle undefined explicitly
   if (obj === undefined) {
-    return '"__undefined__"';
+    // return '"__undefined__"';
+    // FIX-ME: This will be a restriction. Keep an eye on it!
+    return JSON.stringify(null);
   }
 
   // Handle non-object types (strings, numbers, booleans, null, etc.)
@@ -143,7 +145,7 @@ export class UndoRedoTreeWithDiff {
    * @param {any} initialState - string or json object representing the initial state of the application.
    * @param {(defaultBranch: number, arrBranches: string[]) => number | null} [funBranch]
    * @param {any} historyKey
-   * @param {function} historyRecordFun
+   * @param {function|undefined} historyRecordFun
    */
   constructor(initialState, funBranch = undefined, historyKey = undefined, historyRecordFun = undefined) {
     const tofState = typeof initialState;

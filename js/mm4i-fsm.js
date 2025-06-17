@@ -4,6 +4,7 @@ window["logConsoleHereIs"](`here is mm4i-fsm.js, module,${MM4I_FSM_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 const importFc4i = window["importFc4i"];
+const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 
 const modJssm = await importFc4i("jssm");
 // const modJssm = undefined;

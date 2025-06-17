@@ -4,6 +4,7 @@ window["logConsoleHereIs"](`here is move-help.js, module, ${MOVE_HELP_VER}`);
 if (document.currentScript) { throw "move-help.js is not loaded as module"; }
 
 const mkElt = window["mkElt"];
+const importFc4i = window["importFc4i"];
 
 const modTools = await importFc4i("toolsJs");
 
@@ -131,12 +132,12 @@ export class MoveAtDragBorder {
         if (!elt2moveParent) {
             if (secondCall) {
                 const msg = "elt2moveParent was not found in second call";
-                debugger;
+                debugger; // eslint-disable-line no-debugger
                 console.error(msg);
                 return;
             }
             const msg = "elt2moveParent was not found";
-            debugger;
+            debugger; // eslint-disable-line no-debugger
             console.error(msg);
             // throw Error(msg);
             // FIX: Probably called to early
