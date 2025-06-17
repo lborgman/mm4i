@@ -1030,6 +1030,23 @@
             gap: 1px;
             left: 50px;
             bottom: 3px;
+
+            width: var(--width, 300px);
+            /* Use CSS variable for width */
+            height: var(--height, 100px);
+            /* Use CSS variable for height */
+            min-width: 300px !important;
+            min-height: 100px !important;
+        }
+
+        #mm4i-history-more.resizing {
+            outline: 5px dotted red;
+            touch-action: none;
+        }
+
+        #mm4i-history-more.resizing * {
+            pointer-events: none;
+            user-select: none;
         }
 
         #mm4i-history-no-more {
@@ -1042,6 +1059,7 @@
             color: white;
             padding: 4px;
             position: relative;
+            white-space: nowrap;
         }
 
         #mm4i-history-resizer {
@@ -1054,6 +1072,8 @@
             margin: 2px;
             aspect-ratio: 1 / 1;
             height: calc(100% - 4px);
+            NOheight: 32px;
+            NOmax-height: 32px;
             cursor: move;
         }
 
@@ -1265,8 +1285,10 @@
         document.body.appendChild(eltHistory);
 
         const resizingHistory = { active: false, bcr: undefined, client: undefined };
+        let historyResizerPointerId;
         function resizeHistory() {
-            if (!resizingHistory.active) return;
+            // if (!resizingHistory.active) return;
+            if (!divHistoryResizer.hasPointerCapture(historyResizerPointerId)) return;
             try {
                 const objSizes = modTools.getSavedPointerPos();
                 const { clientX, clientY } = objSizes;
@@ -1275,21 +1297,33 @@
                 const dX = startX - clientX;
                 const dY = startY - clientY;
                 // console.log("resizeHistory, dX, dY", dX, dY);
-                if (Number.isNaN(dX) || Number.isNaN(dY)) { debugger; }
+                if (Number.isNaN(dX) || Number.isNaN(dY)) {
+                    // debugger;
+                    const msg = `isNaN, dX:${dX}, dY:${dY}`;
+                    throw Error(msg);
+                }
                 // console.log("resizeHistory", dX, dY, JSON.parse(JSON.stringify(objSizes)));
                 const oldWidth = resizingHistory.bcr.width;
-                const newX = oldWidth - dX;
+                let newX = oldWidth - dX;
                 const oldHeight = resizingHistory.bcr.height;
-                const newY = oldHeight + dY;
-                if (Number.isNaN(newX) || Number.isNaN(newY)) { debugger; }
+                let newY = oldHeight + dY;
+                if (Number.isNaN(newX) || Number.isNaN(newY)) {
+                    // debugger;
+                    const msg = `isNaN, newX:${newX}, newY:${newY}`;
+                    throw Error(msg);
+                }
                 if ((newX < 0) || (newY < 0)) {
                     console.log(`${newX}<0, ${newY}<0`, { clientX, clientY, resizingHistory });
-                    // debugger;
-                    requestAnimationFrame(resizeHistory);
-                    return;
+                    // requestAnimationFrame(resizeHistory);
+                    // return;
+                } else {
+                    // newX = Math.max(newX, 300);
+                    // newY = Math.max(newY, 200);
+                    // eltHistory.style.width = `${newX}px`;
+                    // eltHistory.style.height = `${newY}px`;
+                    eltHistory.style.setProperty('--width', `${newX}px`);
+                    eltHistory.style.setProperty('--height', `${newY}px`);
                 }
-                eltHistory.style.width = `${newX}px`;
-                eltHistory.style.height = `${newY}px`;
             } catch (err) {
                 console.error("resizeHistory", err);
             }
@@ -1299,44 +1333,54 @@
             // This will be handled before the handler on the document.
             // So get clientX/clientY here!
             evt.stopPropagation();
-            divHistoryResizer.setPointerCapture(evt.pointerId);
+            historyResizerPointerId = evt.pointerId;
+            divHistoryResizer.setPointerCapture(historyResizerPointerId);
             resizingHistory.active = true;
+            // eltHistory.style.outline = "5px dotted red";
+            eltHistory.classList.add("resizing");
             // console.log(">>>>> HR pointerdown");
 
-            const clientX = evt.clientX;
-            const clientY = evt.clientY;
-            if (Number.isNaN(clientX) || Number.isNaN(clientY)) { debugger; }
+            if (true) {
+                const clientX = evt.clientX;
+                const clientY = evt.clientY;
+                if (Number.isNaN(clientX) || Number.isNaN(clientY)) { debugger; }
 
-            modTools.savePointerdownPos(evt);
+                modTools.savePointerdownPos(evt);
 
-            resizingHistory.bcr = eltHistory.getBoundingClientRect();
+                resizingHistory.bcr = eltHistory.getBoundingClientRect();
 
-            resizingHistory.client = {};
-            resizingHistory.client.startX = clientX;
-            resizingHistory.client.startY = clientY;
-            resizingHistory.currentPos = {};
-            resizingHistory.currentPos.clientX = clientX;
-            resizingHistory.currentPos.clientY = clientY;
+                resizingHistory.client = {};
+                resizingHistory.client.startX = clientX;
+                resizingHistory.client.startY = clientY;
+                resizingHistory.currentPos = {};
+                resizingHistory.currentPos.clientX = clientX;
+                resizingHistory.currentPos.clientY = clientY;
 
-            // const startPos = await modTools.getAndClearStartPointerPos();
-            // resizingHistory.client = startPos;
-            // const currentPos = modTools.getSavedPointerPos(); // Just for test
-
-            // Object.seal(resizingHistory.bcr);
-            // Object.seal(resizingHistory.client);
-
-            // console.log(">>>>> pointerdown", { startPos, currentPos }, JSON.parse(JSON.stringify(resizingHistory)));
-            // console.log(">>>>> pointerdown", JSON.parse(JSON.stringify(resizingHistory)));
-            eltHistory.style.outline = "5px dotted red";
+                // console.log(">>>>> pointerdown", { startPos, currentPos }, JSON.parse(JSON.stringify(resizingHistory)));
+                // console.log(">>>>> pointerdown", JSON.parse(JSON.stringify(resizingHistory)));
+            }
             divHistoryResizer.addEventListener("pointerup", evt => {
                 // console.log("<<<<<< HR pointerup");
-                afterCaptureResizer();
+                // afterCaptureResizer();
             });
             resizeHistory();
         });
+        divHistoryResizer.addEventListener("pointercancel", evt => {
+            // console.log("<<<<<< HR pointercancel", evt);
+            console.log("<<<<<< HR pointercancel, preventDefault()", evt);
+            evt.preventDefault();
+        });
+        divHistoryResizer.addEventListener("lostpointercapture", evt => {
+            // console.log("<<<<<< HR lostpointercapture");
+            console.log("<<<<<< HR lostpointercapture, preventDefault()", evt);
+            evt.preventDefault();
+            afterCaptureResizer();
+        });
         divHistoryResizer.addEventListener("pointerleave", evt => {
             // console.log("<<<<<< HR pointerleave");
-            afterCaptureResizer();
+            console.log("<<<<<< HR pointerleave, preventDefault()");
+            evt.preventDefault();
+            // afterCaptureResizer();
         });
         function afterCaptureResizer() {
             // https://javascript.info/pointer-events
@@ -1347,8 +1391,8 @@
             resizingHistory.active = false;
             resizingHistory.bcr = undefined;
             resizingHistory.client = undefined;
-            eltHistory.style.outline = null;
-
+            // eltHistory.style.outline = null;
+            eltHistory.classList.remove("resizing");
         }
 
 
