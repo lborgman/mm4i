@@ -1203,6 +1203,7 @@ export async function displayOurMindmap(mind) {
 
     applyOurMindmapGlobals(jmDisplayed);
     // addDragBorders(jmDisplayed);
+    return jmDisplayed;
 }
 async function displayMindMap(mind) {
     const usedOptJmDisplay = getUsedOptJmDisplay(mind);

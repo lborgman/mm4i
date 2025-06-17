@@ -1171,18 +1171,19 @@
         // let useOrigJsmind = true;
         window["useOrigJsmind"] = useOrigJsmind;
 
+        let modJsmindDraggable;
         if (useOrigJsmind) {
             console.log("%cUsing orig jsMind", "color:red; font-size:20px;");
             const modJsMind = await importFc4i("jsmind-es6");
             // const modJsmindDraggable = await importFc4i("jsmind.drag-node-es6");
-            const modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
+            modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
             window["modJsmindDraggable"] = modJsmindDraggable;
             // FIX-ME:
             modJsmindDraggable.setupNewDragging();
         } else {
             console.log("%cUsing mm4i jsMind", "color:green; font-size:20px;");
             const modJsMind = await importFc4i("jsmind");
-            const modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
+            modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
             window["modJsmindDraggable"] = modJsmindDraggable;
             modJsmindDraggable.setupNewDragging();
         }
@@ -1299,7 +1300,7 @@
             evt.stopPropagation();
             divHistoryResizer.setPointerCapture(evt.pointerId);
             resizingHistory.active = true;
-            console.log(">>>>> HR pointerdown");
+            // console.log(">>>>> HR pointerdown");
 
             const clientX = evt.clientX;
             const clientY = evt.clientY;
@@ -1324,16 +1325,16 @@
             // Object.seal(resizingHistory.client);
 
             // console.log(">>>>> pointerdown", { startPos, currentPos }, JSON.parse(JSON.stringify(resizingHistory)));
-            console.log(">>>>> pointerdown", JSON.parse(JSON.stringify(resizingHistory)));
+            // console.log(">>>>> pointerdown", JSON.parse(JSON.stringify(resizingHistory)));
             eltHistory.style.outline = "5px dotted red";
             divHistoryResizer.addEventListener("pointerup", evt => {
-                console.log("<<<<<< HR pointerup");
+                // console.log("<<<<<< HR pointerup");
                 afterCaptureResizer();
             });
             resizeHistory();
         });
         divHistoryResizer.addEventListener("pointerleave", evt => {
-            console.log("<<<<<< HR pointerleave");
+            // console.log("<<<<<< HR pointerleave");
             afterCaptureResizer();
         });
         function afterCaptureResizer() {
@@ -1378,7 +1379,8 @@
 
                 const dbMindmaps = await importFc4i("db-mindmaps");
                 await dbMindmaps.DBsetMindmap(mindmapKey, objMm);
-                modJsEditCommon.displayOurMindmap(objMm);
+                const jm = await modJsEditCommon.displayOurMindmap(objMm);
+                modJsmindDraggable.setOurJm(jm); // FIX-ME:
             }
         });
 
