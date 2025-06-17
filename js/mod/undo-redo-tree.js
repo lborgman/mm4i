@@ -227,7 +227,9 @@ export class UndoRedoTreeWithDiff {
       return JSON.parse(stateString);
     } catch (e) {
       console.error("Error deserializing state:", e, stateString);
+      debugger;
       // Graceful error handling: return null or throw, depending on application needs
+      throw Error(`Error deserializing state: ${e}`);
       return null;
     }
   }
