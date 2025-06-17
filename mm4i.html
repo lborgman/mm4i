@@ -1021,7 +1021,7 @@
             color: black;
         }
 
-        #mm4i-history-more {
+        #mm4i-history-panel {
             position: fixed;
             z-index: 1001;
             background: gray;
@@ -1039,19 +1039,26 @@
             min-height: 100px !important;
         }
 
-        #mm4i-history-more.resizing {
+        #mm4i-history-panel>* {
+            NOflex-shrink: 0;
+            min-width: 0;
+        }
+
+        #mm4i-history-panel.resizing {
             outline: 5px dotted red;
             touch-action: none;
         }
 
-        #mm4i-history-more.resizing * {
+        #mm4i-history-panel.resizing * {
             pointer-events: none;
             user-select: none;
         }
 
-        #mm4i-history-no-more {
+        #mm4i-history-no-changes {
             padding: 30px;
             background-color: lightseagreen;
+            pointer-events: none;
+            user-select: none;
         }
 
         #mm4i-history-header {
@@ -1075,11 +1082,12 @@
             NOheight: 32px;
             NOmax-height: 32px;
             cursor: move;
+            touch-action: none;
+            user-select: none;
         }
 
         #mm4i-history-list {
             overflow-y: auto;
-            max-height: 100px;
         }
     </style>
 
@@ -1256,7 +1264,7 @@
             const hasHistory = modUndo.hasUndoRedo(mindmapKey);
             if (!hasHistory) {
                 const eltNoChanges = mkElt("div", undefined, "No changes yet");
-                eltNoChanges.id = "mm4i-history-no-more";
+                eltNoChanges.id = "mm4i-history-no-changes";
                 divHistoryList.appendChild(eltNoChanges);
                 // return;
             } else {
@@ -1279,7 +1287,7 @@
             divHistoryHeader,
             divHistoryList
         ]);
-        eltHistory.id = "mm4i-history-more";
+        eltHistory.id = "mm4i-history-panel";
         eltHistory.classList.add("display-none");
 
         document.body.appendChild(eltHistory);
