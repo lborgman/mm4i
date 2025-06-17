@@ -3686,6 +3686,7 @@
                     return false;
                 }
                 var node_id = node.id;
+                const nodeTopic = node.topic;
                 var parent_id = node.parent.id;
                 var parent_node = this.get_node(parent_id);
                 this.view.save_location(parent_node);
@@ -3698,6 +3699,7 @@
                     evt: 'remove_node',
                     data: [node_id],
                     node: parent_id,
+                    nodeTopic
                 });
                 return true;
             } else {

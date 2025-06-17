@@ -2585,7 +2585,7 @@ export class CustomRenderer4jsMind {
                     delete currTemp.height;
                     // await modJsEditCommon.fixJmnodeProblem(eltJmnode);
                     modJsEditCommon.applyNodeShapeEtc(node_copied, eltJmnode);
-                    modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed, `Edited "${node_copied.topic}`);
+                    modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed, `Edited "${node_copied.topic}"`);
 
                     // FIX-ME: use lastElementChild instead???
                     // if (node_copied.data.fc4i) this.updateJmnodeFromCustom(eltJmnode);
