@@ -126,9 +126,9 @@ export class UndoRedoTreeWithDiff {
     if (tofState === "object") {
       try {
         const strJson = jsonStringifySorted(state); // Check if state can be serialized
-        window["strJson"] = strJson;
         const objJson = JSON.parse(strJson); // Check if state can be deserialized
-        window["objJson"] = objJson;
+        // window["strJson"] = strJson;
+        // window["objJson"] = objJson;
         const str = JSON.stringify(objJson);
         if (str !== strJson) {
           debugger; // eslint-disable-line no-debugger
@@ -204,7 +204,7 @@ export class UndoRedoTreeWithDiff {
     if (this.#historyRecordFun != undefined) {
       const msg = `#historyKey is already set to "${this.#historyRecordFun}", can't change it to "${key}"`;
       console.error(msg);
-      debugger;
+      debugger; // eslint-disable-line no-debugger
       throw Error(msg);
     }
     this.#historyRecordFun = key;
@@ -264,7 +264,7 @@ export class UndoRedoTreeWithDiff {
       return JSON.parse(stateString);
     } catch (e) {
       console.error("Error deserializing state:", e, stateString);
-      debugger;
+      debugger; // eslint-disable-line no-debugger
       // Graceful error handling: return null or throw, depending on application needs
       throw Error(`Error deserializing state: ${e}`);
       return null;
@@ -334,18 +334,18 @@ export class UndoRedoTreeWithDiff {
     logClass("undo()");
     if (!this.canUndo()) {
       console.log("Already at root. Nothing to undo.");
-      debugger;
+      debugger; // eslint-disable-line no-debugger
       return null;
     }
     if (!this.currentNode.parent) {
-      debugger;
+      debugger; // eslint-disable-line no-debugger
       throw Error("undo but no .parent");
     }
 
     const patchesToApplyForUndo = this.currentNode.patchesToUndo;
     if (!patchesToApplyForUndo) {
       console.error("Error: Current node is missing 'patchesToUndo'.");
-      debugger;
+      debugger; // eslint-disable-line no-debugger
       return null;
     }
 
@@ -355,7 +355,7 @@ export class UndoRedoTreeWithDiff {
     if (patchResults.some(applied => !applied)) {
       console.error("Undo patch application failed. Results:", patchResults);
       // State might be inconsistent. You might want to try to recover or log.
-      debugger;
+      debugger; // eslint-disable-line no-debugger
       return null;
     }
 
@@ -370,7 +370,7 @@ export class UndoRedoTreeWithDiff {
     if (num == 0) return false;
     if (num > 1) return num;
     const child0 = children[0];
-    // debugger;
+    // debugger; // eslint-disable-line no-debugger
     const actionTopic = child0.actionTopic;
     return actionTopic;
   }
@@ -552,7 +552,7 @@ export function actionUndo(key) {
   const undoRedoState = history.undo();
   if (!undoRedoState) {
     console.error("undoRedoState is null");
-    debugger;
+    debugger; // eslint-disable-line no-debugger
   }
   return undoRedoState;
 }
@@ -588,7 +588,7 @@ async function _doSomeTests() {
    * @returns {Promise<number>}
    */
   async function _ourFunBranch(defaultBranch, arrBrancheTopics) {
-    // debugger;
+    // debugger; // eslint-disable-line no-debugger
     if (!Number.isInteger(defaultBranch) || defaultBranch < 0) { throw Error(`Invalid defaultBranch "${defaultBranch}"`); }
     console.log(`  ourFunBranch called with defaultBranch: ${defaultBranch}, arrBranches:`, arrBrancheTopics);
     const importFc4i = window["importFc4i"];
@@ -597,7 +597,7 @@ async function _doSomeTests() {
     const branch = defaultBranch;
     const topic = arrBrancheTopics[branch];
     if (!topic) {
-      debugger;
+      debugger; // eslint-disable-line no-debugger
       throw Error(`No topic found for branch ${branch}`);
     }
     console.log(`  will redo "${topic}", branch: ${branch}`);

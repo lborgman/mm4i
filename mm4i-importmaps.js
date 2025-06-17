@@ -91,7 +91,7 @@ const baseUrl = (() => {
         "color-tools": "./js/mod/color-tools.js",
         // "d3": "./ext/d3/d3.v7.js",
         "db-mindmaps": "./js/db-mindmaps.js",
-        "db-fc4i": "./js/db-fc4i.js",
+        // "db-fc4i": "./js/db-fc4i.js",
 
         "toast-ui-helpers": "./js/mod/toast-ui-helpers.js",
 
