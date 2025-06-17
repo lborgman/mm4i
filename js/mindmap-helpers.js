@@ -32,6 +32,7 @@ export function setUndoRedoTreeStyle(useTreeStyle) {
 export function getUndoRedoTreeStyle() { return undoRedoTreeStyle; }
 
 async function saveMindmap(keyName, objDataMind, actionTopic, lastUpdated, lastSynced, privacy) {
+    // debugger;
     const dbMindmaps = await importFc4i("db-mindmaps");
     const modUndo = await importFc4i("undo-redo-tree");
     // debugger; // eslint-disable-line no-debugger
@@ -98,10 +99,11 @@ export function DBrequestSaveThisMindmap(jmDisplayed, actionTopic) {
         debugger; // eslint-disable-line no-debugger
         throw Error(`actionTopic is not string: ${typeof actionTopic}`);
     }
+    // debugger;
     throttleSaveMindmap(jmDisplayed, actionTopic);
 }
 async function DBsaveNowThisMindmap(jmDisplayed, actionTopic) {
-    debugger;
+    // debugger;
     const tofTopic = typeof actionTopic;
     if (tofTopic != "string") { throw Error(`Wrong actionTopic type: ${tofTopic} (should be string)`); }
     const objDataMind = jmDisplayed.get_data("node_array");

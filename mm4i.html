@@ -1032,7 +1032,7 @@
         }
 
         #mm4i-history-no-more {
-            padding: 20px;
+            padding: 30px;
             background-color: lightseagreen;
         }
 
@@ -1361,28 +1361,23 @@
                 divFilter.style.transition = "opacity 0.5s";
                 divFilter.style.opacity = 0;
                 await modTools.waitSeconds(0.5);
-                /*
-                setTimeout(() => {
-                    const divZM = document.querySelector("jmnodes").closest(".zoom-move");
-                    divZM.style.transition = "opacity 0.5s";
-                    divZM.style.opacity = 1;
-                });
-                */
-                const modUndo = await importFc4i("undo-redo-tree");
-                const val = target.value;
-                const node = target.valueAsObject;
-                const visibleName = target.parentElement.textContent;
-                // modMdc.mkMDCsnackbar(`Switching to ${visibleName}`);
-                const history = modUndo.getHistory(mindmapKey);
-                const objMm = history.navigateToNode(node);
-                const dbMindmaps = await importFc4i("db-mindmaps");
-                await dbMindmaps.DBsetMindmap(mindmapKey, objMm);
                 if (!divZM) {
                     const divInner = jmN.closest(".jsmind-inner");
                     divInner.remove();
                 } else {
                     divZM.remove();
                 }
+
+                const modUndo = await importFc4i("undo-redo-tree");
+                // const val = target.value;
+                const historyNode = target.valueAsObject;
+                // const visibleName = target.parentElement.textContent;
+
+                const history = modUndo.getHistory(mindmapKey);
+                const objMm = history.navigateToNode(historyNode);
+
+                const dbMindmaps = await importFc4i("db-mindmaps");
+                await dbMindmaps.DBsetMindmap(mindmapKey, objMm);
                 modJsEditCommon.displayOurMindmap(objMm);
             }
         });

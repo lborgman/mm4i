@@ -426,10 +426,10 @@ export class UndoRedoTreeWithDiff {
   }
 
   // Utility to jump to a specific node if you have its reference
-  navigateToNode(node) {
-    const state = this.getStateOfNode(node);
+  navigateToNode(historyNode) {
+    const state = this.getStateOfNode(historyNode);
     if (state !== null) {
-      this.currentNode = node;
+      this.currentNode = historyNode;
       this.currentFullState = state;
       return this.currentFullState;
     }
@@ -538,7 +538,7 @@ export async function actionRedo(key) {
 _doSomeTests();
 async function _doSomeTests() {
   ////// All tests passed in version "0.0.001"
-  await _basicTest({}); // linear
+  // await _basicTest({}); // linear
   // await _basicTest({ ourUndoRedo: true }); // linear
   // await _basicTest({ funBranch: _ourFunBranch }); // branched
   // await _basicTest({ funBranch: _ourFunBranch, ourUndoRedo: true }); // branched

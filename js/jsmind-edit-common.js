@@ -1207,7 +1207,61 @@ export async function displayOurMindmap(mind) {
 async function displayMindMap(mind) {
     const usedOptJmDisplay = getUsedOptJmDisplay(mind);
     const jm = new jsMind(usedOptJmDisplay);
-    modJsmindDraggable.setOurJm(jm);
+    jm.add_event_listener((type, data) => {
+        if (type !== 3) return;
+        addDebugLog(`jmDisplayed, event_listener, ${type}`)
+        const evt_type = data.evt;
+        const datadata = data.data;
+        const node_id = data.node;
+        console.log({ evt_type, type, datadata, data });
+        checkOperationOnNode(evt_type, node_id, datadata);
+        const topic = jmDisplayed.mind.nodes[node_id].topic;
+        setTopic4undoRedo(topic);
+        const actionAndNode = `${evt_type} "${getTopic4undoRedo()}"`;
+        // modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, evt_type); // FIX-ME: delay
+        modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, actionAndNode); // FIX-ME: delay
+        // updateTheMirror();
+    });
+    async function checkOperationOnNode(operation_type, operation_node_id, datadata) {
+        // console.log("checkOpOnNode", { operation_type, operation_node_id, jm_operation: jmDisplayed, datadata });
+        switch (operation_type) {
+            case "add_node":
+                const id_added = operation_node_id;
+                // const added_node = jmDisplayed.get_node(id_added);
+                // console.log({ operation_type, id_added, added_node });
+                if (id_added != datadata[1]) throw Error(`id_added (${id_added}) != datadata[1] (${datadata[1]})`);
+                break;
+            case "update_node":
+                {
+                    const id_updated = operation_node_id;
+                    const updated_node = jmDisplayed.get_node(id_updated);
+                    console.log({ operation_type, id_updated, updated_node });
+                    const eltJmnode = jsMind.my_get_DOM_element_from_node(updated_node);
+                    const eltTxt = eltJmnode.querySelector(".jmnode-text");
+                    if (!eltTxt.classList.contains("jmnode-text")) throw Error("Not .jmnode-text");
+                    // const isPlainNode = eltTxt.childElementCount == 0;
+                    // if (!isPlainNode) {
+                    // (await getCustomRenderer()).updateJmnodeFromCustom(eltJmnode);
+                    // }
+                }
+                break;
+            case "move_node":
+                {
+                    // const id_moved = operation_node_id;
+                    // const moved_node = jmDisplayed.get_node(id_moved);
+                    // const eltJmnode = jsMind.my_get_DOM_element_from_node(moved_node);
+                    // (await getCustomRenderer()).updateJmnodeFromCustom(eltJmnode);
+                    break;
+                }
+            case "remove_node":
+                // const id_removed = datadata[0];
+                // console.log({ operation_type, id_removed, operation_node_id });
+                break;
+            default:
+                console.warn(`unknown operation_type: ${operation_type}`);
+        }
+    }
+
 
     // FIX-ME: Testing orig jsMind:
     if (jm.show_async) {
@@ -1640,6 +1694,7 @@ export async function pageSetup() {
     }
     */
 
+    /*
     jmDisplayed.add_event_listener((type, data) => {
         if (type !== 3) return;
         addDebugLog(`jmDisplayed, event_listener, ${type}`)
@@ -1655,6 +1710,8 @@ export async function pageSetup() {
         modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, actionAndNode); // FIX-ME: delay
         // updateTheMirror();
     });
+    */
+    /*
     async function checkOperationOnNode(operation_type, operation_node_id, datadata) {
         // console.log("checkOpOnNode", { operation_type, operation_node_id, jm_operation: jmDisplayed, datadata });
         switch (operation_type) {
@@ -1694,6 +1751,7 @@ export async function pageSetup() {
                 console.warn(`unknown operation_type: ${operation_type}`);
         }
     }
+    */
 
 
 
