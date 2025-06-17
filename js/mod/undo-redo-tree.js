@@ -74,9 +74,44 @@ export class HistoryTreeNode {
   }
 }
 
-function jsonStringifySorted(obj) {
+function _OLDjsonStringifySorted(obj) {
   return JSON.stringify(Object.keys(obj).sort().reduce((acc, key) => { acc[key] = obj[key]; return acc; }, {}));
 }
+
+/**
+ * A recursive version (from Grok)
+ * 
+ * @param {any} obj 
+ * @returns {string}
+ */
+function jsonStringifySorted(obj) {
+  // Handle undefined explicitly
+  if (obj === undefined) {
+    return '"__undefined__"';
+  }
+
+  // Handle non-object types (strings, numbers, booleans, null, etc.)
+  if (obj === null || typeof obj !== 'object') {
+    return JSON.stringify(obj);
+  }
+
+  // Handle arrays
+  if (Array.isArray(obj)) {
+    return '[' + obj.map(item => jsonStringifySorted(item)).join(',') + ']';
+  }
+
+  // Handle objects: sort keys and recursively process values
+  return '{' + Object.keys(obj)
+    .sort()
+    .map(key => {
+      const value = jsonStringifySorted(obj[key]);
+      return `${JSON.stringify(key)}:${value}`;
+    })
+    .join(',') + '}';
+}
+
+
+
 const diff_match_patch = window["diff_match_patch"];
 export class UndoRedoTreeWithDiff {
   #treeStructured = false;
@@ -91,9 +126,12 @@ export class UndoRedoTreeWithDiff {
     if (tofState === "object") {
       try {
         const strJson = jsonStringifySorted(state); // Check if state can be serialized
+        window["strJson"] = strJson;
         const objJson = JSON.parse(strJson); // Check if state can be deserialized
+        window["objJson"] = objJson;
         const str = JSON.stringify(objJson);
         if (str !== strJson) {
+          debugger; // eslint-disable-line no-debugger
           throw Error(`state is not a JSON object`);
         }
       } catch (e) {
@@ -217,8 +255,7 @@ export class UndoRedoTreeWithDiff {
   }
 
   _serialize(state) {
-    // Ensure consistent serialization, e.g., by sorting keys if order doesn't matter
-    // but can affect diffs. For simple JSON, stringify is usually enough.
+    // Ensure consistent serialization, e.g., by sorting keys
     return jsonStringifySorted(state);
   }
 
