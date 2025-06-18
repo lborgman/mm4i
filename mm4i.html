@@ -1367,6 +1367,13 @@
                 // console.log(">>>>> pointerdown", { startPos, currentPos }, JSON.parse(JSON.stringify(resizingHistory)));
                 // console.log(">>>>> pointerdown", JSON.parse(JSON.stringify(resizingHistory)));
             }
+            divHistoryResizer.addEventListener("pointermove", funPointermove);
+            function funPointermove(evt) {
+                if (!divHistoryResizer.hasPointerCapture(evt.pointerId)) {
+                    divHistoryResizer.removeEventListener("pointermove", funPointermove);
+                }
+                modTools.savePointerPos(evt);
+            }
             divHistoryResizer.addEventListener("pointerup", evt => {
                 // console.log("<<<<<< HR pointerup");
                 // afterCaptureResizer();

@@ -1335,7 +1335,7 @@ export function savePointerdownPos(evt) {
  * 
  * @param {PointerEvent} evt
  */
-function savePointerPos(evt) {
+export function savePointerPos(evt) {
     // if (!(evt instanceof PointerEvent)) throw Error("Expected PointerEvent");
     const clientX = evt.clientX;
     const clientY = evt.clientY;
