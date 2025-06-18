@@ -1021,6 +1021,28 @@
             color: black;
         }
 
+        .button-linear-tree {
+            padding: 2px 4px;
+            border-style: outset;
+            border-radius: 8px;
+            border-width: 2px;
+            border-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+
+        .button-linear-tree input {
+            display: none;
+        }
+
+        .button-linear-tree:has(input:checked) {
+            outline: 0.5px dashed greenyellow;
+            color: greenyellow;
+            border-style: inset;
+            font-weight: 900;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+
         #mm4i-history-panel {
             position: fixed;
             z-index: 1001;
@@ -1030,6 +1052,7 @@
             gap: 1px;
             left: 50px;
             bottom: 3px;
+            user-select: none;
 
             width: var(--width, 300px);
             /* Use CSS variable for width */
@@ -1064,7 +1087,7 @@
         #mm4i-history-header {
             background: darkblue;
             color: white;
-            padding: 4px;
+            padding: 6px;
             position: relative;
             white-space: nowrap;
         }
@@ -1088,6 +1111,7 @@
 
         #mm4i-history-list {
             overflow-y: auto;
+            user-select: none;
         }
     </style>
 
@@ -1227,8 +1251,46 @@
         modJsEditCommon.addToPageMenu("About", aboutLink);
 
         const modMMhelpers = await importFc4i("mindmap-helpers");
-        modMMhelpers.setUndoRedoTreeStyle(true);
-        const txtHistoryTitle = modMMhelpers.getUndoRedoTreeStyle() ? "History (tree)" : "History (linear)";
+        // modMMhelpers.setUndoRedoTreeStyle(true);
+        modMMhelpers.setUndoRedoTreeStyle(false);
+        const undoStyleTree = modMMhelpers.getUndoRedoTreeStyle();
+        // const txtHistoryTitle = modMMhelpers.getUndoRedoTreeStyle() ? "History (tree)" : "History (linear)";
+        const txtHistoryTitle = undoStyleTree ? "History (tree)" : "History (linear)";
+        const mkButtonLinearTree = (topic) => {
+            // const elt = mkElt("span", undefined, topic);
+            // elt.classList.add("button-linear-tree");
+            // return elt;
+            const rad = mkElt("input", { type: "radio", name: "rad-linear-tree", value: topic });
+            const lbl = mkElt("label", undefined, [rad, mkElt("span", undefined, topic)]);
+            lbl.classList.add("button-linear-tree");
+            return lbl;
+        }
+        const buttonTree = mkButtonLinearTree("tree");
+        const buttonLinear = mkButtonLinearTree("linear");
+        const spanHistoryTitle = mkElt("span", undefined, [
+            mkElt("span", undefined, "History"),
+            buttonLinear, buttonTree,
+        ]);
+        const valCurrent = undoStyleTree ? "tree" : "linear";
+        const inpCurrent = spanHistoryTitle.querySelector(`input[value=${valCurrent}]`);
+        inpCurrent.checked = true;
+        spanHistoryTitle.addEventListener("change", evt => {
+            evt.stopPropagation();
+            // modMdc.mkMDCsnackbar("not ready", 4000);
+            const target = evt.target;
+            const value = target.value;
+            console.log({ target, value });
+            if (value == "tree") {
+                modMdc.mkMDCsnackbar("tree is not supported at the moment");
+                const inpLinear = document.querySelector("input[value=linear]");
+                console.log({ inpLinear });
+                setTimeout(() => { inpLinear.checked = true }, 2000);
+            }
+        })
+        spanHistoryTitle.style = `
+            display: flex;
+            gap: 5px;
+        `;
 
 
 
@@ -1279,7 +1341,7 @@
         const divHistoryResizer = mkElt("span");
         divHistoryResizer.title = "Resize";
         divHistoryResizer.id = "mm4i-history-resizer";
-        const divHistoryHeader = mkElt("div", undefined, [txtHistoryTitle, divHistoryResizer]);
+        const divHistoryHeader = mkElt("div", undefined, [spanHistoryTitle, divHistoryResizer]);
         divHistoryHeader.id = "mm4i-history-header";
         const divHistoryList = mkElt("div");
         divHistoryList.id = "mm4i-history-list";
@@ -1292,10 +1354,9 @@
 
         document.body.appendChild(eltHistory);
 
-        const resizingHistory = { active: false, bcr: undefined, client: undefined };
+        const resizingHistory = { bcr: undefined, client: undefined };
         let historyResizerPointerId;
         function resizeHistory() {
-            // if (!resizingHistory.active) return;
             if (!divHistoryResizer.hasPointerCapture(historyResizerPointerId)) return;
             try {
                 const objSizes = modTools.getSavedPointerPos();
@@ -1343,8 +1404,6 @@
             evt.stopPropagation();
             historyResizerPointerId = evt.pointerId;
             divHistoryResizer.setPointerCapture(historyResizerPointerId);
-            resizingHistory.active = true;
-            // eltHistory.style.outline = "5px dotted red";
             eltHistory.classList.add("resizing");
             // console.log(">>>>> HR pointerdown");
 
@@ -1403,7 +1462,6 @@
             divHistoryResizer.onpointerup = null;
             divHistoryResizer.onpointermove = null;
 
-            resizingHistory.active = false;
             resizingHistory.bcr = undefined;
             resizingHistory.client = undefined;
             // eltHistory.style.outline = null;
