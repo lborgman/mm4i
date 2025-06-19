@@ -508,6 +508,11 @@ export function hasUndoRedo(key) {
   return !!history;
 }
 
+export function resetHistory(key) {
+  // FIX-ME: free up old history???
+  delete histories[key];
+}
+
 export function getHistory(key) {
   const history = histories[key];
   if (!history) {
