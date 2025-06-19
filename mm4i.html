@@ -72,7 +72,6 @@
     <script type="module" src="./pwa.js"></script>
     <script type="module" src="./anchors-with-base.js"></script>
     <script src="./mm4i-importmaps.js"></script>
-    <!-- <script type="module" src="./js/mod/tools.js"></script> -->
 
 
     <link rel="manifest" href="./manifest-mm4i.json">
@@ -160,8 +159,6 @@
         .show-stair-button #jsmind-stair-button {
             display: block;
         }
-
-        /* .show-stair-button #jsmind-search-button { NOleft: 80px; } */
 
         .display-jsmind-search #jsmind-search-button {
             background-color: var(--search-color);
@@ -543,7 +540,6 @@
             height: 100vh;
         }
 
-        /* #PWA-version { */
         #both-versions {
             position: fixed;
             top: 44px;
@@ -572,9 +568,6 @@
 
         #mm4i-page-menu {
             position: fixed;
-            /* left: 0; */
-            /* top: calc(2.5 * var(--font-size)); */
-            /* opacity: 1; */
             display: block;
             z-index: 6;
             transition: opacity 0.3s;
@@ -1102,8 +1095,6 @@
             margin: 2px;
             aspect-ratio: 1 / 1;
             height: calc(100% - 4px);
-            NOheight: 32px;
-            NOmax-height: 32px;
             cursor: move;
             touch-action: none;
             user-select: none;
@@ -1122,24 +1113,6 @@
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind@0.5/es6/jsmind.draggable-node.js"></script> -->
     <!-- <script src="./ext/jsmind/230406-jsmind.draggable-node.js"></script> -->
 
-    <!-- <script src="./ext/jsmind/chrome-src-jsmind.draggable-node.js"></script> -->
-
-    <!-- <script src="./src/js/mindmap-helpers.js"></script> -->
-
-
-    <!-- 
-    // Importmap for rxdb etc
-     <script type="importmap">
-        {
-            "imports": {
-                "rxdb/plugins/core": "./ext/rxdb/plugins/core/index.mjs",
-                "rxdb/plugins/dev-mode": "./ext/rxdb/plugins/dev-mode",
-                "rxdb/plugins/storage-dexie": "./rxdb/dist/esm/plugins/storage-dexie",
-                "rxdb/plugins/validate-ajv": "./rxdb/dist/esm/plugins/validate-ajv"
-            }
-        }
-     </script>
-    -->
 </head>
 
 <body class="NOno-test-items show-stair-button">
@@ -1162,11 +1135,7 @@
 
     <div id="jsmind_container" class="jsmind_container"></div>
 
-    <!-- Mirror must be display:block for rendering -->
-    <!-- <div id="jsmind-draggable-container4mirror" style="left: -1000px;"></div> -->
-
     <script>
-        // let sx, sy, px, py;
         function debugAddFollowPointer() {
             if (/Android|iPhone/.test(navigator.userAgent)) return;
             document.addEventListener("pointermove", evt => {
@@ -1254,12 +1223,7 @@
         // modMMhelpers.setUndoRedoTreeStyle(true);
         modMMhelpers.setUndoRedoTreeStyle(false);
         const undoStyleTree = modMMhelpers.getUndoRedoTreeStyle();
-        // const txtHistoryTitle = modMMhelpers.getUndoRedoTreeStyle() ? "History (tree)" : "History (linear)";
-        const txtHistoryTitle = undoStyleTree ? "History (tree)" : "History (linear)";
         const mkButtonLinearTree = (topic) => {
-            // const elt = mkElt("span", undefined, topic);
-            // elt.classList.add("button-linear-tree");
-            // return elt;
             const rad = mkElt("input", { type: "radio", name: "rad-linear-tree", value: topic });
             const lbl = mkElt("label", undefined, [rad, mkElt("span", undefined, topic)]);
             lbl.classList.add("button-linear-tree");
@@ -1276,7 +1240,6 @@
         inpCurrent.checked = true;
         spanHistoryTitle.addEventListener("change", evt => {
             evt.stopPropagation();
-            // modMdc.mkMDCsnackbar("not ready", 4000);
             const target = evt.target;
             const value = target.value;
             console.log({ target, value });
@@ -1383,13 +1346,8 @@
                 }
                 if ((newX < 0) || (newY < 0)) {
                     console.log(`${newX}<0, ${newY}<0`, { clientX, clientY, resizingHistory });
-                    // requestAnimationFrame(resizeHistory);
-                    // return;
                 } else {
-                    // newX = Math.max(newX, 300);
-                    // newY = Math.max(newY, 200);
-                    // eltHistory.style.width = `${newX}px`;
-                    // eltHistory.style.height = `${newY}px`;
+                    // Use --width/--height to get help from CSS
                     eltHistory.style.setProperty('--width', `${newX}px`);
                     eltHistory.style.setProperty('--height', `${newY}px`);
                 }
@@ -1405,7 +1363,6 @@
             historyResizerPointerId = evt.pointerId;
             divHistoryResizer.setPointerCapture(historyResizerPointerId);
             eltHistory.classList.add("resizing");
-            // console.log(">>>>> HR pointerdown");
 
             if (true) {
                 const clientX = evt.clientX;
@@ -1422,9 +1379,6 @@
                 resizingHistory.currentPos = {};
                 resizingHistory.currentPos.clientX = clientX;
                 resizingHistory.currentPos.clientY = clientY;
-
-                // console.log(">>>>> pointerdown", { startPos, currentPos }, JSON.parse(JSON.stringify(resizingHistory)));
-                // console.log(">>>>> pointerdown", JSON.parse(JSON.stringify(resizingHistory)));
             }
             divHistoryResizer.addEventListener("pointermove", funPointermove);
             function funPointermove(evt) {
@@ -1434,37 +1388,31 @@
                 modTools.savePointerPos(evt);
             }
             divHistoryResizer.addEventListener("pointerup", evt => {
-                // console.log("<<<<<< HR pointerup");
                 // afterCaptureResizer();
             });
             resizeHistory();
         });
         divHistoryResizer.addEventListener("pointercancel", evt => {
-            // console.log("<<<<<< HR pointercancel", evt);
             console.log("<<<<<< HR pointercancel, preventDefault()", evt);
             evt.preventDefault();
         });
         divHistoryResizer.addEventListener("lostpointercapture", evt => {
-            // console.log("<<<<<< HR lostpointercapture");
             console.log("<<<<<< HR lostpointercapture, preventDefault()", evt);
             evt.preventDefault();
             afterCaptureResizer();
         });
         divHistoryResizer.addEventListener("pointerleave", evt => {
-            // console.log("<<<<<< HR pointerleave");
             console.log("<<<<<< HR pointerleave, preventDefault()");
             evt.preventDefault();
             // afterCaptureResizer();
         });
         function afterCaptureResizer() {
             // https://javascript.info/pointer-events
-            // divHistoryResizer.releasePointerCapture(evt.pointerId);
             divHistoryResizer.onpointerup = null;
             divHistoryResizer.onpointermove = null;
 
             resizingHistory.bcr = undefined;
             resizingHistory.client = undefined;
-            // eltHistory.style.outline = null;
             eltHistory.classList.remove("resizing");
         }
 
@@ -1488,9 +1436,7 @@
                 }
 
                 const modUndo = await importFc4i("undo-redo-tree");
-                // const val = target.value;
                 const historyNode = target.valueAsObject;
-                // const visibleName = target.parentElement.textContent;
 
                 const history = modUndo.getHistory(mindmapKey);
                 const objMm = history.navigateToNode(historyNode);
@@ -1521,78 +1467,7 @@
             }
         });
 
-        /*
-        async function mkUndos() {
-            console.log("mkUndos()");
-            const menuItemUndo = modMdc.mkMDCmenuItem("Undo");
-            menuItemUndo.id = "mm4i-undo-redo-menu-item-undo";
-            const menuItemRedo = modMdc.mkMDCmenuItem("Redo");
-            menuItemRedo.id = "mm4i-undo-redo-menu-item-redo";
-
-            menuItemUndo.addEventListener("click", async evt => {
-                evt.stopPropagation();
-                divUndoRedo.classList.add("display-none");
-                // const modMMhelpers = await importFc4i("mindmap-helpers");
-                const res = await modMMhelpers.DBundo(mindmapKey);
-                const mind = await modMMhelpers.getMindmap(mindmapKey);
-                modJsEditCommon.displayOurMindmap(mind);
-            });
-            menuItemRedo.addEventListener("click", async evt => {
-                evt.stopPropagation();
-                divUndoRedo.classList.add("display-none");
-                // const modMMhelpers = await importFc4i("mindmap-helpers");
-                const mind = await modMMhelpers.DBredo(mindmapKey);
-                modJsEditCommon.displayOurMindmap(mind);
-            });
-
-            const spanBtnUndo = mkElt("span", undefined, "Undo");
-            const btnUndo = mkElt("button", undefined, spanBtnUndo);
-            const spanBtnRedo = mkElt("span", undefined, "Redo");
-            const btnRedo = mkElt("button", undefined, spanBtnRedo);
-
-            const objRes = { menuItemUndo, menuItemRedo, btnUndo, btnRedo }
-
-            if (divUndoRedo.classList.contains("display-none")) return;
-            const modUndo = await importFc4i("undo-redo-tree");
-            if (!undoIsSetup) {
-                if (!(await modUndo.hasUndoRedo(mindmapKey))) {
-                    menuItemUndo.inert = true;
-                    menuItemRedo.inert = true;
-                    return objRes;
-                }
-                undoIsSetup = true;
-                // const modMMhelpers = await importFc4i("mindmap-helpers");
-                const modJsEditCommon = await importFc4i("jsmind-edit-common");
-            }
-            modUndo.logHistoryTree(mindmapKey);
-            const undoTopic = modUndo.canUndo(mindmapKey);
-            if (undoTopic) {
-                menuItemUndo.textContent = `Undo: ${undoTopic}`;
-                menuItemUndo.inert = false;
-            } else {
-                menuItemUndo.textContent = "Undo";
-                menuItemUndo.inert = true;
-            }
-            const toRedo = modUndo.canRedo(mindmapKey);
-            menuItemRedo.inert = !toRedo;
-            if (!toRedo) {
-                menuItemRedo.textContent = "Redo";
-            } else {
-                if (Number.isInteger(toRedo)) {
-                    menuItemRedo.textContent = `Redo (${toRedo})`;
-                } else {
-                    menuItemRedo.textContent = `Redo: ${toRedo}`;
-                }
-            }
-            return objRes;
-        }
-        */
     </script>
-    <!-- 
-    <script type="module">
-        import { addRxPlugin, createRxDatabase } from './rxdb/plugins/core';
-    </script>
-     -->
 
 </body>
 
