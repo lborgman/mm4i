@@ -11,7 +11,7 @@ if (typeof window["diff_match_patch"] !== "function") {
 // FIX-ME:
 const eventRecordActionName = "undoredo-tree-recordAction";
 export function getRecordEventName() { return eventRecordActionName; }
-document.addEventListener(eventRecordActionName, evt => { console.log("%cTEST document event", "font-size:24px;color:red;", evt); })
+// document.addEventListener(eventRecordActionName, evt => { console.log("%cTEST document event", "font-size:24px;color:red;", evt); })
 
 export function getUndoRedoTreeVersion() { return UNDO_REDO_TREE_VERSION; }
 const logClassStyle = "background:white; color:blue; padding:2px; border-radius:2px;";

@@ -1216,7 +1216,7 @@ async function displayMindMap(mind) {
         const evt_type = data.evt;
         const datadata = data.data;
         const node_id = data.node;
-        console.log({ evt_type, type, datadata, data });
+        // console.log({ evt_type, type, datadata, data });
         checkOperationOnNode(evt_type, node_id, datadata);
 
         // const topic = jmDisplayed.mind.nodes[node_id].topic;

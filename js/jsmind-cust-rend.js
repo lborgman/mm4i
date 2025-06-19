@@ -753,8 +753,8 @@ export class CustomRenderer4jsMind {
 
         const onAnyCtrlChangeNode = debounce(applyCurrentToCopied);
         function applyCurrentToCopied() {
-            const changed = somethingToSaveNode();
-            console.warn("applyToCopied", changed);
+            // const changed = somethingToSaveNode();
+            // console.warn("applyToCopied", changed);
             requestSetStateBtnSave();
             requestUpdateCopiesSizes();
             modJsEditCommon.applyShapeEtc(currentShapeEtc, eltCopied);
@@ -2294,7 +2294,7 @@ export class CustomRenderer4jsMind {
         contentElts.addEventListener("input", evt => {
             // taNotes
             if (inTextareaEasyMDE(evt.target)) return;
-            console.log("contentElts input", evt.target);
+            // console.log("contentElts input", evt.target);
             onAnyCtrlChangeNode(); // throttle
         });
 
@@ -2553,7 +2553,7 @@ export class CustomRenderer4jsMind {
         }
 
         const save = await modMdc.mkMDCdialogConfirm(body, "save", "cancel");
-        console.log({ save });
+        // console.log({ save });
         if (save) {
             const saveFromButton = () => {
                 if (!somethingToSaveNode()) throw Error("Save button enabled but nothing to save?");
@@ -2571,14 +2571,14 @@ export class CustomRenderer4jsMind {
 
                 const sameW = currTemp.width == initTemp.width;
                 const sameH = currTemp.height == initTemp.height;
-                console.log({ currTemp, initTemp, sameW, sameH });
+                // console.log({ currTemp, initTemp, sameW, sameH });
                 if (!sameW || !sameH) {
                     this.THEjmDisplayed.set_node_background_image(node_ID_copied, undefined, currTemp.width, currTemp.height);
                 }
-                console.log({ currTemp });
+                // console.log({ currTemp });
 
                 setTimeout(async () => {
-                    console.log("setTimeout in save", { eltJmnode });
+                    // console.log("setTimeout in save", { eltJmnode });
                     // FIX-ME: set size once again to trigger a reflow. (Bug in jsMind.)
                     this.THEjmDisplayed.set_node_background_image(node_ID_copied, undefined, currTemp.width, currTemp.height);
                     delete currTemp.width;

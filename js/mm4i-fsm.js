@@ -291,7 +291,7 @@ outline: 4px groove ${F};
     const modTools = await importFc4i("toolsJs");
     eltFsm.addEventListener("pointerdown", evt => {
         modTools.savePointerdownPos(evt); // pos listener needs this
-        console.log("eltFsm, pointerdown", evt);
+        // console.log("eltFsm, pointerdown", evt);
         const target = evt.target;
         if (!eltFsm.contains(target)) return;
 
