@@ -139,10 +139,10 @@ export class MoveAtDragBorder {
             const msg = "elt2moveParent was not found";
             debugger; // eslint-disable-line no-debugger
             console.error(msg);
-            // throw Error(msg);
-            // FIX: Probably called to early
+            // FIX-ME: Probably called to early
             const fun = this.updateScreenLimits;
             setTimeout(() => fun(true), 1000);
+            return;
         }
         // const scrollbarW = elt2moveParent.offsetWidth - elt2moveParent.clientWidth;
         const bcr = elt2moveParent.getBoundingClientRect();
