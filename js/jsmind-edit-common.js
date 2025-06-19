@@ -841,9 +841,7 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
 
 
 const modJsmindDraggable = window["modJsmindDraggable"];
-// basicInit4jsmind();
 export function basicInit4jsmind() {
-    // console.log("jsMind", typeof jsMind);
     jsMind.my_get_DOM_element_from_node = (node) => { return node._data.view.element; }
     jsMind.my_get_nodeID_from_DOM_element = (elt) => {
         const tn = elt.tagName;
@@ -856,8 +854,6 @@ export function basicInit4jsmind() {
         }
         return id;
     }
-
-
 }
 
 let funMindmapsDialog;

@@ -1060,6 +1060,11 @@
             min-width: 0;
         }
 
+        #span-history-title {
+            display: flex;
+            gap: 5px;
+        }
+
         #mm4i-history-panel.resizing {
             outline: 5px dotted red;
             touch-action: none;
@@ -1071,8 +1076,7 @@
         }
 
         #mm4i-history-no-changes {
-            padding: 30px;
-            background-color: lightseagreen;
+            padding: 15px;
             pointer-events: none;
             user-select: none;
         }
@@ -1187,6 +1191,9 @@
         const modMdc = await importFc4i("util-mdc");
         modMdc.setIconsFor("mm4i");
 
+        const modMMhelpers = await importFc4i("mindmap-helpers");
+
+
 
         // let useOrigJsmind = confirm("Use orig jsMind?");
         let useOrigJsmind = false;
@@ -1209,52 +1216,68 @@
             window["modJsmindDraggable"] = modJsmindDraggable;
             modJsmindDraggable.setupNewDragging();
         }
-
-
-
-
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
         modJsEditCommon.basicInit4jsmind();
+
+
+
         const mindmapKey = await modJsEditCommon.pageSetup();
         const aboutLink = makeAbsLink("https://lborgman.github.io/mm4i/");
         modJsEditCommon.addToPageMenu("About", aboutLink);
 
-        const modMMhelpers = await importFc4i("mindmap-helpers");
+
         // modMMhelpers.setUndoRedoTreeStyle(true);
         modMMhelpers.setUndoRedoTreeStyle(false);
-        const undoStyleTree = modMMhelpers.getUndoRedoTreeStyle();
-        const mkButtonLinearTree = (topic) => {
-            const rad = mkElt("input", { type: "radio", name: "rad-linear-tree", value: topic });
-            const lbl = mkElt("label", undefined, [rad, mkElt("span", undefined, topic)]);
-            lbl.classList.add("button-linear-tree");
-            return lbl;
-        }
-        const buttonTree = mkButtonLinearTree("tree");
-        const buttonLinear = mkButtonLinearTree("linear");
+
+
         const spanHistoryTitle = mkElt("span", undefined, [
             mkElt("span", undefined, "History"),
-            buttonLinear, buttonTree,
         ]);
-        const valCurrent = undoStyleTree ? "tree" : "linear";
-        const inpCurrent = spanHistoryTitle.querySelector(`input[value=${valCurrent}]`);
-        inpCurrent.checked = true;
-        spanHistoryTitle.addEventListener("change", evt => {
-            evt.stopPropagation();
-            const target = evt.target;
-            const value = target.value;
-            console.log({ target, value });
-            if (value == "tree") {
-                modMdc.mkMDCsnackbar("tree is not supported at the moment");
-                const inpLinear = document.querySelector("input[value=linear]");
-                console.log({ inpLinear });
-                setTimeout(() => { inpLinear.checked = true }, 2000);
+        const initButtonsLinearTree = () => {
+            const mkButtonLinearTree = (topic) => {
+                const rad = mkElt("input", { type: "radio", name: "rad-linear-tree", value: topic });
+                const lbl = mkElt("label", undefined, [rad, mkElt("span", undefined, topic)]);
+                lbl.classList.add("button-linear-tree");
+                return lbl;
             }
-        })
-        spanHistoryTitle.style = `
-            display: flex;
-            gap: 5px;
-        `;
-
+            const buttonTree = mkButtonLinearTree("tree");
+            const buttonLinear = mkButtonLinearTree("linear");
+            spanHistoryTitle.appendChild(buttonLinear);
+            spanHistoryTitle.appendChild(buttonTree);
+            spanHistoryTitle.id = "span-history-title";
+            const undoStyleTree = modMMhelpers.getUndoRedoTreeStyle();
+            const valCurrent = undoStyleTree ? "tree" : "linear";
+            const inpCurrent = spanHistoryTitle.querySelector(`input[value=${valCurrent}]`);
+            inpCurrent.checked = true;
+            spanHistoryTitle.addEventListener("change", async evt => {
+                evt.stopPropagation();
+                const target = evt.target;
+                const value = target.value;
+                console.log({ target, value });
+                if (value == "tree") {
+                    modMdc.mkMDCsnackbar("tree is not supported at the moment");
+                    const inpLinear = document.querySelector("input[value=linear]");
+                    console.log({ inpLinear });
+                    // setTimeout(() => { inpLinear.checked = true }, 2000);
+                }
+                switch (value) {
+                    case "tree":
+                        modMMhelpers.setUndoRedoTreeStyle(true);
+                        break;
+                    case "linear":
+                        modMMhelpers.setUndoRedoTreeStyle(false);
+                        break;
+                    default:
+                }
+                const modUndo = await importFc4i("undo-redo-tree");
+                const hasUndo = modUndo.hasUndoRedo(mindmapKey);
+                if (hasUndo) {
+                    modUndo.resetHistory(mindmapKey);
+                    updateHistoryPanel();
+                }
+            });
+        }
+        initButtonsLinearTree();
 
 
         const eltBoth = document.getElementById("both-versions");
@@ -1288,17 +1311,12 @@
             const modUndo = await importFc4i("undo-redo-tree");
             const hasHistory = modUndo.hasUndoRedo(mindmapKey);
             if (!hasHistory) {
-                const eltNoChanges = mkElt("div", undefined, "No changes yet");
+                const eltNoChanges = mkElt("div", undefined, "No mindmap changes yet");
                 eltNoChanges.id = "mm4i-history-no-changes";
                 divHistoryList.appendChild(eltNoChanges);
-                // return;
             } else {
                 modUndo.mapHistoryTree(mindmapKey, funAddStateRow);
             }
-            eltHistory.classList.remove("display-none");
-        }
-        function updateHistoryPanelIfDisplayed() {
-            if (!eltHistory.classList.contains("display-none")) { updateHistoryPanel(); }
         }
 
         const divHistoryResizer = mkElt("span");
@@ -1316,6 +1334,7 @@
         eltHistory.classList.add("display-none");
 
         document.body.appendChild(eltHistory);
+        updateHistoryPanel();
 
         const resizingHistory = { bcr: undefined, client: undefined };
         let historyResizerPointerId;
@@ -1456,14 +1475,13 @@
         btnHistory.addEventListener("click", async evt => {
             evt.stopPropagation();
             eltHistory.classList.toggle("display-none");
-            updateHistoryPanelIfDisplayed();
         });
         document.body.appendChild(btnHistory);
 
         const modUndo = await importFc4i("undo-redo-tree");
         document.addEventListener(modUndo.getRecordEventName(), evt => {
             if (evt.detail.key == mindmapKey) {
-                updateHistoryPanelIfDisplayed();
+                updateHistoryPanel();
             }
         });
 
