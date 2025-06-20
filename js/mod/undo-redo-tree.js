@@ -258,7 +258,16 @@ export class UndoRedoTreeWithDiff {
 
   _serialize(state) {
     // Ensure consistent serialization, e.g., by sorting keys
-    return jsonStringifySorted(state);
+    // return jsonStringifySorted(state);
+    const strJson = jsonStringifySorted(state);
+    const obj = JSON.parse(strJson);
+    console.log({obj});
+    const strJson2 = jsonStringifySorted(obj);
+    if (strJson != strJson2) {
+      debugger;
+      throw Error("strJson != strJson2");
+    }
+    return strJson;
   }
 
   _deserialize(stateString) {

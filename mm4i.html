@@ -1187,6 +1187,16 @@
         }
         const settingPointHandle = new SettingsMm4i("pointhandle-type", "detect-touch");
         window["settingPointHandle"] = settingPointHandle;
+        const settingHistoryPanelSize = new SettingsMm4i("history-panel-size", null);
+
+        function saveHistoryPanelSize() {
+            const eltPanel = document.getElementById("mm4i-history-panel");
+            const bcr = eltPanel.getBoundingClientRect();
+            if (bcr.height == 0) return;
+            console.log("saveHistoryPanelSize saving", bcr);
+            settingHistoryPanelSize.value = bcr;
+        }
+        const throttleSaveHistoryPanelSize = modTools.throttleTO(saveHistoryPanelSize, 200);
 
         const modMdc = await importFc4i("util-mdc");
         modMdc.setIconsFor("mm4i");
@@ -1370,6 +1380,7 @@
                     eltHistory.style.setProperty('--width', `${newX}px`);
                     eltHistory.style.setProperty('--height', `${newY}px`);
                 }
+                throttleSaveHistoryPanelSize();
             } catch (err) {
                 console.error("resizeHistory", err);
             }
@@ -1475,6 +1486,13 @@
         btnHistory.addEventListener("click", async evt => {
             evt.stopPropagation();
             eltHistory.classList.toggle("display-none");
+            if (!eltHistory.classList.contains("display-none")) {
+                const oldBcr = settingHistoryPanelSize.value;
+                if (oldBcr == null) return;
+                const { width, height } = oldBcr;
+                eltHistory.style.setProperty('--width', `${width}px`);
+                eltHistory.style.setProperty('--height', `${height}px`);
+            }
         });
         document.body.appendChild(btnHistory);
 
