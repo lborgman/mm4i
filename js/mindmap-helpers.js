@@ -551,7 +551,7 @@ export async function setMindmapPrivacy(key, newPrivacy) {
 /**
  * Get keys for all shareable mindmaps.
  * 
- * @returns {Promise<string[]}
+ * @returns {Promise<string[]>}
  */
 export async function getSharedMindmaps() {
     const dbMindmaps = await importFc4i("db-mindmaps");
