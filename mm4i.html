@@ -1002,6 +1002,7 @@
             color: black;
         }
 
+
         .mm4i-history-node {
             min-height: 32px;
             padding: 4px;
@@ -1012,6 +1013,28 @@
             background-color: lightseagreen;
             color: black;
         }
+
+
+        span.hot-topic {
+            display: none;
+            background-color: black;
+            color: red;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+
+        span.auto-topic {
+            display: inline;
+        }
+
+        .hot span.hot-topic {
+            display: inline;
+        }
+
+        .hot span.auto-topic {
+            display: none;
+        }
+
 
         .button-linear-tree {
             padding: 2px 4px;
@@ -1298,24 +1321,8 @@
                 const divList = document.getElementById("mm4i-history-list");
                 const radChecked = divList.querySelector("input:checked");
                 const lblChecked = radChecked.closest("label");
-                const spanChecked = lblChecked.lastElementChild;
-                if (spanChecked.tagName != "SPAN") {
-                    const msg = `Expected <span>, got <${spanChecked.tagName}>`;
-                    console.error(msg);
-                    throw Error(msg);
-                }
-                const txtAutoTopic = spanChecked.mm4iAutoTopic;
-                spanChecked.textContent = "";
-                const hotTopic = "HOT!";
-                const spanWhatsHot = mkElt("span", undefined, hotTopic);
-                spanWhatsHot.style = `
-                    color: white;
-                    background: black;
-                    padding: 2px 4px;
-                    border-radius: 4px;
-                `;
-                spanChecked.appendChild(spanWhatsHot);
-                debugger;
+                lblChecked.classList.toggle("hot");
+                // debugger;
             }
 
             const valCurrent = settingUndoRedoTree.value ? "tree" : "linear";
@@ -1374,9 +1381,13 @@
                 radNode.valueAsObject = node;
                 radNode.checked = node === current;
                 const autoTopic = `${node.actionTopic || "N/A"} `;
-                const spanTopic = mkElt("span", undefined, autoTopic);
+                const spanAutoTopic = mkElt("span", undefined, autoTopic);
+                spanAutoTopic.classList.add("auto-topic");
+                const spanHotTopic = mkElt("span", undefined, "Hot!");
+                spanHotTopic.classList.add("hot-topic");
+                const spanTopic = mkElt("span", undefined, [spanAutoTopic, spanHotTopic]);
                 const eltNode = mkElt("label", undefined, [radNode, spanTopic]);
-                spanTopic.mm4iAutoTopic = autoTopic;
+                // spanTopic.mm4iAutoTopic = autoTopic;
                 eltNode.classList.add("mm4i-history-node");
                 eltNode.style.paddingLeft = `${4 + depth * 20}px`;
                 // divHistoryList.appendChild(eltNode);
