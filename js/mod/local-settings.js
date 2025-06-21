@@ -109,8 +109,9 @@ export class LocalSetting {
     get valueN() { return /** @type {number} */ (this.#getCachedValue()); }
     set value(val) {
         if (this.#input) {
-            console.warn("set value(val) can perhaps not be used when #input is set", this);
-            // throw Error(`set value(val) can not be used when #input is set (${this.#key})`);
+            if (this.#input.isConnected) {
+                console.warn("set value(val) can perhaps not be used when #input is set", this);
+            }
         }
         this.#set_stored_itemValue(val);
         if (this.#input) {

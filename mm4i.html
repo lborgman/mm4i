@@ -1020,6 +1020,7 @@
             border-width: 2px;
             border-color: rgba(0, 0, 0, 0.8);
             background-color: rgba(0, 0, 0, 0.2);
+            cursor: pointer;
         }
 
         .button-linear-tree input {
@@ -1046,11 +1047,11 @@
             bottom: 3px;
             user-select: none;
 
-            width: var(--width, 200px);
+            width: var(--width, 210px);
             /* Use CSS variable for width */
             height: var(--height, 140px);
             /* Use CSS variable for height */
-            min-width: 200px !important;
+            min-width: 210px !important;
             min-height: 140px !important;
         }
 
@@ -1058,9 +1059,23 @@
             min-width: 0;
         }
 
-        #span-history-title {
+        #icon-history {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            zoom: 0.9;
+        }
+
+        #span-history-left {
+            margin-left: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        #span-linear-tree {
             display: flex;
             gap: 5px;
+            margin-right: 5px;
         }
 
         #mm4i-history-panel.resizing {
@@ -1082,7 +1097,7 @@
         #mm4i-history-header {
             background: darkblue;
             color: white;
-            padding: 6px;
+            NOpadding: 6px;
             position: relative;
             white-space: nowrap;
         }
@@ -1091,15 +1106,24 @@
             position: absolute;
             top: 0px;
             right: 0px;
-            background-image: url(./img/top-right-resizer.svg);
-            background-color: rgba(0, 0, 0, 0.5);
-            background-size: cover;
             margin: 2px;
             aspect-ratio: 1 / 1;
             height: calc(100% - 4px);
+            height: 32px;
             cursor: move;
             touch-action: none;
             user-select: none;
+        }
+
+        #mm4i-history-resizer-img {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            aspect-ratio: 1 / 1;
+            height: 20px;
+            background-image: url(./img/top-right-resizer.svg);
+            NObackground-color: rgba(0, 0, 0, 0.5);
+            background-size: cover;
         }
 
         #mm4i-history-list {
@@ -1239,8 +1263,13 @@
         modMMhelpers.setUndoRedoTreeStyle(settingUndoRedoTree.value);
 
 
-        const spanHistoryTitle = mkElt("span", undefined, [
-            mkElt("span", undefined, "History"),
+        const iconHistory = modMdc.mkMDCicon("history");
+        iconHistory.id = "icon-history";
+        iconHistory.inert = true;
+
+        const spanHistoryHeaderLeft = mkElt("span", undefined, [
+            // mkElt("span", undefined, "History"),
+            // iconHistory
         ]);
         const initButtonsLinearTree = () => {
             const mkButtonLinearTree = (topic) => {
@@ -1251,19 +1280,24 @@
             }
             const buttonTree = mkButtonLinearTree("tree");
             const buttonLinear = mkButtonLinearTree("linear");
-            spanHistoryTitle.appendChild(buttonLinear);
-            spanHistoryTitle.appendChild(buttonTree);
-            spanHistoryTitle.id = "span-history-title";
-            // const undoStyleTree = modMMhelpers.getUndoRedoTreeStyle();
-            // const valCurrent = undoStyleTree ? "tree" : "linear";
+            const spanLinearTree = mkElt("span", undefined, [buttonLinear, buttonTree]);
+            spanLinearTree.id = "span-linear-tree";
+            spanHistoryHeaderLeft.appendChild(spanLinearTree);
+            spanHistoryHeaderLeft.id = "span-history-left";
+
+            const btnImportantPoints = modMdc.mkMDCiconButton("whatshot");
+            btnImportantPoints.inert = true;
+            spanHistoryHeaderLeft.appendChild(btnImportantPoints);
+
             const valCurrent = settingUndoRedoTree.value ? "tree" : "linear";
-            const inpCurrent = spanHistoryTitle.querySelector(`input[value=${valCurrent}]`);
+            const inpCurrent = spanHistoryHeaderLeft.querySelector(`input[value=${valCurrent}]`);
             inpCurrent.checked = true;
-            spanHistoryTitle.addEventListener("change", async evt => {
+
+            spanLinearTree.addEventListener("change", async evt => {
                 evt.stopPropagation();
                 const target = evt.target;
                 const value = target.value;
-                console.log({ target, value });
+                // console.log({ target, value });
                 if (value == "tree") {
                     const inpLinear = document.querySelector("input[value=linear]");
                     console.log({ inpLinear });
@@ -1330,13 +1364,18 @@
             }
         }
 
-        const divHistoryResizer = mkElt("span");
+        const imgHistoryResizer = mkElt("div");
+        imgHistoryResizer.id = "mm4i-history-resizer-img";
+        const divHistoryResizer = mkElt("span", undefined, imgHistoryResizer);
         divHistoryResizer.title = "Resize";
         divHistoryResizer.id = "mm4i-history-resizer";
-        const divHistoryHeader = mkElt("div", undefined, [spanHistoryTitle, divHistoryResizer]);
+
+        const divHistoryHeader = mkElt("div", undefined, [iconHistory, spanHistoryHeaderLeft, divHistoryResizer]);
         divHistoryHeader.id = "mm4i-history-header";
+
         const divHistoryList = mkElt("div");
         divHistoryList.id = "mm4i-history-list";
+
         const eltHistory = mkElt("div", undefined, [
             divHistoryHeader,
             divHistoryList
