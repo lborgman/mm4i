@@ -1047,11 +1047,11 @@
             bottom: 3px;
             user-select: none;
 
-            width: var(--width, 210px);
+            width: var(--width, 215px);
             /* Use CSS variable for width */
             height: var(--height, 140px);
             /* Use CSS variable for height */
-            min-width: 210px !important;
+            min-width: 215px !important;
             min-height: 140px !important;
         }
 
@@ -1285,9 +1285,38 @@
             spanHistoryHeaderLeft.appendChild(spanLinearTree);
             spanHistoryHeaderLeft.id = "span-history-left";
 
-            const btnImportantPoints = modMdc.mkMDCiconButton("whatshot");
-            btnImportantPoints.inert = true;
-            spanHistoryHeaderLeft.appendChild(btnImportantPoints);
+            const btnWhatsHot = modMdc.mkMDCiconButton("whatshot");
+            btnWhatsHot.id = "btn-whats-hot";
+            btnWhatsHot.inert = true;
+            spanHistoryHeaderLeft.appendChild(btnWhatsHot);
+
+            btnWhatsHot.addEventListener("click", evt => {
+                evt.stopPropagation();
+                dialogWhatsHot();
+            });
+            async function dialogWhatsHot() {
+                const divList = document.getElementById("mm4i-history-list");
+                const radChecked = divList.querySelector("input:checked");
+                const lblChecked = radChecked.closest("label");
+                const spanChecked = lblChecked.lastElementChild;
+                if (spanChecked.tagName != "SPAN") {
+                    const msg = `Expected <span>, got <${spanChecked.tagName}>`;
+                    console.error(msg);
+                    throw Error(msg);
+                }
+                const txtAutoTopic = spanChecked.mm4iAutoTopic;
+                spanChecked.textContent = "";
+                const hotTopic = "HOT!";
+                const spanWhatsHot = mkElt("span", undefined, hotTopic);
+                spanWhatsHot.style = `
+                    color: white;
+                    background: black;
+                    padding: 2px 4px;
+                    border-radius: 4px;
+                `;
+                spanChecked.appendChild(spanWhatsHot);
+                debugger;
+            }
 
             const valCurrent = settingUndoRedoTree.value ? "tree" : "linear";
             const inpCurrent = spanHistoryHeaderLeft.querySelector(`input[value=${valCurrent}]`);
@@ -1344,10 +1373,10 @@
                 });
                 radNode.valueAsObject = node;
                 radNode.checked = node === current;
-                const eltNode = mkElt("label", undefined, [
-                    radNode,
-                    `${node.actionTopic || "N/A"} `,
-                ]);
+                const autoTopic = `${node.actionTopic || "N/A"} `;
+                const spanTopic = mkElt("span", undefined, autoTopic);
+                const eltNode = mkElt("label", undefined, [radNode, spanTopic]);
+                spanTopic.mm4iAutoTopic = autoTopic;
                 eltNode.classList.add("mm4i-history-node");
                 eltNode.style.paddingLeft = `${4 + depth * 20}px`;
                 // divHistoryList.appendChild(eltNode);
@@ -1360,6 +1389,8 @@
                 eltNoChanges.id = "mm4i-history-no-changes";
                 divHistoryList.appendChild(eltNoChanges);
             } else {
+                const btnWhatsHot = document.getElementById("btn-whats-hot");
+                btnWhatsHot.inert = false;
                 modUndo.mapHistoryTree(mindmapKey, funAddStateRow);
             }
         }
