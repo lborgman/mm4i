@@ -21,13 +21,26 @@ And even if this is a web page you can work offline.
 ## Usage
 Just try it. If you think something needs to be explained then please tell me [here](https://github.com/lborgman/mm4i/issues).
 
-Hm. Maybe node notes and search needs explanation? Backup? Sync mindmap between devices?
+Hm. Maybe node notes and search needs explanation? Undo/redo style? Backup? Sync mindmap between devices?
 
 
 ### Node notes and search links
 Each node in a mindmap can have a note that you create.  You can search the mindmap for text in node notes (and node topics).  And you can create "search links" in your node note that start such a search when clicked.
 
 (To create a "search link" just click the orange search icon in the toolbar when you are editing a node note.)
+
+
+### Undo/Redo
+There is undo/redo for the mindmap you are editing.
+However it is not bound to keyboard Ctrl-Z as you are used too.
+Instead it is visual. Click on the clock symbol in the lower left corner.
+
+There are two styles for undo/redo:
+* **Linear:** This is what you find in most apps.
+* **Tree:** If you use this style you can create and investigate branches.
+
+I think that **tree style** can be useful for mindmaps. And yes, I will let you add names for the branches later! And let you persist the branches between editing sessions.
+
 
 
 ### Sync and Backup
