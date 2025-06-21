@@ -110,8 +110,9 @@ export class MoveAtDragBorder {
         // console.log("right", this.eltVisualRight);
         this.mover = new MoveEltAtFixedSpeed(elt2move, elt2show);
         const updateLimits = () => this.updateScreenLimits();
-        window.addEventListener("resize", () => { updateLimits(); });
-        updateLimits();
+        const throttleUpdateLimits = modTools.throttleTO(updateLimits, 200);
+        window.addEventListener("resize", () => { throttleUpdateLimits(); });
+        throttleUpdateLimits();
     }
     showVisuals() {
         this.visuals.forEach(v => {
