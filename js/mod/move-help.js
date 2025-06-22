@@ -24,8 +24,24 @@ export function setInitialMovingData(elt2move) {
 export function getMovingDx(movingData, clientX) { return clientX - movingData.clientX; }
 export function getMovingDy(movingData, clientY) { return clientY - movingData.clientY; }
 
+/**
+ * @throws Throws if !elt.isConnected
+ *  
+ * @param {HTMLElement} elt 
+ * @param {string} where 
+ */
+function checkIsConnected(elt, where) {
+    if (!elt.isConnected) {
+        const msg = `!${where}: !elt.isConnected`;
+        console.error(msg);
+                debugger; // eslint-disable-line no-debugger
+        throw Error(msg);
+    }
+}
 export class MoveEltAtFixedSpeed {
     constructor(elt2move, elt2show) {
+        checkIsConnected(elt2move, MoveEltAtFixedSpeed.name);
+        checkIsConnected(elt2show, MoveEltAtFixedSpeed.name);
         this.elt2move = elt2move;
         this.elt2show = elt2show;
     }
@@ -85,6 +101,8 @@ export class MoveEltAtFixedSpeed {
 export class MoveAtDragBorder {
     constructor(elt2move, moveBorderWidth, elt2show) {
         // console.log("MoveAtDragBorder elt2move", elt2move);
+        checkIsConnected(elt2move, MoveAtDragBorder.name);
+        checkIsConnected(elt2show, MoveAtDragBorder.name);
         this.elt2move = elt2move;
         this.elt2show = elt2show;
         this.bw = moveBorderWidth;
