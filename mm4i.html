@@ -1556,7 +1556,8 @@
                 const dbMindmaps = await importFc4i("db-mindmaps");
                 await dbMindmaps.DBsetMindmap(mindmapKey, objMm);
                 const jm = await modJsEditCommon.displayOurMindmap(objMm);
-                modJsmindDraggable.setOurJm(jm); // FIX-ME:
+                modJsmindDraggable.setOurJm(jm); 
+                jm.select_node(jm.get_root()); // FIX-ME: This should not be root
             }
         });
 
