@@ -101,6 +101,8 @@ export class MoveEltAtFixedSpeed {
 export class MoveAtDragBorder {
     constructor(elt2move, moveBorderWidth, elt2show) {
         // console.log("MoveAtDragBorder elt2move", elt2move);
+        if (!elt2move) throw Error(`elt2move is ${elt2move}`);
+        if (!elt2show) throw Error(`elt2show is ${elt2show}`);
         checkIsConnected(elt2move, MoveAtDragBorder.name);
         checkIsConnected(elt2show, MoveAtDragBorder.name);
         this.elt2move = elt2move;
@@ -184,6 +186,8 @@ export class MoveAtDragBorder {
         styleR.left = `${this.limits.right}px`
     }
     checkPointerPos(clientX, _clientY) {
+        checkIsConnected(this.elt2move, this.checkPointerPos.name);
+        checkIsConnected(this.elt2show, this.checkPointerPos.name);
         if (!this.limits) throw Error("this.limits is not set");
         const outsideRight = clientX > this.limits.right;
         const outsideLeft = clientX < this.limits.left;
