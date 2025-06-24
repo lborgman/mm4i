@@ -31,10 +31,16 @@ export function getMovingDy(movingData, clientY) { return clientY - movingData.c
  * @param {string} where 
  */
 function checkIsConnected(elt, where) {
+    if (!elt) {
+        const msg = `${where}: elt is ${elt} `;
+        console.error(msg);
+        debugger; // eslint-disable-line no-debugger
+        throw Error(msg);
+    }
     if (!elt.isConnected) {
         const msg = `!${where}: !elt.isConnected`;
         console.error(msg);
-                debugger; // eslint-disable-line no-debugger
+        debugger; // eslint-disable-line no-debugger
         throw Error(msg);
     }
 }
@@ -90,7 +96,7 @@ export class MoveEltAtFixedSpeed {
             }
             const dx = direction * (Date.now() - startTime) * pxlPerMs;
             const newLeft = startLeft + dx;
-            const newLeftPx = `${newLeft}px`.replace("-0px", "0px");
+            const newLeftPx = `${newLeft} px`.replace("-0px", "0px");
             elt2move.style.left = newLeftPx;
             requestAnimationFrame(moveFun);
         }
@@ -99,10 +105,9 @@ export class MoveEltAtFixedSpeed {
 
 }
 export class MoveAtDragBorder {
+    #deleted = false;
     constructor(elt2move, moveBorderWidth, elt2show) {
         // console.log("MoveAtDragBorder elt2move", elt2move);
-        if (!elt2move) throw Error(`elt2move is ${elt2move}`);
-        if (!elt2show) throw Error(`elt2show is ${elt2show}`);
         checkIsConnected(elt2move, MoveAtDragBorder.name);
         checkIsConnected(elt2show, MoveAtDragBorder.name);
         this.elt2move = elt2move;
@@ -134,7 +139,17 @@ export class MoveAtDragBorder {
         window.addEventListener("resize", () => { throttleUpdateLimits(); });
         throttleUpdateLimits();
     }
+    markDeleted() { this.#deleted = true; }
+    #checkIsDeleted() {
+        if (this.#deleted) {
+            const msg = "This MoveAtDragBorder is marked as deleted";
+            debugger;
+            console.error(msg, this);
+            throw Error(msg);
+        }
+    }
     showVisuals() {
+        this.#checkIsDeleted();
         this.visuals.forEach(v => {
             v.style.display = "block";
             setTimeout(() => {
@@ -149,6 +164,7 @@ export class MoveAtDragBorder {
      * @param {boolean|undefined} secondCall 
      */
     updateScreenLimits(secondCall = undefined) {
+        this.#checkIsDeleted();
         const elt2moveParent = this.elt2move.parentElement;
         if (!elt2moveParent) {
             if (secondCall) {
@@ -174,20 +190,21 @@ export class MoveAtDragBorder {
         window["l"] = this.limits; // FIX-ME
         // console.log(">>>>>> this.limits", l);
         const styleL = this.eltVisualLeft.style;
-        styleL.width = `${this.bw}px`;
-        styleL.height = `${bcr.height}px`;
-        styleL.top = `${bcr.top}px`
-        styleL.left = `${bcr.left}px`
+        styleL.width = `${this.bw} px`;
+        styleL.height = `${bcr.height} px`;
+        styleL.top = `${bcr.top} px`
+        styleL.left = `${bcr.left} px`
         const styleR = this.eltVisualRight.style;
-        styleR.width = `${this.bw}px`;
-        styleR.height = `${bcr.height}px`;
-        styleR.top = `${bcr.top}px`
-        // styleR.left = `${bcr.left + bcr.width - this.bw - scrollbarW}px`
-        styleR.left = `${this.limits.right}px`
+        styleR.width = `${this.bw} px`;
+        styleR.height = `${bcr.height} px`;
+        styleR.top = `${bcr.top} px`
+        // styleR.left = `${ bcr.left + bcr.width - this.bw - scrollbarW } px`
+        styleR.left = `${this.limits.right} px`
     }
     checkPointerPos(clientX, _clientY) {
-        checkIsConnected(this.elt2move, this.checkPointerPos.name);
-        checkIsConnected(this.elt2show, this.checkPointerPos.name);
+        // this.#checkIsDeleted();
+        // checkIsConnected(this.elt2move, this.checkPointerPos.name);
+        // checkIsConnected(this.elt2show, this.checkPointerPos.name);
         if (!this.limits) throw Error("this.limits is not set");
         const outsideRight = clientX > this.limits.right;
         const outsideLeft = clientX < this.limits.left;

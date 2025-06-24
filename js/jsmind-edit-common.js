@@ -487,8 +487,9 @@ function movePointHandle() {
         modJsmindDraggable.hiHereIam(left, top);
         instMoveAtDragBorder.checkPointerPos(clientX, clientY)
     } catch (err) {
-        console.error("movePointHandle", err);
         movePointHandleProblem = true;
+        console.error("movePointHandle", err);
+        debugger;
     }
 }
 /////////////////////////////////////////////////////
@@ -1174,7 +1175,13 @@ async function addDragBorders(jmDisplayed) {
     const eltScroll = eltJmnodes.closest("div.zoom-move");
     const eltShow = eltJmnodes.closest("div.jsmind-inner");
     const modMoveHelp = await importFc4i("move-help");
-    instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60, eltShow);
+    try {
+        // instMoveAtDragBorder?.markDeleted();
+        instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60, eltShow);
+    } catch (err) {
+        console.error({ err });
+        debugger;
+    }
 }
 export async function displayOurMindmap(mind) {
     const opts = getUsedOptJmDisplay(mind);
