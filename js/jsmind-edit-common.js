@@ -1826,6 +1826,11 @@ export async function pageSetup() {
         if (null == strNodeId) throw Error("jmexpander attribute nodeid is null");
         const nodeId = parseInt(strNodeId);
         jmDisplayed.toggle_node(nodeId);
+        // modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed, "Edit mindmap description");
+        const node = jmDisplayed.mind.nodes[nodeId];
+        const topic = node.topic;
+        const theChange = !node.expanded ? "Collapse" : "Expand";
+        modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, `${theChange} ${topic}`);
     });
 
     function targetIsJmnode(evt) {
