@@ -190,16 +190,16 @@ export class MoveAtDragBorder {
         window["l"] = this.limits; // FIX-ME
         // console.log(">>>>>> this.limits", l);
         const styleL = this.eltVisualLeft.style;
-        styleL.width = `${this.bw} px`;
-        styleL.height = `${bcr.height} px`;
-        styleL.top = `${bcr.top} px`
-        styleL.left = `${bcr.left} px`
+        styleL.width = `${this.bw}px`;
+        styleL.height = `${bcr.height}px`;
+        styleL.top = `${bcr.top}px`
+        styleL.left = `${bcr.left}px`
         const styleR = this.eltVisualRight.style;
-        styleR.width = `${this.bw} px`;
-        styleR.height = `${bcr.height} px`;
-        styleR.top = `${bcr.top} px`
+        styleR.width = `${this.bw}px`;
+        styleR.height = `${bcr.height}px`;
+        styleR.top = `${bcr.top}px`
         // styleR.left = `${ bcr.left + bcr.width - this.bw - scrollbarW } px`
-        styleR.left = `${this.limits.right} px`
+        styleR.left = `${this.limits.right}px`
     }
     checkPointerPos(clientX, _clientY) {
         // this.#checkIsDeleted();
