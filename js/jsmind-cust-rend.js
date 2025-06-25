@@ -373,7 +373,7 @@ export class CustomRenderer4jsMind {
         /** @param {string} val @returns {void} */
         const onChangeMMdesc = (val) => {
             root_node.data.shapeEtc.notes = val.trimEnd();
-            modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed, "Edit mindmap description");
+            modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, "Edit mindmap description");
         };
 
 
@@ -630,7 +630,7 @@ export class CustomRenderer4jsMind {
     // FIX-ME: use this!
     requestSaveMindMap() {
         const jmDisplayed = this.THEjmDisplayed;
-        modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, "Edit mindmap");
+        modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, "Edit mindmap");
     }
     async editNotesDialog(eltJmnode) {
         let btnSave;
@@ -656,7 +656,7 @@ export class CustomRenderer4jsMind {
         /** @type {Object | undefined} */ let toastNotesEditor;
         const onChange = (val) => {
             shapeEtc.notes = val.trimEnd();
-            modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, `Edit notes "${node.topic}"`);
+            modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, `Edit notes "${node.topic}"`);
         };
 
         body.appendChild(divEasyMdeOuterWrapper);
@@ -720,7 +720,7 @@ export class CustomRenderer4jsMind {
         function funCheckSave(save) {
             if (!save) return somethingToSaveNotes();
             shapeEtc.notes = toastNotesEditor.getMarkdown().trimEnd();
-            modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed);
+            modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed);
         }
         // const useConfirm = true;
         const useConfirm = false;
@@ -2585,7 +2585,7 @@ export class CustomRenderer4jsMind {
                     delete currTemp.height;
                     // await modJsEditCommon.fixJmnodeProblem(eltJmnode);
                     modJsEditCommon.applyNodeShapeEtc(node_copied, eltJmnode);
-                    modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed, `Edited "${node_copied.topic}"`);
+                    modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, `Edited "${node_copied.topic}"`);
 
                     // FIX-ME: use lastElementChild instead???
                     // if (node_copied.data.fc4i) this.updateJmnodeFromCustom(eltJmnode);

@@ -1229,20 +1229,24 @@ async function displayMindMap(mind) {
 
         setTopic4undoRedo(topic);
         const actionAndNode = `${niceEvtType(evt_type)} "${getTopic4undoRedo()}"`;
-        // modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, evt_type); // FIX-ME: delay
-        modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, actionAndNode); // FIX-ME: delay
+        // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, evt_type); // FIX-ME: delay
+        modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionAndNode); // FIX-ME: delay
         // updateTheMirror();
     });
     function niceEvtType(evt_type) {
         let nice = evt_type;
+        let onlyNice = false;
         switch (evt_type) {
             case "remove_node":
                 nice = "Remove node";
+                onlyNice = true;
                 break;
             case "add_node":
                 nice = "Add node";
+                onlyNice = true;
                 break;
             case "move_node":
+                onlyNice = true;
                 nice = "Move node";
                 break;
             case "update_node":
@@ -1251,6 +1255,7 @@ async function displayMindMap(mind) {
             default:
                 console.log(`%cMissing "${evt_type}" in niceEvtType`, "color:red;font-size:20px");
         }
+        if (onlyNice) return nice;
         return `${nice} (${evt_type})`;
     }
     async function checkOperationOnNode(operation_type, operation_node_id, datadata) {
@@ -1737,8 +1742,8 @@ export async function pageSetup() {
         const topic = jmDisplayed.mind.nodes[node_id].topic;
         setTopic4undoRedo(topic);
         const actionAndNode = `${evt_type} "${getTopic4undoRedo()}"`;
-        // modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, evt_type); // FIX-ME: delay
-        modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, actionAndNode); // FIX-ME: delay
+        // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, evt_type); // FIX-ME: delay
+        modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionAndNode); // FIX-ME: delay
         // updateTheMirror();
     });
     */
@@ -1826,11 +1831,11 @@ export async function pageSetup() {
         if (null == strNodeId) throw Error("jmexpander attribute nodeid is null");
         const nodeId = parseInt(strNodeId);
         jmDisplayed.toggle_node(nodeId);
-        // modMMhelpers.DBrequestSaveThisMindmap(this.THEjmDisplayed, "Edit mindmap description");
+        // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, "Edit mindmap description");
         const node = jmDisplayed.mind.nodes[nodeId];
         const topic = node.topic;
         const theChange = !node.expanded ? "Collapse" : "Expand";
-        modMMhelpers.DBrequestSaveThisMindmap(jmDisplayed, `${theChange} ${topic}`);
+        modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, `${theChange} ${topic}`);
     });
 
     function targetIsJmnode(evt) {

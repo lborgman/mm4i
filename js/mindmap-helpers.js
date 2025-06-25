@@ -11,7 +11,7 @@ const makeAbsLink = window["makeAbsLink"];
 const URL_MINDMAPS_PAGE = "./mm4i.html";
 
 const modTools = await importFc4i("toolsJs");
-const throttleSaveMindmap = modTools.throttleTO(DBsaveNowThisMindmap, 300);
+const throttleSaveMindmapPlusUndoRedo = modTools.throttleTO(DBsaveNowMindmapPlusUndoRedo, 300);
 
 let undoRedoTreeStyle;
 /**
@@ -31,7 +31,7 @@ export function setUndoRedoTreeStyle(useTreeStyle) {
  */
 export function getUndoRedoTreeStyle() { return undoRedoTreeStyle; }
 
-async function saveMindmap(keyName, objDataMind, actionTopic, lastUpdated, lastSynced, privacy) {
+async function saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, lastUpdated, lastSynced, privacy) {
     // debugger;
     const dbMindmaps = await importFc4i("db-mindmaps");
     const modUndo = await importFc4i("undo-redo-tree");
@@ -89,7 +89,7 @@ export async function DBredo(keyName) {
     await dbMindmaps.DBsetMindmap(keyName, objDataMind);
     return objDataMind
 }
-export function DBrequestSaveThisMindmap(jmDisplayed, actionTopic) {
+export function DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     if (arguments.length != 2) {
         debugger; // eslint-disable-line no-debugger
         throw Error(`Wrong number of arguments: ${arguments.length} (should be 2)`);
@@ -100,9 +100,17 @@ export function DBrequestSaveThisMindmap(jmDisplayed, actionTopic) {
         throw Error(`actionTopic is not string: ${typeof actionTopic}`);
     }
     // debugger;
-    throttleSaveMindmap(jmDisplayed, actionTopic);
+    const other = {
+        selected_id: jmDisplayed.get_selected_node(),
+    }
+    const state = {
+        mm: jmDisplayed,
+        other
+    }
+    throttleSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic);
+    // throttleSaveMindmapPlusUndoRedo(state, actionTopic);
 }
-async function DBsaveNowThisMindmap(jmDisplayed, actionTopic) {
+async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     // debugger;
     const tofTopic = typeof actionTopic;
     if (tofTopic != "string") { throw Error(`Wrong actionTopic type: ${tofTopic} (should be string)`); }
@@ -111,7 +119,7 @@ async function DBsaveNowThisMindmap(jmDisplayed, actionTopic) {
     if (!metaName) throw Error("Current mindmap has no meta.key");
     const [keyName] = metaName.split("/");
 
-    await saveMindmap(keyName, objDataMind, actionTopic, (new Date()).toISOString());
+    await saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, (new Date()).toISOString());
 }
 
 function getNextMindmapKey() { return "mm-" + new Date().toISOString(); }
@@ -137,7 +145,7 @@ export async function createAndShowNewMindmap() {
     root.shapeEtc = {};
     root.shapeEtc.shape = "jsmind-shape-ellipse";
 
-    await saveMindmap(keyName, jsMindMap, "new mindmap");
+    await saveMindmapPlusUndoRedo(keyName, jsMindMap, "new mindmap");
 
     showMindmap(keyName);
 }
@@ -545,7 +553,7 @@ export async function setMindmapPrivacy(key, newPrivacy) {
     const { lastUpdated, lastSynced, privacy } = dbMindmaps.getMindmapMetaParts(jsMindmap);
     if (privacy == newPrivacy) { return; }
 
-    return saveMindmap(key, jsMindmap, "set privacy", lastUpdated, lastSynced, newPrivacy);
+    return saveMindmapPlusUndoRedo(key, jsMindmap, "set privacy", lastUpdated, lastSynced, newPrivacy);
 }
 
 /**
