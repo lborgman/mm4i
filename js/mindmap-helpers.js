@@ -31,22 +31,6 @@ export function setUndoRedoTreeStyle(useTreeStyle) {
  */
 export function getUndoRedoTreeStyle() { return undoRedoTreeStyle; }
 
-/**
- * Check obj is undo/redo state
- *  
- * @param {Object} obj 
- * @throws
- */
-function checkOurUndoRedoState(obj) {
-    const strJsonOk = JSON.stringify(["objDataMind", "other"]);
-    const strJsonObj = JSON.stringify(Object.keys(obj));
-    if (strJsonObj != strJsonOk) {
-        const msg = `${strJsonObj} != ${strJsonOk}`;
-        console.error(msg);
-        debugger; // eslint-disable-line no-debugger
-        throw Error(msg);
-    }
-}
 async function saveMindmapPlusUndoRedo(keyName, objState, actionTopic, lastUpdated, lastSynced, privacy) {
     checkOurUndoRedoState(objState);
     // debugger;
@@ -117,27 +101,17 @@ export function DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
         debugger; // eslint-disable-line no-debugger
         throw Error(`Wrong number of arguments: ${arguments.length} (should be 2)`);
     }
+    if (!isMMformatJsmind(jmDisplayed)) throw Error("!isMMformatJsmind(jmDisplayed)");
     if (typeof actionTopic != "string") {
         console.error(`actionTopic is not string: ${typeof actionTopic}`);
         debugger; // eslint-disable-line no-debugger
         throw Error(`actionTopic is not string: ${typeof actionTopic}`);
     }
-    // debugger;
-    const other = {
-        selected_id: jmDisplayed.get_selected_node(),
-    }
-    const state = {
-        mm: jmDisplayed,
-        other
-    }
-    // throttleSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic);
-    throttleSaveMindmapPlusUndoRedo(state, actionTopic);
+    throttleSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic);
 }
-// async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
-async function DBsaveNowMindmapPlusUndoRedo(objState, actionTopic) {
-    checkOurUndoRedoState(objState);
-    const jmDisplayed = objState.mm;
-    // debugger;
+async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
+    if (!isMMformatJsmind(jmDisplayed)) throw Error("!isMMformatJsmind(jmDisplayed))");
+    debugger;
     const tofTopic = typeof actionTopic;
     if (tofTopic != "string") { throw Error(`Wrong actionTopic type: ${tofTopic} (should be string)`); }
     const objDataMind = jmDisplayed.get_data("node_array");
@@ -145,12 +119,16 @@ async function DBsaveNowMindmapPlusUndoRedo(objState, actionTopic) {
     if (!metaName) throw Error("Current mindmap has no meta.key");
     const [keyName] = metaName.split("/");
 
+    const other = {
+        selected_id: jmDisplayed.get_selected_node().id,
+    }
     const objToSave = {
         objDataMind,
-        other: objState.other
+        other
     }
-    // await saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, (new Date()).toISOString());
     checkOurUndoRedoState(objToSave);
+    // await saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, (new Date()).toISOString());
+    debugger;
     await saveMindmapPlusUndoRedo(keyName, objToSave, actionTopic, (new Date()).toISOString());
 }
 
@@ -607,6 +585,8 @@ export async function getSharedMindmaps() {
     return arrShared;
 }
 
+
+
 export function isMMformatStored(obj) {
     const ObjKeys = Object.keys(obj).sort();
     const strObjKeys = JSON.stringify(ObjKeys);
@@ -622,4 +602,21 @@ export function isMMformatJsmind(obj) {
         "shortcut", "version", "view"
     ]);
     return (strObjKeys == strJsmind);
+}
+
+/**
+ * Check obj is undo/redo state
+ *  
+ * @param {Object} obj 
+ * @throws
+ */
+function checkOurUndoRedoState(obj) {
+    const strJsonOk = JSON.stringify(["objDataMind", "other"]);
+    const strJsonObj = JSON.stringify(Object.keys(obj));
+    if (strJsonObj != strJsonOk) {
+        const msg = `${strJsonObj} != ${strJsonOk}`;
+        console.error(msg);
+        debugger; // eslint-disable-line no-debugger
+        throw Error(msg);
+    }
 }
