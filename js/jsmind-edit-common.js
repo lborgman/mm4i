@@ -1183,8 +1183,9 @@ async function addDragBorders(jmDisplayed) {
         debugger;
     }
 }
-export async function displayOurMindmap(mind) {
-    const opts = getUsedOptJmDisplay(mind);
+export async function displayOurMindmap(mindStored) {
+    if (!modMMhelpers.isMMformatStored(mindStored)) throw Error("!isMMformatStored(mindStored");
+    const opts = getUsedOptJmDisplay(mindStored);
     const eltJmdisplayContainer = document.getElementById(opts.container);
     if (!eltJmdisplayContainer) { throw Error(`Could not find #${opts.container}`); }
     // const oldJmnodes = eltJmdisplayContainer.querySelector("jmnodes");
@@ -1192,7 +1193,8 @@ export async function displayOurMindmap(mind) {
     const oldZoomMove = eltJmdisplayContainer.querySelector("div.zoom-move");
     oldZoomMove?.remove(); // Remove old jmnodes, FIX-ME: maybe remove when this is fixed in jsmind?
 
-    jmDisplayed = await displayMindMap(mind);
+    jmDisplayed = await displayMindMap(mindStored);
+    if (!modMMhelpers.isMMformatJsmind(jmDisplayed)) throw Error("!isMMformatJsmind(jmDisplayed");
     initialUpdateCustomAndShapes(jmDisplayed); // FIX-ME: maybe remove when this is fixed in jsmind?
 
     jmDisplayed.disable_event_handle("dblclick"); // Double click on Windows and Android
@@ -1566,9 +1568,10 @@ export async function pageSetup() {
         return true;
     }
 
-    let mind;
+    let mindInStoredFormat;
     if (mindmapKey) {
-        mind = await modMMhelpers.getMindmap(mindmapKey);
+        mindInStoredFormat = await modMMhelpers.getMindmap(mindmapKey);
+        if (!modMMhelpers.isMMformatStored(mindInStoredFormat)) throw Error("!isMMformatStored(mindInstoredFormat");
         window["current-mindmapKey"] = mindmapKey;
         modMMhelpers.getMindmapPrivacy(mindmapKey).then(privacy => {
             // console.log({ privacy });
@@ -1587,7 +1590,7 @@ export async function pageSetup() {
             }
         });
     }
-    if (!mind) {
+    if (!mindInStoredFormat) {
         if (funMindmapsDialog) {
             funMindmapsDialog();
         } else {
@@ -1609,7 +1612,7 @@ export async function pageSetup() {
 
     const nowBefore = Date.now();
 
-    await displayOurMindmap(mind);
+    await displayOurMindmap(mindInStoredFormat);
 
 
 

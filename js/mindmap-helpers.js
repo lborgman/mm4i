@@ -31,13 +31,30 @@ export function setUndoRedoTreeStyle(useTreeStyle) {
  */
 export function getUndoRedoTreeStyle() { return undoRedoTreeStyle; }
 
-async function saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, lastUpdated, lastSynced, privacy) {
+/**
+ * Check obj is undo/redo state
+ *  
+ * @param {Object} obj 
+ * @throws
+ */
+function checkOurUndoRedoState(obj) {
+    const strJsonOk = JSON.stringify(["objDataMind", "other"]);
+    const strJsonObj = JSON.stringify(Object.keys(obj));
+    if (strJsonObj != strJsonOk) {
+        const msg = `${strJsonObj} != ${strJsonOk}`;
+        console.error(msg);
+        debugger; // eslint-disable-line no-debugger
+        throw Error(msg);
+    }
+}
+async function saveMindmapPlusUndoRedo(keyName, objState, actionTopic, lastUpdated, lastSynced, privacy) {
+    checkOurUndoRedoState(objState);
     // debugger;
     const dbMindmaps = await importFc4i("db-mindmaps");
     const modUndo = await importFc4i("undo-redo-tree");
     // debugger; // eslint-disable-line no-debugger
     if (!modUndo.hasUndoRedo(keyName)) {
-        const objBaseMm = (await dbMindmaps.DBgetMindmap(keyName)) || objDataMind;
+        const objBaseMm = (await dbMindmaps.DBgetMindmap(keyName)) || objState.objDataMind;
         // const funBranch = undefined; // FIX-ME: should be a function to undo/redo
         if (undoRedoTreeStyle === undefined) {
             throw Error("setUndoRedoTreeStyle(true/false) has not been called");
@@ -60,10 +77,16 @@ async function saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, lastUp
             return branch; // Always return the default branch for now
         }
         // const funUpdateHistory = (keyName) => console.log("funUpdateHistory", keyName);
-        modUndo.addUndoRedo(keyName, objBaseMm, funBranch);
+        const objInitialState = {
+            objDataMind: objBaseMm,
+            other: objState.other
+        }
+        checkOurUndoRedoState(objInitialState);
+        // modUndo.addUndoRedo(keyName, objBaseMm, funBranch);
+        modUndo.addUndoRedo(keyName, objInitialState, funBranch);
     }
-    modUndo.actionRecordAction(keyName, objDataMind, actionTopic);
-    return await dbMindmaps.DBsetMindmap(keyName, objDataMind, lastUpdated, lastSynced, privacy);
+    modUndo.actionRecordAction(keyName, objState, actionTopic);
+    return await dbMindmaps.DBsetMindmap(keyName, objState, lastUpdated, lastSynced, privacy);
 }
 
 export async function DBundo(keyName) {
@@ -107,10 +130,13 @@ export function DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
         mm: jmDisplayed,
         other
     }
-    throttleSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic);
-    // throttleSaveMindmapPlusUndoRedo(state, actionTopic);
+    // throttleSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic);
+    throttleSaveMindmapPlusUndoRedo(state, actionTopic);
 }
-async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
+// async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
+async function DBsaveNowMindmapPlusUndoRedo(objState, actionTopic) {
+    checkOurUndoRedoState(objState);
+    const jmDisplayed = objState.mm;
     // debugger;
     const tofTopic = typeof actionTopic;
     if (tofTopic != "string") { throw Error(`Wrong actionTopic type: ${tofTopic} (should be string)`); }
@@ -119,7 +145,13 @@ async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     if (!metaName) throw Error("Current mindmap has no meta.key");
     const [keyName] = metaName.split("/");
 
-    await saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, (new Date()).toISOString());
+    const objToSave = {
+        objDataMind,
+        other: objState.other
+    }
+    // await saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, (new Date()).toISOString());
+    checkOurUndoRedoState(objToSave);
+    await saveMindmapPlusUndoRedo(keyName, objToSave, actionTopic, (new Date()).toISOString());
 }
 
 function getNextMindmapKey() { return "mm-" + new Date().toISOString(); }
@@ -573,4 +605,21 @@ export async function getSharedMindmaps() {
         });
     // .map(mm => mm.key);
     return arrShared;
+}
+
+export function isMMformatStored(obj) {
+    const ObjKeys = Object.keys(obj).sort();
+    const strObjKeys = JSON.stringify(ObjKeys);
+    const strStored = JSON.stringify(["data", "format", "key", "meta"]);
+    return (strObjKeys == strStored);
+}
+
+export function isMMformatJsmind(obj) {
+    const ObjKeys = Object.keys(obj).sort();
+    const strObjKeys = JSON.stringify(ObjKeys);
+    const strJsmind = JSON.stringify([
+        "data", "event_handles", "initialized", "layout", "mind", "options",
+        "shortcut", "version", "view"
+    ]);
+    return (strObjKeys == strJsmind);
 }
