@@ -11,7 +11,8 @@ const makeAbsLink = window["makeAbsLink"];
 const URL_MINDMAPS_PAGE = "./mm4i.html";
 
 const modTools = await importFc4i("toolsJs");
-const throttleSaveMindmapPlusUndoRedo = modTools.throttleTO(DBsaveNowMindmapPlusUndoRedo, 300);
+const throttleDBsaveNowMindmapPlusUndoRedo = modTools.throttleTO(DBsaveNowMindmapPlusUndoRedo, 300);
+
 
 let undoRedoTreeStyle;
 /**
@@ -31,14 +32,16 @@ export function setUndoRedoTreeStyle(useTreeStyle) {
  */
 export function getUndoRedoTreeStyle() { return undoRedoTreeStyle; }
 
-async function saveMindmapPlusUndoRedo(keyName, objState, actionTopic, lastUpdated, lastSynced, privacy) {
-    checkOurUndoRedoState(objState);
+async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
+    // checkOurUndoRedoState(objState);
+    if (!isMMformatJsmind(jmDisplayed)) throw Error("!isMMformatJsmind(jmMindmap)");
     // debugger;
     const dbMindmaps = await importFc4i("db-mindmaps");
     const modUndo = await importFc4i("undo-redo-tree");
     // debugger; // eslint-disable-line no-debugger
     if (!modUndo.hasUndoRedo(keyName)) {
-        const objBaseMm = (await dbMindmaps.DBgetMindmap(keyName)) || objState.objDataMind;
+        // const objBaseMm = (await dbMindmaps.DBgetMindmap(keyName)) || objState.objDataMind;
+        const objBaseMm = (await dbMindmaps.DBgetMindmap(keyName)) || jmDisplayed;
         // const funBranch = undefined; // FIX-ME: should be a function to undo/redo
         if (undoRedoTreeStyle === undefined) {
             throw Error("setUndoRedoTreeStyle(true/false) has not been called");
@@ -61,16 +64,33 @@ async function saveMindmapPlusUndoRedo(keyName, objState, actionTopic, lastUpdat
             return branch; // Always return the default branch for now
         }
         // const funUpdateHistory = (keyName) => console.log("funUpdateHistory", keyName);
+        const other = {
+            selected_id: "root"
+        }
         const objInitialState = {
             objDataMind: objBaseMm,
-            other: objState.other
+            other
         }
         checkOurUndoRedoState(objInitialState);
         // modUndo.addUndoRedo(keyName, objBaseMm, funBranch);
         modUndo.addUndoRedo(keyName, objInitialState, funBranch);
     }
-    modUndo.actionRecordAction(keyName, objState, actionTopic);
-    return await dbMindmaps.DBsetMindmap(keyName, objState, lastUpdated, lastSynced, privacy);
+    const other = {
+        selected_id: jmDisplayed.get_selected_node().id,
+    }
+    const objDataMind = jmDisplayed.get_data("node_array");
+    const objToSave = {
+        objDataMind,
+        other
+    }
+    objDataMind.key = keyName;
+    checkOurUndoRedoState(objToSave);
+
+    modUndo.actionRecordAction(keyName, objToSave, actionTopic);
+    const objMindData = jmDisplayed.get_data("node_array");
+    objMindData.key = keyName;
+    // return await dbMindmaps.DBsetMindmap(keyName, jmDisplayed, lastUpdated, lastSynced, privacy);
+    return await dbMindmaps.DBsetMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy);
 }
 
 export async function DBundo(keyName) {
@@ -107,7 +127,7 @@ export function DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
         debugger; // eslint-disable-line no-debugger
         throw Error(`actionTopic is not string: ${typeof actionTopic}`);
     }
-    throttleSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic);
+    throttleDBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic);
 }
 async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     if (!isMMformatJsmind(jmDisplayed)) throw Error("!isMMformatJsmind(jmDisplayed))");
@@ -119,6 +139,7 @@ async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     if (!metaName) throw Error("Current mindmap has no meta.key");
     const [keyName] = metaName.split("/");
 
+    /*
     const other = {
         selected_id: jmDisplayed.get_selected_node().id,
     }
@@ -127,9 +148,10 @@ async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
         other
     }
     checkOurUndoRedoState(objToSave);
+    */
     // await saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, (new Date()).toISOString());
     debugger;
-    await saveMindmapPlusUndoRedo(keyName, objToSave, actionTopic, (new Date()).toISOString());
+    await saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, (new Date()).toISOString());
 }
 
 function getNextMindmapKey() { return "mm-" + new Date().toISOString(); }
@@ -587,12 +609,6 @@ export async function getSharedMindmaps() {
 
 
 
-export function isMMformatStored(obj) {
-    const ObjKeys = Object.keys(obj).sort();
-    const strObjKeys = JSON.stringify(ObjKeys);
-    const strStored = JSON.stringify(["data", "format", "key", "meta"]);
-    return (strObjKeys == strStored);
-}
 
 export function isMMformatJsmind(obj) {
     const ObjKeys = Object.keys(obj).sort();
@@ -603,6 +619,7 @@ export function isMMformatJsmind(obj) {
     ]);
     return (strObjKeys == strJsmind);
 }
+
 
 /**
  * Check obj is undo/redo state
@@ -619,4 +636,39 @@ function checkOurUndoRedoState(obj) {
         debugger; // eslint-disable-line no-debugger
         throw Error(msg);
     }
+    checkIsMMformatStored(obj["objDataMind"]);
+}
+
+
+
+export function checkIsMMformatStored(obj) {
+    if (!isMMformatStored(obj)) {
+        const msg = "mindmap-helpers.js: obj is not in format for storing";
+        console.error(msg);
+        debugger; // eslint-disable-line no-debugger
+        throw Error(msg);
+    }
+}
+
+/**
+ * 
+ * @param {Object} obj 
+ * @returns {boolean}
+ */
+function isMMformatStored(obj) {
+    // const dbMindmaps = await importFc4i("db-mindmaps");
+    const ObjKeys = Object.keys(obj).sort();
+    const strObjKeys = JSON.stringify(ObjKeys);
+    const strData = JSON.stringify([
+        "data", "format", "key", "meta"
+    ]);
+    if (strObjKeys != strData) {
+        console.warn(strObjKeys);
+        return false;
+    }
+    if (obj.format != "node_array") {
+        console.warn(obj.format);
+        return false;
+    }
+    return true;
 }

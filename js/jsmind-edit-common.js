@@ -1184,7 +1184,7 @@ async function addDragBorders(jmDisplayed) {
     }
 }
 export async function displayOurMindmap(mindStored) {
-    if (!modMMhelpers.isMMformatStored(mindStored)) throw Error("!isMMformatStored(mindStored");
+    modMMhelpers.checkIsMMformatStored(mindStored);
     const opts = getUsedOptJmDisplay(mindStored);
     const eltJmdisplayContainer = document.getElementById(opts.container);
     if (!eltJmdisplayContainer) { throw Error(`Could not find #${opts.container}`); }
@@ -1571,7 +1571,7 @@ export async function pageSetup() {
     let mindInStoredFormat;
     if (mindmapKey) {
         mindInStoredFormat = await modMMhelpers.getMindmap(mindmapKey);
-        if (!modMMhelpers.isMMformatStored(mindInStoredFormat)) throw Error("!isMMformatStored(mindInstoredFormat");
+        modMMhelpers.checkIsMMformatStored(mindInStoredFormat);
         window["current-mindmapKey"] = mindmapKey;
         modMMhelpers.getMindmapPrivacy(mindmapKey).then(privacy => {
             // console.log({ privacy });

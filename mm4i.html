@@ -1551,11 +1551,13 @@
                 const historyNode = target.valueAsObject;
 
                 const history = modUndo.getHistory(mindmapKey);
-                const objMm = history.navigateToNode(historyNode);
+                const objHistoryNode = history.navigateToNode(historyNode);
+                const objMindData = objHistoryNode.objDataMind;
+                modMMhelpers.checkIsMMformatStored(objMindData);
 
                 const dbMindmaps = await importFc4i("db-mindmaps");
-                await dbMindmaps.DBsetMindmap(mindmapKey, objMm);
-                const jm = await modJsEditCommon.displayOurMindmap(objMm);
+                await dbMindmaps.DBsetMindmap(mindmapKey, objMindData);
+                const jm = await modJsEditCommon.displayOurMindmap(objMindData);
                 modJsmindDraggable.setOurJm(jm); 
                 jm.select_node(jm.get_root()); // FIX-ME: This should not be root
             }
