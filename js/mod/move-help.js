@@ -164,7 +164,7 @@ export class MoveAtDragBorder {
      * @param {boolean|undefined} secondCall 
      */
     updateScreenLimits(secondCall = undefined) {
-        this.#checkIsDeleted();
+        this?.#checkIsDeleted();
         const elt2moveParent = this.elt2move.parentElement;
         if (!elt2moveParent) {
             if (secondCall) {
