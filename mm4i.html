@@ -1566,12 +1566,20 @@
                     if (typeof objOther != "object") debugger;
                     const keys = Object.keys(objOther);
                     // debugger;
-                    keys.forEach(key => {
+                    keys.forEach(async key => {
                         switch (key) {
                             case "selected_id":
                                 const node_id = objOther["selected_id"];
                                 // debugger;
                                 jm.select_node(node_id);
+                                break;
+                            case "zoomed":
+                                const zoomed = objOther["zoomed"];
+                                if (isNaN(zoomed)) throw Error("isNaN(zoomed)");
+                                if (zoomed == 100) return;
+                                const modZoomMove = await importFc4i("zoom-move");
+                                // debugger;
+                                modZoomMove.setZoomPercentage(zoomed);
                                 break;
                             default:
                                 debugger;

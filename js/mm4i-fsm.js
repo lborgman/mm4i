@@ -120,8 +120,10 @@ export function getPointerType(evt) {
 
 export async function setupFsmListeners(eltFsm) {
     const modZoomMove = await importFc4i("zoom-move");
-    modZoomMove.pinchZoom(eltFsm);
-    const zoomButtons = modZoomMove.mkZoomButtons(eltFsm, "horizontal");
+    modZoomMove.setEltZoomMove(eltFsm);
+    modZoomMove.setupPinchZoom();
+    // const zoomButtons = modZoomMove.mkZoomButtons(eltFsm, "horizontal");
+    const zoomButtons = modZoomMove.mkZoomButtons("horizontal");
     zoomButtons.id = "mm4i-zoom-buttons";
     document.body.appendChild(zoomButtons);
 

@@ -75,8 +75,12 @@ async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUp
         // modUndo.addUndoRedo(keyName, objBaseMm, funBranch);
         modUndo.addUndoRedo(keyName, objInitialState, funBranch);
     }
+    const selected_id = jmDisplayed.get_selected_node().id;
+    const modZoomMove = await importFc4i("zoom-move");
+    const percentageZoom = modZoomMove.getZoomPercentage();
     const other = {
-        selected_id: jmDisplayed.get_selected_node().id,
+        selected_id,
+        zoomed: percentageZoom
     }
     const objDataMind = jmDisplayed.get_data("node_array");
     const objToSave = {

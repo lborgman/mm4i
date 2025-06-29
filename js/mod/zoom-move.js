@@ -26,12 +26,27 @@ const distance = (event) => {
     return Math.hypot(event.touches[0].pageX - event.touches[1].pageX, event.touches[0].pageY - event.touches[1].pageY);
 };
 
-export function pinchZoom(element) {
+
+let eltZoomMove; // FIX-ME:
+
+/**
+ * 
+ * @param {HTMLDivElement} element 
+ */
+export function setEltZoomMove(element) {
+    const tagName = element.tagName;
+    if (tagName != "DIV") throw Error(`setEltZoomMove: expected DIV, got "${tagName}"`);
+    eltZoomMove = element;
+}
+/**
+ * Setup pinch zoom.
+ */
+export function setupPinchZoom() {
     let scaleI;
     let xI;
     let yI;
     function getTransformsI() {
-        const transforms = modTools.getCssTransforms(element);
+        const transforms = modTools.getCssTransforms(eltZoomMove);
         scaleI = transforms.scale;
         xI = transforms.x;
         yI = transforms.y;
@@ -39,7 +54,7 @@ export function pinchZoom(element) {
 
     let start = {};
 
-    element.addEventListener('touchstart', (event) => {
+    eltZoomMove.addEventListener('touchstart', (event) => {
         // console.log('touchstart', event);
         if (event.touches.length === 2) {
             event.preventDefault(); // Prevent page scroll
@@ -53,7 +68,7 @@ export function pinchZoom(element) {
         }
     });
 
-    element.addEventListener('touchmove', (event) => {
+    eltZoomMove.addEventListener('touchmove', (event) => {
         // console.log('touchmove', event);
         if (event.touches.length === 2) {
             event.preventDefault(); // Prevent page scroll
@@ -74,7 +89,7 @@ export function pinchZoom(element) {
 
             // Transform the image to make it grow and move with fingers
             const transform = `translate3d(${xB}px, ${yB}px, 0) scale(${scaleB})`;
-            element.style.transform = transform;
+            eltZoomMove.style.transform = transform;
             // element.style.zIndex = "9999";
             debounceDisplayZoomed(scaleB);
         }
@@ -92,30 +107,35 @@ export function pinchZoom(element) {
 
 /**
  * 
- * @param {HTMLElement} elt 
  * @param {number} amount 
  */
-function changeScale(elt, amount) {
-    const transforms = modTools.getCssTransforms(elt);
+function changeScale(amount) {
+    if (isNaN(amount)) throw Error("isNaN(amount)");
+    const transforms = modTools.getCssTransforms(eltZoomMove);
     const oldScale = transforms.scale;
     let scale = oldScale * amount;
     if (amount < 1 && oldScale > 1) scale = Math.max(1, scale);
     if (amount > 1 && oldScale < 1) scale = Math.min(1, scale);
     if (0.95 < scale && scale < 1.05) scale = 1;
-    // const x = transforms.x;
-    // const y = transforms.y;
-    // elt.style.transform = `translate(${x}, ${y}) scale(${scale})`;
-    elt.style.transform = `scale(${scale})`;
-    displayZoomed(scale);
+    // elt.style.transform = `scale(${scale})`;
+    // displayZoomed(scale);
+    changeScaleTo(scale);
+}
+
+function changeScaleTo(scale) {
+    if (isNaN(scale)) throw Error("isNaN(scale)");
+    if (scale > 1) throw Error("scale > 1");
+    if (scale < 0.01) throw Error("scale < 0.01");
+    eltZoomMove.style.transform = `scale(${scale})`;
+    debounceDisplayZoomed(scale);
 }
 
 /**
  * 
- * @param {HTMLElement} elt 
  * @param {string} inOrOut 
  * @returns 
  */
-function mkZoomButton(elt, inOrOut) {
+function mkZoomButton(inOrOut) {
     let dir = inOrOut;
     let amount = 1.2;
     switch (inOrOut) {
@@ -132,50 +152,70 @@ function mkZoomButton(elt, inOrOut) {
     btn.title = `Zoom ${dir}`;
     btn.addEventListener("click", () => {
         console.log("btn ", dir, amount);
-        changeScale(elt, amount);
+        changeScale(amount);
     });
     return btn;
 }
 
+let btnDisplayZoomed;
 const clsDisplayZoomed = "display-zoomed";
-function mkDisplayZoomed(elt) {
+function mkDisplayZoomed() {
     const btn = document.createElement("button");
-    btn.textContent = "100%";
+    // btn.id = "mm4i-display-zoomed"
+    btnDisplayZoomed = btn;
     btn.classList.add(clsDisplayZoomed);
+    btn.textContent = "100%";
     btn.title = "zoom 100%";
-    // changeScale(elt, amount);
     btn.addEventListener("click", evt => {
         const scale = 1;
-        elt.style.transform = `scale(${scale})`;
+        eltZoomMove.style.transform = `scale(${scale})`;
         displayZoomed(scale);
     });
     return btn;
 }
 function displayZoomed(scaled) {
     const perc = Math.round(scaled * 100);
-    const eltZoom = document.getElementById("mm4i-zoom-buttons");
-    // @ts-ignore
-    const eltDisplay = eltZoom.querySelector(`.${clsDisplayZoomed}`);
-    // @ts-ignore
+    // FIX-ME: You can't use the ID here.
+    //   Using it leads to subtle bugs.
+    //   Maybe this is a chromium bug? I am not sure at the moment.
+    // const eltDisplay = document.getElementById("mm4i-display-zoomed");
+    const eltDisplay = btnDisplayZoomed;
+    if (!eltDisplay) throw Error("Didn't find mm4i-display-zoomed");
+    if (!eltDisplay.isConnected) throw Error("mm4i-display-zoomed !.isConnected");
     eltDisplay.textContent = `${perc}%`;
+}
+
+
+export function getZoomPercentage() {
+    // const eltDisplay = document.getElementById("mm4i-display-zoomed");
+    const eltDisplay = btnDisplayZoomed;
+    if (!eltDisplay) throw Error("Didn't find mm4-display-zoomed");
+    const txt = eltDisplay.textContent;
+    const percentage = parseFloat(txt);
+    if (Number.isNaN(percentage)) throw Error(`"${txt}" does not start with number`);
+    return percentage;
+}
+export function setZoomPercentage(zoomed) {
+    changeScaleTo(zoomed / 100);
 }
 
 
 /**
  * 
- * @param {HTMLElement} elt 
  * @param {string} horOrVer 
  * @returns 
  */
-export function mkZoomButtons(elt, horOrVer) {
+export function mkZoomButtons(horOrVer) {
     // console.log({ elt, horOrVer });
-    if (!(elt instanceof HTMLElement)) throw Error("elt is not HTMLElement");
+    if (!(eltZoomMove instanceof HTMLElement)) throw Error("elt is not HTMLElement");
     const tofHorOrVer = typeof horOrVer;
     if ("string" != tofHorOrVer) throw Error(`Expected string, got ${tofHorOrVer}`);
 
-    const btnPlus = mkZoomButton(elt, "+");
-    const btnMinus = mkZoomButton(elt, "-");
-    const eltZoomed = mkDisplayZoomed(elt);
+    // const btnPlus = mkZoomButton(eltZoomMove, "+");
+    // const btnMinus = mkZoomButton(eltZoomMove, "-");
+    const btnPlus = mkZoomButton("+");
+    const btnMinus = mkZoomButton("-");
+    const eltZoomed = mkDisplayZoomed();
     const cont = document.createElement("div");
     cont.appendChild(btnPlus);
     cont.appendChild(eltZoomed);
