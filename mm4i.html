@@ -1558,8 +1558,26 @@
                 const dbMindmaps = await importFc4i("db-mindmaps");
                 await dbMindmaps.DBsetMindmap(mindmapKey, objMindData);
                 const jm = await modJsEditCommon.displayOurMindmap(objMindData);
-                modJsmindDraggable.setOurJm(jm); 
-                jm.select_node(jm.get_root()); // FIX-ME: This should not be root
+                modJsmindDraggable.setOurJm(jm);
+                // jm.select_node(jm.get_root()); // FIX-ME: This should not be root
+                applyHistoryNodeOther();
+                function applyHistoryNodeOther() {
+                    const objOther = objHistoryNode.other;
+                    if (typeof objOther != "object") debugger;
+                    const keys = Object.keys(objOther);
+                    // debugger;
+                    keys.forEach(key => {
+                        switch (key) {
+                            case "selected_id":
+                                const node_id = objOther["selected_id"];
+                                // debugger;
+                                jm.select_node(node_id);
+                                break;
+                            default:
+                                debugger;
+                        }
+                    });
+                }
             }
         });
 

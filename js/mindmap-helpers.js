@@ -131,7 +131,7 @@ export function DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
 }
 async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     if (!isMMformatJsmind(jmDisplayed)) throw Error("!isMMformatJsmind(jmDisplayed))");
-    debugger;
+    // debugger;
     const tofTopic = typeof actionTopic;
     if (tofTopic != "string") { throw Error(`Wrong actionTopic type: ${tofTopic} (should be string)`); }
     const objDataMind = jmDisplayed.get_data("node_array");
@@ -150,7 +150,7 @@ async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     checkOurUndoRedoState(objToSave);
     */
     // await saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, (new Date()).toISOString());
-    debugger;
+    // debugger;
     await saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, (new Date()).toISOString());
 }
 
