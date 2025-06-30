@@ -472,6 +472,13 @@ async function stepPrevNext(forward) {
     const toNodeid = toJmnode.getAttribute("nodeid");
     const jmDisplayed = await getJmDisplayed();
     jmDisplayed.select_node(toNodeid);
+    if (toJmnode.style.display == "none") {
+        const node = jmDisplayed.mind.nodes[toNodeid];
+        // FIX-ME: show the node instead
+        const topic = node.topic;
+        modMdc.mkMDCsnackbar(`Node ${topic} is currently not displayed`);
+        return;
+    }
 
     moveIntoView(toJmnode);
     function moveIntoView(toJmnode) {
