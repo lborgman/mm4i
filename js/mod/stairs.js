@@ -13,6 +13,23 @@ const modMdc = await importFc4i("util-mdc");
 const modCustRend = await importFc4i("jsmind-cust-rend");
 // const modShieldClick = await importFc4i("shield-click");
 
+
+const vieweditShieldId = "stair-view-edit-shield";
+const vieweditControlId = "stair-view-edit-control";
+export function exitEditOrView() {
+    const shield = document.getElementById(vieweditShieldId);
+    shield?.remove();
+    const control = document.getElementById(vieweditControlId);
+    control?.remove();
+    clearStairMarks();
+    document.body.classList.remove("editing-stair");
+}
+function clearStairMarks() {
+    const qsa = document.querySelectorAll("jmnodes jmnode div.stair-mark");
+    qsa.forEach(mark => mark.remove());
+}
+
+
 export async function dialogStairs() {
     let theDialog;
     // console.log({ modMdc, modCustRend });
@@ -273,9 +290,7 @@ export async function dialogStairs() {
         stepPrevNext(undefined);
     }
 
-    const vieweditShieldId = "stair-view-edit-shield";
-    const vieweditControlId = "stair-view-edit-control";
-    function exitEditOrView() {
+    function OLDexitEditOrView() {
         const shield = document.getElementById(vieweditShieldId);
         shield?.remove();
         const control = document.getElementById(vieweditControlId);
@@ -340,7 +355,7 @@ export async function dialogStairs() {
         addStairMark(eltJmnode, nStep);
     }
 
-    function clearStairMarks() {
+    function OLDclearStairMarks() {
         const qsa = document.querySelectorAll("jmnodes jmnode div.stair-mark");
         qsa.forEach(mark => mark.remove());
     }
