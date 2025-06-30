@@ -50,7 +50,7 @@ export async function DBsetMindmap(keyName, jsMindMap, lastUpdated, lastSynced, 
         debugger;
         jsMindMap.key = keyName;
     }
-    checkIsFormatStored(jsMindMap);
+    checkIsMMformatStored(jsMindMap, "DBsetMindmap");
     // if (keyName !== jsMindMap.meta.name) throw Error(`key=${keyName} but objMindmap.meta.name=${jsMindMap.meta.name}`);
     const metaName = jsMindMap.meta.name;
     const [metaKey, _oldUpdated, _lastSynced, _privacy] = metaName.split("/");
@@ -92,7 +92,7 @@ export async function DBgetMindmap(key) {
         return JSON.parse(json);
     } else {
         const obj = await modIdbCmn.getDbKey(idbStoreMm, key);
-        checkIsFormatStored(obj);
+        checkIsMMformatStored(obj, "DBgetMindmap");
         return obj;
     }
 }
@@ -106,20 +106,21 @@ export async function DBremoveMindmap(key) {
     }
 }
 
-function isMMformatStored(obj) {
+function checkIsMMformatStored(obj, where) {
+    const tofWhere = typeof where;
+    if (tofWhere != "string") throw Error(`where should be string, is "${tofWhere}`);
+    const throwErr = (what) => {
+        const msg = `(checkIsMmformatStored) ${where}: ${what}`;
+        console.error(msg);
+        debugger;
+        throw Error(msg);
+    }
+
     const ObjKeys = Object.keys(obj).sort();
     const strObjKeys = JSON.stringify(ObjKeys);
     const strData = JSON.stringify([
         "data", "format", "key", "meta"
     ]);
-    if (strObjKeys != strData) return false;
-    return obj.format == "node_array";
-}
-function checkIsFormatStored(obj) {
-    if (!isMMformatStored(obj)) {
-        const msg = "db-mindmaps.js: obj is not in format for storing";
-        console.error(msg);
-        debugger; // eslint-disable-line no-debugger
-        throw Error(msg);
-    }
+    if (strObjKeys != strData) throwErr("strObjKeys != strData)");
+    if (obj.format != "node_array") throwErr('obj.format != "node_array"');
 }

@@ -1184,7 +1184,7 @@ async function addDragBorders(jmDisplayed) {
     }
 }
 export async function displayOurMindmap(mindStored) {
-    modMMhelpers.checkIsMMformatStored(mindStored);
+    modMMhelpers.checkIsMMformatStored(mindStored, "displayOurMindmap");
     const opts = getUsedOptJmDisplay(mindStored);
     const eltJmdisplayContainer = document.getElementById(opts.container);
     if (!eltJmdisplayContainer) { throw Error(`Could not find #${opts.container}`); }
@@ -1194,7 +1194,8 @@ export async function displayOurMindmap(mindStored) {
     oldZoomMove?.remove(); // Remove old jmnodes, FIX-ME: maybe remove when this is fixed in jsmind?
 
     jmDisplayed = await displayMindMap(mindStored);
-    if (!modMMhelpers.isMMformatJsmind(jmDisplayed)) throw Error("!isMMformatJsmind(jmDisplayed");
+    // if (!modMMhelpers.checkIsMMformatJsmind(jmDisplayed)) throw Error("!checkIsMMformatJsmind(jmDisplayed");
+    modMMhelpers.checkIsMMformatJsmind(jmDisplayed, "displayOurMindmap");
     initialUpdateCustomAndShapes(jmDisplayed); // FIX-ME: maybe remove when this is fixed in jsmind?
 
     jmDisplayed.disable_event_handle("dblclick"); // Double click on Windows and Android
@@ -1571,7 +1572,7 @@ export async function pageSetup() {
     let mindInStoredFormat;
     if (mindmapKey) {
         mindInStoredFormat = await modMMhelpers.getMindmap(mindmapKey);
-        modMMhelpers.checkIsMMformatStored(mindInStoredFormat);
+        modMMhelpers.checkIsMMformatStored(mindInStoredFormat, "pageSetup");
         window["current-mindmapKey"] = mindmapKey;
         modMMhelpers.getMindmapPrivacy(mindmapKey).then(privacy => {
             // console.log({ privacy });

@@ -34,7 +34,8 @@ export function getUndoRedoTreeStyle() { return undoRedoTreeStyle; }
 
 async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
     // checkOurUndoRedoState(objState);
-    if (!isMMformatJsmind(jmDisplayed)) throw Error("!isMMformatJsmind(jmMindmap)");
+    // if (!checkIsMMformatJsmind(jmDisplayed)) throw Error("!checkIsMMformatJsmind(jmMindmap)");
+    checkIsMMformatJsmind(jmDisplayed, "saveMindmapPlusUndoRedo");
     // debugger;
     const dbMindmaps = await importFc4i("db-mindmaps");
     const modUndo = await importFc4i("undo-redo-tree");
@@ -125,7 +126,8 @@ export function DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
         debugger; // eslint-disable-line no-debugger
         throw Error(`Wrong number of arguments: ${arguments.length} (should be 2)`);
     }
-    if (!isMMformatJsmind(jmDisplayed)) throw Error("!isMMformatJsmind(jmDisplayed)");
+    // if (!checkIsMMformatJsmind(jmDisplayed)) throw Error("!checkIsMMformatJsmind(jmDisplayed)");
+    checkIsMMformatJsmind(jmDisplayed, "DBrequestSaveMindmapPlusUndoRedo");
     if (typeof actionTopic != "string") {
         console.error(`actionTopic is not string: ${typeof actionTopic}`);
         debugger; // eslint-disable-line no-debugger
@@ -134,7 +136,8 @@ export function DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     throttleDBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic);
 }
 async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
-    if (!isMMformatJsmind(jmDisplayed)) throw Error("!isMMformatJsmind(jmDisplayed))");
+    // if (!checkIsMMformatJsmind(jmDisplayed)) throw Error("!checkIsMMformatJsmind(jmDisplayed))");
+    checkIsMMformatJsmind(jmDisplayed, "DBsaveNowMindmapPlusUndoRedo");
     // debugger;
     const tofTopic = typeof actionTopic;
     if (tofTopic != "string") { throw Error(`Wrong actionTopic type: ${tofTopic} (should be string)`); }
@@ -613,15 +616,31 @@ export async function getSharedMindmaps() {
 
 
 
-
-export function isMMformatJsmind(obj) {
+/**
+ * Check if obj is in the format for a displayed mindmap.
+ *  
+ * @param {Object} obj 
+ * @param {string} where 
+ * 
+ * @throws
+ */
+export function checkIsMMformatJsmind(obj, where) {
+    const throwErr = (what) => {
+        const msg = `(checkIsMmformatJsMind) ${where}: ${what}`;
+        console.error(msg);
+        debugger;
+        throw Error(msg);
+    }
+    const tofObj = typeof obj;
+    if (tofObj != "object") throwErr(`typeof obj == ${tofObj}`);
     const ObjKeys = Object.keys(obj).sort();
     const strObjKeys = JSON.stringify(ObjKeys);
     const strJsmind = JSON.stringify([
         "data", "event_handles", "initialized", "layout", "mind", "options",
         "shortcut", "version", "view"
     ]);
-    return (strObjKeys == strJsmind);
+    // return (strObjKeys == strJsmind);
+    if (strObjKeys != strJsmind) throwErr("strObjKeys != strJsmind");
 }
 
 
@@ -640,39 +659,30 @@ function checkOurUndoRedoState(obj) {
         debugger; // eslint-disable-line no-debugger
         throw Error(msg);
     }
-    checkIsMMformatStored(obj["objDataMind"]);
+    checkIsMMformatStored(obj["objDataMind"], "checkOurUndoRedoState");
 }
 
-
-
-export function checkIsMMformatStored(obj) {
-    if (!isMMformatStored(obj)) {
-        const msg = "mindmap-helpers.js: obj is not in format for storing";
-        console.error(msg);
-        debugger; // eslint-disable-line no-debugger
-        throw Error(msg);
-    }
-}
 
 /**
  * 
  * @param {Object} obj 
- * @returns {boolean}
+ * @param {string} where 
+ * @throws
  */
-function isMMformatStored(obj) {
-    // const dbMindmaps = await importFc4i("db-mindmaps");
+export function checkIsMMformatStored(obj, where) {
+    const tofWhere = typeof where;
+    if (tofWhere != "string") throw Error(`where should be string, is "${tofWhere}`);
+    const throwErr = (what) => {
+        const msg = `(checkIsMmformatStored) ${where}: ${what}`;
+        console.error(msg);
+        debugger;
+        throw Error(msg);
+    }
     const ObjKeys = Object.keys(obj).sort();
     const strObjKeys = JSON.stringify(ObjKeys);
     const strData = JSON.stringify([
         "data", "format", "key", "meta"
     ]);
-    if (strObjKeys != strData) {
-        console.warn(strObjKeys);
-        return false;
-    }
-    if (obj.format != "node_array") {
-        console.warn(obj.format);
-        return false;
-    }
-    return true;
+    if (strObjKeys != strData) { throwErr("strObjKeys != strData"); }
+    if (obj.format != "node_array") { throwErr('obj.format != "node_array"'); }
 }

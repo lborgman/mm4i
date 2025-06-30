@@ -1553,7 +1553,7 @@
                 const history = modUndo.getHistory(mindmapKey);
                 const objHistoryNode = history.navigateToNode(historyNode);
                 const objMindData = objHistoryNode.objDataMind;
-                modMMhelpers.checkIsMMformatStored(objMindData);
+                modMMhelpers.checkIsMMformatStored(objMindData, "event listener change");
 
                 const dbMindmaps = await importFc4i("db-mindmaps");
                 await dbMindmaps.DBsetMindmap(mindmapKey, objMindData);
