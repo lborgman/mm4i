@@ -96,7 +96,8 @@ export class MoveEltAtFixedSpeed {
             }
             const dx = direction * (Date.now() - startTime) * pxlPerMs;
             const newLeft = startLeft + dx;
-            const newLeftPx = `${newLeft} px`.replace("-0px", "0px");
+            const newLeftPx = `${newLeft}px`.replace("-0px", "0px");
+            if (newLeftPx.includes(" ")) throw Error(`space in newLeft: "${newLeft}`);
             elt2move.style.left = newLeftPx;
             requestAnimationFrame(moveFun);
         }
