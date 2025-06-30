@@ -686,3 +686,29 @@ export function checkIsMMformatStored(obj, where) {
     if (strObjKeys != strData) { throwErr("strObjKeys != strData"); }
     if (obj.format != "node_array") { throwErr('obj.format != "node_array"'); }
 }
+
+
+/**
+ * Expand nodes up until root node.
+ *  
+ * @param {object} toJmnode 
+ * @param {object} jmDisplayed 
+ */
+export function ensureNodeVisible(toJmnode, jmDisplayed) {
+    if (toJmnode.style.display == "none") {
+        const toNodeid = toJmnode.getAttribute("nodeid");
+        const node = jmDisplayed.mind.nodes[toNodeid];
+        let p = node.parent;
+        let n = 0;
+        while (n++ < 10) {
+            if (p.isroot) break;
+            jmDisplayed.expand_node(p);
+            p = p.parent;
+            if (!p) break;
+        }
+        // Now showing the node instead
+        // const topic = node.topic;
+        // modMdc.mkMDCsnackbar(`Node ${topic} is currently not displayed`);
+        // return;
+    }
+}

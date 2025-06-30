@@ -469,25 +469,31 @@ async function stepPrevNext(forward) {
 
 
     const toJmnode = toMark.closest("jmnode");
-    const toNodeid = toJmnode.getAttribute("nodeid");
     const jmDisplayed = await getJmDisplayed();
-    jmDisplayed.select_node(toNodeid);
-    if (toJmnode.style.display == "none") {
-        const node = jmDisplayed.mind.nodes[toNodeid];
-        let p = node.parent;
-        let n = 0;
-        while (n++ < 10) {
-            if (p.isroot) break;
-            jmDisplayed.expand_node(p);
-            p = p.parent;
-            if (!p) break;
+    const modMMhelpers = await importFc4i("mindmap-helpers") 
+    modMMhelpers.ensureNodeVisible(toJmnode, jmDisplayed);
+    /*
+    function OLDensureNodeVisible(toJmnode, jmDisplayed) {
+        if (toJmnode.style.display == "none") {
+            const toNodeid = toJmnode.getAttribute("nodeid");
+            const node = jmDisplayed.mind.nodes[toNodeid];
+            let p = node.parent;
+            let n = 0;
+            while (n++ < 10) {
+                if (p.isroot) break;
+                jmDisplayed.expand_node(p);
+                p = p.parent;
+                if (!p) break;
+            }
+            // FIX-ME: show the node instead
+            // const topic = node.topic;
+            // modMdc.mkMDCsnackbar(`Node ${topic} is currently not displayed`);
+            // return;
         }
-        jmDisplayed.select_node(toNodeid);
-        // FIX-ME: show the node instead
-        // const topic = node.topic;
-        // modMdc.mkMDCsnackbar(`Node ${topic} is currently not displayed`);
-        // return;
     }
+    */
+    const toNodeid = toJmnode.getAttribute("nodeid");
+    jmDisplayed.select_node(toNodeid);
 
     moveIntoView(toJmnode);
     function moveIntoView(toJmnode) {
