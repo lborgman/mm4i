@@ -474,10 +474,19 @@ async function stepPrevNext(forward) {
     jmDisplayed.select_node(toNodeid);
     if (toJmnode.style.display == "none") {
         const node = jmDisplayed.mind.nodes[toNodeid];
+        let p = node.parent;
+        let n = 0;
+        while (n++ < 10) {
+            if (p.isroot) break;
+            jmDisplayed.expand_node(p);
+            p = p.parent;
+            if (!p) break;
+        }
+        jmDisplayed.select_node(toNodeid);
         // FIX-ME: show the node instead
-        const topic = node.topic;
-        modMdc.mkMDCsnackbar(`Node ${topic} is currently not displayed`);
-        return;
+        // const topic = node.topic;
+        // modMdc.mkMDCsnackbar(`Node ${topic} is currently not displayed`);
+        // return;
     }
 
     moveIntoView(toJmnode);
