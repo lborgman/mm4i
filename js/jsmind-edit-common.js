@@ -1652,21 +1652,30 @@ export async function pageSetup() {
 
 
         console.log({ arrHits: arrIdHits });
-        function addSpanHitMark(eltJmnode) {
-            if (eltJmnode.querySelector("span.hit-mark")) return;
+        function addSpanHitMark(eltJmnode, cssClass) {
+            const tofClass = typeof cssClass;
+            if (tofClass != "string") throw Error(`cssClass should be "string", was "${tofClass}"`);
+            // if (eltJmnode.querySelector("span.hit-mark")) return;
+            if (eltJmnode.querySelector(`span.${cssClass}`)) return;
             modMdc.mkMDCicon("search_check_2"); // For woff
             const iconHit = "search_check_2";
             const eltSpanHit = mkElt("span", undefined, iconHit);
             eltSpanHit.classList.add("material-symbols-outlined");
-            eltSpanHit.classList.add("hit-mark"); // .jsmind-hit
+            // eltSpanHit.classList.add("hit-mark"); // .jsmind-hit
+            eltSpanHit.classList.add(cssClass); // .jsmind-hit
             eltJmnode.appendChild(eltSpanHit);
         }
         arrIdHits.forEach(id => {
             const node = jmDisplayed.get_node(id);
             const eltJmnode = jsMind.my_get_DOM_element_from_node(node);
             // Add span for hit
-            addSpanHitMark(eltJmnode); // FIX-ME: move
+            // addSpanHitMark(eltJmnode); // FIX-ME: move
+            addSpanHitMark(eltJmnode, "hit-mark"); // FIX-ME: move
             eltJmnode.classList.add("jsmind-hit");
+            setTimeout(() => {
+                // debugger;
+                // modMMhelpers.markPathToRoot(eltJmnode, "hit-mark-path", jmDisplayed);
+            }, 1000);
         });
 
         if (arrIdHits.length == 0) {

@@ -699,8 +699,8 @@ export async function ensureNodeVisible(toJmnode, jmDisplayed) {
         const toNodeid = toJmnode.getAttribute("nodeid");
         const node = jmDisplayed.mind.nodes[toNodeid];
         let p = node.parent;
-        let n = 0;
         const parents = [];
+        let n = 0;
         while (n++ < 10) {
             if (p.isroot) break;
             if (!p) break;
@@ -721,5 +721,33 @@ export async function ensureNodeVisible(toJmnode, jmDisplayed) {
         // const topic = node.topic;
         // modMdc.mkMDCsnackbar(`Node ${topic} is currently not displayed`);
         // return;
+    }
+}
+
+/**
+ * 
+ * @param {object} jmnodeStart 
+ * @param {string} cssClass 
+ * @param {object} jmDisplayed 
+ */
+export function markPathToRoot(jmnodeStart, cssClass, jmDisplayed) {
+    // hit-mark
+    const tn = jmnodeStart.tagName;
+    if (tn != "JMNODE") throw Error(`Expected "JMNODE", but got "${tn}"`);
+    const tofClass = typeof cssClass;
+    if (tofClass != "string") throw Error(`cssClass should be string, but is "${tofClass}"`);
+
+    const jsMind = window["jsMind"]; // Not defined when loading this module
+
+    const startNodeid = jmnodeStart.getAttribute("nodeid");
+    const start_node = jmDisplayed.mind.nodes[startNodeid];
+    let parent_node = start_node.parent;
+    let n = 0;
+    while (n++ < 10) {
+        if (!parent_node) break;
+        if (parent_node.isroot) break;
+        parent_node = parent_node.parent;
+        const parentJmNode = jsMind.my_get_DOM_element_from_node(parent_node);
+        parentJmNode.classList.add(cssClass);
     }
 }
