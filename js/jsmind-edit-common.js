@@ -1679,8 +1679,12 @@ export async function pageSetup() {
             selectHit(num);
         })
         setHitTo(1);
-        function selectHit(num) {
-            setTimeout(() => jmDisplayed.select_node(arrIdHits[num - 1]), 200);
+        async function selectHit(num) {
+            const node_hit_id = arrIdHits[num - 1];
+            const node_hit = jmDisplayed.get_node(node_hit_id);
+            const eltJmnodeHit = jsMind.my_get_DOM_element_from_node(node_hit);
+            await modMMhelpers.ensureNodeVisible(eltJmnodeHit, jmDisplayed);
+            setTimeout(() => { jmDisplayed.select_node(node_hit_id); }, 200);
         }
         function setHitTo(num) {
             setBtnCurrNum(num);
