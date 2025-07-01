@@ -471,27 +471,7 @@ async function stepPrevNext(forward) {
     const toJmnode = toMark.closest("jmnode");
     const jmDisplayed = await getJmDisplayed();
     const modMMhelpers = await importFc4i("mindmap-helpers") 
-    modMMhelpers.ensureNodeVisible(toJmnode, jmDisplayed);
-    /*
-    function OLDensureNodeVisible(toJmnode, jmDisplayed) {
-        if (toJmnode.style.display == "none") {
-            const toNodeid = toJmnode.getAttribute("nodeid");
-            const node = jmDisplayed.mind.nodes[toNodeid];
-            let p = node.parent;
-            let n = 0;
-            while (n++ < 10) {
-                if (p.isroot) break;
-                jmDisplayed.expand_node(p);
-                p = p.parent;
-                if (!p) break;
-            }
-            // FIX-ME: show the node instead
-            // const topic = node.topic;
-            // modMdc.mkMDCsnackbar(`Node ${topic} is currently not displayed`);
-            // return;
-        }
-    }
-    */
+    await modMMhelpers.ensureNodeVisible(toJmnode, jmDisplayed);
     const toNodeid = toJmnode.getAttribute("nodeid");
     jmDisplayed.select_node(toNodeid);
 

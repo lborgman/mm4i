@@ -694,17 +694,28 @@ export function checkIsMMformatStored(obj, where) {
  * @param {object} toJmnode 
  * @param {object} jmDisplayed 
  */
-export function ensureNodeVisible(toJmnode, jmDisplayed) {
+export async function ensureNodeVisible(toJmnode, jmDisplayed) {
     if (toJmnode.style.display == "none") {
         const toNodeid = toJmnode.getAttribute("nodeid");
         const node = jmDisplayed.mind.nodes[toNodeid];
         let p = node.parent;
         let n = 0;
+        const parents = [];
         while (n++ < 10) {
             if (p.isroot) break;
-            jmDisplayed.expand_node(p);
-            p = p.parent;
             if (!p) break;
+            // jmDisplayed.expand_node(p);
+            parents.push(p);
+            p = p.parent;
+        }
+        let nextP = parents.pop();
+        while (nextP) {
+            jmDisplayed.expand_node(nextP);
+            nextP = parents.pop();
+            if (!nextP) break;
+            // FIX-ME: the next statement causes the screen to scroll down.
+            //   I have absolutely no idea why. Chrome bug?
+            await modTools.waitSeconds(1.0);
         }
         // Now showing the node instead
         // const topic = node.topic;
