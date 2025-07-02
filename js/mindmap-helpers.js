@@ -710,12 +710,21 @@ export async function ensureNodeVisible(toJmnode, jmDisplayed) {
         }
         let nextP = parents.pop();
         while (nextP) {
-            jmDisplayed.expand_node(nextP);
+            const wasExpanded = nextP.expanded;
+            const tofExpanded = typeof wasExpanded;
+            if (tofExpanded != "boolean") {
+                const msg = `nextP.expanded is not boolean: ${tofExpanded}`;
+                console.error(msg);
+                debugger; // eslint-disable-line no-debugger
+                throw Error(msg);
+            }
+            if (!wasExpanded) { jmDisplayed.expand_node(nextP); }
             nextP = parents.pop();
             if (!nextP) break;
             // FIX-ME: the next statement causes the screen to scroll down.
             //   I have absolutely no idea why. Chrome bug?
-            await modTools.waitSeconds(1.0);
+            //   Solution: added "await".
+            if (!wasExpanded) { await modTools.waitSeconds(1.0); }
         }
         // Now showing the node instead
         // const topic = node.topic;
@@ -750,4 +759,43 @@ export function markPathToRoot(jmnodeStart, cssClass, jmDisplayed) {
         const parentJmNode = jsMind.my_get_DOM_element_from_node(parent_node);
         parentJmNode.classList.add(cssClass);
     }
+}
+
+/**
+ * Add span for hit mark etc
+ * 
+ * @param {object} eltJmnode 
+ * @param {string} cssClass 
+ * @param {string} iconName
+ * @returns 
+ */
+export async function addSpan4Mark(eltJmnode, cssClass, iconName) {
+    const modMdc = await importFc4i("util-mdc");
+    const tofClass = typeof cssClass;
+    if (tofClass != "string") throw Error(`cssClass should be "string", was "${tofClass}"`);
+    const arrIconNames = [
+        "search_check_2",
+    ];
+    // For woff:
+    arrIconNames.forEach(iconName => { modMdc.mkMDCicon(iconName); });
+    if (!arrIconNames.includes(iconName)) {
+        console.log({ arrIconNames });
+        const msg = `addSpan4Mark: iconName "${iconName}" is not supported`;
+        console.error(msg);
+        debugger; // eslint-disable-line no-debugger
+        throw Error(msg);
+    }
+    const cssClass4Mark = "span-4-mark";
+    let eltSpan4mark = eltJmnode.querySelector(cssClass4Mark);
+    if (eltSpan4mark) {
+        eltSpan4mark.textContent = "";
+    } else {
+        eltSpan4mark = mkElt("span", undefined);
+        eltSpan4mark.classList.add(cssClass4Mark);
+        eltSpan4mark.classList.add("material-symbols-outlined");
+        eltJmnode.appendChild(eltSpan4mark);
+    }
+    // eltSpan4mark.appendChild(iconName);
+    eltSpan4mark.append(iconName);
+    eltSpan4mark.classList.add(cssClass); // .jsmind-hit
 }

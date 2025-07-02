@@ -1654,48 +1654,11 @@ export async function pageSetup() {
         console.log({ arrHits: arrIdHits });
 
 
-        // FIX-ME: move
-        /**
-         * Add span for hit mark etc
-         * 
-         * @param {object} eltJmnode 
-         * @param {string} cssClass 
-         * @param {string} iconName
-         * @returns 
-         */
-        function addSpan4Mark(eltJmnode, cssClass, iconName) {
-            const tofClass = typeof cssClass;
-            if (tofClass != "string") throw Error(`cssClass should be "string", was "${tofClass}"`);
-            const arrIconNames = [
-                "search_check_2",
-            ];
-            // For woff:
-            arrIconNames.forEach(iconName => { modMdc.mkMDCicon(iconName); });
-            if (!arrIconNames.includes(iconName)) {
-                console.log({ arrIconNames });
-                const msg = `addSpan4Mark: iconName "${iconName}" is not supported`;
-                console.error(msg);
-                debugger; // eslint-disable-line no-debugger
-                throw Error(msg);
-            }
-            const cssClass4Mark = "span-4-mark";
-            let eltSpan4mark = eltJmnode.querySelector(cssClass4Mark);
-            if (eltSpan4mark) {
-                eltSpan4mark.textContent = "";
-            } else {
-                eltSpan4mark = mkElt("span", undefined);
-                eltSpan4mark.classList.add(cssClass4Mark);
-                eltSpan4mark.classList.add("material-symbols-outlined");
-                eltJmnode.appendChild(eltSpan4mark);
-            }
-            // eltSpan4mark.appendChild(iconName);
-            eltSpan4mark.append(iconName);
-            eltSpan4mark.classList.add(cssClass); // .jsmind-hit
-        }
+
         arrIdHits.forEach(id => {
             const node = jmDisplayed.get_node(id);
             const eltJmnode = jsMind.my_get_DOM_element_from_node(node);
-            addSpan4Mark(eltJmnode, "hit-mark", "search_check_2"); // FIX-ME: move
+            modMMhelpers.addSpan4Mark(eltJmnode, "hit-mark", "search_check_2"); // FIX-ME: move
             eltJmnode.classList.add("jsmind-hit");
             setTimeout(() => {
                 // debugger;
