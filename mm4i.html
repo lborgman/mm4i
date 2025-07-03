@@ -1350,33 +1350,37 @@
                     btnBookmark.classList.add("bookmarked");
                 } else {
                     const btnRemove = modMdc.mkMDCbutton("remove");
-                    const btnRename = modMdc.mkMDCbutton("rename");
-                    const divButtons = mkElt("div", undefined, [
-                        btnRemove,
-                        btnRename,
-                    ]);
+                    // const btnRename = modMdc.mkMDCbutton("rename");
                     const inpName = modMdc.mkMDCtextFieldInput();
-                    const tfName = modMdc.mkMDCtextFieldOutlined("Bookmark name", inpName);
+                    const tfName = modMdc.mkMDCtextFieldOutlined("New bookmark name", inpName);
                     const btnSaveName = modMdc.mkMDCbutton("Save");
                     const divRename = mkElt("div", undefined, [
                         tfName,
                         btnSaveName,
                     ]);
                     divRename.style = `
-                        display: none;
+                        display: flex;
+                        flex-direction: row;
                         gap: 5px;
+                        padding: 10px;
                     `;
-                    const body = mkElt("div", undefined, [
-                        mkElt("h2", undefined, "Change bookmark"),
-                        divButtons,
+                    divRename.classList.add("mdc-card");
+
+                    const divRemove = mkElt("div", undefined, btnRemove);
+                    const divActions = mkElt("div", undefined, [
+                        divRemove,
                         divRename,
                     ]);
+                    divActions.style = `
+                        display: flex;
+                        flex-direction: column;
+                        gap: 20px;
+                    `;
+                    const body = mkElt("div", undefined, [
+                        mkElt("h2", undefined, "Bookmark"),
+                        divActions,
+                    ]);
                     let dlg;
-                    btnRename.addEventListener("click", evt => {
-                        evt.stopPropagation();
-                        divButtons.style.display = "none";
-                        divRename.style.display = "flex";
-                    });
                     btnRemove.addEventListener("click", evt => {
                         evt.stopPropagation();
                         lblChecked.classList.remove("bookmarked");
@@ -1389,15 +1393,17 @@
                         const val = inpName.value.trim();
                         btnSaveName.inert = val.length == 0;
                     });
+                    function setBookmarkName(newName) {
+                        const spanBookmarkTopic = lblChecked.querySelector("span.bookmark-topic");
+                        const spanName = spanBookmarkTopic.lastElementChild;
+                        spanName.textContent = newName;
+                    }
                     btnSaveName.addEventListener("click", evt => {
                         evt.stopPropagation();
                         const eltNotYet = mkElt("span", { style: "color:red" },
-                            "Renaming bookmark only partly implemented yet");
+                            "Naming bookmarks only partly implemented yet");
                         modMdc.mkMDCsnackbar(eltNotYet);
-                        const spanBookmarkTopic = lblChecked.querySelector("span.bookmark-topic");
-                        const spanName = spanBookmarkTopic.lastElementChild;
-                        spanName.textContent = inpName.value.trim();
-                        debugger;
+                        setBookmarkName(inpName.value.trim());
                         dlg.mdc.close();
                     });
                     // debugger;
