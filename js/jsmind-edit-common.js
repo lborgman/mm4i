@@ -1457,13 +1457,14 @@ export async function pageSetup() {
         btnJsmindSearch.id = "jsmind-search-button";
         btnJsmindSearch.classList.add("jsmind-actions");
         jsMindContainer.appendChild(divJsmindSearch);
-        btnJsmindSearch.addEventListener("click", evt => {
+        btnJsmindSearch.addEventListener("click", async evt => {
             // console.log("btnJsmindSearch");
             evt.stopPropagation();
             toggleSearchInputs();
             const eltJmnodes = getJmnodesFromJm(jmDisplayed);
             eltJmnodes.classList.remove("showing-hits");
             clearSearchHits();
+            await modMMhelpers.removeAllSpan4marks();
             if (visibleSearchInputs()) {
                 const divInputs = document.getElementById("jsmind-search-inputs");
                 if (!divInputs) { throw Error(`Could not find #jsmind-search-inputs`); }
@@ -1535,7 +1536,8 @@ export async function pageSetup() {
     function visibleSearchInputs() { return jsMindContainer.classList.contains("display-jsmind-search"); }
     const restartJsmindSearch = (() => {
         let tmr;
-        return () => {
+        return async () => {
+            await modMMhelpers.removeAllSpan4marks();
             clearTimeout(tmr);
             tmr = setTimeout(() => doJsmindSearch(), 1000);
         }
@@ -1661,8 +1663,7 @@ export async function pageSetup() {
             modMMhelpers.addSpan4Mark(eltJmnode, "hit-mark", "search_check_2"); // FIX-ME: move
             eltJmnode.classList.add("jsmind-hit");
             setTimeout(() => {
-                // debugger;
-                // modMMhelpers.markPathToRoot(eltJmnode, "hit-mark-path", jmDisplayed);
+                modMMhelpers.markPathToRoot(eltJmnode, "hit-mark-path", jmDisplayed);
             }, 1000);
         });
 

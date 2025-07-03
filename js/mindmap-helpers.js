@@ -675,7 +675,7 @@ export function checkIsMMformatStored(obj, where) {
     const throwErr = (what) => {
         const msg = `(checkIsMmformatStored) ${where}: ${what}`;
         console.error(msg);
-        debugger;
+        debugger; // eslint-disable-line no-ebugger;
         throw Error(msg);
     }
     const ObjKeys = Object.keys(obj).sort();
@@ -721,15 +721,11 @@ export async function ensureNodeVisible(toJmnode, jmDisplayed) {
             if (!wasExpanded) { jmDisplayed.expand_node(nextP); }
             nextP = parents.pop();
             if (!nextP) break;
-            // FIX-ME: the next statement causes the screen to scroll down.
-            //   I have absolutely no idea why. Chrome bug?
-            //   Solution: added "await".
+            // The next statement caused the screen to scroll down. Solution: added "await".
             if (!wasExpanded) { await modTools.waitSeconds(1.0); }
         }
         // Now showing the node instead
-        // const topic = node.topic;
-        // modMdc.mkMDCsnackbar(`Node ${topic} is currently not displayed`);
-        // return;
+        // const topic = node.topic; modMdc.mkMDCsnackbar(`${topic} is currently hidden`);
     }
 }
 
@@ -752,15 +748,31 @@ export function markPathToRoot(jmnodeStart, cssClass, jmDisplayed) {
     const start_node = jmDisplayed.mind.nodes[startNodeid];
     let parent_node = start_node.parent;
     let n = 0;
+    // debugger; // eslint-disable-line no-
     while (n++ < 10) {
         if (!parent_node) break;
         if (parent_node.isroot) break;
-        parent_node = parent_node.parent;
         const parentJmNode = jsMind.my_get_DOM_element_from_node(parent_node);
-        parentJmNode.classList.add(cssClass);
+        addSpan4Mark(parentJmNode, cssClass, "search_check_2");
+        parent_node = parent_node.parent;
+    }
+
+}
+const cssClass4Mark = "span-4-mark";
+export async function removeAllSpan4marks() {
+    const eltJmnodes = document.querySelector("jmnodes");
+    if (!eltJmnodes) throw Error("Did not find <jmnode>");
+    const arr = [...eltJmnodes.querySelectorAll(`span.${cssClass4Mark}`)];
+    arr.forEach(elt => elt.remove());
+    await modTools.wait4mutations(eltJmnodes, 50);
+    const elt = eltJmnodes.querySelector(`span.${cssClass4Mark}`);
+    if (elt) {
+        console.log({ elt });
+        debugger;
+        const arr = [...eltJmnodes.querySelectorAll(`span.${cssClass4Mark}`)];
+        console.log({ arr });
     }
 }
-
 /**
  * Add span for hit mark etc
  * 
@@ -785,16 +797,12 @@ export async function addSpan4Mark(eltJmnode, cssClass, iconName) {
         debugger; // eslint-disable-line no-debugger
         throw Error(msg);
     }
-    const cssClass4Mark = "span-4-mark";
-    let eltSpan4mark = eltJmnode.querySelector(cssClass4Mark);
-    if (eltSpan4mark) {
-        eltSpan4mark.textContent = "";
-    } else {
-        eltSpan4mark = mkElt("span", undefined);
-        eltSpan4mark.classList.add(cssClass4Mark);
-        eltSpan4mark.classList.add("material-symbols-outlined");
-        eltJmnode.appendChild(eltSpan4mark);
-    }
+    const eltOldSpan4mark = eltJmnode.querySelector(`span.${cssClass4Mark}`);
+    eltOldSpan4mark?.remove();
+    const eltSpan4mark = mkElt("span", undefined);
+    eltSpan4mark.classList.add(cssClass4Mark);
+    eltSpan4mark.classList.add("material-symbols-outlined");
+    eltJmnode.appendChild(eltSpan4mark);
     // eltSpan4mark.appendChild(iconName);
     eltSpan4mark.append(iconName);
     eltSpan4mark.classList.add(cssClass); // .jsmind-hit
