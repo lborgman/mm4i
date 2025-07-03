@@ -474,11 +474,14 @@ export function setMdcInputDisabled(input, disabled) {
     }
     input.disabled = disabled;
 }
-export function getMdcTfObj(input) { return input["our-mdc-text-field"]; }
+export function getMdcTfObj(input) {
+    // return input["our-mdc-text-field"];
+    return input.closest(".mdc-text-field");
+}
 export function setMdcInputValid(input, valid) {
     const tfObj = getMdcTfObj(input);
     if (tfObj) {
-        tfObj.valid = valid;
+        tfObj.myMdc.valid = valid;
     } else {
         // FIXME: reminder, should every input be mdc???
         debugger; // eslint-disable-line no-debugger

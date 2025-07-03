@@ -1352,6 +1352,7 @@
                     const btnRemove = modMdc.mkMDCbutton("remove");
                     // const btnRename = modMdc.mkMDCbutton("rename");
                     const inpName = modMdc.mkMDCtextFieldInput();
+                    inpName.value = getCheckedBookmarkName();
                     const tfName = modMdc.mkMDCtextFieldOutlined("New bookmark name", inpName);
                     const btnSaveName = modMdc.mkMDCbutton("Save");
                     const divRename = mkElt("div", undefined, [
@@ -1391,12 +1392,36 @@
                     btnSaveName.inert = true;
                     inpName.addEventListener("input", evt => {
                         const val = inpName.value.trim();
+
+                        const oldNames = getBookmarkNames();
+                        if (oldNames.includes(val)) {
+                            btnSaveName.inert = true;
+                            modMdc.setValidityMDC(inpName, `Name "${val}" already in use`);
+                            return;
+                        }
+                        modMdc.setValidityMDC(inpName, "");
                         btnSaveName.inert = val.length == 0;
                     });
                     function setBookmarkName(newName) {
                         const spanBookmarkTopic = lblChecked.querySelector("span.bookmark-topic");
                         const spanName = spanBookmarkTopic.lastElementChild;
                         spanName.textContent = newName;
+                    }
+                    function getCheckedBookmarkName() {
+                        return getBookmarkName(lblChecked);
+                    }
+                    function getBookmarkName(lblState) {
+                        const spanBookmarkTopic = lblState.querySelector("span.bookmark-topic");
+                        const spanName = spanBookmarkTopic.lastElementChild;
+                        return spanName.textContent;
+                    }
+                    function getBookmarkNames() {
+                        const arr = [...document.querySelectorAll("label.mm4i-history-node")];
+                        return arr.map(lbl => {
+                            const spanBookmarkTopic = lbl.querySelector("span.bookmark-topic");
+                            const spanName = spanBookmarkTopic.lastElementChild;
+                            return spanName.textContent;
+                        });
                     }
                     btnSaveName.addEventListener("click", evt => {
                         evt.stopPropagation();
