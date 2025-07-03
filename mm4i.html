@@ -1031,23 +1031,29 @@
         }
 
 
-        span.hot-topic {
+        #btn-bookmark.bookmarked {
+            color: red;
+        }
+
+        span.bookmark-topic {
             display: none;
             background-color: black;
             color: red;
             padding: 2px 4px;
             border-radius: 4px;
+            gap: 5px;
+            align-items: center;
         }
 
         span.auto-topic {
             display: inline;
         }
 
-        .hot span.hot-topic {
-            display: inline;
+        .bookmarked span.bookmark-topic {
+            display: inline-flex;
         }
 
-        .hot span.auto-topic {
+        .bookmarked span.auto-topic {
             display: none;
         }
 
@@ -1324,21 +1330,84 @@
             spanHistoryHeaderLeft.appendChild(spanLinearTree);
             spanHistoryHeaderLeft.id = "span-history-left";
 
-            const btnWhatsHot = modMdc.mkMDCiconButton("whatshot");
-            btnWhatsHot.id = "btn-whats-hot";
-            btnWhatsHot.inert = true;
-            spanHistoryHeaderLeft.appendChild(btnWhatsHot);
+            const btnBookmark = modMdc.mkMDCiconButton("bookmark");
+            btnBookmark.id = "btn-bookmark";
+            btnBookmark.inert = true;
+            spanHistoryHeaderLeft.appendChild(btnBookmark);
 
-            btnWhatsHot.addEventListener("click", evt => {
+            btnBookmark.addEventListener("click", evt => {
                 evt.stopPropagation();
-                dialogWhatsHot();
+                dialogBookmark(btnBookmark);
             });
-            async function dialogWhatsHot() {
+            async function dialogBookmark(btnBookmark) {
                 const divList = document.getElementById("mm4i-history-list");
                 const radChecked = divList.querySelector("input:checked");
                 const lblChecked = radChecked.closest("label");
-                lblChecked.classList.toggle("hot");
-                // debugger;
+                const isBookmarked = lblChecked.classList.contains("bookmarked");
+                // lblChecked.classList.toggle("bookmarked");
+                if (!isBookmarked) {
+                    lblChecked.classList.add("bookmarked");
+                    btnBookmark.classList.add("bookmarked");
+                } else {
+                    const btnRemove = modMdc.mkMDCbutton("remove");
+                    const btnRename = modMdc.mkMDCbutton("rename");
+                    const divButtons = mkElt("div", undefined, [
+                        btnRemove,
+                        btnRename,
+                    ]);
+                    const inpName = modMdc.mkMDCtextFieldInput();
+                    const tfName = modMdc.mkMDCtextFieldOutlined("Bookmark name", inpName);
+                    const btnSaveName = modMdc.mkMDCbutton("Save");
+                    const divRename = mkElt("div", undefined, [
+                        tfName,
+                        btnSaveName,
+                    ]);
+                    divRename.style = `
+                        display: none;
+                        gap: 5px;
+                    `;
+                    const body = mkElt("div", undefined, [
+                        mkElt("h2", undefined, "Change bookmark"),
+                        divButtons,
+                        divRename,
+                    ]);
+                    let dlg;
+                    btnRename.addEventListener("click", evt => {
+                        evt.stopPropagation();
+                        divButtons.style.display = "none";
+                        divRename.style.display = "flex";
+                    });
+                    btnRemove.addEventListener("click", evt => {
+                        evt.stopPropagation();
+                        lblChecked.classList.remove("bookmarked");
+                        btnBookmark.classList.remove("bookmarked");
+                        modMdc.mkMDCsnackbar("Removed bookmark");
+                        dlg.mdc.close();
+                    });
+                    btnSaveName.inert = true;
+                    inpName.addEventListener("input", evt => {
+                        const val = inpName.value.trim();
+                        btnSaveName.inert = val.length == 0;
+                    });
+                    btnSaveName.addEventListener("click", evt => {
+                        evt.stopPropagation();
+                        const eltNotYet = mkElt("span", { style: "color:red" },
+                            "Renaming bookmark only partly implemented yet");
+                        modMdc.mkMDCsnackbar(eltNotYet);
+                        const spanBookmarkTopic = lblChecked.querySelector("span.bookmark-topic");
+                        const spanName = spanBookmarkTopic.lastElementChild;
+                        spanName.textContent = inpName.value.trim();
+                        debugger;
+                        dlg.mdc.close();
+                    });
+                    // debugger;
+                    dlg = await modMdc.mkMDCdialog(body);
+                    const res = await new Promise((resolve) => {
+                        dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async (evt) => {
+                        }));
+                    });
+
+                }
             }
 
             const valCurrent = settingUndoRedoTree.value ? "tree" : "linear";
@@ -1399,9 +1468,15 @@
                 const autoTopic = `${node.actionTopic || "N/A"} `;
                 const spanAutoTopic = mkElt("span", undefined, autoTopic);
                 spanAutoTopic.classList.add("auto-topic");
-                const spanHotTopic = mkElt("span", undefined, "Hot!");
-                spanHotTopic.classList.add("hot-topic");
-                const spanTopic = mkElt("span", undefined, [spanAutoTopic, spanHotTopic]);
+                const spanBookmarkName = mkElt("span", undefined, "Bookmarked!");
+                const iconBookmark = modMdc.mkMDCicon("bookmark");
+                iconBookmark.style.zoom = 0.7;
+                const spanBookmarkedTopic = mkElt("span", undefined, [
+                    iconBookmark,
+                    spanBookmarkName
+                ]);
+                spanBookmarkedTopic.classList.add("bookmark-topic");
+                const spanTopic = mkElt("span", undefined, [spanAutoTopic, spanBookmarkedTopic]);
                 const eltNode = mkElt("label", undefined, [radNode, spanTopic]);
                 // spanTopic.mm4iAutoTopic = autoTopic;
                 eltNode.classList.add("mm4i-history-node");
@@ -1416,8 +1491,8 @@
                 eltNoChanges.id = "mm4i-history-no-changes";
                 divHistoryList.appendChild(eltNoChanges);
             } else {
-                const btnWhatsHot = document.getElementById("btn-whats-hot");
-                btnWhatsHot.inert = false;
+                const btnBookmark = document.getElementById("btn-bookmark");
+                btnBookmark.inert = false;
                 modUndo.mapHistoryTree(mindmapKey, funAddStateRow);
             }
         }
@@ -1442,6 +1517,20 @@
         eltHistory.classList.add("display-none");
 
         document.body.appendChild(eltHistory);
+
+        divHistoryList.addEventListener("change", evt => {
+            const target = evt.target;
+            console.log({ target });
+            // debugger;
+            const lblTarget = target.closest("label");
+            const isBookmarked = lblTarget.classList.contains("bookmarked");
+            const btnBookmark = document.getElementById("btn-bookmark");
+            if (isBookmarked) {
+                btnBookmark.classList.add("bookmarked");
+            } else {
+                btnBookmark.classList.remove("bookmarked");
+            }
+        })
         updateHistoryPanel();
 
         const resizingHistory = { bcr: undefined, client: undefined };
