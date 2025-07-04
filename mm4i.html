@@ -1341,13 +1341,14 @@
 
 
 
+        modMMhelpers.setUndoRedoTreeStyle(settingUndoRedoTree.value);
+
         const mindmapKey = await modJsEditCommon.pageSetup();
         const aboutLink = makeAbsLink("https://lborgman.github.io/mm4i/");
         modJsEditCommon.addToPageMenu("About", aboutLink);
 
 
-        // modMMhelpers.setUndoRedoTreeStyle(true);
-        modMMhelpers.setUndoRedoTreeStyle(settingUndoRedoTree.value);
+        // modMMhelpers.setUndoRedoTreeStyle(settingUndoRedoTree.value);
 
 
         const iconHistory = modMdc.mkMDCicon("history");

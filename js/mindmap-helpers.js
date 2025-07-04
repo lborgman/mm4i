@@ -32,49 +32,46 @@ export function setUndoRedoTreeStyle(useTreeStyle) {
  */
 export function getUndoRedoTreeStyle() { return undoRedoTreeStyle; }
 
+export async function startUndoRedo(keyName) {
+    const dbMindmaps = await importFc4i("db-mindmaps");
+    const objBaseMm = (await dbMindmaps.DBgetMindmap(keyName)) || jmDisplayed;
+    if (undoRedoTreeStyle === undefined) {
+        throw Error("setUndoRedoTreeStyle(true/false) has not been called");
+    }
+    const funBranch = undoRedoTreeStyle ? _ourFunBranch : undefined;
+    async function _ourFunBranch(defaultBranch, arrBrancheTopics) {
+        if (!Number.isInteger(defaultBranch) || defaultBranch < 0) { throw Error(`Invalid defaultBranch "${defaultBranch}"`); }
+        console.log(`  ourFunBranch called with defaultBranch: ${defaultBranch}, arrBranches:`, arrBrancheTopics);
+        const importFc4i = window["importFc4i"];
+        const modTools = await importFc4i("toolsJs");
+        await modTools.waitSeconds(0.5); // Simulate some delay
+        const branch = defaultBranch;
+        const topic = arrBrancheTopics[branch];
+        if (!topic) {
+            debugger; // eslint-disable-line no-debugger
+            throw Error(`No topic found for branch ${branch}`);
+        }
+        console.log(`  will redo "${topic}", branch: ${branch}`);
+        return branch; // Always return the default branch for now
+    }
+    const other = {
+        selected_id: "root"
+    }
+    const objInitialState = {
+        objDataMind: objBaseMm,
+        other
+    }
+    checkOurUndoRedoState(objInitialState);
+    const modUndo = await importFc4i("undo-redo-tree");
+    modUndo.addUndoRedo(keyName, objInitialState, funBranch);
+}
+
 async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
-    // checkOurUndoRedoState(objState);
-    // if (!checkIsMMformatJsmind(jmDisplayed)) throw Error("!checkIsMMformatJsmind(jmMindmap)");
     checkIsMMformatJsmind(jmDisplayed, "saveMindmapPlusUndoRedo");
-    // debugger;
     const dbMindmaps = await importFc4i("db-mindmaps");
     const modUndo = await importFc4i("undo-redo-tree");
-    // debugger; // eslint-disable-line no-debugger
     if (!modUndo.hasUndoRedo(keyName)) {
-        // const objBaseMm = (await dbMindmaps.DBgetMindmap(keyName)) || objState.objDataMind;
-        const objBaseMm = (await dbMindmaps.DBgetMindmap(keyName)) || jmDisplayed;
-        // const funBranch = undefined; // FIX-ME: should be a function to undo/redo
-        if (undoRedoTreeStyle === undefined) {
-            throw Error("setUndoRedoTreeStyle(true/false) has not been called");
-        }
-        const funBranch = undoRedoTreeStyle ? _ourFunBranch : undefined;
-        async function _ourFunBranch(defaultBranch, arrBrancheTopics) {
-            // debugger;
-            if (!Number.isInteger(defaultBranch) || defaultBranch < 0) { throw Error(`Invalid defaultBranch "${defaultBranch}"`); }
-            console.log(`  ourFunBranch called with defaultBranch: ${defaultBranch}, arrBranches:`, arrBrancheTopics);
-            const importFc4i = window["importFc4i"];
-            const modTools = await importFc4i("toolsJs");
-            await modTools.waitSeconds(0.5); // Simulate some delay
-            const branch = defaultBranch;
-            const topic = arrBrancheTopics[branch];
-            if (!topic) {
-                debugger; // eslint-disable-line no-debugger
-                throw Error(`No topic found for branch ${branch}`);
-            }
-            console.log(`  will redo "${topic}", branch: ${branch}`);
-            return branch; // Always return the default branch for now
-        }
-        // const funUpdateHistory = (keyName) => console.log("funUpdateHistory", keyName);
-        const other = {
-            selected_id: "root"
-        }
-        const objInitialState = {
-            objDataMind: objBaseMm,
-            other
-        }
-        checkOurUndoRedoState(objInitialState);
-        // modUndo.addUndoRedo(keyName, objBaseMm, funBranch);
-        modUndo.addUndoRedo(keyName, objInitialState, funBranch);
+        await startUndoRedo(keyName);
     }
     const selected_id = jmDisplayed.get_selected_node().id;
     const modZoomMove = await importFc4i("zoom-move");

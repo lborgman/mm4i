@@ -1616,7 +1616,7 @@ export async function pageSetup() {
     const nowBefore = Date.now();
 
     await displayOurMindmap(mindInStoredFormat);
-
+    modMMhelpers.startUndoRedo(mindmapKey);
 
 
 
