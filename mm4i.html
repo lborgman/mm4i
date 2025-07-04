@@ -1030,6 +1030,17 @@
             color: black;
         }
 
+        .persistent-bookmark {
+            min-height: 32px;
+            padding: 4px;
+            display: flex;
+            flex-direction: row;
+            gap: 4px;
+            align-items: center;
+            NObackground-color: orange;
+            color: black;
+        }
+
 
         #btn-bookmark.bookmarked {
             color: red;
@@ -1593,6 +1604,27 @@
             const dbMindmaps = await importFc4i("db-mindmaps");
             const arrBm = await dbMindmaps.DBgetAllMindmapBookmarks(mindmapKey);
             console.log({ arrBm });
+            if (arrBm.length > 0) {
+                const divPersistent = mkElt("div", { class: "mdc-card" });
+                divPersistent.style = `
+                    padding: 10px;
+                    margin: 0 10px;
+                    background-color: orange;
+                `;
+                const eltPersistenHeader = mkElt("div", undefined, "Saved bookmarks:");
+                divPersistent.appendChild(eltPersistenHeader);
+                divHistoryList.appendChild(divPersistent);
+                arrBm.forEach(bm => {
+                    console.log({ bm });
+                    const { bmName, jsmindmap } = bm;
+                    console.log({ bmName, jsmindmap });
+                    const radNode = mkElt("input", { type: "radio", name: "undo-redo-state" });
+                    radNode.valueAsObject = jsmindmap;
+                    const eltBm = mkElt("label", undefined, [radNode, bmName]);
+                    eltBm.classList.add("persistent-bookmark");
+                    divPersistent.appendChild(eltBm);
+                });
+            }
         }
 
         const imgHistoryResizer = mkElt("div");
@@ -1747,12 +1779,23 @@
                     divZM.remove();
                 }
 
-                const modUndo = await importFc4i("undo-redo-tree");
-                const historyNode = target.valueAsObject;
+                const lblPersistent = target.closest(".persistent-bookmark");
+                let objMindData;
+                if (lblPersistent) {
+                    debugger;
+                    objMindData = target.valueAsObject;
+                    // modMMhelpers.checkIsMMformatStored(objMindData, "persistent bookmark");
+                    // return;
+                } else {
 
-                const history = modUndo.getHistory(mindmapKey);
-                const objHistoryNode = history.navigateToNode(historyNode);
-                const objMindData = objHistoryNode.objDataMind;
+                    const modUndo = await importFc4i("undo-redo-tree");
+                    const historyNode = target.valueAsObject;
+
+                    const history = modUndo.getHistory(mindmapKey);
+                    const objHistoryNode = history.navigateToNode(historyNode);
+                    objMindData = objHistoryNode.objDataMind;
+                    applyHistoryNodeOther(objHistoryNode);
+                }
                 modMMhelpers.checkIsMMformatStored(objMindData, "event listener change");
 
                 const dbMindmaps = await importFc4i("db-mindmaps");
@@ -1761,8 +1804,8 @@
                 modJsmindDraggable.setOurJm(jm);
                 const modStairs = await importFc4i("stairs");
                 modStairs.exitEditOrView();
-                applyHistoryNodeOther();
-                function applyHistoryNodeOther() {
+                // applyHistoryNodeOther();
+                function applyHistoryNodeOther(objHistoryNode) {
                     const objOther = objHistoryNode.other;
                     if (typeof objOther != "object") debugger;
                     const keys = Object.keys(objOther);
