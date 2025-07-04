@@ -30,7 +30,11 @@ export async function DBgetAllMindmaps() {
     } else {
         // return modIdbCmn.getAll(idbStoreMm);
         const allRecs = await modIdbCmn.getAll(idbStoreMm);
-        return allRecs.map(jsmindmap => {
+        const allMindmaps = allRecs.filter(rec => {
+            const key = rec.key;
+            return key.search("-bookmark-") == -1;
+        });
+        return allMindmaps.map(jsmindmap => {
             const key = jsmindmap.key;
             return { key, jsmindmap };
         });
@@ -123,4 +127,37 @@ function checkIsMMformatStored(obj, where) {
     ]);
     if (strObjKeys != strData) throwErr("strObjKeys != strData)");
     if (obj.format != "node_array") throwErr('obj.format != "node_array"');
+}
+
+// function DBsetMindmap
+/**
+ * 
+ * @param {string} keyName 
+ * @param {string} bookmarkName 
+ * @param {Object} jsMindMap - mindmap in jsMind format (FIX-ME: name of format)
+ * @returns {Promise<any>} 
+ */
+export async function DBsetMindmapBookmark(keyName, bookmarkName, jsMindMap) {
+    const metaName = jsMindMap.meta.name;
+    const [metaKey] = metaName.split("/");
+    if (keyName !== metaKey) throw Error(`key=${keyName} but objMindmap.meta.name=${metaKey}`);
+
+    const keyBookmark = `${keyName}-bookmark-${bookmarkName}`;
+    debugger;
+    return modIdbCmn.setDbKey(idbStoreMm, keyBookmark, jsMindMap);
+}
+// dbgetallmindmaps
+export async function DBgetAllMindmapBookmarks(keyName) {
+    const allRecs = await modIdbCmn.getAll(idbStoreMm);
+    const allBookmarks = allRecs.filter(rec => {
+        const key = rec.key;
+        return key.search(`${keyName}-bookmark-`) > -1;
+    });
+    return allBookmarks.map(jsmindmap => {
+        const key = jsmindmap.key;
+        // debugger;
+        const pos = key.search("-bookmark-");
+        const bmName = key.slice(pos + "-bookmark-".length);
+        return { bmName, jsmindmap };
+    });
 }

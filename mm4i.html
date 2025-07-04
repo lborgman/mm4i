@@ -1075,26 +1075,17 @@
         }
 
         /* .icon-bookmark-named { */
-        label.bookmarked
-        span.bookmark-topic:has(:last-child:not(:empty))
-        span.icon-bookmark-named
-        {
+        label.bookmarked span.bookmark-topic:has(:last-child:not(:empty)) span.icon-bookmark-named {
             display: inline;
         }
 
         /* .bookmark-is-named .icon-bookmark-named { */
-        label.bookmarked
-        span.bookmark-topic:has(:last-child:empty)
-        span.icon-bookmark
-        {
+        label.bookmarked span.bookmark-topic:has(:last-child:empty) span.icon-bookmark {
             display: inline;
         }
 
         /* .bookmark-is-named .icon-bookmark { */
-        label.bookmarked
-        span.bookmark-topic:has(:last-child:empty)
-        span.icon-bookmark 
-        {
+        label.bookmarked span.bookmark-topic:has(:last-child:empty) span.icon-bookmark {
             display: inline;
         }
 
@@ -1477,15 +1468,29 @@
                             return spanName.textContent;
                         });
                     }
-                    btnSaveName.addEventListener("click", evt => {
+                    btnSaveName.addEventListener("click", async evt => {
                         evt.stopPropagation();
                         const eltNotYet = mkElt("span", { style: "color:red" },
                             "Saving named bookmarks is not implemented yet");
                         modMdc.mkMDCsnackbar(eltNotYet);
                         setBookmarkName(inpName.value.trim());
+
+                        const divList = document.getElementById("mm4i-history-list");
+                        const radChecked = divList.querySelector("input:checked");
+                        const lblChecked = radChecked.closest("label");
+                        const isBookmarked = lblChecked.classList.contains("bookmarked");
+                        const bookmarkName = getCheckedBookmarkName();
+
+                        debugger;
+                        const modUndo = await importFc4i("undo-redo-tree");
+                        // if (target.name == "undo-redo-state") {
+                        const historyNode = radChecked.valueAsObject;
+                        const fullState = historyNode.fullState;
+                        const objMindData = fullState.objDataMind;
+
+                        saveMindmapBookmark(mindmapKey, bookmarkName, objMindData);
                         dlg.mdc.close();
                     });
-                    // debugger;
                     dlg = await modMdc.mkMDCdialog(body);
                     const res = await new Promise((resolve) => {
                         dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async (evt) => {
@@ -1585,6 +1590,9 @@
                 btnBookmark.inert = false;
                 modUndo.mapHistoryTree(mindmapKey, funAddStateRow);
             }
+            const dbMindmaps = await importFc4i("db-mindmaps");
+            const arrBm = await dbMindmaps.DBgetAllMindmapBookmarks(mindmapKey);
+            console.log({ arrBm });
         }
 
         const imgHistoryResizer = mkElt("div");
@@ -1611,7 +1619,6 @@
         divHistoryList.addEventListener("change", evt => {
             const target = evt.target;
             console.log({ target });
-            // debugger;
             const lblTarget = target.closest("label");
             const isBookmarked = lblTarget.classList.contains("bookmarked");
             const btnBookmark = document.getElementById("btn-bookmark");
@@ -1636,7 +1643,6 @@
                 const dY = startY - clientY;
                 // console.log("resizeHistory, dX, dY", dX, dY);
                 if (Number.isNaN(dX) || Number.isNaN(dY)) {
-                    // debugger;
                     const msg = `isNaN, dX:${dX}, dY:${dY}`;
                     throw Error(msg);
                 }
@@ -1646,7 +1652,6 @@
                 const oldHeight = resizingHistory.bcr.height;
                 let newY = oldHeight + dY;
                 if (Number.isNaN(newX) || Number.isNaN(newY)) {
-                    // debugger;
                     const msg = `isNaN, newX:${newX}, newY:${newY}`;
                     throw Error(msg);
                 }
@@ -1761,12 +1766,10 @@
                     const objOther = objHistoryNode.other;
                     if (typeof objOther != "object") debugger;
                     const keys = Object.keys(objOther);
-                    // debugger;
                     keys.forEach(async key => {
                         switch (key) {
                             case "selected_id":
                                 const node_id = objOther["selected_id"];
-                                // debugger;
                                 jm.select_node(node_id);
                                 break;
                             case "zoomed":
@@ -1774,7 +1777,6 @@
                                 if (isNaN(zoomed)) throw Error("isNaN(zoomed)");
                                 if (zoomed == 100) return;
                                 const modZoomMove = await importFc4i("zoom-move");
-                                // debugger;
                                 modZoomMove.setZoomPercentage(zoomed);
                                 break;
                             default:
@@ -1809,6 +1811,14 @@
                 updateHistoryPanel();
             }
         });
+
+
+
+        async function saveMindmapBookmark(keyName, bookmarkName, objMindData) {
+            modMMhelpers.checkIsMMformatStored(objMindData, "saveMindmapBookmark");
+            const dbMindmaps = await importFc4i("db-mindmaps");
+            return await dbMindmaps.DBsetMindmapBookmark(keyName, bookmarkName, objMindData);
+        }
 
     </script>
 
