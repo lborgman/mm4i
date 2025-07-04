@@ -1049,6 +1049,14 @@
             display: inline;
         }
 
+        /* label.bookmarked:not(.bookmark-is-named) span.bookmark-topic :last-child::after { */
+        label.bookmarked span.bookmark-topic :last-child:empty::after {
+            content: "Bookmarked!";
+            font-style: italic;
+            color: red;
+            NObackground: green;
+        }
+
         .bookmarked span.bookmark-topic {
             display: inline-flex;
         }
@@ -1057,6 +1065,37 @@
             display: none;
         }
 
+        span.icon-bookmark {
+            display: none;
+        }
+
+        span.icon-bookmark-named {
+            display: none;
+        }
+
+        /* .icon-bookmark-named { */
+        label.bookmarked
+        span.bookmark-topic:has(:last-child:not(:empty))
+        span.icon-bookmark-named
+        {
+            display: inline;
+        }
+
+        /* .bookmark-is-named .icon-bookmark-named { */
+        label.bookmarked
+        span.bookmark-topic:has(:last-child:empty)
+        span.icon-bookmark
+        {
+            display: inline;
+        }
+
+        /* .bookmark-is-named .icon-bookmark { */
+        label.bookmarked
+        span.bookmark-topic:has(:last-child:empty)
+        span.icon-bookmark 
+        {
+            display: inline;
+        }
 
         .button-linear-tree {
             padding: 2px 4px;
@@ -1353,16 +1392,26 @@
                     // const btnRename = modMdc.mkMDCbutton("rename");
                     const inpName = modMdc.mkMDCtextFieldInput();
                     inpName.value = getCheckedBookmarkName();
+                    const divNamedInfo = mkElt("p", undefined, [
+                        "Named bookmarked are saved between sessions.",
+                        mkElt("span", { style: "color:red" }, "(Saving between sessions is not implemented yet.)"),
+                    ]);
                     const tfName = modMdc.mkMDCtextFieldOutlined("New bookmark name", inpName);
                     const btnSaveName = modMdc.mkMDCbutton("Save");
-                    const divRename = mkElt("div", undefined, [
+                    const divNaming = mkElt("p", undefined, [
                         tfName,
                         btnSaveName,
+                    ])
+                    const divRename = mkElt("div", undefined, [
+                        divNamedInfo,
+                        divNaming,
                     ]);
-                    divRename.style = `
+                    divNaming.style = `
                         display: flex;
                         flex-direction: row;
                         gap: 5px;
+                    `;
+                    divRename.style = `
                         padding: 10px;
                     `;
                     divRename.classList.add("mdc-card");
@@ -1393,19 +1442,23 @@
                     inpName.addEventListener("input", evt => {
                         const val = inpName.value.trim();
 
-                        const oldNames = getBookmarkNames();
-                        if (oldNames.includes(val)) {
-                            btnSaveName.inert = true;
-                            modMdc.setValidityMDC(inpName, `Name "${val}" already in use`);
-                            return;
+                        if (val.length > 0) {
+                            const oldNames = getBookmarkNames();
+                            if (oldNames.includes(val)) {
+                                btnSaveName.inert = true;
+                                modMdc.setValidityMDC(inpName, `Name "${val}" already in use`);
+                                return;
+                            }
                         }
                         modMdc.setValidityMDC(inpName, "");
-                        btnSaveName.inert = val.length == 0;
+                        // btnSaveName.inert = val.length == 0;
+                        btnSaveName.inert = false;
                     });
                     function setBookmarkName(newName) {
                         const spanBookmarkTopic = lblChecked.querySelector("span.bookmark-topic");
                         const spanName = spanBookmarkTopic.lastElementChild;
                         spanName.textContent = newName;
+                        lblChecked.classList.add("bookmark-is-named");
                     }
                     function getCheckedBookmarkName() {
                         return getBookmarkName(lblChecked);
@@ -1426,7 +1479,7 @@
                     btnSaveName.addEventListener("click", evt => {
                         evt.stopPropagation();
                         const eltNotYet = mkElt("span", { style: "color:red" },
-                            "Naming bookmarks only partly implemented yet");
+                            "Saving named bookmarks is not implemented yet");
                         modMdc.mkMDCsnackbar(eltNotYet);
                         setBookmarkName(inpName.value.trim());
                         dlg.mdc.close();
@@ -1499,11 +1552,17 @@
                 const autoTopic = `${node.actionTopic || "N/A"} `;
                 const spanAutoTopic = mkElt("span", undefined, autoTopic);
                 spanAutoTopic.classList.add("auto-topic");
-                const spanBookmarkName = mkElt("span", undefined, "Bookmarked!");
+                // const spanBookmarkName = mkElt("span", undefined, "Bookmarked!");
+                const spanBookmarkName = mkElt("span");
                 const iconBookmark = modMdc.mkMDCicon("bookmark");
+                iconBookmark.classList.add("icon-bookmark");
                 iconBookmark.style.zoom = 0.7;
+                const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                iconBookmarkHeart.classList.add("icon-bookmark-named");
+                iconBookmarkHeart.style.zoom = 0.7;
                 const spanBookmarkedTopic = mkElt("span", undefined, [
                     iconBookmark,
+                    iconBookmarkHeart,
                     spanBookmarkName
                 ]);
                 spanBookmarkedTopic.classList.add("bookmark-topic");
