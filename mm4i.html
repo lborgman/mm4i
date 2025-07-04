@@ -1039,6 +1039,7 @@
             display: none;
             background-color: black;
             color: red;
+            color: orange;
             padding: 2px 4px;
             border-radius: 4px;
             gap: 5px;
@@ -1053,8 +1054,7 @@
         label.bookmarked span.bookmark-topic :last-child:empty::after {
             content: "Bookmarked!";
             font-style: italic;
-            color: red;
-            NObackground: green;
+            color: yellow;
         }
 
         .bookmarked span.bookmark-topic {
@@ -1067,6 +1067,7 @@
 
         span.icon-bookmark {
             display: none;
+            color: yellow;
         }
 
         span.icon-bookmark-named {
@@ -1552,7 +1553,6 @@
                 const autoTopic = `${node.actionTopic || "N/A"} `;
                 const spanAutoTopic = mkElt("span", undefined, autoTopic);
                 spanAutoTopic.classList.add("auto-topic");
-                // const spanBookmarkName = mkElt("span", undefined, "Bookmarked!");
                 const spanBookmarkName = mkElt("span");
                 const iconBookmark = modMdc.mkMDCicon("bookmark");
                 iconBookmark.classList.add("icon-bookmark");
