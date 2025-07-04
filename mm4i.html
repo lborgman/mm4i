@@ -1781,20 +1781,16 @@
 
                 const lblPersistent = target.closest(".persistent-bookmark");
                 let objMindData;
+                let objHistoryNode;
                 if (lblPersistent) {
-                    debugger;
                     objMindData = target.valueAsObject;
-                    // modMMhelpers.checkIsMMformatStored(objMindData, "persistent bookmark");
-                    // return;
                 } else {
-
                     const modUndo = await importFc4i("undo-redo-tree");
                     const historyNode = target.valueAsObject;
 
                     const history = modUndo.getHistory(mindmapKey);
-                    const objHistoryNode = history.navigateToNode(historyNode);
+                    objHistoryNode = history.navigateToNode(historyNode);
                     objMindData = objHistoryNode.objDataMind;
-                    applyHistoryNodeOther(objHistoryNode);
                 }
                 modMMhelpers.checkIsMMformatStored(objMindData, "event listener change");
 
@@ -1804,8 +1800,8 @@
                 modJsmindDraggable.setOurJm(jm);
                 const modStairs = await importFc4i("stairs");
                 modStairs.exitEditOrView();
-                // applyHistoryNodeOther();
-                function applyHistoryNodeOther(objHistoryNode) {
+                if (objHistoryNode) { applyHistoryNodeOther(objHistoryNode, jm); }
+                function applyHistoryNodeOther(objHistoryNode, jm) {
                     const objOther = objHistoryNode.other;
                     if (typeof objOther != "object") debugger;
                     const keys = Object.keys(objOther);
