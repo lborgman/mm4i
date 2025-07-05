@@ -1409,8 +1409,8 @@
                                 const keyBookmark = radChecked.value;
                                 // animateZoom(element, startZoom, endZoom, msDuration, msStep = 200)
                                 // const msDelete = 10 * 1000;
-                                const msDelete = 1 * 1000;
-                                const ctrls = modTools.animateZoom(lblChecked, 1, 0.1, msDelete, 200);
+                                const msDelete = 1.2 * 1000;
+                                const ctrls = modTools.animateZoom(lblChecked, 1, 0.1, msDelete, 300);
                                 ctrls.start();
 
                                 const bookmarkName = lblChecked.dataset.bookmarkName;
@@ -1420,7 +1420,7 @@
                                     rad.checked = true;
                                     // FIX-ME: apply checked - "change"
                                     applyUndoRedoState(rad);
-                                    modMdc.mkMDCsnackbar(`Deleted saved bookmark ${bookmarkName}`);
+                                    // modMdc.mkMDCsnackbar(`Deleted saved bookmark ${bookmarkName}`);
                                 }, msDelete);
                                 const dbMindmaps = await importFc4i("db-mindmaps");
                                 return await dbMindmaps.DBremoveMindmapBookmark(keyBookmark);
@@ -1434,8 +1434,7 @@
                             const inpName = modMdc.mkMDCtextFieldInput();
                             inpName.value = getCheckedBookmarkName();
                             const divNamedInfo = mkElt("p", undefined, [
-                                "Named bookmarked are saved between sessions.",
-                                mkElt("span", { style: "color:red" }, "(Saving between sessions is not implemented yet.)"),
+                                "Named bookmarked are saved between sessions."
                             ]);
                             const tfName = modMdc.mkMDCtextFieldOutlined("New bookmark name", inpName);
                             const btnSaveName = modMdc.mkMDCbutton("Save");
@@ -1519,9 +1518,8 @@
                             }
                             btnSaveName.addEventListener("click", async evt => {
                                 evt.stopPropagation();
-                                const eltNotYet = mkElt("span", { style: "color:red" },
-                                    "Handling named bookmarks is not fully implemented yet");
-                                modMdc.mkMDCsnackbar(eltNotYet);
+                                // const eltNotYet = mkElt("span", { style: "color:red" }, "Handling named bookmarks is not fully implemented yet");
+                                // modMdc.mkMDCsnackbar(eltNotYet);
                                 setBookmarkName(inpName.value.trim());
 
                                 const divList = document.getElementById("mm4i-history-list");
