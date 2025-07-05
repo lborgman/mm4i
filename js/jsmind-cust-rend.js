@@ -2802,7 +2802,9 @@ function isValidCssDecl(cssDecl) {
 
 function cssTxt2keyVal(cssTxt) {
     // Return string on invalid CSS
+    const cssKV = {};
     let taVal = cssTxt.trim();
+    if (taVal.length == 0) return cssKV;
     taVal = taVal.replaceAll(/\s+/g, " ");
     taVal = taVal.replaceAll(/\s+/g, " ");
     taVal = taVal.replaceAll(new RegExp("/\\*.*?\\*/", "g"), " ");
@@ -2811,7 +2813,6 @@ function cssTxt2keyVal(cssTxt) {
     // console.log({ taVal });
     if (!isValidCss(taVal)) return "Invalid CSS";
     const parts = taVal.split(";").map(p => p.trim()).filter(p => p.length > 0);
-    const cssKV = {};
     for (let i = 0, len = parts.length; i < len; i++) {
         const p = parts[i];
         // let [prop, val] = p.split(":");
