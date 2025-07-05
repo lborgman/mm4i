@@ -664,9 +664,10 @@ function checkOurUndoRedoState(obj) {
  * 
  * @param {Object} obj 
  * @param {string} where 
+ * @param {boolean | undefined } allowIsSavedBookmark;
  * @throws
  */
-export function checkIsMMformatStored(obj, where) {
+export function checkIsMMformatStored(obj, where, allowIsSavedBookmark = false) {
     const tofWhere = typeof where;
     if (tofWhere != "string") throw Error(`where should be string, is "${tofWhere}`);
     const throwErr = (what) => {
@@ -675,12 +676,20 @@ export function checkIsMMformatStored(obj, where) {
         debugger; // eslint-disable-line no-ebugger;
         throw Error(msg);
     }
-    const ObjKeys = Object.keys(obj).sort();
-    const strObjKeys = JSON.stringify(ObjKeys);
+
+    const tofAllowBM = typeof allowIsSavedBookmark;
+    if (tofAllowBM != "boolean") throwErr(`allowIsSavedBookmark is not boolean: "${tofAllowBM}"`);
+
+    let arrObjKeys = Object.keys(obj).sort();
+    if (allowIsSavedBookmark) {
+        arrObjKeys = arrObjKeys.filter(k => k != "isSavedBookmark");
+    }
+    const strObjKeys = JSON.stringify(arrObjKeys);
     const strData = JSON.stringify([
         "data", "format", "key", "meta"
     ]);
     if (strObjKeys != strData) { throwErr("strObjKeys != strData"); }
+
     if (obj.format != "node_array") { throwErr('obj.format != "node_array"'); }
 }
 

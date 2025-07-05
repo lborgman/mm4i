@@ -1184,7 +1184,7 @@ async function addDragBorders(jmDisplayed) {
     }
 }
 export async function displayOurMindmap(mindStored) {
-    modMMhelpers.checkIsMMformatStored(mindStored, "displayOurMindmap");
+    modMMhelpers.checkIsMMformatStored(mindStored, "displayOurMindmap", true);
     const opts = getUsedOptJmDisplay(mindStored);
     const eltJmdisplayContainer = document.getElementById(opts.container);
     if (!eltJmdisplayContainer) { throw Error(`Could not find #${opts.container}`); }
@@ -1755,6 +1755,7 @@ export async function pageSetup() {
     if (!jsMindContainer) throw Error("jsMindContainer is null");
     // These bubbles up:
     jsMindContainer.addEventListener("pointerdown", evt => hideContextMenuOnEvent(evt));
+    let toldChangesNotSaved = false;
     jsMindContainer.addEventListener("click", evt => {
         // evt.stopPropagation();
         // evt.preventDefault();
@@ -1768,6 +1769,13 @@ export async function pageSetup() {
         const nodeId = parseInt(strNodeId);
         jmDisplayed.toggle_node(nodeId);
         // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, "Edit mindmap description");
+        if (jmDisplayed.isSavedBookmark) {
+            if (!toldChangesNotSaved) {
+                modMdc.mkMDCsnackbar("Changes to saved bookmarks are not stored");
+            }
+            toldChangesNotSaved = true;
+            return;
+        }
         const node = jmDisplayed.mind.nodes[nodeId];
         const topic = node.topic;
         const theChange = !node.expanded ? "Collapse" : "Expand";

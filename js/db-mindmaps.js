@@ -129,7 +129,8 @@ function checkIsMMformatStored(obj, where) {
     if (obj.format != "node_array") throwErr('obj.format != "node_array"');
 }
 
-// function DBsetMindmap
+
+
 /**
  * 
  * @param {string} keyName 
@@ -154,10 +155,15 @@ export async function DBgetAllMindmapBookmarks(keyName) {
         return key.search(`${keyName}-bookmark-`) > -1;
     });
     return allBookmarks.map(jsmindmap => {
-        const key = jsmindmap.key;
+        const keyBookmark = jsmindmap.key;
         // debugger;
-        const pos = key.search("-bookmark-");
-        const bmName = key.slice(pos + "-bookmark-".length);
-        return { bmName, jsmindmap };
+        const pos = keyBookmark.search("-bookmark-");
+        const bmName = keyBookmark.slice(pos + "-bookmark-".length);
+        jsmindmap.isSavedBookmark = true;
+        return { bmName, jsmindmap, keyBookmark };
     });
+}
+
+export async function DBremoveMindmapBookmark(key) {
+    return modIdbCmn.deleteDbKey(idbStoreMm, key);
 }

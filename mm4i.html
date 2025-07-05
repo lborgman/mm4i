@@ -1386,129 +1386,155 @@
                 const divList = document.getElementById("mm4i-history-list");
                 const radChecked = divList.querySelector("input:checked");
                 const lblChecked = radChecked.closest("label");
-                const isBookmarked = lblChecked.classList.contains("bookmarked");
+                const isPersistentBookmark = lblChecked.classList.contains("persistent-bookmark");
+                const isBookmarked = isPersistentBookmark || lblChecked.classList.contains("bookmarked");
                 // lblChecked.classList.toggle("bookmarked");
                 if (!isBookmarked) {
                     lblChecked.classList.add("bookmarked");
                     btnBookmark.classList.add("bookmarked");
                 } else {
-                    const btnRemove = modMdc.mkMDCbutton("remove");
-                    // const btnRename = modMdc.mkMDCbutton("rename");
-                    const inpName = modMdc.mkMDCtextFieldInput();
-                    inpName.value = getCheckedBookmarkName();
-                    const divNamedInfo = mkElt("p", undefined, [
-                        "Named bookmarked are saved between sessions.",
-                        mkElt("span", { style: "color:red" }, "(Saving between sessions is not implemented yet.)"),
-                    ]);
-                    const tfName = modMdc.mkMDCtextFieldOutlined("New bookmark name", inpName);
-                    const btnSaveName = modMdc.mkMDCbutton("Save");
-                    const divNaming = mkElt("p", undefined, [
-                        tfName,
-                        btnSaveName,
-                    ])
-                    const divRename = mkElt("div", undefined, [
-                        divNamedInfo,
-                        divNaming,
-                    ]);
-                    divNaming.style = `
+                    if (isPersistentBookmark) {
+                        await handlePersistentBookmark();
+                        async function handlePersistentBookmark() {
+                            const body = mkElt("div", undefined, [
+                                mkElt("h2", undefined, "Saved bookmark"),
+                                mkElt("p", undefined, `
+                                    This is a saved bookmark.
+                                    You can not change it, only delete it.
+                                    `),
+                            ]);
+                            const res = await modMdc.mkMDCdialogConfirm(body, "Delete", "Close");
+                            console.log({ res });
+                            if (res) {
+                                modMdc.mkMDCsnackbar("Delete saved bookmark is not implemented yet");
+                                const dbMindmaps = await importFc4i("db-mindmaps");
+                                debugger;
+                                // return await dbMindmaps.DBremoveMindmapBookmark(keyName);
+                                lblChecked.remove();
+                            }
+                        }
+                    } else {
+                        await handleTempBookmark();
+                        async function handleTempBookmark() {
+                            const btnRemove = modMdc.mkMDCbutton("remove");
+                            // const btnRename = modMdc.mkMDCbutton("rename");
+                            const inpName = modMdc.mkMDCtextFieldInput();
+                            inpName.value = getCheckedBookmarkName();
+                            const divNamedInfo = mkElt("p", undefined, [
+                                "Named bookmarked are saved between sessions.",
+                                mkElt("span", { style: "color:red" }, "(Saving between sessions is not implemented yet.)"),
+                            ]);
+                            const tfName = modMdc.mkMDCtextFieldOutlined("New bookmark name", inpName);
+                            const btnSaveName = modMdc.mkMDCbutton("Save");
+                            const divNaming = mkElt("p", undefined, [
+                                tfName,
+                                btnSaveName,
+                            ])
+                            const divRename = mkElt("div", undefined, [
+                                divNamedInfo,
+                                divNaming,
+                            ]);
+                            divNaming.style = `
                         display: flex;
                         flex-direction: row;
                         gap: 5px;
                     `;
-                    divRename.style = `
-                        padding: 10px;
-                    `;
-                    divRename.classList.add("mdc-card");
+                            divRename.style = `
+                                padding: 10px;
+                            `;
+                            divRename.classList.add("mdc-card");
 
-                    const divRemove = mkElt("div", undefined, btnRemove);
-                    const divActions = mkElt("div", undefined, [
-                        divRemove,
-                        divRename,
-                    ]);
-                    divActions.style = `
+                            const divRemove = mkElt("div", undefined, btnRemove);
+                            const divActions = mkElt("div", undefined, [
+                                divRemove,
+                                divRename,
+                            ]);
+                            divActions.style = `
                         display: flex;
                         flex-direction: column;
                         gap: 20px;
                     `;
-                    const body = mkElt("div", undefined, [
-                        mkElt("h2", undefined, "Bookmark"),
-                        divActions,
-                    ]);
-                    let dlg;
-                    btnRemove.addEventListener("click", evt => {
-                        evt.stopPropagation();
-                        lblChecked.classList.remove("bookmarked");
-                        btnBookmark.classList.remove("bookmarked");
-                        modMdc.mkMDCsnackbar("Removed bookmark");
-                        dlg.mdc.close();
-                    });
-                    btnSaveName.inert = true;
-                    inpName.addEventListener("input", evt => {
-                        const val = inpName.value.trim();
+                            const body = mkElt("div", undefined, [
+                                mkElt("h2", undefined, "Bookmark"),
+                                divActions,
+                            ]);
+                            let dlg;
+                            btnRemove.addEventListener("click", evt => {
+                                evt.stopPropagation();
+                                lblChecked.classList.remove("bookmarked");
+                                btnBookmark.classList.remove("bookmarked");
+                                modMdc.mkMDCsnackbar("Removed bookmark");
+                                dlg.mdc.close();
+                            });
+                            btnSaveName.inert = true;
+                            inpName.addEventListener("input", evt => {
+                                const val = inpName.value.trim();
 
-                        if (val.length > 0) {
-                            const oldNames = getBookmarkNames();
-                            if (oldNames.includes(val)) {
-                                btnSaveName.inert = true;
-                                modMdc.setValidityMDC(inpName, `Name "${val}" already in use`);
-                                return;
+                                if (val.length > 0) {
+                                    const oldNames = getBookmarkNames();
+                                    if (oldNames.includes(val)) {
+                                        btnSaveName.inert = true;
+                                        modMdc.setValidityMDC(inpName, `Name "${val}" already in use`);
+                                        return;
+                                    }
+                                }
+                                modMdc.setValidityMDC(inpName, "");
+                                // btnSaveName.inert = val.length == 0;
+                                btnSaveName.inert = false;
+                            });
+                            function setBookmarkName(newName) {
+                                const spanBookmarkTopic = lblChecked.querySelector("span.bookmark-topic");
+                                const spanName = spanBookmarkTopic.lastElementChild;
+                                spanName.textContent = newName;
+                                // lblChecked.classList.add("bookmark-is-named");
                             }
+                            function getCheckedBookmarkName() {
+                                return getBookmarkName(lblChecked);
+                            }
+                            function getBookmarkName(lblState) {
+                                const spanBookmarkTopic = lblState.querySelector("span.bookmark-topic");
+                                const spanName = spanBookmarkTopic.lastElementChild;
+                                return spanName.textContent;
+                            }
+                            function getBookmarkNames() {
+                                const arr = [...document.querySelectorAll("label.mm4i-history-node")];
+                                return arr.map(lbl => {
+                                    const spanBookmarkTopic = lbl.querySelector("span.bookmark-topic");
+                                    const spanName = spanBookmarkTopic.lastElementChild;
+                                    return spanName.textContent;
+                                });
+                            }
+                            btnSaveName.addEventListener("click", async evt => {
+                                evt.stopPropagation();
+                                const eltNotYet = mkElt("span", { style: "color:red" },
+                                    "Saving named bookmarks is not implemented yet");
+                                modMdc.mkMDCsnackbar(eltNotYet);
+                                setBookmarkName(inpName.value.trim());
+
+                                const divList = document.getElementById("mm4i-history-list");
+                                const radChecked = divList.querySelector("input:checked");
+                                const lblChecked = radChecked.closest("label");
+                                const isBookmarked = lblChecked.classList.contains("bookmarked");
+                                const bookmarkName = getCheckedBookmarkName();
+
+                                debugger;
+                                const modUndo = await importFc4i("undo-redo-tree");
+                                // if (target.name == "undo-redo-state") {
+                                const historyNode = radChecked.valueAsObject;
+                                const fullState = historyNode.fullState;
+                                const objMindData = fullState.objDataMind;
+
+                                saveMindmapBookmark(mindmapKey, bookmarkName, objMindData);
+                                dlg.mdc.close();
+                            });
+                            dlg = await modMdc.mkMDCdialog(body);
+                            const res = await new Promise((resolve) => {
+                                dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async (evt) => {
+                                }));
+                            });
+
                         }
-                        modMdc.setValidityMDC(inpName, "");
-                        // btnSaveName.inert = val.length == 0;
-                        btnSaveName.inert = false;
-                    });
-                    function setBookmarkName(newName) {
-                        const spanBookmarkTopic = lblChecked.querySelector("span.bookmark-topic");
-                        const spanName = spanBookmarkTopic.lastElementChild;
-                        spanName.textContent = newName;
-                        // lblChecked.classList.add("bookmark-is-named");
                     }
-                    function getCheckedBookmarkName() {
-                        return getBookmarkName(lblChecked);
-                    }
-                    function getBookmarkName(lblState) {
-                        const spanBookmarkTopic = lblState.querySelector("span.bookmark-topic");
-                        const spanName = spanBookmarkTopic.lastElementChild;
-                        return spanName.textContent;
-                    }
-                    function getBookmarkNames() {
-                        const arr = [...document.querySelectorAll("label.mm4i-history-node")];
-                        return arr.map(lbl => {
-                            const spanBookmarkTopic = lbl.querySelector("span.bookmark-topic");
-                            const spanName = spanBookmarkTopic.lastElementChild;
-                            return spanName.textContent;
-                        });
-                    }
-                    btnSaveName.addEventListener("click", async evt => {
-                        evt.stopPropagation();
-                        const eltNotYet = mkElt("span", { style: "color:red" },
-                            "Saving named bookmarks is not implemented yet");
-                        modMdc.mkMDCsnackbar(eltNotYet);
-                        setBookmarkName(inpName.value.trim());
-
-                        const divList = document.getElementById("mm4i-history-list");
-                        const radChecked = divList.querySelector("input:checked");
-                        const lblChecked = radChecked.closest("label");
-                        const isBookmarked = lblChecked.classList.contains("bookmarked");
-                        const bookmarkName = getCheckedBookmarkName();
-
-                        debugger;
-                        const modUndo = await importFc4i("undo-redo-tree");
-                        // if (target.name == "undo-redo-state") {
-                        const historyNode = radChecked.valueAsObject;
-                        const fullState = historyNode.fullState;
-                        const objMindData = fullState.objDataMind;
-
-                        saveMindmapBookmark(mindmapKey, bookmarkName, objMindData);
-                        dlg.mdc.close();
-                    });
-                    dlg = await modMdc.mkMDCdialog(body);
-                    const res = await new Promise((resolve) => {
-                        dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async (evt) => {
-                        }));
-                    });
-
                 }
             }
 
@@ -1793,11 +1819,18 @@
                     objHistoryNode = history.navigateToNode(historyNode);
                     objMindData = objHistoryNode.objDataMind;
                 }
-                modMMhelpers.checkIsMMformatStored(objMindData, "event listener change");
-
                 const dbMindmaps = await importFc4i("db-mindmaps");
-                await dbMindmaps.DBsetMindmap(mindmapKey, objMindData);
+
+                const isSavedBookmark = objMindData.isSavedBookmark;
+                if (!isSavedBookmark) {
+                    modMMhelpers.checkIsMMformatStored(objMindData, "event listener change");
+                    await dbMindmaps.DBsetMindmap(mindmapKey, objMindData);
+                } else {
+                    // delete objMindData.isSavedBookmark;
+                }
+
                 const jm = await modJsEditCommon.displayOurMindmap(objMindData);
+                if (isSavedBookmark) jm.isSavedBookmark = true;
                 modJsmindDraggable.setOurJm(jm);
                 const modStairs = await importFc4i("stairs");
                 modStairs.exitEditOrView();
