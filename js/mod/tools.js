@@ -2390,3 +2390,70 @@ export function leftISOtimeMoreRecent(leftTime, rightTime) {
     return leftTime > rightTime;
 }
 // if (!leftISOtimeMoreRecent( (new Date()).toISOString(), (new Date("2000")).toISOString())) { debugger; }
+
+
+// From Grok. You can't currently link to a Grok chat. 
+// The name of the chat is "CSS Transition: Zoom effect".
+/**
+ * Animates the CSS `zoom` property of an element using requestAnimationFrame,
+ * with updates occurring only after a specified millisecond delay to reduce repaints.
+ * The animation is stepped (non-smooth) due to the non-interpolatable nature of `zoom`
+ * in Chromium-based browsers.
+ *
+ * @param {HTMLElement} element - The DOM element to animate.
+ * @param {number} startZoom - The starting zoom value (e.g., 1 for 100%).
+ * @param {number} endZoom - The ending zoom value (e.g., 1.2 for 120%).
+ * @param {number} msDuration - The animation duration in milliseconds (e.g., 2000 for 2s).
+ * @param {number} [msStep=200] - Milliseconds between repaints (e.g., 200 for ~10 steps over 2s).
+ * @returns {{start: Function, cancel: Function}} An object with methods to start or cancel the animation.
+ */
+export function animateZoom(element, startZoom, endZoom, msDuration, msStep = 200) {
+    let animationFrame;
+    let lastRepaintTime = null;
+
+    // Cancel any ongoing animation
+    function cancel() {
+        if (animationFrame) {
+            cancelAnimationFrame(animationFrame);
+            animationFrame = null;
+        }
+        lastRepaintTime = null;
+    }
+
+    // Animation logic
+    function start() {
+        cancel(); // Stop any existing animation
+        let currentStep = 0;
+        const totalSteps = Math.floor(msDuration / msStep); // Derive steps from msStep
+        const stepIncrement = (endZoom - startZoom) / totalSteps;
+
+        function step(currentTime) {
+            if (!lastRepaintTime) lastRepaintTime = currentTime;
+
+            const elapsedSinceLastRepaint = currentTime - lastRepaintTime;
+
+            // Only repaint if enough time has passed
+            if (elapsedSinceLastRepaint >= msStep) {
+                currentStep++;
+                const zoomValue = startZoom + stepIncrement * currentStep;
+                element.style.zoom = zoomValue;
+                lastRepaintTime = currentTime; // Update last repaint time
+
+                if (currentStep >= totalSteps) {
+                    cancel(); // Stop when done
+                    return;
+                }
+            }
+
+            animationFrame = requestAnimationFrame(step);
+        }
+
+        animationFrame = requestAnimationFrame(step);
+    }
+
+    // Return control methods
+    return {
+        start,
+        cancel
+    };
+}

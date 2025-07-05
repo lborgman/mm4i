@@ -1400,17 +1400,30 @@
                                 mkElt("h2", undefined, "Saved bookmark"),
                                 mkElt("p", undefined, `
                                     This is a saved bookmark.
-                                    You can not change it, only delete it.
+                                    You can not change it, but you can delete it.
                                     `),
                             ]);
                             const res = await modMdc.mkMDCdialogConfirm(body, "Delete", "Close");
                             console.log({ res });
                             if (res) {
-                                modMdc.mkMDCsnackbar("Delete saved bookmark is not implemented yet");
+                                const keyBookmark = radChecked.value;
+                                // animateZoom(element, startZoom, endZoom, msDuration, msStep = 200)
+                                // const msDelete = 10 * 1000;
+                                const msDelete = 1 * 1000;
+                                const ctrls = modTools.animateZoom(lblChecked, 1, 0.1, msDelete, 200);
+                                ctrls.start();
+
+                                const bookmarkName = lblChecked.dataset.bookmarkName;
+                                setTimeout(() => {
+                                    lblChecked.remove();
+                                    const rad = document.getElementById(idInitialState);
+                                    rad.checked = true;
+                                    // FIX-ME: apply checked - "change"
+                                    applyUndoRedoState(rad);
+                                    modMdc.mkMDCsnackbar(`Deleted saved bookmark ${bookmarkName}`);
+                                }, msDelete);
                                 const dbMindmaps = await importFc4i("db-mindmaps");
-                                debugger;
-                                // return await dbMindmaps.DBremoveMindmapBookmark(keyName);
-                                lblChecked.remove();
+                                return await dbMindmaps.DBremoveMindmapBookmark(keyBookmark);
                             }
                         }
                     } else {
@@ -1507,7 +1520,7 @@
                             btnSaveName.addEventListener("click", async evt => {
                                 evt.stopPropagation();
                                 const eltNotYet = mkElt("span", { style: "color:red" },
-                                    "Saving named bookmarks is not implemented yet");
+                                    "Handling named bookmarks is not fully implemented yet");
                                 modMdc.mkMDCsnackbar(eltNotYet);
                                 setBookmarkName(inpName.value.trim());
 
@@ -1517,7 +1530,7 @@
                                 const isBookmarked = lblChecked.classList.contains("bookmarked");
                                 const bookmarkName = getCheckedBookmarkName();
 
-                                debugger;
+                                // debugger;
                                 const modUndo = await importFc4i("undo-redo-tree");
                                 // if (target.name == "undo-redo-state") {
                                 const historyNode = radChecked.valueAsObject;
@@ -1582,9 +1595,11 @@
 
 
 
+        const idInitialState = "initial-state-undo-redo";
         async function updateHistoryPanel() {
             divHistoryList.textContent = "";
             let dummyVal = 0;
+            let isInitialState = true;
             const funAddStateRow = (node, depth, current) => {
                 const markCurrent = (node === current) ? ">" : "";
                 const radNode = mkElt("input", {
@@ -1611,6 +1626,10 @@
                 spanBookmarkedTopic.classList.add("bookmark-topic");
                 const spanTopic = mkElt("span", undefined, [spanAutoTopic, spanBookmarkedTopic]);
                 const eltNode = mkElt("label", undefined, [radNode, spanTopic]);
+                if (isInitialState) {
+                    isInitialState = false;
+                    radNode.id = idInitialState;
+                }
                 // spanTopic.mm4iAutoTopic = autoTopic;
                 eltNode.classList.add("mm4i-history-node");
                 eltNode.style.paddingLeft = `${4 + depth * 20}px`;
@@ -1643,11 +1662,16 @@
                 divHistoryList.appendChild(divPersistent);
                 arrBm.forEach(bm => {
                     console.log({ bm });
-                    const { bmName, jsmindmap } = bm;
+                    const { bmName, jsmindmap, keyBookmark } = bm;
                     console.log({ bmName, jsmindmap });
-                    const radNode = mkElt("input", { type: "radio", name: "undo-redo-state" });
+                    const radNode = mkElt("input", {
+                        type: "radio",
+                        name: "undo-redo-state",
+                        value: keyBookmark
+                    });
                     radNode.valueAsObject = jsmindmap;
                     const eltBm = mkElt("label", undefined, [radNode, bmName]);
+                    eltBm.dataset.bookmarkName = bmName;
                     eltBm.classList.add("persistent-bookmark");
                     divPersistent.appendChild(eltBm);
                 });
@@ -1787,76 +1811,82 @@
             eltHistory.classList.remove("resizing");
         }
 
+        async function applyUndoRedoState(radUndoRedo) {
+            const tnRad = radUndoRedo.tagName;
+            if (tnRad != "INPUT") throw Error(`radUndoRedo is not INPUT: "${tnRad}"`);
+            if (radUndoRedo.name != "undo-redo-state") throw Error("radUndoRedo.name != undo-redo-state");
+            const jmN = document.querySelector("jmnodes");
+            const divZM = jmN.closest(".zoom-move");
+            const divFilter = divZM || jmN
+            divFilter.style.filter = "grayScale(0.5)";
+            divFilter.style.transition = "opacity 0.5s";
+            divFilter.style.opacity = 0;
+            await modTools.waitSeconds(0.5);
+            if (!divZM) {
+                const divInner = jmN.closest(".jsmind-inner");
+                divInner.remove();
+            } else {
+                divZM.remove();
+            }
+
+            const lblPersistent = radUndoRedo.closest(".persistent-bookmark");
+            let objMindData;
+            let objHistoryNode;
+            if (lblPersistent) {
+                objMindData = radUndoRedo.valueAsObject;
+            } else {
+                const modUndo = await importFc4i("undo-redo-tree");
+                const historyNode = radUndoRedo.valueAsObject;
+
+                const history = modUndo.getHistory(mindmapKey);
+                objHistoryNode = history.navigateToNode(historyNode);
+                objMindData = objHistoryNode.objDataMind;
+            }
+            const dbMindmaps = await importFc4i("db-mindmaps");
+
+            const isSavedBookmark = objMindData.isSavedBookmark;
+            if (!isSavedBookmark) {
+                modMMhelpers.checkIsMMformatStored(objMindData, "event listener change");
+                await dbMindmaps.DBsetMindmap(mindmapKey, objMindData);
+            } else {
+                // delete objMindData.isSavedBookmark;
+            }
+
+            const jm = await modJsEditCommon.displayOurMindmap(objMindData);
+            if (isSavedBookmark) jm.isSavedBookmark = true;
+            modJsmindDraggable.setOurJm(jm);
+            const modStairs = await importFc4i("stairs");
+            modStairs.exitEditOrView();
+            if (objHistoryNode) { applyHistoryNodeOther(objHistoryNode, jm); }
+            function applyHistoryNodeOther(objHistoryNode, jm) {
+                const objOther = objHistoryNode.other;
+                if (typeof objOther != "object") debugger;
+                const keys = Object.keys(objOther);
+                keys.forEach(async key => {
+                    switch (key) {
+                        case "selected_id":
+                            const node_id = objOther["selected_id"];
+                            jm.select_node(node_id);
+                            break;
+                        case "zoomed":
+                            const zoomed = objOther["zoomed"];
+                            if (isNaN(zoomed)) throw Error("isNaN(zoomed)");
+                            if (zoomed == 100) return;
+                            const modZoomMove = await importFc4i("zoom-move");
+                            modZoomMove.setZoomPercentage(zoomed);
+                            break;
+                        default:
+                            debugger;
+                    }
+                });
+            }
+        }
 
 
-        eltHistory.addEventListener("change", async evt => {
+        eltHistory.addEventListener("change", evt => {
             const target = evt.target;
             if (target.name == "undo-redo-state") {
-                const jmN = document.querySelector("jmnodes");
-                const divZM = jmN.closest(".zoom-move");
-                const divFilter = divZM || jmN
-                divFilter.style.filter = "grayScale(0.5)";
-                divFilter.style.transition = "opacity 0.5s";
-                divFilter.style.opacity = 0;
-                await modTools.waitSeconds(0.5);
-                if (!divZM) {
-                    const divInner = jmN.closest(".jsmind-inner");
-                    divInner.remove();
-                } else {
-                    divZM.remove();
-                }
-
-                const lblPersistent = target.closest(".persistent-bookmark");
-                let objMindData;
-                let objHistoryNode;
-                if (lblPersistent) {
-                    objMindData = target.valueAsObject;
-                } else {
-                    const modUndo = await importFc4i("undo-redo-tree");
-                    const historyNode = target.valueAsObject;
-
-                    const history = modUndo.getHistory(mindmapKey);
-                    objHistoryNode = history.navigateToNode(historyNode);
-                    objMindData = objHistoryNode.objDataMind;
-                }
-                const dbMindmaps = await importFc4i("db-mindmaps");
-
-                const isSavedBookmark = objMindData.isSavedBookmark;
-                if (!isSavedBookmark) {
-                    modMMhelpers.checkIsMMformatStored(objMindData, "event listener change");
-                    await dbMindmaps.DBsetMindmap(mindmapKey, objMindData);
-                } else {
-                    // delete objMindData.isSavedBookmark;
-                }
-
-                const jm = await modJsEditCommon.displayOurMindmap(objMindData);
-                if (isSavedBookmark) jm.isSavedBookmark = true;
-                modJsmindDraggable.setOurJm(jm);
-                const modStairs = await importFc4i("stairs");
-                modStairs.exitEditOrView();
-                if (objHistoryNode) { applyHistoryNodeOther(objHistoryNode, jm); }
-                function applyHistoryNodeOther(objHistoryNode, jm) {
-                    const objOther = objHistoryNode.other;
-                    if (typeof objOther != "object") debugger;
-                    const keys = Object.keys(objOther);
-                    keys.forEach(async key => {
-                        switch (key) {
-                            case "selected_id":
-                                const node_id = objOther["selected_id"];
-                                jm.select_node(node_id);
-                                break;
-                            case "zoomed":
-                                const zoomed = objOther["zoomed"];
-                                if (isNaN(zoomed)) throw Error("isNaN(zoomed)");
-                                if (zoomed == 100) return;
-                                const modZoomMove = await importFc4i("zoom-move");
-                                modZoomMove.setZoomPercentage(zoomed);
-                                break;
-                            default:
-                                debugger;
-                        }
-                    });
-                }
+                applyUndoRedoState(target);
             }
         });
 

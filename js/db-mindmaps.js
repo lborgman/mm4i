@@ -144,7 +144,7 @@ export async function DBsetMindmapBookmark(keyName, bookmarkName, jsMindMap) {
     if (keyName !== metaKey) throw Error(`key=${keyName} but objMindmap.meta.name=${metaKey}`);
 
     const keyBookmark = `${keyName}-bookmark-${bookmarkName}`;
-    debugger;
+    // debugger;
     return modIdbCmn.setDbKey(idbStoreMm, keyBookmark, jsMindMap);
 }
 // dbgetallmindmaps
