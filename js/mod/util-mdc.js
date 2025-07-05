@@ -364,7 +364,9 @@ export function mkMDCtextareaField(label, textarea, prefill) {
     function initTf() {
         const t = mdc.textField.MDCTextField.attachTo(fl);
         textarea["our-mdc-text-field"] = t; // FIXME: could this be a problem in the future?
-        setMdcInputValid(textarea, false);
+        fl.myMdc = t;
+        // setMdcInputValid(textarea, false, "ok"); // FIX-ME: is this ok???
+        setValidityMDC(textarea, "");
     }
     return fl;
 }
@@ -413,6 +415,7 @@ export function mkMDCtextField(label, input, prefill) {
         // https://github.com/material-components/material-components-web/blob/d4c230f30fc0a4b0318e8468d6c459fbb2af1cee/demos/text-field.html#L745
         input["our-mdc-text-field"] = t; // FIXME: could this be a problem in the future?
         // t.valid = false;
+        fl.myMdc = t;
         setMdcInputValid(input, false);
     }
     return fl;
@@ -478,7 +481,19 @@ export function getMdcTfObj(input) {
     // return input["our-mdc-text-field"];
     return input.closest(".mdc-text-field");
 }
-export function setMdcInputValid(input, valid) {
+export function setMdcInputValid(input, valid, ok) {
+    if (ok != "ok") {
+        console.warn("setMdcInputValid called without ok");
+        debugger;
+    }
+    /*
+    if (valid) {
+        setValidityMDC(input, "");
+    } else {
+        setValidityMDC(input, `Invalid value: ${input.value}`);
+    }
+    return;
+    */
     const tfObj = getMdcTfObj(input);
     if (tfObj) {
         tfObj.myMdc.valid = valid;
@@ -1234,7 +1249,7 @@ export function setValidityMDC(inp, msg) {
     inp.setCustomValidity(msg);
     inp.reportValidity();
     const valid = msg === "";
-    setMdcInputValid(inp, valid);
+    setMdcInputValid(inp, valid, "ok");
     return valid;
 }
 
