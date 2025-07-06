@@ -2198,12 +2198,12 @@ export class CustomRenderer4jsMind {
             let sli = ctrlsSliders[pathShEtc];
             if (sli) return;
             const funChange = async () => {
-                await setInCurrentSlider();
+                await setFromCurrentSlider();
                 if (funChgThis) funChgThis();
                 // const funGrp = onCtrlsGrpChg[objShEtc.grpName];
                 onAnyCtrlChangeNode(); // throttle
             }
-            async function setInCurrentSlider() {
+            async function setFromCurrentSlider() {
                 // myPromMdc
                 // const mdc = sli?.myMdc;
                 const mdc = await sli?.myPromMdc;

@@ -745,6 +745,8 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
         // FIX-ME: spread is currently not used, or???
         // const s = shadow.spread;
         // eltJmnode.style.filter = `drop-shadow(${x}px ${y}px ${b}px ${s}px ${c})`;
+    } else {
+        eltJmnode.style.filter = null;
     }
 
     if (shapeEtc.background) {
