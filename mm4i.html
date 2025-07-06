@@ -1402,11 +1402,19 @@
                                 margin-right: 5px;
                             `;
                             const iconDelete = modMdc.mkMDCicon("delete_forever")
-                            const btnDeleteNamed = modMdc.mkMDCbutton("Delete", undefined, iconDelete);
+                            const btnDeleteNamed = modMdc.mkMDCbutton("Delete named bookmark", undefined, iconDelete);
+                            const bookmarkName = lblChecked.textContent.trim();
+                            const spanBookmarkName = mkElt("span", undefined, bookmarkName);
+                            spanBookmarkName.style = `
+                                background-color: orange;
+                                padding: 0px 4px;
+                                border-radius: 2px;
+                            `;
                             const body = mkElt("div", undefined, [
                                 mkElt("h2", undefined, [
+                                    "Named bookmark: ",
                                     iconBookmarkHeart,
-                                    "Named bookmark"
+                                    spanBookmarkName
                                 ]),
                                 mkElt("p", undefined, `
                                     This is a named bookmark.
@@ -1708,7 +1716,14 @@
                     margin: 0 10px;
                     background-color: orange;
                 `;
-                const eltPersistenHeader = mkElt("div", undefined, "Saved bookmarks:");
+                const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                const eltPersistenHeader = mkElt("div", undefined, [
+                    iconBookmarkHeart,
+                    " Named bookmarks"
+                ]);
+                eltPersistenHeader.style = `
+                    display: flex;
+                `;
                 divPersistent.appendChild(eltPersistenHeader);
                 divHistoryList.appendChild(divPersistent);
                 arrBm.forEach(bm => {
