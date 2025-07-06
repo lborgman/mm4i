@@ -2197,16 +2197,24 @@ export class CustomRenderer4jsMind {
             const initVal = getFromShapeEtc(objShEtc, initialShapeEtc) || defaultVal;
             let sli = ctrlsSliders[pathShEtc];
             if (sli) return;
-            const funChange = () => {
-                setInCurrent();
+            const funChange = async () => {
+                await setInCurrentSlider();
                 if (funChgThis) funChgThis();
                 // const funGrp = onCtrlsGrpChg[objShEtc.grpName];
                 onAnyCtrlChangeNode(); // throttle
             }
-            function setInCurrent() {
-                const mdc = sli?.myMdc;
-                const val = mdc?.getValue();
-                if (val == undefined) return;
+            async function setInCurrentSlider() {
+                // myPromMdc
+                // const mdc = sli?.myMdc;
+                const mdc = await sli?.myPromMdc;
+                // const val = mdc?.getValue();
+                const val = mdc.getValue();
+                if (val == undefined) {
+                    const msg = "mdc.getValue() return undefined";
+                    console.error(msg);
+                    debugger; // eslint-disable-line no-debugger
+                    throw Error(msg);
+                }
                 setInShapeEtc(val, objShEtc, currentShapeEtc);
             }
             sli = await modIsDisplayed.mkSliderInContainer(eltCont, min, max, initVal, step, title, funChange);
