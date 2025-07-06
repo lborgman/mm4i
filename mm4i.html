@@ -1396,19 +1396,35 @@
                     if (isPersistentBookmark) {
                         await handlePersistentBookmark();
                         async function handlePersistentBookmark() {
+                            const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                            iconBookmarkHeart.style = `
+                                color: darkorange;
+                                margin-right: 5px;
+                            `;
+                            const iconDelete = modMdc.mkMDCicon("delete_forever")
+                            const btnDeleteNamed = modMdc.mkMDCbutton("Delete", undefined, iconDelete);
                             const body = mkElt("div", undefined, [
-                                mkElt("h2", undefined, "Saved bookmark"),
+                                mkElt("h2", undefined, [
+                                    iconBookmarkHeart,
+                                    "Named bookmark"
+                                ]),
                                 mkElt("p", undefined, `
-                                    This is a saved bookmark.
+                                    This is a named bookmark.
                                     You can not change it, but you can delete it.
                                     `),
+                                mkElt("p", undefined, btnDeleteNamed),
                             ]);
-                            const res = await modMdc.mkMDCdialogConfirm(body, "Delete", "Close");
-                            console.log({ res });
-                            if (res) {
+                            // const res = await modMdc.mkMDCdialogConfirm(body, "Delete", "Close");
+                            // if (res) { deleteNamedBookmark(); }
+                            const dlg = await modMdc.mkMDCdialogAlert(body, "Close");
+                            dlg.dom.style.zIndex = "9999";
+                            btnDeleteNamed.addEventListener("click", evt => {
+                                evt.stopPropagation();
+                                dlg.mdc.close();
+                                deleteNamedBookmark();
+                            })
+                            async function deleteNamedBookmark() {
                                 const keyBookmark = radChecked.value;
-                                // animateZoom(element, startZoom, endZoom, msDuration, msStep = 200)
-                                // const msDelete = 10 * 1000;
                                 const msDelete = 1.2 * 1000;
                                 const ctrls = modTools.animateZoom(lblChecked, 1, 0.1, msDelete, 300);
                                 ctrls.start();
@@ -1418,9 +1434,7 @@
                                     lblChecked.remove();
                                     const rad = document.getElementById(idInitialState);
                                     rad.checked = true;
-                                    // FIX-ME: apply checked - "change"
                                     applyUndoRedoState(rad);
-                                    // modMdc.mkMDCsnackbar(`Deleted saved bookmark ${bookmarkName}`);
                                 }, msDelete);
                                 const dbMindmaps = await importFc4i("db-mindmaps");
                                 return await dbMindmaps.DBremoveMindmapBookmark(keyBookmark);
@@ -1433,8 +1447,15 @@
                             // const btnRename = modMdc.mkMDCbutton("rename");
                             const inpName = modMdc.mkMDCtextFieldInput();
                             inpName.value = getCheckedBookmarkName();
-                            const divNamedInfo = mkElt("p", undefined, [
-                                "Named bookmarked are saved between sessions."
+                            const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                            iconBookmarkHeart.style = `
+                                color: darkorange;
+                                margin-right: 5px;
+                            `;
+
+                            const divNamedInfo = mkElt("div", undefined, [
+                                iconBookmarkHeart,
+                                "Named bookmarks are persistent."
                             ]);
                             const tfName = modMdc.mkMDCtextFieldOutlined("New bookmark name", inpName);
                             const btnSaveName = modMdc.mkMDCbutton("Save");
@@ -1443,14 +1464,14 @@
                                 btnSaveName,
                             ])
                             const divRename = mkElt("div", undefined, [
-                                divNamedInfo,
                                 divNaming,
+                                divNamedInfo,
                             ]);
                             divNaming.style = `
-                        display: flex;
-                        flex-direction: row;
-                        gap: 5px;
-                    `;
+                                display: flex;
+                                flex-direction: row;
+                                gap: 5px;
+                            `;
                             divRename.style = `
                                 padding: 10px;
                             `;
@@ -1462,12 +1483,20 @@
                                 divRename,
                             ]);
                             divActions.style = `
-                        display: flex;
-                        flex-direction: column;
-                        gap: 20px;
-                    `;
+                                display: flex;
+                                flex-direction: column;
+                                gap: 20px;
+                            `;
+                            const iconBookmark = modMdc.mkMDCicon("bookmark");
+                            iconBookmark.style = `
+                                color: red;
+                                margin-right: 10px;
+                            `;
                             const body = mkElt("div", undefined, [
-                                mkElt("h2", undefined, "Bookmark"),
+                                mkElt("h2", undefined, [
+                                    iconBookmark,
+                                    "Bookmark"
+                                ]),
                                 divActions,
                             ]);
                             let dlg;
@@ -1538,12 +1567,8 @@
                                 saveMindmapBookmark(mindmapKey, bookmarkName, objMindData);
                                 dlg.mdc.close();
                             });
-                            dlg = await modMdc.mkMDCdialog(body);
-                            const res = await new Promise((resolve) => {
-                                dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async (evt) => {
-                                }));
-                            });
-
+                            dlg = await modMdc.mkMDCdialogAlert(body, "Close");
+                            dlg.dom.style.zIndex = "9999";
                         }
                     }
                 }
