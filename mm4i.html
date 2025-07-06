@@ -1073,7 +1073,7 @@
         }
 
         .bookmarked span.auto-topic {
-            display: none;
+            NOdisplay: none;
         }
 
         span.icon-bookmark {
@@ -1443,7 +1443,8 @@
                     } else {
                         await handleTempBookmark();
                         async function handleTempBookmark() {
-                            const btnRemove = modMdc.mkMDCbutton("remove");
+                            const iconRemoveBookmark = modMdc.mkMDCicon("bookmark_remove");
+                            const btnRemove = modMdc.mkMDCbutton("Remove bookmark", undefined, iconRemoveBookmark);
                             // const btnRename = modMdc.mkMDCbutton("rename");
                             const inpName = modMdc.mkMDCtextFieldInput();
                             inpName.value = getCheckedBookmarkName();
@@ -1457,7 +1458,7 @@
                                 iconBookmarkHeart,
                                 "Named bookmarks are persistent."
                             ]);
-                            const tfName = modMdc.mkMDCtextFieldOutlined("New bookmark name", inpName);
+                            const tfName = modMdc.mkMDCtextFieldOutlined("Bookmark name", inpName);
                             const btnSaveName = modMdc.mkMDCbutton("Save");
                             const divNaming = mkElt("p", undefined, [
                                 tfName,
@@ -1477,7 +1478,26 @@
                             `;
                             divRename.classList.add("mdc-card");
 
-                            const divRemove = mkElt("div", undefined, btnRemove);
+                            const strAutoTopic = lblChecked.querySelector("span.auto-topic").textContent.trim()
+                            const spanAutoTopic = mkElt("span", undefined, strAutoTopic);
+                            spanAutoTopic.style = `
+                                background-color: lightseagreen;
+                                padding: 4px;
+                                border-radius: 2px;
+                            `;
+                            const spanWhich = mkElt("span", undefined, [
+                                // "(on ",
+                                "from ",
+                                spanAutoTopic,
+                                // ")"
+                            ]);
+                            spanWhich.style = `
+                                margin-left: 10px;
+                            `;
+                            const divRemove = mkElt("div", undefined, [
+                                btnRemove,
+                                spanWhich
+                            ]);
                             const divActions = mkElt("div", undefined, [
                                 divRemove,
                                 divRename,
@@ -1492,11 +1512,19 @@
                                 color: red;
                                 margin-right: 10px;
                             `;
+                            const divInfoBookmarks = mkElt("p", undefined, [
+                                `
+                                    Mindmap bookmarks are snapshots of bookmark state.
+                                    They disappear when you close the mindmap.
+                                    (You can however make a bookmark persistent by giving it a name.)
+                                `,
+                            ])
                             const body = mkElt("div", undefined, [
                                 mkElt("h2", undefined, [
                                     iconBookmark,
                                     "Bookmark"
                                 ]),
+                                divInfoBookmarks,
                                 divActions,
                             ]);
                             let dlg;
