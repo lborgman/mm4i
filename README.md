@@ -21,7 +21,7 @@ And even if this is a web page you can work offline.
 ## Usage
 Just try it. If you think something needs to be explained then please tell me [here](https://github.com/lborgman/mm4i/issues).
 
-Hm. Maybe node notes and search needs explanation? Undo/redo style? Backup? Sync mindmap between devices?
+Hm. Maybe [node notes and search](#node-notes-and-search-links) needs explanation? [Undo/redo](#undoredo) style? [Backup and sync mindmaps](#sync-and-backup) between devices?
 
 
 ### Node notes and search links
@@ -30,17 +30,19 @@ Each node in a mindmap can have a note that you create.  You can search the mind
 (To create a "search link" just click the orange search icon in the toolbar when you are editing a node note.)
 
 
-### Undo/Redo
+### Undo/Redo (edit history)
 There is undo/redo for the mindmap you are editing.
-However it is not bound to keyboard Ctrl-Z as you are used too.
-Instead it is visual. Click on the clock symbol in the lower left corner.
+However it is visual. It is not bound to keyboard Ctrl-Z as you are used too.
+Click on the clock symbol in the lower left corner to see the edit history panel.
 
-There are two styles for undo/redo:
+##### Linear/tree style for edit history
 * **Linear:** This is what you find in most apps.
 * **Tree:** If you use this style you can create and investigate branches.
 
-I think that **tree style** can be useful for mindmaps. And yes, I will let you add names for the branches later! And let you persist the branches between editing sessions.
+##### Bookmarks for edit history
+The edit history panel lets you quickly move between different views of you mindmap subject.
 
+If you find some views more useful you can bookmark them.  If you give the bookmarks name they will be there the next time you start editing the mindmap.
 
 
 ### Sync and Backup
