@@ -399,7 +399,6 @@ export class CustomRenderer4jsMind {
         const divLinePreview = mkElt("div", { id: "div-line-preview", class: "mdc-card" }, divPreviewLine);
         divLinePreview.style.padding = "20px";
         const inpLineColor = /** @type {HTMLInputElement} */ (mkElt("input", { type: "color" }));
-        // inpLineColor.value = modColorConverter.toHex6(defaultLineC);
         const lblLineColor = mkElt("label", undefined, ["Line color: ", inpLineColor]);
         const divLineWidth = mkElt("div");
         let sliLineWidth;
@@ -426,23 +425,18 @@ export class CustomRenderer4jsMind {
             }
         }
         function disableCardLine(disabled) {
-            // sliLineWidth["myMdc"].disabled = disable;
             modMdc.setMDCSliderDisabled(sliLineWidth, disabled);
-            /*
-            inpLineColor.disabled = disabled;
-            if (disabled) {
-                cardLine.style.opacity = "0.3";
-            } else {
-                cardLine.style.opacity = "1";
-            }
-            */
-            inpLineColor.inert = disabled;
+            if (!inpLineColor.parentElement) throw Error("inpLineColor.parentElement is null");
+            inpLineColor.parentElement.inert = disabled;
         }
         // .mindmapGlobals
+        inpChkChangeLines.addEventListener("input", () => {
+            funDebounceSomethingToSaveMm();
+        });
         inpLineColor.addEventListener("input", () => {
             divPreviewLine.style.backgroundColor = inpLineColor.value;
             funDebounceSomethingToSaveMm();
-        })
+        });
         let lineTabActivated = false;
         async function activateLineTab() {
             if (!sliLineWidth) {
@@ -465,7 +459,6 @@ export class CustomRenderer4jsMind {
             inpChkChangeLines.checked = old_line;
             const line_width = old_line_width || defaultLineW;
             const line_color = old_line_color || defaultLineC;
-            // inpLineColor.value = modColorTools.toHex6(line_color);
             inpLineColor.value = modColorTools.standardizeColorTo6Hex(line_color);
             sliLineWidth["myMdc"].setValue(line_width);
             divPreviewLine.style.height = `${line_width}px`;
@@ -597,6 +590,9 @@ export class CustomRenderer4jsMind {
                 // tempGlobals.line_color = modColorTools.colorToRGBA(inpLineColor.value);
                 tempGlobals.line_color = inpLineColor.value;
                 tempGlobals.line_width = sliLineWidth["myMdc"].getValue();
+            } else {
+                delete tempGlobals.line_color;
+                delete tempGlobals.line_width;
             }
             if (JSON.stringify(tempGlobals) != JSON.stringify(oldGlobals)) return true;
             return false;
