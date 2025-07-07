@@ -66,13 +66,7 @@ export async function startUndoRedo(keyName) {
     modUndo.addUndoRedo(keyName, objInitialState, funBranch);
 }
 
-async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
-    checkIsMMformatJsmind(jmDisplayed, "saveMindmapPlusUndoRedo");
-    const dbMindmaps = await importFc4i("db-mindmaps");
-    const modUndo = await importFc4i("undo-redo-tree");
-    if (!modUndo.hasUndoRedo(keyName)) {
-        await startUndoRedo(keyName);
-    }
+export async function getFullMindmapState(jmDisplayed) {
     const selected_id = jmDisplayed.get_selected_node().id;
     const modZoomMove = await importFc4i("zoom-move");
     const percentageZoom = modZoomMove.getZoomPercentage();
@@ -85,7 +79,20 @@ async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUp
         objDataMind,
         other
     }
-    objDataMind.key = keyName;
+    return objToSave;
+}
+
+async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
+    checkIsMMformatJsmind(jmDisplayed, "saveMindmapPlusUndoRedo");
+    const dbMindmaps = await importFc4i("db-mindmaps");
+    const modUndo = await importFc4i("undo-redo-tree");
+    if (!modUndo.hasUndoRedo(keyName)) {
+        await startUndoRedo(keyName);
+    }
+    const objToSave = await getFullMindmapState(jmDisplayed);
+    // objDataMind.key = keyName;
+    objToSave.objDataMind.key = keyName;
+
     checkOurUndoRedoState(objToSave);
 
     modUndo.actionRecordAction(keyName, objToSave, actionTopic);
