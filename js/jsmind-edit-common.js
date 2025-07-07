@@ -1178,7 +1178,7 @@ async function addDragBorders(jmDisplayed) {
     const eltShow = eltJmnodes.closest("div.jsmind-inner");
     const modMoveHelp = await importFc4i("move-help");
     try {
-        // instMoveAtDragBorder?.markDeleted();
+        instMoveAtDragBorder?.markDeleted();
         instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60, eltShow);
     } catch (err) {
         console.error({ err });

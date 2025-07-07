@@ -141,10 +141,11 @@ export class MoveAtDragBorder {
         throttleUpdateLimits();
     }
     markDeleted() { this.#deleted = true; }
+    #isDeleted() { return this.#deleted; }
     #checkIsDeleted() {
         if (this.#deleted) {
             const msg = "This MoveAtDragBorder is marked as deleted";
-            debugger;
+            debugger; // eslint-disable-line no-debugger
             console.error(msg, this);
             throw Error(msg);
         }
@@ -165,7 +166,8 @@ export class MoveAtDragBorder {
      * @param {boolean|undefined} secondCall 
      */
     updateScreenLimits = (secondCall = undefined) => {
-        this.#checkIsDeleted();
+        // this.#checkIsDeleted();
+        if (this.#isDeleted()) { return; }
         const elt2moveParent = this.elt2move.parentElement;
         if (!elt2moveParent) {
             if (secondCall) {
