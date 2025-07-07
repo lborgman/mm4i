@@ -862,9 +862,11 @@ export class CustomRenderer4jsMind {
         function onCtrlChgBorderWidth() {
             const dialogBW = currentShapeEtc.border.width;
             if (dialogBW > 0) {
-                divBorder.classList.remove("no-specified-border");
+                // divBorder.classList.remove("no-specified-border");
+                divBorderDetails.inert = false;
             } else {
-                divBorder.classList.add("no-specified-border");
+                // divBorder.classList.add("no-specified-border");
+                divBorderDetails.inert = true;
             }
             // setBorderCopied();
         }
@@ -879,7 +881,7 @@ export class CustomRenderer4jsMind {
         }
         */
 
-        const divSliBorderWidth = mkElt("div", undefined, "Width: ");
+        const divSliBorderWidth = mkElt("p", undefined, "Width: ");
         let sliBorderWidth;
         async function addSliBorderWidth() {
             const eltCont = divSliBorderWidth;
@@ -887,8 +889,6 @@ export class CustomRenderer4jsMind {
             const funChange = onCtrlChgBorderWidth;
             await mkSlider4shapeEtc("border.width", eltCont, 0, 20, 0, 2, title, funChange);
         }
-        /*
-        */
 
 
         const initialBorderStyle = initialShapeEtc.border?.style || "solid";
@@ -906,7 +906,7 @@ export class CustomRenderer4jsMind {
             lbl.style.display = "inline-block";
             return lbl;
         }
-        const divBorderStyle = mkElt("div", { id: "jsmind-ednode-div-border-style", class: "specify-border-detail" }, [
+        const divBorderStyle = mkElt("p", { id: "jsmind-ednode-div-border-style", class: "specify-border-detail" }, [
             mkAltBorderStyle("solid"),
             mkAltBorderStyle("dotted"),
             mkAltBorderStyle("dashed"),
@@ -919,10 +919,14 @@ export class CustomRenderer4jsMind {
             currentShapeEtc.border.style = borderStyle;
         });
 
+        const divBorderDetails = mkElt("div", undefined, [
+            lblBorderColor,
+            divBorderStyle
+        ]);
+        if (currentShapeEtc.border.width == 0) divBorderDetails.inert = true;
         const divCanBorder = mkElt("div", { class: "if-can-border" }, [
             divSliBorderWidth,
-            lblBorderColor,
-            divBorderStyle,
+            divBorderDetails
         ]);
         const divCannotBorder = mkElt("div", { class: "if-cannot-border" }, [
             mkElt("p", undefined, "Chosen shape can't have a border")
@@ -2116,12 +2120,16 @@ export class CustomRenderer4jsMind {
         const divSliShadowBlur = mkElt("div");
         // const divSliShadowSpread = mkElt("div");
 
+        const divShadowDetails =
+            mkElt("div", { class: "specify-shadow-detail" }, [
+                mkElt("div", undefined, ["Horizontal offset:", divSliShadowOffX]),
+                mkElt("div", undefined, ["Vertical offset:", divSliShadowOffY]),
+                mkElt("div", undefined, mkCtrlColor("shadow.color", "red")),
+            ]);
+        if (currentShapeEtc.shadow.blur == 0) divShadowDetails.inert = true;
         const divShadow = mkElt("div", undefined, [
-            mkElt("div", undefined, ["Horizontal offset:", divSliShadowOffX]),
-            mkElt("div", undefined, ["Vertical offset:", divSliShadowOffY]),
             mkElt("div", undefined, ["Shadow blur:", divSliShadowBlur]),
-            // mkElt("div", undefined, ["Shadow spread:", divSliShadowSpread]),
-            mkElt("div", undefined, mkCtrlColor("shadow.color", "red")),
+            divShadowDetails
         ]);
         let shadowTabWasSetup = false;
         async function addSliShadowOffX() {
@@ -2137,7 +2145,18 @@ export class CustomRenderer4jsMind {
         async function addSliShadowBlur() {
             const eltCont = divSliShadowBlur;
             const title = "Shadow blur";
-            await mkSlider4shapeEtc("shadow.blur", eltCont, 0, 50, 0, 5, title, undefined);
+            const funChange = onCtrlChgShadowBlur;
+            await mkSlider4shapeEtc("shadow.blur", eltCont, 0, 50, 0, 5, title, funChange);
+        }
+        function onCtrlChgShadowBlur() {
+            const shadowBlur = currentShapeEtc.shadow.blur;
+            // no-specified-border
+            // debugger;
+            if (shadowBlur > 0) {
+                divShadowDetails.inert = false;
+            } else {
+                divShadowDetails.inert = true;
+            }
         }
 
 
