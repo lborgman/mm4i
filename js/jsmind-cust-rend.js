@@ -593,7 +593,9 @@ export class CustomRenderer4jsMind {
             } else {
             }
             if (inpChkChangeLines.checked) {
-                tempGlobals.line_color = modColorTools.toRgba(inpLineColor.value);
+                // tempGlobals.line_color = modColorTools.toRgba(inpLineColor.value);
+                // tempGlobals.line_color = modColorTools.colorToRGBA(inpLineColor.value);
+                tempGlobals.line_color = inpLineColor.value;
                 tempGlobals.line_width = sliLineWidth["myMdc"].getValue();
             }
             if (JSON.stringify(tempGlobals) != JSON.stringify(oldGlobals)) return true;
