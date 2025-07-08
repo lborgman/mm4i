@@ -61,18 +61,20 @@ export async function startUndoRedo(keyName) {
         objDataMind: objBaseMm,
         other
     }
-    checkOurUndoRedoState(objInitialState);
+    checkIsFullMindmapDisplayState(objInitialState);
     const modUndo = await importFc4i("undo-redo-tree");
     modUndo.addUndoRedo(keyName, objInitialState, funBranch);
 }
 
-export async function getFullMindmapState(jmDisplayed) {
+export async function getFullMindmapDisplayState(jmDisplayed) {
     const selected_id = jmDisplayed.get_selected_node().id;
     const modZoomMove = await importFc4i("zoom-move");
-    const percentageZoom = modZoomMove.getZoomPercentage();
+    const zoomed = modZoomMove.getZoomPercentage();
+    const moved = modZoomMove.getMoved();
     const other = {
         selected_id,
-        zoomed: percentageZoom
+        zoomed,
+        moved
     }
     const objDataMind = jmDisplayed.get_data("node_array");
     const objToSave = {
@@ -89,11 +91,11 @@ async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUp
     if (!modUndo.hasUndoRedo(keyName)) {
         await startUndoRedo(keyName);
     }
-    const objToSave = await getFullMindmapState(jmDisplayed);
+    const objToSave = await getFullMindmapDisplayState(jmDisplayed);
     // objDataMind.key = keyName;
     objToSave.objDataMind.key = keyName;
 
-    checkOurUndoRedoState(objToSave);
+    checkIsFullMindmapDisplayState(objToSave);
 
     modUndo.actionRecordAction(keyName, objToSave, actionTopic);
     const objMindData = jmDisplayed.get_data("node_array");
@@ -158,7 +160,7 @@ async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
         objDataMind,
         other
     }
-    checkOurUndoRedoState(objToSave);
+    checkIsFullDisplayState(objToSave);
     */
     // await saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, (new Date()).toISOString());
     // debugger;
@@ -654,7 +656,8 @@ export function checkIsMMformatJsmind(obj, where) {
  * @param {Object} obj 
  * @throws
  */
-function checkOurUndoRedoState(obj) {
+function checkIsFullMindmapDisplayState(obj) {
+    /*
     const strJsonOk = JSON.stringify(["objDataMind", "other"]);
     const strJsonObj = JSON.stringify(Object.keys(obj));
     if (strJsonObj != strJsonOk) {
@@ -663,7 +666,19 @@ function checkOurUndoRedoState(obj) {
         debugger; // eslint-disable-line no-debugger
         throw Error(msg);
     }
-    checkIsMMformatStored(obj["objDataMind"], "checkOurUndoRedoState");
+    */
+    // debugger;
+    const template = {
+        objDataMind: 1,
+        other: 1
+    }
+    if (!modTools.haveSameKeys(template, obj)) {
+        const msg = `Not a fullDisplayState: ${JSON.stringify(obj)}`;
+        console.error(msg);
+        debugger; // eslint-disable-line no-debugger
+        throw Error(msg);
+    }
+    checkIsMMformatStored(obj["objDataMind"], "checkIsFullDisplayState");
 }
 
 

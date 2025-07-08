@@ -522,7 +522,11 @@ export class CustomRenderer4jsMind {
             }
             rend.setMindmapGlobals(tempGlobals);
             rend.applyThisMindmapGlobals();
+            debugger;
             this.requestSaveMindMap();
+            const fullMindmapDisplayState = await modMMhelpers.getFullMindmapDisplayState(this.THEjmDisplayed);
+            console.log({ fullMindmapDisplayState });
+            debugger;
         }));
         btnTestMm.addEventListener("click", evt => {
             evt.stopPropagation();

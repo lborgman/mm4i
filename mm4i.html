@@ -1924,7 +1924,8 @@
             const modStairs = await importFc4i("stairs");
             modStairs.exitEditOrView();
             if (objHistoryNode) { applyHistoryNodeOther(objHistoryNode, jm); }
-            function applyHistoryNodeOther(objHistoryNode, jm) {
+            async function applyHistoryNodeOther(objHistoryNode, jm) {
+                const modZoomMove = await importFc4i("zoom-move");
                 const objOther = objHistoryNode.other;
                 if (typeof objOther != "object") debugger;
                 const keys = Object.keys(objOther);
@@ -1938,8 +1939,11 @@
                             const zoomed = objOther["zoomed"];
                             if (isNaN(zoomed)) throw Error("isNaN(zoomed)");
                             if (zoomed == 100) return;
-                            const modZoomMove = await importFc4i("zoom-move");
                             modZoomMove.setZoomPercentage(zoomed);
+                            break;
+                        case "moved":
+                            const moved = objOther["moved"];
+                            modZoomMove.setMoved(moved);
                             break;
                         default:
                             debugger;

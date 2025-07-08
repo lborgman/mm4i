@@ -1,7 +1,7 @@
 // @ts-check
 
 const version = "0.1.000";
-logConsoleHereIs(`here is zoom.js, module, ${version}`);
+window["logConsoleHereIs"](`here is zoom.js, module, ${version}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 const importFc4i = window["importFc4i"];
@@ -225,4 +225,35 @@ export function mkZoomButtons(horOrVer) {
         display: flex;
     `;
     return cont;
+}
+
+export function getMoved() {
+    const eltZM = eltZoomMove.closest("div.zoom-move");
+    const top = eltZM.style.top;
+    const left = eltZM.style.left;
+    return { top, left }
+}
+/**
+ * 
+ * @param {object} objMoved 
+ */
+export function setMoved(objMoved) {
+    const movedLeft = objMoved.left;
+    const tofLeft = typeof movedLeft;
+    if (tofLeft != "string") throw Error(`typeof movedLeft != "string": ${tofLeft}`);
+    if (movedLeft > 0) {
+        if (!movedLeft.endsWith(".px")) throw Error(`movedLeft is not in px: "${movedLeft}`);
+    }
+
+    const movedTop = objMoved.top;
+    const tofTop = typeof movedTop;
+    if (tofTop != "string") throw Error(`typeof movedTop != "string": ${tofTop}`);
+    if (movedTop > 0) {
+        if (!movedTop.endsWith(".px")) throw Error(`movedTop is not in px: "${movedTop}`);
+    }
+
+    const eltZM = eltZoomMove.closest("div.zoom-move");
+    // FIX-ME:
+    eltZM.style.left = movedLeft;
+    eltZM.style.top = movedTop;
 }
