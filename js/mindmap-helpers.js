@@ -66,6 +66,12 @@ export async function startUndoRedo(keyName) {
     modUndo.addUndoRedo(keyName, objInitialState, funBranch);
 }
 
+export async function getCurrentFullMindmapDisplayState() {
+    const modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
+    const jm = modJsmindDraggable.getOurJm();
+    if (!jm) throw Error("getCurrentFullMindmapDisplay: .getOurJm() return undefined");
+    return getFullMindmapDisplayState(jm);
+}
 export async function getFullMindmapDisplayState(jmDisplayed) {
     const selected_id = jmDisplayed.get_selected_node().id;
     const modZoomMove = await importFc4i("zoom-move");
