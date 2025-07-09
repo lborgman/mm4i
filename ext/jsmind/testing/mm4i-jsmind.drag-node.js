@@ -48,7 +48,7 @@ export function setOurJm(jm) {
     console.warn("setOurJm", jm);
     ourJm = jm;
 }
-export function getOurJm(jm) {
+export function getOurJm() {
     return ourJm;
 }
 
