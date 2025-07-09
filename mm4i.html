@@ -1938,32 +1938,8 @@
             modJsmindDraggable.setOurJm(jm);
             const modStairs = await importFc4i("stairs");
             modStairs.exitEditOrView();
-            if (objHistoryFullDisplay) { applyHistoryNodeOther(objHistoryFullDisplay, jm); }
-            async function applyHistoryNodeOther(objHistoryNode, jm) {
-                const modZoomMove = await importFc4i("zoom-move");
-                const objOther = objHistoryNode.other;
-                if (typeof objOther != "object") debugger;
-                const keys = Object.keys(objOther);
-                keys.forEach(async key => {
-                    switch (key) {
-                        case "selected_id":
-                            const node_id = objOther["selected_id"];
-                            jm.select_node(node_id);
-                            break;
-                        case "zoomed":
-                            const zoomed = objOther["zoomed"];
-                            if (isNaN(zoomed)) throw Error("isNaN(zoomed)");
-                            if (zoomed == 100) return;
-                            modZoomMove.setZoomPercentage(zoomed);
-                            break;
-                        case "moved":
-                            const moved = objOther["moved"];
-                            modZoomMove.setMoved(moved);
-                            break;
-                        default:
-                            debugger;
-                    }
-                });
+            if (objHistoryFullDisplay) {
+               modMMhelpers.applyDisplayStateOther(objHistoryFullDisplay.other, jm);
             }
         }
 

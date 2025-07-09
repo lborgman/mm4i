@@ -841,3 +841,31 @@ export async function addSpan4Mark(eltJmnode, cssClass, iconName) {
     eltSpan4mark.append(iconName);
     eltSpan4mark.classList.add(cssClass); // .jsmind-hit
 }
+
+
+export async function applyDisplayStateOther(objDisplayStateOther, jm) {
+    const modZoomMove = await importFc4i("zoom-move");
+    // const objDisplayStateOther = objHistoryNode.other;
+    if (typeof objDisplayStateOther != "object") debugger;
+    const keys = Object.keys(objDisplayStateOther);
+    keys.forEach(async key => {
+        switch (key) {
+            case "selected_id":
+                const node_id = objDisplayStateOther["selected_id"];
+                jm.select_node(node_id);
+                break;
+            case "zoomed":
+                const zoomed = objDisplayStateOther["zoomed"];
+                if (isNaN(zoomed)) throw Error("isNaN(zoomed)");
+                if (zoomed == 100) return;
+                modZoomMove.setZoomPercentage(zoomed);
+                break;
+            case "moved":
+                const moved = objDisplayStateOther["moved"];
+                modZoomMove.setMoved(moved);
+                break;
+            default:
+                debugger;
+        }
+    });
+}
