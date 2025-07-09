@@ -48,6 +48,9 @@ export function setOurJm(jm) {
     console.warn("setOurJm", jm);
     ourJm = jm;
 }
+export function getOurJm(jm) {
+    return ourJm;
+}
 
 // let instMoveAtDragBorder;
 export async function setupNewDragging() {
