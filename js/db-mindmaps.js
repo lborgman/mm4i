@@ -135,17 +135,19 @@ function checkIsMMformatStored(obj, where) {
  * 
  * @param {string} keyName 
  * @param {string} bookmarkName 
- * @param {Object} jsMindMap - mindmap in jsMind format (FIX-ME: name of format)
+ * @param {Object} fullDisplayState
  * @returns {Promise<any>} 
  */
-export async function DBsetMindmapBookmark(keyName, bookmarkName, jsMindMap) {
+export async function DBsetMindmapBookmark(keyName, bookmarkName, fullDisplayState) {
+    const jsMindMap = fullDisplayState.objDataMind;
     const metaName = jsMindMap.meta.name;
     const [metaKey] = metaName.split("/");
     if (keyName !== metaKey) throw Error(`key=${keyName} but objMindmap.meta.name=${metaKey}`);
 
     const keyBookmark = `${keyName}-bookmark-${bookmarkName}`;
     // debugger;
-    return modIdbCmn.setDbKey(idbStoreMm, keyBookmark, jsMindMap);
+    // return modIdbCmn.setDbKey(idbStoreMm, keyBookmark, jsMindMap);
+    return modIdbCmn.setDbKey(idbStoreMm, keyBookmark, fullDisplayState);
 }
 // dbgetallmindmaps
 export async function DBgetAllMindmapBookmarks(keyName) {

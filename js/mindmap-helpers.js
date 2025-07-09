@@ -91,13 +91,13 @@ async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUp
     if (!modUndo.hasUndoRedo(keyName)) {
         await startUndoRedo(keyName);
     }
-    const objToSave = await getFullMindmapDisplayState(jmDisplayed);
+    const objFullMindmapDisplayState = await getFullMindmapDisplayState(jmDisplayed);
     // objDataMind.key = keyName;
-    objToSave.objDataMind.key = keyName;
+    objFullMindmapDisplayState.objDataMind.key = keyName;
 
-    checkIsFullMindmapDisplayState(objToSave);
+    checkIsFullMindmapDisplayState(objFullMindmapDisplayState);
 
-    modUndo.actionRecordAction(keyName, objToSave, actionTopic);
+    modUndo.actionRecordAction(keyName, objFullMindmapDisplayState, actionTopic);
     const objMindData = jmDisplayed.get_data("node_array");
     objMindData.key = keyName;
     // return await dbMindmaps.DBsetMindmap(keyName, jmDisplayed, lastUpdated, lastSynced, privacy);
@@ -656,7 +656,7 @@ export function checkIsMMformatJsmind(obj, where) {
  * @param {Object} obj 
  * @throws
  */
-function checkIsFullMindmapDisplayState(obj) {
+export function checkIsFullMindmapDisplayState(obj) {
     /*
     const strJsonOk = JSON.stringify(["objDataMind", "other"]);
     const strJsonObj = JSON.stringify(Object.keys(obj));
