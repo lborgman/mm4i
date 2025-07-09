@@ -1907,7 +1907,6 @@
             } else {
                 const modUndo = await importFc4i("undo-redo-tree");
                 const historyNode = radUndoRedo.valueAsObject;
-
                 const history = modUndo.getHistory(mindmapKey);
                 objHistoryFullDisplay = history.navigateToNode(historyNode);
             }
@@ -1927,8 +1926,8 @@
                 await dbMindmaps.DBsetMindmap(mindmapKey, objMindData);
             } else {
                 delete objHistoryFullDisplay.isSavedBookmark;
-                delete objHistoryFullDisplay.key;
             }
+            delete objHistoryFullDisplay.key;
 
             modMMhelpers.checkIsFullMindmapDisplayState(objHistoryFullDisplay);
             // modMMhelpers.checkIsFullMindmapDisplayState(objMindData);
