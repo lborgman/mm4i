@@ -516,17 +516,23 @@ export class CustomRenderer4jsMind {
             // const saveGlobals = { themeCls: selectedThemeCls, }
             // const r = await getOurCustomRenderer();
             // rend.setMindmapGlobals(saveGlobals);
+            /*
             if (somethingHasChangedLines()) {
                 modMdc.mkMDCdialogAlert(
                     "Changes to line color/width is not shown until mindmap is opened next time");
             }
+            */
             rend.setMindmapGlobals(tempGlobals);
             rend.applyThisMindmapGlobals();
-            debugger;
             this.requestSaveMindMap();
             const fullMindmapDisplayState = await modMMhelpers.getFullMindmapDisplayState(this.THEjmDisplayed);
             console.log({ fullMindmapDisplayState });
-            debugger;
+            // FIX-ME: better way to get key?
+            const mk = new URLSearchParams(location.search).get("mindmap");
+            const objDataMind =fullMindmapDisplayState.objDataMind;
+            objDataMind.key = mk;
+            const jm = await modJsEditCommon.displayOurMindmap(objDataMind);
+            modMMhelpers.applyDisplayStateOther(fullMindmapDisplayState.other, jm);
         }));
         btnTestMm.addEventListener("click", evt => {
             evt.stopPropagation();
