@@ -1545,10 +1545,12 @@ export async function pageSetup() {
         btnShareMm.id = "btn-sync";
         btnShareMm.addEventListener("click", async evt => {
             evt.stopPropagation();
+            /*
             if (location.hostname != "localhost") {
                 alert("not implemented yet");
                 return;
             }
+            */
             const modShare = await importFc4i("mm4i-share");
             console.log({ modShare });
             // const jsonSharedMindmap = { justATest: new Date().toLocaleString() };
