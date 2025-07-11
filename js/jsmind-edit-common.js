@@ -1558,8 +1558,10 @@ export async function pageSetup() {
             // const jsonSharedMindmap = await modMMhelpers.getFullMindmapDisplayState(this.THEjmDisplayed);
             const renderer = await getCustomRenderer();
             const jsonSharedMindmap = await renderer.getFullMindmapDisplayState();
-
-            modShare.saveDataToShare(jsonSharedMindmap);
+            const topic = jsonSharedMindmap.objDataMind.data[0].topic;
+            const shareTitle = `Sharing mindmap "${topic}"`;
+            const shareText = `Sharing mindmap`;
+            modShare.saveDataToShare(jsonSharedMindmap, shareTitle, shareText);
         });
 
         divJsmindSearch.appendChild(btnJsmindSearch);

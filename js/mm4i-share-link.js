@@ -17,20 +17,23 @@ const MM4I_SUPABASE_URL = "https://dpjaiwxctqpdezuinieq.supabase.co";
 const MM4I_PWA = location.origin + location.pathname;
 
 const MM4I_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwamFpd3hjdHFwZGV6dWluaWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIxMzUyOTQsImV4cCI6MjA2NzcxMTI5NH0.5dqHOqTm4wK-JWyu7Ec20J4HRGqd9tN4_JpQ0hvB8kc";
+
 /**
  * 
  * @param {object} jsonSharedMindmap 
+ * @param {string} shareTitle 
+ * @param {string} shareText 
  */
-export async function saveDataToShare(jsonSharedMindmap) {
-    await saveDataToShareSupabase(jsonSharedMindmap);
+export async function saveDataToShare(jsonSharedMindmap, shareTitle, shareText) {
+    if (!shareTitle) throw Error("NO SHARE TITLE GIVEN");
+    if (!shareText) throw Error("NO SHARE TEXT GIVEN");
+    await saveDataToShareSupabase(jsonSharedMindmap, shareTitle, shareText);
 }
 
-async function saveDataToShareSupabase(jsonSharedMindmap) {
+async function saveDataToShareSupabase(jsonSharedMindmap, shareTitle, shareText) {
     const accessToken = crypto.randomUUID(); // Generate a random token for extra security
 
     try {
-        // const response = await fetch('https://<your-supabase-project>.supabase.co/rest/v1/shared_data', {
-        // const response = await fetch(`https://${MM4I_SUPABASE_PROJECT}.supabase.com/rest/v1/shared_data`, {
         const response = await fetch(`${MM4I_SUPABASE_URL}/rest/v1/shared_data`, {
             method: 'POST',
             headers: {
@@ -60,18 +63,19 @@ async function saveDataToShareSupabase(jsonSharedMindmap) {
 
         const txtResult = await response.text();
         console.log({ resultTxt: txtResult });
-        debugger;
         const jsonResult = JSON.parse(txtResult);
-        // const result = await response.json();
         const postId = jsonResult[0].id; // Get the UUID from Supabase
-        sharePostLink(postId, accessToken);
+        // const shareTitle = "share title";
+        // const shareText = "share text";
+
+        sharePostLink(postId, accessToken, shareTitle, shareText);
     } catch (error) {
         console.error('Error:', error);
         alert('Failed to save data');
     }
 }
 
-function sharePostLink(postId, accessToken) {
+function sharePostLink(postId, accessToken, shareTitle, shareText) {
     // Include accessToken in the URL if using token-based access
     // const shareUrl = `https://your-pwa.com/share?post=${encodeURIComponent(postId)}&token=${encodeURIComponent(accessToken)}`;
     // const shareUrl = `${MM4I_PWA}?share=${encodeURIComponent(postId)}&token=${encodeURIComponent(accessToken)}`;
@@ -79,8 +83,10 @@ function sharePostLink(postId, accessToken) {
     const shareUrl = `${MM4I_PWA}?share=${sharePart}`;
     if (navigator.share) {
         navigator.share({
-            title: 'Check out my data!',
-            text: 'View my shared data in this PWA.',
+            // title: 'Check out my data!',
+            title: shareTitle,
+            // text: 'View my shared data in this PWA.',
+            text: shareText,
             url: shareUrl,
         })
             .then(() => console.log('Shared successfully'))
