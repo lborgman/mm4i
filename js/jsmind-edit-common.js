@@ -1333,40 +1333,76 @@ export async function pageSetup() {
     const sharedParam = new URLSearchParams(location.search).get("share");
     console.log({ sharedParam });
     if (sharedParam != null) {
-        const eltTellShared = mkElt("div", undefined, "SHARED");
-        eltTellShared.style = `
+        const sp = new URLSearchParams(sharedParam);
+        const spTitle = sp.get("title");
+        const spText = sp.get("text");
+
+        const addShareMarker = () => {
+            const eltTellShared = mkElt("div", undefined, [
+                // mkElt("i", undefined, "SHARED"),
+                // " ",
+                mkElt("b", undefined, `${spTitle}: `),
+                spText,
+            ]);
+            eltTellShared.style = `
             position: fixed;
             bottom: 0px;
             left: 0px;
-            height: 50px;
-            width: 100px;
+            min-height: 50px;
+            min-width: 100px;
+            max-width: 270px;
+            padding: 10px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             z-index: 99999;
             background: red;
-        `;
-        document.body.appendChild(eltTellShared);
+            `;
+            document.body.appendChild(eltTellShared);
+        }
         // debugger;
         const modShare = await importFc4i("mm4i-share")
         console.log({ modShare });
         const mindmapData = await modShare.getSharedData(sharedParam);
         console.log({ mindmapData })
-        // debugger;
-        const objDm = mindmapData.objDataMind;
-        objDm.key = "SHARED";
-        modMMhelpers.checkIsFullMindmapDisplayState(mindmapData);
-        // const jm = await displayOurMindmap(objMindData);
-        const jm = await displayOurMindmap(objDm);
-        jm.isSavedBookmark = true; // FIX-ME:
-        // modJsmindDraggable.setOurJm(jm);
 
-        const objOther = mindmapData.other;
-        delete objOther.moved;
-        // debugger;
-        modMMhelpers.applyDisplayStateOther(objOther, jm);
-        // return;
-        debugger;
+        const divInfoSp = mkElt("p", undefined, [
+            mkElt("div", undefined, [
+                mkElt("i", undefined, "Title: "), spTitle
+            ]),
+            mkElt("div", undefined, [
+                mkElt("i", undefined, "Text: "), spText
+            ]),
+        ]);
+        if (!mindmapData) {
+            const body = mkElt("div", undefined, [
+                mkElt("h2", undefined, "Could not find shared mindmap"),
+                mkElt("p", undefined, "It have probably been deleted."),
+                divInfoSp
+            ])
+            await modMdc.mkMDCdialogConfirm(body, "Close");
+            // debugger;
+            dialogMindMaps();
+            return;
+        } else {
+            addShareMarker();
+            // debugger;
+            const objDm = mindmapData.objDataMind;
+            objDm.key = "SHARED";
+            modMMhelpers.checkIsFullMindmapDisplayState(mindmapData);
+            // const jm = await displayOurMindmap(objMindData);
+            const jm = await displayOurMindmap(objDm);
+            jm.isSavedBookmark = true; // FIX-ME:
+            // modJsmindDraggable.setOurJm(jm);
+
+            const objOther = mindmapData.other;
+            delete objOther.moved;
+            // debugger;
+            modMMhelpers.applyDisplayStateOther(objOther, jm);
+            // return;
+            debugger;
+        }
     }
 
     const mindmapKey = new URLSearchParams(location.search).get("mindmap");
@@ -1559,8 +1595,8 @@ export async function pageSetup() {
             const renderer = await getCustomRenderer();
             const jsonSharedMindmap = await renderer.getFullMindmapDisplayState();
             const topic = jsonSharedMindmap.objDataMind.data[0].topic;
-            const shareTitle = `Sharing mindmap "${topic}"`;
-            const shareText = `Sharing mindmap`;
+            const shareTitle = `Shared mindmap "${topic}"`;
+            const shareText = `(temp user input)`;
             modShare.saveDataToShare(jsonSharedMindmap, shareTitle, shareText);
         });
 

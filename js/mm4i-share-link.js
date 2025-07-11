@@ -79,7 +79,10 @@ function sharePostLink(postId, accessToken, shareTitle, shareText) {
     // Include accessToken in the URL if using token-based access
     // const shareUrl = `https://your-pwa.com/share?post=${encodeURIComponent(postId)}&token=${encodeURIComponent(accessToken)}`;
     // const shareUrl = `${MM4I_PWA}?share=${encodeURIComponent(postId)}&token=${encodeURIComponent(accessToken)}`;
-    const sharePart = encodeURIComponent(`post=${postId}&token=${accessToken}`);
+    // FIX-ME: make link compotion more readable
+    const sharePart = encodeURIComponent(
+        `post=${postId}&token=${accessToken}&title=${shareTitle}&text=${shareText}`
+    );
     const shareUrl = `${MM4I_PWA}?share=${sharePart}`;
     if (navigator.share) {
         navigator.share({
