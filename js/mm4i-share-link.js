@@ -13,7 +13,8 @@ const MM4I_SUPABASE_PROJECT = "mm4ishare";
 const MM4I_SUPABASE_URL = "https://dpjaiwxctqpdezuinieq.supabase.co";
 
 // const MM4I_PWA = "https://lborgman.github.io/mm4i/mm4i.html";
-const MM4I_PWA = location.origin + "/mm4i.html";
+// const MM4I_PWA = location.origin + "/mm4i.html";
+const MM4I_PWA = location.origin + location.pathname;
 
 const MM4I_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwamFpd3hjdHFwZGV6dWluaWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTIxMzUyOTQsImV4cCI6MjA2NzcxMTI5NH0.5dqHOqTm4wK-JWyu7Ec20J4HRGqd9tN4_JpQ0hvB8kc";
 /**
