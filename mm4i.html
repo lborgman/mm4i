@@ -1911,8 +1911,8 @@
                 objHistoryFullDisplay = history.navigateToNode(historyNode);
             }
             const isSavedBookmark = objHistoryFullDisplay.isSavedBookmark;
-            const objMindData = objHistoryFullDisplay.objDataMind;
-            if (!objMindData) {
+            const objMindStored = objHistoryFullDisplay.objMindStored;
+            if (!objMindStored) {
                 debugger;
                 modMdc.mkMDCsnackbar("Old format naned bookmark, please delete");
                 return;
@@ -1920,10 +1920,10 @@
 
             undisplayPrevMindmap();
 
-            modMMhelpers.checkIsMMformatStored(objMindData, "event listener change");
+            modMMhelpers.checkIsMMformatStored(objMindStored, "event listener change");
             const dbMindmaps = await importFc4i("db-mindmaps");
             if (!isSavedBookmark) {
-                await dbMindmaps.DBsetMindmap(mindmapKey, objMindData);
+                await dbMindmaps.DBsetMindmap(mindmapKey, objMindStored);
             } else {
                 delete objHistoryFullDisplay.isSavedBookmark;
             }
@@ -1933,7 +1933,7 @@
             // modMMhelpers.checkIsFullMindmapDisplayState(objMindData);
 
 
-            const jm = await modJsEditCommon.displayOurMindmap(objMindData);
+            const jm = await modJsEditCommon.displayOurMindmap(objMindStored);
             if (isSavedBookmark) jm.isSavedBookmark = true;
             modJsmindDraggable.setOurJm(jm);
             const modStairs = await importFc4i("stairs");

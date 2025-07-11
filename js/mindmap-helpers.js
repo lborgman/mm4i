@@ -62,11 +62,13 @@ export async function startUndoRedo(keyName, jmDisplayed) {
     const other = {
         selected_id: "root"
     }
+    checkIsMMformatStored(objBaseMm, "startUndoRedo, objBaseMm");
     const objInitialState = {
-        objDataMind: objBaseMm,
+        // objDataMind: objBaseMm,
+        objMindStored: objBaseMm,
         other
     }
-    checkIsFullMindmapDisplayState(objInitialState);
+    checkIsFullMindmapDisplayState(objInitialState, "startUndoRedo");
     const modUndo = await importFc4i("undo-redo-tree");
     modUndo.addUndoRedo(keyName, objInitialState, funBranch);
 }
@@ -87,9 +89,10 @@ export async function getFullMindmapDisplayState(jmDisplayed) {
         zoomed,
         moved
     }
-    const objDataMind = jmDisplayed.get_data("node_array");
+    const objMindStored = jmDisplayed.get_data("node_array");
+    checkIsMMformatStored(objMindStored, "getFullMindmapDisplayState, objMindStored", ["key"]);
     const objToSave = {
-        objDataMind,
+        objMindStored,
         other
     }
     return objToSave;
@@ -104,9 +107,9 @@ async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUp
     }
     const objFullMindmapDisplayState = await getFullMindmapDisplayState(jmDisplayed);
     // objDataMind.key = keyName;
-    objFullMindmapDisplayState.objDataMind.key = keyName;
+    objFullMindmapDisplayState.objMindStored.key = keyName;
 
-    checkIsFullMindmapDisplayState(objFullMindmapDisplayState);
+    checkIsFullMindmapDisplayState(objFullMindmapDisplayState, "saveMindmapPlusUndoRedo");
 
     modUndo.actionRecordAction(keyName, objFullMindmapDisplayState, actionTopic);
     const objMindData = jmDisplayed.get_data("node_array");
@@ -656,22 +659,24 @@ export function checkIsMMformatJmdisplayed(obj, where) {
  * @param {Object} obj 
  * @throws
  */
-export function checkIsFullMindmapDisplayState(obj) {
-    /*
-    const template = {
-        objDataMind: 1,
-        other: 1
-    }
-    */
-    const arrTemplate = [ "objDataMind", "other" ]
-    const objTemplate = Object.fromEntries(arrTemplate.map(item => [item, true]));
-    if (!modTools.haveSameKeys(objTemplate, obj)) {
-        const msg = `Not a fullDisplayState: ${JSON.stringify(obj)}`;
-        console.error(msg);
-        debugger; // eslint-disable-line no-debugger
+export function checkIsFullMindmapDisplayState(obj, where) {
+    const throwErr = (what) => {
+        const msg = `checkIsFullMindmapDisplayState, ${where}: ${what}`
+        console.error(msg, obj);
+        debugger;
         throw Error(msg);
     }
-    checkIsMMformatStored(obj["objDataMind"], "checkIsFullDisplayState");
+    // const arrTemplate = [ "objDataMind", "other" ]
+    const arrTemplate = [ "objMindStored", "other" ]
+    const objTemplate = Object.fromEntries(arrTemplate.map(item => [item, true]));
+    if (!modTools.haveSameKeys(objTemplate, obj)) {
+        // const msg = `Not a fullDisplayState: ${JSON.stringify(obj)}`;
+        const msg = `Not a fullDisplayState`;
+        // console.error(msg);
+        // debugger; // eslint-disable-line no-debugger
+        throwErr(msg);
+    }
+    checkIsMMformatStored(obj["objMindStored"], "checkIsFullDisplayState");
 }
 
 
@@ -679,10 +684,11 @@ export function checkIsFullMindmapDisplayState(obj) {
  * 
  * @param {Object} obj 
  * @param {string} where 
+ * @param {string[] | undefined } arrMayMiss;
  * @param {boolean | undefined } allowIsSavedBookmark;
  * @throws
  */
-export function checkIsMMformatStored(obj, where, allowIsSavedBookmark = false) {
+export function checkIsMMformatStored(obj, where, arrMayMiss, allowIsSavedBookmark = false) {
     const tofWhere = typeof where;
     if (tofWhere != "string") throw Error(`where should be string, is "${tofWhere}`);
     const throwErr = (what) => {
@@ -695,17 +701,6 @@ export function checkIsMMformatStored(obj, where, allowIsSavedBookmark = false) 
     const tofAllowBM = typeof allowIsSavedBookmark;
     if (tofAllowBM != "boolean") throwErr(`allowIsSavedBookmark is not boolean: "${tofAllowBM}"`);
 
-    /*
-    let arrObjKeys = Object.keys(obj).sort();
-    if (allowIsSavedBookmark) {
-        arrObjKeys = arrObjKeys.filter(k => k != "isSavedBookmark");
-    }
-    const strObjKeys = JSON.stringify(arrObjKeys);
-    const strData = JSON.stringify([
-        "data", "format", "key", "meta"
-    ]);
-    if (strObjKeys != strData) { throwErr("strObjKeys != strData"); }
-    */
     const arrTemplate = [
         "data", "format", "key", "meta"
     ];
@@ -715,7 +710,7 @@ export function checkIsMMformatStored(obj, where, allowIsSavedBookmark = false) 
         }
     }
     const objTemplate = Object.fromEntries(arrTemplate.map(item => [item, true]));
-    if (!modTools.haveSameKeys(objTemplate, obj)) {
+    if (!modTools.haveSameKeys(objTemplate, obj, arrMayMiss)) {
         throwErr("Not isMMformatStored");
     }
 
@@ -846,7 +841,6 @@ export async function addSpan4Mark(eltJmnode, cssClass, iconName) {
 
 export async function applyDisplayStateOther(objDisplayStateOther, jm) {
     const modZoomMove = await importFc4i("zoom-move");
-    // const objDisplayStateOther = objHistoryNode.other;
     if (typeof objDisplayStateOther != "object") debugger;
     const keys = Object.keys(objDisplayStateOther);
     keys.forEach(async key => {
@@ -867,6 +861,7 @@ export async function applyDisplayStateOther(objDisplayStateOther, jm) {
                 break;
             default:
                 debugger;
+                throw Error(`applyDisplayStateOther, unknown key: ${key}`);
         }
     });
 }

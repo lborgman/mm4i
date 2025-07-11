@@ -2464,45 +2464,56 @@ export function animateZoom(element, startZoom, endZoom, msDuration, msStep = 20
  * recursing only as deep as the first object's structure.
  * @param {Object} obj1 - The first object to compare.
  * @param {Object} obj2 - The second object to compare.
+ * @param {string[]|undefined} arrMayMiss - array of keys that may be missing in obj2
  * @returns {boolean} True if the objects have the same keys up to the depth of obj1, false otherwise.
  * @example
  * const obj1 = { a: 1, b: { x: 10, y: 20 }, c: 3 };
  * const obj2 = { a: 4, b: { x: 30, y: 40, z: { deeper: 50 } }, c: 6 };
  * console.log(haveSameKeys(obj1, obj2)); // true
  */
-export function haveSameKeys(obj1, obj2) {
-  // Get keys of both objects
-  const tellError = (...what) => {
-    console.error(`haveSameKeys: `, ...what);
-    // logConsole
-
-  }
-  const keys1 = Object.keys(obj1).sort();
-  const keys2 = Object.keys(obj2).sort();
-  
-  // Check if keys are identical
-  if (keys1.length !== keys2.length || !keys1.every((key, i) => key === keys2[i])) {
-    tellError("Not same keys", keys1, keys2);
-    return false;
-  }
-  
-  // Check nested objects recursively, only if obj1's value is an object
-  for (const key of keys1) {
-    const val1 = obj1[key];
-    const val2 = obj2[key];
-    
-    // Only recurse if val1 is an object (and not null)
-    if (typeof val1 === 'object' && val1 !== null) {
-      // Ensure val2 is an object (and not null) before recursing
-      if (typeof val2 !== 'object' || val2 === null) {
-        tellError("val2 is not object", val2);
-        return false;
-      }
-      if (!haveSameKeys(val1, val2)) {
-        return false;
-      }
+export function haveSameKeys(obj1, obj2, arrMayMiss) {
+    // Get keys of both objects
+    const tellError = (...what) => {
+        console.error(`haveSameKeys: `, ...what);
+        // logConsole
+        debugger; // eslint-disable-line no-debugger
     }
-  }
-  
-  return true;
+    const keys1 = Object.keys(obj1).sort();
+    const keys2 = Object.keys(obj2).sort();
+
+    // Check if keys are identical
+    if (!arrMayMiss) {
+        if (keys1.length !== keys2.length || !keys1.every((key, i) => key === keys2[i])) {
+            // if (keys1.length !== keys2.length) {
+            tellError("Not same keys", keys1, keys2);
+            return false;
+        }
+    } else {
+        if (!keys1.every((key, i) => {
+            return arrMayMiss.includes(key) || keys2.includes(key);
+        })) {
+            tellError("Not same keys 2", keys1, keys2, arrMayMiss);
+            return false;
+        }
+    }
+
+    // Check nested objects recursively, only if obj1's value is an object
+    for (const key of keys1) {
+        const val1 = obj1[key];
+        const val2 = obj2[key];
+
+        // Only recurse if val1 is an object (and not null)
+        if (typeof val1 === 'object' && val1 !== null) {
+            // Ensure val2 is an object (and not null) before recursing
+            if (typeof val2 !== 'object' || val2 === null) {
+                tellError("val2 is not object", val2);
+                return false;
+            }
+            if (!haveSameKeys(val1, val2)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }

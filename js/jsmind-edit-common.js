@@ -1186,7 +1186,7 @@ async function addDragBorders(jmDisplayed) {
     }
 }
 export async function displayOurMindmap(mindStored) {
-    modMMhelpers.checkIsMMformatStored(mindStored, "displayOurMindmap", true);
+    modMMhelpers.checkIsMMformatStored(mindStored, "displayOurMindmap", undefined, true);
     const opts = getUsedOptJmDisplay(mindStored);
     const eltJmdisplayContainer = document.getElementById(opts.container);
     if (!eltJmdisplayContainer) { throw Error(`Could not find #${opts.container}`); }
@@ -1440,11 +1440,11 @@ export async function pageSetup() {
         } else {
             addShareMarker();
             // debugger;
-            const objDm = mindmapData.objDataMind;
-            objDm.key = "SHARED";
-            modMMhelpers.checkIsFullMindmapDisplayState(mindmapData);
+            const objMS = mindmapData.objMindStored;
+            objMS.key = "SHARED";
+            modMMhelpers.checkIsFullMindmapDisplayState(mindmapData, "SHARED");
             // const jm = await displayOurMindmap(objMindData);
-            const jm = await displayOurMindmap(objDm);
+            const jm = await displayOurMindmap(objMS);
             jm.isSavedBookmark = true; // FIX-ME:
             // modJsmindDraggable.setOurJm(jm);
 
@@ -1646,7 +1646,7 @@ export async function pageSetup() {
             // const jsonSharedMindmap = await modMMhelpers.getFullMindmapDisplayState(this.THEjmDisplayed);
             const renderer = await getCustomRenderer();
             const jsonSharedMindmap = await renderer.getFullMindmapDisplayState();
-            const topic = jsonSharedMindmap.objDataMind.data[0].topic;
+            const topic = jsonSharedMindmap.objMindStored.data[0].topic;
             const shareTitle = `Shared mindmap "${topic}"`;
             const shareText = `(temp user input)`;
             modShare.saveDataToShare(jsonSharedMindmap, shareTitle, shareText);
