@@ -1337,28 +1337,70 @@ export async function pageSetup() {
         const spTitle = sp.get("title");
         const spText = sp.get("text");
 
+        const btnDownloadShared = modMdc.mkMDCiconButton("edit_arrow_down", "Save to your device", 40);
+        btnDownloadShared.style = `
+            border-radius: 50%;
+            background-color: #fff4;
+        `;
+        btnDownloadShared.addEventListener("click", async evt => {
+            evt.stopPropagation();
+            const divInfoShared = mkElt("div", { class: "mdc-card" }, [
+                mkElt("b", undefined, `${spTitle}: `),
+                mkElt("div", undefined, spText)
+            ]);
+            divInfoShared.style.padding = "10px";
+            const body = mkElt("div", undefined, [
+                mkElt("h2", undefined, "Save shared mindmap"),
+                mkElt("p", undefined, `Save this mindmap to your device.`),
+                divInfoShared
+            ]);
+            const ans = await modMdc.mkMDCdialogConfirm(body, "Save", "Cancel");
+            console.log({ ans });
+            if (ans) {
+                const eltTell = document.getElementById("shared-marker");
+                const seconds = 1.2;
+                if (!eltTell) {
+                    debugger;
+                    throw Error("Did not get shared-marker");
+                }
+                eltTell.style.opacity = "1";
+                eltTell.style.transition = `opacity ${seconds}s`;
+                eltTell.style.opacity = "0";
+                setTimeout(() => {
+                    eltTell.style.opacity = "1";
+                    modMdc.mkMDCdialogAlert("not implemented yet");
+                }, seconds * 1000);
+            }
+        });
         const addShareMarker = () => {
-            const eltTellShared = mkElt("div", undefined, [
-                // mkElt("i", undefined, "SHARED"),
-                // " ",
+            const divInfo = mkElt("div", undefined,
                 mkElt("b", undefined, `${spTitle}: `),
                 spText,
+            )
+            divInfo.style = `
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            `;
+            const eltTellShared = mkElt("div", undefined, [
+                divInfo,
+                btnDownloadShared
             ]);
             eltTellShared.style = `
-            position: fixed;
-            bottom: 0px;
-            left: 0px;
-            min-height: 50px;
-            min-width: 100px;
-            max-width: 270px;
-            padding: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 99999;
-            background: red;
+                position: fixed;
+                bottom: 0px;
+                left: 0px;
+                min-height: 50px;
+                min-width: 100px;
+                max-width: 270px;
+                display: flex;
+                gap: 10px;
+                padding: 10px;
+                z-index: 99999;
+                background: red;
             `;
+            eltTellShared.id = "shared-marker";
             document.body.appendChild(eltTellShared);
         }
         // debugger;
