@@ -96,7 +96,7 @@ export async function DBgetMindmap(key) {
         return JSON.parse(json);
     } else {
         const obj = await modIdbCmn.getDbKey(idbStoreMm, key);
-        checkIsMMformatStored(obj, "DBgetMindmap");
+        if (obj) { checkIsMMformatStored(obj, "DBgetMindmap"); }
         return obj;
     }
 }

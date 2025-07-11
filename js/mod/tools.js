@@ -2472,11 +2472,17 @@ export function animateZoom(element, startZoom, endZoom, msDuration, msStep = 20
  */
 export function haveSameKeys(obj1, obj2) {
   // Get keys of both objects
+  const tellError = (...what) => {
+    console.error(`haveSameKeys: `, ...what);
+    // logConsole
+
+  }
   const keys1 = Object.keys(obj1).sort();
   const keys2 = Object.keys(obj2).sort();
   
   // Check if keys are identical
   if (keys1.length !== keys2.length || !keys1.every((key, i) => key === keys2[i])) {
+    tellError("Not same keys", keys1, keys2);
     return false;
   }
   
@@ -2489,6 +2495,7 @@ export function haveSameKeys(obj1, obj2) {
     if (typeof val1 === 'object' && val1 !== null) {
       // Ensure val2 is an object (and not null) before recursing
       if (typeof val2 !== 'object' || val2 === null) {
+        tellError("val2 is not object", val2);
         return false;
       }
       if (!haveSameKeys(val1, val2)) {

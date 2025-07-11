@@ -32,7 +32,12 @@ export function setUndoRedoTreeStyle(useTreeStyle) {
  */
 export function getUndoRedoTreeStyle() { return undoRedoTreeStyle; }
 
-export async function startUndoRedo(keyName) {
+export async function startUndoRedo(keyName, jmDisplayed) {
+    if (!jmDisplayed.get_selected_node) {
+        debugger;
+        throw Error("!jmDisplayed.get_selected_node");
+    }
+    // checkisformat
     const dbMindmaps = await importFc4i("db-mindmaps");
     const objBaseMm = (await dbMindmaps.DBgetMindmap(keyName)) || jmDisplayed;
     if (undoRedoTreeStyle === undefined) {
@@ -91,11 +96,11 @@ export async function getFullMindmapDisplayState(jmDisplayed) {
 }
 
 async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
-    checkIsMMformatJsmind(jmDisplayed, "saveMindmapPlusUndoRedo");
+    checkIsMMformatJmdisplayed(jmDisplayed, "saveMindmapPlusUndoRedo");
     const dbMindmaps = await importFc4i("db-mindmaps");
     const modUndo = await importFc4i("undo-redo-tree");
     if (!modUndo.hasUndoRedo(keyName)) {
-        await startUndoRedo(keyName);
+        await startUndoRedo(keyName, jmDisplayed);
     }
     const objFullMindmapDisplayState = await getFullMindmapDisplayState(jmDisplayed);
     // objDataMind.key = keyName;
@@ -138,8 +143,7 @@ export function DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
         debugger; // eslint-disable-line no-debugger
         throw Error(`Wrong number of arguments: ${arguments.length} (should be 2)`);
     }
-    // if (!checkIsMMformatJsmind(jmDisplayed)) throw Error("!checkIsMMformatJsmind(jmDisplayed)");
-    checkIsMMformatJsmind(jmDisplayed, "DBrequestSaveMindmapPlusUndoRedo");
+    checkIsMMformatJmdisplayed(jmDisplayed, "DBrequestSaveMindmapPlusUndoRedo");
     if (typeof actionTopic != "string") {
         console.error(`actionTopic is not string: ${typeof actionTopic}`);
         debugger; // eslint-disable-line no-debugger
@@ -148,8 +152,8 @@ export function DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     throttleDBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic);
 }
 async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
-    // if (!checkIsMMformatJsmind(jmDisplayed)) throw Error("!checkIsMMformatJsmind(jmDisplayed))");
-    checkIsMMformatJsmind(jmDisplayed, "DBsaveNowMindmapPlusUndoRedo");
+    // if (!checkIsMMformatJmdisplayed(jmDisplayed)) throw Error("!checkIsMMformatJmdisplayed(jmDisplayed))");
+    checkIsMMformatJmdisplayed(jmDisplayed, "DBsaveNowMindmapPlusUndoRedo");
     // debugger;
     const tofTopic = typeof actionTopic;
     if (tofTopic != "string") { throw Error(`Wrong actionTopic type: ${tofTopic} (should be string)`); }
@@ -158,22 +162,12 @@ async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     if (!metaName) throw Error("Current mindmap has no meta.key");
     const [keyName] = metaName.split("/");
 
-    /*
-    const other = {
-        selected_id: jmDisplayed.get_selected_node().id,
-    }
-    const objToSave = {
-        objDataMind,
-        other
-    }
-    checkIsFullDisplayState(objToSave);
-    */
     // await saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, (new Date()).toISOString());
     // debugger;
     await saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, (new Date()).toISOString());
 }
 
-function getNextMindmapKey() { return "mm-" + new Date().toISOString(); }
+export function getNextMindmapKey() { return "mm-" + new Date().toISOString(); }
 
 export function showMindmap(key) {
     const absLink = makeAbsLink(URL_MINDMAPS_PAGE);
@@ -636,23 +630,23 @@ export async function getSharedMindmaps() {
  * 
  * @throws
  */
-export function checkIsMMformatJsmind(obj, where) {
+export function checkIsMMformatJmdisplayed(obj, where) {
     const throwErr = (what) => {
-        const msg = `(checkIsMmformatJsMind) ${where}: ${what}`;
+        const msg = `(checkIsMMformatJmdisplayed) ${where}: ${what}`;
         console.error(msg);
         debugger;
         throw Error(msg);
     }
     const tofObj = typeof obj;
     if (tofObj != "object") throwErr(`typeof obj == ${tofObj}`);
-    const ObjKeys = Object.keys(obj).sort();
-    const strObjKeys = JSON.stringify(ObjKeys);
-    const strJsmind = JSON.stringify([
+    const arrTemplate = [
         "data", "event_handles", "initialized", "layout", "mind", "options",
         "shortcut", "version", "view"
-    ]);
-    // return (strObjKeys == strJsmind);
-    if (strObjKeys != strJsmind) throwErr("strObjKeys != strJsmind");
+    ];
+    const objTemplate = Object.fromEntries(arrTemplate.map(item => [item, true]));
+    if (!modTools.haveSameKeys(objTemplate, obj)) {
+        throw Error("Not isMMformatJsMind");
+    }
 }
 
 
@@ -664,21 +658,14 @@ export function checkIsMMformatJsmind(obj, where) {
  */
 export function checkIsFullMindmapDisplayState(obj) {
     /*
-    const strJsonOk = JSON.stringify(["objDataMind", "other"]);
-    const strJsonObj = JSON.stringify(Object.keys(obj));
-    if (strJsonObj != strJsonOk) {
-        const msg = `${strJsonObj} != ${strJsonOk}`;
-        console.error(msg);
-        debugger; // eslint-disable-line no-debugger
-        throw Error(msg);
-    }
-    */
-    // debugger;
     const template = {
         objDataMind: 1,
         other: 1
     }
-    if (!modTools.haveSameKeys(template, obj)) {
+    */
+    const arrTemplate = [ "objDataMind", "other" ]
+    const objTemplate = Object.fromEntries(arrTemplate.map(item => [item, true]));
+    if (!modTools.haveSameKeys(objTemplate, obj)) {
         const msg = `Not a fullDisplayState: ${JSON.stringify(obj)}`;
         console.error(msg);
         debugger; // eslint-disable-line no-debugger
@@ -708,6 +695,7 @@ export function checkIsMMformatStored(obj, where, allowIsSavedBookmark = false) 
     const tofAllowBM = typeof allowIsSavedBookmark;
     if (tofAllowBM != "boolean") throwErr(`allowIsSavedBookmark is not boolean: "${tofAllowBM}"`);
 
+    /*
     let arrObjKeys = Object.keys(obj).sort();
     if (allowIsSavedBookmark) {
         arrObjKeys = arrObjKeys.filter(k => k != "isSavedBookmark");
@@ -717,6 +705,19 @@ export function checkIsMMformatStored(obj, where, allowIsSavedBookmark = false) 
         "data", "format", "key", "meta"
     ]);
     if (strObjKeys != strData) { throwErr("strObjKeys != strData"); }
+    */
+    const arrTemplate = [
+        "data", "format", "key", "meta"
+    ];
+    if (allowIsSavedBookmark) {
+        if (obj.isSavedBookmark) {
+            arrTemplate.push("isSavedBookmark");
+        }
+    }
+    const objTemplate = Object.fromEntries(arrTemplate.map(item => [item, true]));
+    if (!modTools.haveSameKeys(objTemplate, obj)) {
+        throwErr("Not isMMformatStored");
+    }
 
     if (obj.format != "node_array") { throwErr('obj.format != "node_array"'); }
 }

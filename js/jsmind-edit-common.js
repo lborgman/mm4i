@@ -1196,8 +1196,7 @@ export async function displayOurMindmap(mindStored) {
     oldZoomMove?.remove(); // Remove old jmnodes, FIX-ME: maybe remove when this is fixed in jsmind?
 
     jmDisplayed = await displayMindMap(mindStored);
-    // if (!modMMhelpers.checkIsMMformatJsmind(jmDisplayed)) throw Error("!checkIsMMformatJsmind(jmDisplayed");
-    modMMhelpers.checkIsMMformatJsmind(jmDisplayed, "displayOurMindmap");
+    modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "displayOurMindmap");
     initialUpdateCustomAndShapes(jmDisplayed); // FIX-ME: maybe remove when this is fixed in jsmind?
 
     jmDisplayed.disable_event_handle("dblclick"); // Double click on Windows and Android
@@ -1366,10 +1365,21 @@ export async function pageSetup() {
                 eltTell.style.opacity = "1";
                 eltTell.style.transition = `opacity ${seconds}s`;
                 eltTell.style.opacity = "0";
+                // ourdisp requestsave
+                delete jmDisplayed.isSavedBookmark;
+                modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "Save shared");
+                const mmKey = modMMhelpers.getNextMindmapKey();
+                // jmDisplayed.meta.name = mmKey;
+                debugger;
+                const objDataMind = jmDisplayed.get_data("node_array");
+                objDataMind.meta.name = mmKey;
+                modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, "Saved SHARED");
+                /*
                 setTimeout(() => {
                     eltTell.style.opacity = "1";
                     modMdc.mkMDCdialogAlert("not implemented yet");
                 }, seconds * 1000);
+                */
             }
         });
         const addShareMarker = () => {
@@ -1716,24 +1726,26 @@ export async function pageSetup() {
     let mindInStoredFormat;
     if (mindmapKey) {
         mindInStoredFormat = await modMMhelpers.getMindmap(mindmapKey);
-        modMMhelpers.checkIsMMformatStored(mindInStoredFormat, "pageSetup");
-        window["current-mindmapKey"] = mindmapKey;
-        modMMhelpers.getMindmapPrivacy(mindmapKey).then(privacy => {
-            // console.log({ privacy });
-            const eltJsMindContainer = document.getElementById("jsmind_container");
-            if (!eltJsMindContainer) throw Error("Could not find #jsmind_container");
-            const cl = eltJsMindContainer.classList;
-            switch (privacy) {
-                case "shared":
-                    cl.add("mindmap-is-shareable");
-                    break;
-                case "private":
-                    cl.remove("mindmap-is-shareable");
-                    break;
-                default:
-                    throw Error(`Bad privacy value: "${privacy}"`);
-            }
-        });
+        if (mindInStoredFormat) {
+            modMMhelpers.checkIsMMformatStored(mindInStoredFormat, "pageSetup");
+            window["current-mindmapKey"] = mindmapKey;
+            modMMhelpers.getMindmapPrivacy(mindmapKey).then(privacy => {
+                // console.log({ privacy });
+                const eltJsMindContainer = document.getElementById("jsmind_container");
+                if (!eltJsMindContainer) throw Error("Could not find #jsmind_container");
+                const cl = eltJsMindContainer.classList;
+                switch (privacy) {
+                    case "shared":
+                        cl.add("mindmap-is-shareable");
+                        break;
+                    case "private":
+                        cl.remove("mindmap-is-shareable");
+                        break;
+                    default:
+                        throw Error(`Bad privacy value: "${privacy}"`);
+                }
+            });
+        }
     }
     if (!mindInStoredFormat && !sharedParam) {
         if (funMindmapsDialog) {
@@ -1758,8 +1770,8 @@ export async function pageSetup() {
     const nowBefore = Date.now();
 
     if (!sharedParam) {
-        await displayOurMindmap(mindInStoredFormat);
-        modMMhelpers.startUndoRedo(mindmapKey);
+        const jm = await displayOurMindmap(mindInStoredFormat);
+        modMMhelpers.startUndoRedo(mindmapKey, jm);
     }
 
 
