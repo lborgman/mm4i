@@ -133,6 +133,10 @@ export class CustomRenderer4jsMind {
     }
     */
 
+    async getFullMindmapDisplayState() {
+        const fullMindmapDisplayState = await modMMhelpers.getFullMindmapDisplayState(this.THEjmDisplayed);
+        return fullMindmapDisplayState;
+    }
     async editMindmapDialog() {
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
         const modIsDisplayed = await importFc4i("is-displayed");
@@ -525,11 +529,12 @@ export class CustomRenderer4jsMind {
             rend.setMindmapGlobals(tempGlobals);
             rend.applyThisMindmapGlobals();
             this.requestSaveMindMap();
-            const fullMindmapDisplayState = await modMMhelpers.getFullMindmapDisplayState(this.THEjmDisplayed);
+            // const fullMindmapDisplayState = await modMMhelpers.getFullMindmapDisplayState(this.THEjmDisplayed);
+            const fullMindmapDisplayState = await this.getFullMindmapDisplayState();
             console.log({ fullMindmapDisplayState });
             // FIX-ME: better way to get key?
             const mk = new URLSearchParams(location.search).get("mindmap");
-            const objDataMind =fullMindmapDisplayState.objDataMind;
+            const objDataMind = fullMindmapDisplayState.objDataMind;
             objDataMind.key = mk;
             const jm = await modJsEditCommon.displayOurMindmap(objDataMind);
             modMMhelpers.applyDisplayStateOther(fullMindmapDisplayState.other, jm);

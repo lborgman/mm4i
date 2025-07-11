@@ -1330,6 +1330,45 @@ export function setTopic4undoRedo(topic) {
 export async function pageSetup() {
     checkParamNames();
 
+    const sharedParam = new URLSearchParams(location.search).get("share");
+    console.log({ sharedParam });
+    if (sharedParam != null) {
+        const eltTellShared = mkElt("div", undefined, "SHARED");
+        eltTellShared.style = `
+            position: fixed;
+            bottom: 0px;
+            left: 0px;
+            height: 50px;
+            width: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            background: red;
+        `;
+        document.body.appendChild(eltTellShared);
+        // debugger;
+        const modShare = await importFc4i("mm4i-share")
+        console.log({ modShare });
+        const mindmapData = await modShare.getSharedData(sharedParam);
+        console.log({ mindmapData })
+        // debugger;
+        const objDm = mindmapData.objDataMind;
+        objDm.key = "SHARED";
+        modMMhelpers.checkIsFullMindmapDisplayState(mindmapData);
+        // const jm = await displayOurMindmap(objMindData);
+        const jm = await displayOurMindmap(objDm);
+        jm.isSavedBookmark = true; // FIX-ME:
+        // modJsmindDraggable.setOurJm(jm);
+
+        const objOther = mindmapData.other;
+        delete objOther.moved;
+        // debugger;
+        modMMhelpers.applyDisplayStateOther(objOther, jm);
+        // return;
+        debugger;
+    }
+
     const mindmapKey = new URLSearchParams(location.search).get("mindmap");
     if (typeof mindmapKey === "string" && mindmapKey.length === 0) {
         throw Error("Parameter mindmapname should have a value (key/name of a mindmap)");
@@ -1502,10 +1541,29 @@ export async function pageSetup() {
             modMm4iReplication.replicationDialog();
         });
 
+        const btnShareMm = modMdc.mkMDCiconButton("share", "Share mindmap", 40);
+        btnShareMm.id = "btn-sync";
+        btnShareMm.addEventListener("click", async evt => {
+            evt.stopPropagation();
+            if (location.hostname != "localhost") {
+                alert("not implemented yet");
+                return;
+            }
+            const modShare = await importFc4i("mm4i-share");
+            console.log({ modShare });
+            // const jsonSharedMindmap = { justATest: new Date().toLocaleString() };
+            // const jsonSharedMindmap = modMMhelpers.getFull
+            // const jsonSharedMindmap = await modMMhelpers.getFullMindmapDisplayState(this.THEjmDisplayed);
+            const renderer = await getCustomRenderer();
+            const jsonSharedMindmap = await renderer.getFullMindmapDisplayState();
+
+            modShare.saveDataToShare(jsonSharedMindmap);
+        });
 
         divJsmindSearch.appendChild(btnJsmindSearch);
         divJsmindSearch.appendChild(btnJsmindStair);
         divJsmindSearch.appendChild(btnSyncMm);
+        divJsmindSearch.appendChild(btnShareMm);
         btnSyncMm.style.borderLeft = "1px solid rgb(0,0,0,0.4)";
 
 
@@ -1562,7 +1620,7 @@ export async function pageSetup() {
         const sp = new URLSearchParams(location.search);
         if (sp.size == 0) return true;
         const arrParNames = [...sp.keys()].sort();
-        const allowed = ["mindmap", "nodehits", "cachemodules"];
+        const allowed = ["mindmap", "nodehits", "cachemodules", "share"];
         for (const p of arrParNames) {
             if (!allowed.includes(p)) {
                 debugger; // eslint-disable-line no-debugger
@@ -1595,7 +1653,7 @@ export async function pageSetup() {
             }
         });
     }
-    if (!mindInStoredFormat) {
+    if (!mindInStoredFormat && !sharedParam) {
         if (funMindmapsDialog) {
             funMindmapsDialog();
         } else {
@@ -1617,8 +1675,10 @@ export async function pageSetup() {
 
     const nowBefore = Date.now();
 
-    await displayOurMindmap(mindInStoredFormat);
-    modMMhelpers.startUndoRedo(mindmapKey);
+    if (!sharedParam) {
+        await displayOurMindmap(mindInStoredFormat);
+        modMMhelpers.startUndoRedo(mindmapKey);
+    }
 
 
 
@@ -1773,7 +1833,7 @@ export async function pageSetup() {
         // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, "Edit mindmap description");
         if (jmDisplayed.isSavedBookmark) {
             if (!toldChangesNotSaved) {
-                modMdc.mkMDCsnackbar("Changes to saved bookmarks are not stored");
+                modMdc.mkMDCsnackbar("Changes to named/shared bookmarks are not stored");
             }
             toldChangesNotSaved = true;
             return;

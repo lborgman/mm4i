@@ -143,6 +143,7 @@ const baseUrl = (() => {
         "jssm-tools": "./js/mod/jssm-tools.js",
         "jssm-viz": "./ext/jssm/jssm-viz.es6.js",
         "mm4i-fsm": "./js/mm4i-fsm.js",
+        "mm4i-share": "./js/mm4i-share-link.js",
         // "viz-js": "https://cdn.jsdelivr.net/npm/viz-js@latest/dist/jssm.es6.mjs",
         "viz-js": "./ext/viz-js/viz-standalone.mjs",
         "zoom-move": "./js/mod/zoom-move.js",
