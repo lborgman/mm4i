@@ -70,15 +70,13 @@
         // addMut(document.head);
     </script>
 
-    <script src="./init-error.js"></script>
     <script>
         /* Add OG: */
         debugger;
         const addMeta = (which, content) => {
-            const eltMeta = mkElt("meta", {
-                property: `og:${which}`,
-                content: content
-            });
+            const eltMeta = document.createElement("meta");
+            eltMeta.setAttribute("property", `og:${which}`);
+            eltMeta.setAttribute("content", content);
             document.head.appendChild(eltMeta);
         }
         addMeta("site_name", "MM4I");
@@ -102,6 +100,7 @@
         }
 
     </script>
+    <script src="./init-error.js"></script>
 
 
     <script type="module" src="./pwa.js"></script>
