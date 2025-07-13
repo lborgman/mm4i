@@ -13,6 +13,37 @@
     <!-- See index.html -->
     <base href=".">
 
+    <script>
+        /* Add OG: */
+        debugger;
+        const addMeta = (which, content) => {
+            const eltMeta = document.createElement("meta");
+            eltMeta.setAttribute("property", `og:${which}`);
+            eltMeta.setAttribute("content", content);
+            // document.head.appendChild(eltMeta);
+            document.currentScript.insertAdjacentElement('afterend', eltMeta);
+        }
+        addMeta("site_name", "MM4I");
+        addMeta("image", "https://lborgman.github.io/mm4i/img/mm4i.png");
+
+        const sharedParam = new URLSearchParams(location.search).get("share");
+        console.log({ sharedParam });
+        if (sharedParam != null) {
+            const sp = new URLSearchParams(sharedParam);
+
+            const spTitle = sp.get("title");
+            addMeta("title", spTitle);
+
+            const spText = sp.get("text");
+            addMeta("description", spText);
+
+            console.log({ spTitle, spText });
+
+            const head = document.head;
+            console.log({ head });
+        }
+
+    </script>
 
     <!-- <script>console.log("baseURI", document.baseURI);</script> -->
     <script>
@@ -70,36 +101,6 @@
         // addMut(document.head);
     </script>
 
-    <script>
-        /* Add OG: */
-        debugger;
-        const addMeta = (which, content) => {
-            const eltMeta = document.createElement("meta");
-            eltMeta.setAttribute("property", `og:${which}`);
-            eltMeta.setAttribute("content", content);
-            document.head.appendChild(eltMeta);
-        }
-        addMeta("site_name", "MM4I");
-        addMeta("image", "https://lborgman.github.io/mm4i/img/mm4i.png");
-
-        const sharedParam = new URLSearchParams(location.search).get("share");
-        console.log({ sharedParam });
-        if (sharedParam != null) {
-            const sp = new URLSearchParams(sharedParam);
-
-            const spTitle = sp.get("title");
-            addMeta("title", spTitle);
-
-            const spText = sp.get("text");
-            addMeta("description", spText);
-
-            console.log({ spTitle, spText });
-
-            const head = document.head;
-            console.log({ head });
-        }
-
-    </script>
     <script src="./init-error.js"></script>
 
 
