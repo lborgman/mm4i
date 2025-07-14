@@ -1636,7 +1636,7 @@ export async function pageSetup() {
             const renderer = await getCustomRenderer();
             const jsonSharedMindmap = await renderer.getFullMindmapDisplayState();
             const topic = jsonSharedMindmap.objMindStored.data[0].topic;
-            debugger;
+            // debugger;
             const txtDesc = jsonSharedMindmap.objMindStored.data[0].shapeEtc.notes || "(no notes)";
 
             const taDesc = modMdc.mkMDCtextFieldTextarea("shared-desc-textarea");

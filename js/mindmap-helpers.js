@@ -329,10 +329,19 @@ export async function getMindmapsHits(customKey) {
     return promArrMindmaps;
 }
 
-export function mkEltLinkMindmapA(topic, mkey, mhits, provider) {
+export function getMindmapURL(mkey) {
     const absLink = makeAbsLink(URL_MINDMAPS_PAGE);
     const url = new URL(absLink);
     url.searchParams.set("mindmap", mkey);
+    return url;
+}
+export function mkEltLinkMindmapA(topic, mkey, mhits, provider) {
+    // const absLink = makeAbsLink(URL_MINDMAPS_PAGE);
+    // const url = new URL(absLink);
+    // url.searchParams.set("mindmap", mkey);
+    const url = getMindmapURL(mkey);
+
+
     // if (!noCache) { url.searchParams.delete("cachemodules"); }
     if (mhits) {
         url.searchParams.set("provider", provider);
@@ -667,7 +676,7 @@ export function checkIsFullMindmapDisplayState(obj, where) {
         throw Error(msg);
     }
     // const arrTemplate = [ "objDataMind", "other" ]
-    const arrTemplate = [ "objMindStored", "other" ]
+    const arrTemplate = ["objMindStored", "other"]
     const objTemplate = Object.fromEntries(arrTemplate.map(item => [item, true]));
     if (!modTools.haveSameKeys(objTemplate, obj)) {
         // const msg = `Not a fullDisplayState: ${JSON.stringify(obj)}`;
