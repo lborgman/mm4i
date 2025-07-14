@@ -21,7 +21,50 @@
 
     <script>
         /* Add OG: */
-        // debugger;
+
+        /**
+ * Detects if the current user is a known official web crawler (e.g., Googlebot, Facebook).
+ * @returns {string|null} The name of the detected bot or null if no known bot is detected.
+ */
+        function getOfficialBotName() {
+            const userAgent = navigator.userAgent;
+
+            // A list of common official bot User-Agent substrings.
+            // This list is not exhaustive but covers many major platforms.
+            const knownBots = {
+                "Googlebot": "Googlebot",
+                "Bingbot": "bingbot",
+                "Slurp": "Slurp", // Yahoo's bot
+                "DuckDuckBot": "DuckDuckBot",
+                "Baiduspider": "Baiduspider",
+                "YandexBot": "YandexBot",
+                "Sogou": "Sogou",
+                "facebookexternalhit": "Facebook", // For link previews
+                "Facebot": "Facebook", // Another Facebook bot
+                "Twitterbot": "Twitterbot", // For link previews (cards)
+                "LinkedInBot": "LinkedInBot", // For link previews
+                "Pinterestbot": "Pinterestbot",
+                "Slackbot": "Slackbot",
+                "Discordbot": "Discordbot",
+                "WhatsApp": "WhatsApp", // For link previews
+                "TelegramBot": "TelegramBot"
+            };
+
+            for (const botName in knownBots) {
+                // Using a case-insensitive regex for broader matching
+                const regex = new RegExp(knownBots[botName], "i");
+                if (regex.test(userAgent)) {
+                    console.log("getOfficialBotName", botName);
+                    return botName; // Return the common name of the bot
+                }
+            }
+
+            return null; // Not a known official bot
+        }
+
+        window.detectedBot = getOfficialBotName();
+        // window.detectedBot = true; // FIX-ME:
+
         const addMeta = (which, content) => {
             const eltMeta = document.createElement("meta");
             eltMeta.setAttribute("property", `og:${which}`);
@@ -1324,708 +1367,709 @@
         }
     </script>
     <script type="module">
-        window["logConsoleHereIs"]("here is mm4i.html");
-        // console.log("here is mm4i.html");
-        // https://michaelwornow.net/2024/01/02/display-x-y-coords-chrome-debugger
-        debugAddFollowPointer();
+        if (!window.detectedBot) {
+            window["logConsoleHereIs"]("here is mm4i.html");
+            // console.log("here is mm4i.html");
+            // https://michaelwornow.net/2024/01/02/display-x-y-coords-chrome-debugger
+            debugAddFollowPointer();
 
-        const modTools = await importFc4i("toolsJs");
+            const modTools = await importFc4i("toolsJs");
 
-        const modLocalSettings = await importFc4i("local-settings");
-        class SettingsMm4i extends modLocalSettings.LocalSetting {
-            constructor(key, defaultValue) { super("mm4i-settings-", key, defaultValue); }
-        }
-        const settingPointHandle = new SettingsMm4i("pointhandle-type", "detect-touch");
-        window["settingPointHandle"] = settingPointHandle;
-        const settingHistoryPanelSize = new SettingsMm4i("history-panel-size", null);
-        const settingUndoRedoTree = new SettingsMm4i("history-undo-redo-tree", false);
-
-        function saveHistoryPanelSize() {
-            const eltPanel = document.getElementById("mm4i-history-panel");
-            const bcr = eltPanel.getBoundingClientRect();
-            if (bcr.height == 0) return;
-            console.log("saveHistoryPanelSize saving", bcr);
-            settingHistoryPanelSize.value = bcr;
-        }
-        const throttleSaveHistoryPanelSize = modTools.throttleTO(saveHistoryPanelSize, 200);
-
-        const modMdc = await importFc4i("util-mdc");
-        modMdc.setIconsFor("mm4i");
-
-        const modMMhelpers = await importFc4i("mindmap-helpers");
-
-
-
-        // let useOrigJsmind = confirm("Use orig jsMind?");
-        let useOrigJsmind = false;
-        // let useOrigJsmind = true;
-        window["useOrigJsmind"] = useOrigJsmind;
-
-        let modJsmindDraggable;
-        if (useOrigJsmind) {
-            console.log("%cUsing orig jsMind", "color:red; font-size:20px;");
-            const modJsMind = await importFc4i("jsmind-es6");
-            // const modJsmindDraggable = await importFc4i("jsmind.drag-node-es6");
-            modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
-            window["modJsmindDraggable"] = modJsmindDraggable;
-            // FIX-ME:
-            modJsmindDraggable.setupNewDragging();
-        } else {
-            console.log("%cUsing mm4i jsMind", "color:green; font-size:20px;");
-            const modJsMind = await importFc4i("jsmind");
-            modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
-            window["modJsmindDraggable"] = modJsmindDraggable;
-            modJsmindDraggable.setupNewDragging();
-        }
-        const modJsEditCommon = await importFc4i("jsmind-edit-common");
-        modJsEditCommon.basicInit4jsmind();
-
-
-
-        modMMhelpers.setUndoRedoTreeStyle(settingUndoRedoTree.value);
-
-        const mindmapKey = await modJsEditCommon.pageSetup();
-        const aboutLink = makeAbsLink("https://lborgman.github.io/mm4i/");
-        modJsEditCommon.addToPageMenu("About", aboutLink);
-
-
-        // modMMhelpers.setUndoRedoTreeStyle(settingUndoRedoTree.value);
-
-
-        const iconHistory = modMdc.mkMDCicon("history");
-        iconHistory.id = "icon-history";
-        iconHistory.inert = true;
-
-        const spanHistoryHeaderLeft = mkElt("span", undefined, [
-            // mkElt("span", undefined, "History"),
-            // iconHistory
-        ]);
-        const initButtonsLinearTree = () => {
-            const mkButtonLinearTree = (topic) => {
-                const rad = mkElt("input", { type: "radio", name: "rad-linear-tree", value: topic });
-                const lbl = mkElt("label", undefined, [rad, mkElt("span", undefined, topic)]);
-                lbl.classList.add("button-linear-tree");
-                return lbl;
+            const modLocalSettings = await importFc4i("local-settings");
+            class SettingsMm4i extends modLocalSettings.LocalSetting {
+                constructor(key, defaultValue) { super("mm4i-settings-", key, defaultValue); }
             }
-            const buttonTree = mkButtonLinearTree("tree");
-            const buttonLinear = mkButtonLinearTree("linear");
-            const spanLinearTree = mkElt("span", undefined, [buttonLinear, buttonTree]);
-            spanLinearTree.id = "span-linear-tree";
-            spanHistoryHeaderLeft.appendChild(spanLinearTree);
-            spanHistoryHeaderLeft.id = "span-history-left";
+            const settingPointHandle = new SettingsMm4i("pointhandle-type", "detect-touch");
+            window["settingPointHandle"] = settingPointHandle;
+            const settingHistoryPanelSize = new SettingsMm4i("history-panel-size", null);
+            const settingUndoRedoTree = new SettingsMm4i("history-undo-redo-tree", false);
 
-            const btnBookmark = modMdc.mkMDCiconButton("bookmark");
-            btnBookmark.id = "btn-bookmark";
-            btnBookmark.inert = true;
-            spanHistoryHeaderLeft.appendChild(btnBookmark);
+            function saveHistoryPanelSize() {
+                const eltPanel = document.getElementById("mm4i-history-panel");
+                const bcr = eltPanel.getBoundingClientRect();
+                if (bcr.height == 0) return;
+                console.log("saveHistoryPanelSize saving", bcr);
+                settingHistoryPanelSize.value = bcr;
+            }
+            const throttleSaveHistoryPanelSize = modTools.throttleTO(saveHistoryPanelSize, 200);
 
-            btnBookmark.addEventListener("click", evt => {
-                evt.stopPropagation();
-                dialogBookmark(btnBookmark);
-            });
-            async function dialogBookmark(btnBookmark) {
-                const divList = document.getElementById("mm4i-history-list");
-                const radChecked = divList.querySelector("input:checked");
-                const lblChecked = radChecked.closest("label");
-                const isPersistentBookmark = lblChecked.classList.contains("persistent-bookmark");
-                const isBookmarked = isPersistentBookmark || lblChecked.classList.contains("bookmarked");
-                // lblChecked.classList.toggle("bookmarked");
-                if (!isBookmarked) {
-                    lblChecked.classList.add("bookmarked");
-                    btnBookmark.classList.add("bookmarked");
-                } else {
-                    if (isPersistentBookmark) {
-                        await handlePersistentBookmark();
-                        async function handlePersistentBookmark() {
-                            const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
-                            iconBookmarkHeart.style = `
+            const modMdc = await importFc4i("util-mdc");
+            modMdc.setIconsFor("mm4i");
+
+            const modMMhelpers = await importFc4i("mindmap-helpers");
+
+
+
+            // let useOrigJsmind = confirm("Use orig jsMind?");
+            let useOrigJsmind = false;
+            // let useOrigJsmind = true;
+            window["useOrigJsmind"] = useOrigJsmind;
+
+            let modJsmindDraggable;
+            if (useOrigJsmind) {
+                console.log("%cUsing orig jsMind", "color:red; font-size:20px;");
+                const modJsMind = await importFc4i("jsmind-es6");
+                // const modJsmindDraggable = await importFc4i("jsmind.drag-node-es6");
+                modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
+                window["modJsmindDraggable"] = modJsmindDraggable;
+                // FIX-ME:
+                modJsmindDraggable.setupNewDragging();
+            } else {
+                console.log("%cUsing mm4i jsMind", "color:green; font-size:20px;");
+                const modJsMind = await importFc4i("jsmind");
+                modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
+                window["modJsmindDraggable"] = modJsmindDraggable;
+                modJsmindDraggable.setupNewDragging();
+            }
+            const modJsEditCommon = await importFc4i("jsmind-edit-common");
+            modJsEditCommon.basicInit4jsmind();
+
+
+
+            modMMhelpers.setUndoRedoTreeStyle(settingUndoRedoTree.value);
+
+            const mindmapKey = await modJsEditCommon.pageSetup();
+            const aboutLink = makeAbsLink("https://lborgman.github.io/mm4i/");
+            modJsEditCommon.addToPageMenu("About", aboutLink);
+
+
+            // modMMhelpers.setUndoRedoTreeStyle(settingUndoRedoTree.value);
+
+
+            const iconHistory = modMdc.mkMDCicon("history");
+            iconHistory.id = "icon-history";
+            iconHistory.inert = true;
+
+            const spanHistoryHeaderLeft = mkElt("span", undefined, [
+                // mkElt("span", undefined, "History"),
+                // iconHistory
+            ]);
+            const initButtonsLinearTree = () => {
+                const mkButtonLinearTree = (topic) => {
+                    const rad = mkElt("input", { type: "radio", name: "rad-linear-tree", value: topic });
+                    const lbl = mkElt("label", undefined, [rad, mkElt("span", undefined, topic)]);
+                    lbl.classList.add("button-linear-tree");
+                    return lbl;
+                }
+                const buttonTree = mkButtonLinearTree("tree");
+                const buttonLinear = mkButtonLinearTree("linear");
+                const spanLinearTree = mkElt("span", undefined, [buttonLinear, buttonTree]);
+                spanLinearTree.id = "span-linear-tree";
+                spanHistoryHeaderLeft.appendChild(spanLinearTree);
+                spanHistoryHeaderLeft.id = "span-history-left";
+
+                const btnBookmark = modMdc.mkMDCiconButton("bookmark");
+                btnBookmark.id = "btn-bookmark";
+                btnBookmark.inert = true;
+                spanHistoryHeaderLeft.appendChild(btnBookmark);
+
+                btnBookmark.addEventListener("click", evt => {
+                    evt.stopPropagation();
+                    dialogBookmark(btnBookmark);
+                });
+                async function dialogBookmark(btnBookmark) {
+                    const divList = document.getElementById("mm4i-history-list");
+                    const radChecked = divList.querySelector("input:checked");
+                    const lblChecked = radChecked.closest("label");
+                    const isPersistentBookmark = lblChecked.classList.contains("persistent-bookmark");
+                    const isBookmarked = isPersistentBookmark || lblChecked.classList.contains("bookmarked");
+                    // lblChecked.classList.toggle("bookmarked");
+                    if (!isBookmarked) {
+                        lblChecked.classList.add("bookmarked");
+                        btnBookmark.classList.add("bookmarked");
+                    } else {
+                        if (isPersistentBookmark) {
+                            await handlePersistentBookmark();
+                            async function handlePersistentBookmark() {
+                                const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                                iconBookmarkHeart.style = `
                                 color: darkorange;
                                 margin-right: 5px;
                             `;
-                            const iconDelete = modMdc.mkMDCicon("delete_forever")
-                            const btnDeleteNamed = modMdc.mkMDCbutton("Delete named bookmark", undefined, iconDelete);
-                            const bookmarkName = lblChecked.textContent.trim();
-                            const spanBookmarkName = mkElt("span", undefined, bookmarkName);
-                            spanBookmarkName.style = `
+                                const iconDelete = modMdc.mkMDCicon("delete_forever")
+                                const btnDeleteNamed = modMdc.mkMDCbutton("Delete named bookmark", undefined, iconDelete);
+                                const bookmarkName = lblChecked.textContent.trim();
+                                const spanBookmarkName = mkElt("span", undefined, bookmarkName);
+                                spanBookmarkName.style = `
                                 background-color: orange;
                                 padding: 0px 4px;
                                 border-radius: 2px;
                             `;
-                            const body = mkElt("div", undefined, [
-                                mkElt("h2", undefined, [
-                                    "Named bookmark: ",
-                                    iconBookmarkHeart,
-                                    spanBookmarkName
-                                ]),
-                                mkElt("p", undefined, `
+                                const body = mkElt("div", undefined, [
+                                    mkElt("h2", undefined, [
+                                        "Named bookmark: ",
+                                        iconBookmarkHeart,
+                                        spanBookmarkName
+                                    ]),
+                                    mkElt("p", undefined, `
                                     This is a named bookmark.
                                     You can not change it, but you can delete it.
                                     `),
-                                mkElt("p", undefined, btnDeleteNamed),
-                            ]);
-                            // const res = await modMdc.mkMDCdialogConfirm(body, "Delete", "Close");
-                            // if (res) { deleteNamedBookmark(); }
-                            const dlg = await modMdc.mkMDCdialogAlert(body, "Close");
-                            dlg.dom.style.zIndex = "9999";
-                            btnDeleteNamed.addEventListener("click", evt => {
-                                evt.stopPropagation();
-                                dlg.mdc.close();
-                                deleteNamedBookmark();
-                            })
-                            async function deleteNamedBookmark() {
-                                const keyBookmark = radChecked.value;
-                                const msDelete = 1.2 * 1000;
-                                const ctrls = modTools.animateZoom(lblChecked, 1, 0.1, msDelete, 300);
-                                ctrls.start();
+                                    mkElt("p", undefined, btnDeleteNamed),
+                                ]);
+                                // const res = await modMdc.mkMDCdialogConfirm(body, "Delete", "Close");
+                                // if (res) { deleteNamedBookmark(); }
+                                const dlg = await modMdc.mkMDCdialogAlert(body, "Close");
+                                dlg.dom.style.zIndex = "9999";
+                                btnDeleteNamed.addEventListener("click", evt => {
+                                    evt.stopPropagation();
+                                    dlg.mdc.close();
+                                    deleteNamedBookmark();
+                                })
+                                async function deleteNamedBookmark() {
+                                    const keyBookmark = radChecked.value;
+                                    const msDelete = 1.2 * 1000;
+                                    const ctrls = modTools.animateZoom(lblChecked, 1, 0.1, msDelete, 300);
+                                    ctrls.start();
 
-                                const bookmarkName = lblChecked.dataset.bookmarkName;
-                                setTimeout(() => {
-                                    lblChecked.remove();
-                                    const rad = document.getElementById(idInitialState);
-                                    rad.checked = true;
-                                    applyUndoRedoState(rad);
-                                }, msDelete);
-                                const dbMindmaps = await importFc4i("db-mindmaps");
-                                return await dbMindmaps.DBremoveMindmapBookmark(keyBookmark);
+                                    const bookmarkName = lblChecked.dataset.bookmarkName;
+                                    setTimeout(() => {
+                                        lblChecked.remove();
+                                        const rad = document.getElementById(idInitialState);
+                                        rad.checked = true;
+                                        applyUndoRedoState(rad);
+                                    }, msDelete);
+                                    const dbMindmaps = await importFc4i("db-mindmaps");
+                                    return await dbMindmaps.DBremoveMindmapBookmark(keyBookmark);
+                                }
                             }
-                        }
-                    } else {
-                        await handleTempBookmark();
-                        async function handleTempBookmark() {
-                            const iconRemoveBookmark = modMdc.mkMDCicon("bookmark_remove");
-                            const btnRemove = modMdc.mkMDCbutton("Remove bookmark", undefined, iconRemoveBookmark);
-                            // const btnRename = modMdc.mkMDCbutton("rename");
-                            const inpName = modMdc.mkMDCtextFieldInput();
-                            inpName.value = getCheckedBookmarkName();
-                            const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
-                            iconBookmarkHeart.style = `
+                        } else {
+                            await handleTempBookmark();
+                            async function handleTempBookmark() {
+                                const iconRemoveBookmark = modMdc.mkMDCicon("bookmark_remove");
+                                const btnRemove = modMdc.mkMDCbutton("Remove bookmark", undefined, iconRemoveBookmark);
+                                // const btnRename = modMdc.mkMDCbutton("rename");
+                                const inpName = modMdc.mkMDCtextFieldInput();
+                                inpName.value = getCheckedBookmarkName();
+                                const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                                iconBookmarkHeart.style = `
                                 color: darkorange;
                                 margin-right: 5px;
                             `;
 
-                            const divNamedInfo = mkElt("div", undefined, [
-                                iconBookmarkHeart,
-                                "Named bookmarks are persistent."
-                            ]);
-                            const tfName = modMdc.mkMDCtextFieldOutlined("Bookmark name", inpName);
-                            const btnSaveNamedBookmark = modMdc.mkMDCbutton("Save");
-                            const divNaming = mkElt("p", undefined, [
-                                tfName,
-                                btnSaveNamedBookmark,
-                            ])
-                            const divRename = mkElt("div", undefined, [
-                                divNaming,
-                                divNamedInfo,
-                            ]);
-                            divNaming.style = `
+                                const divNamedInfo = mkElt("div", undefined, [
+                                    iconBookmarkHeart,
+                                    "Named bookmarks are persistent."
+                                ]);
+                                const tfName = modMdc.mkMDCtextFieldOutlined("Bookmark name", inpName);
+                                const btnSaveNamedBookmark = modMdc.mkMDCbutton("Save");
+                                const divNaming = mkElt("p", undefined, [
+                                    tfName,
+                                    btnSaveNamedBookmark,
+                                ])
+                                const divRename = mkElt("div", undefined, [
+                                    divNaming,
+                                    divNamedInfo,
+                                ]);
+                                divNaming.style = `
                                 display: flex;
                                 flex-direction: row;
                                 gap: 5px;
                             `;
-                            divRename.style = `
+                                divRename.style = `
                                 padding: 10px;
                             `;
-                            divRename.classList.add("mdc-card");
+                                divRename.classList.add("mdc-card");
 
-                            const strAutoTopic = lblChecked.querySelector("span.auto-topic").textContent.trim()
-                            const spanAutoTopic = mkElt("span", undefined, strAutoTopic);
-                            spanAutoTopic.style = `
+                                const strAutoTopic = lblChecked.querySelector("span.auto-topic").textContent.trim()
+                                const spanAutoTopic = mkElt("span", undefined, strAutoTopic);
+                                spanAutoTopic.style = `
                                 background-color: lightseagreen;
                                 padding: 4px;
                                 border-radius: 2px;
                             `;
-                            const spanWhich = mkElt("span", undefined, [
-                                // "(on ",
-                                "from ",
-                                spanAutoTopic,
-                                // ")"
-                            ]);
-                            spanWhich.style = `
+                                const spanWhich = mkElt("span", undefined, [
+                                    // "(on ",
+                                    "from ",
+                                    spanAutoTopic,
+                                    // ")"
+                                ]);
+                                spanWhich.style = `
                                 margin-left: 10px;
                             `;
-                            const divRemove = mkElt("div", undefined, [
-                                btnRemove,
-                                spanWhich
-                            ]);
-                            const divActions = mkElt("div", undefined, [
-                                divRemove,
-                                divRename,
-                            ]);
-                            divActions.style = `
+                                const divRemove = mkElt("div", undefined, [
+                                    btnRemove,
+                                    spanWhich
+                                ]);
+                                const divActions = mkElt("div", undefined, [
+                                    divRemove,
+                                    divRename,
+                                ]);
+                                divActions.style = `
                                 display: flex;
                                 flex-direction: column;
                                 gap: 20px;
                             `;
-                            const iconBookmark = modMdc.mkMDCicon("bookmark");
-                            iconBookmark.style = `
+                                const iconBookmark = modMdc.mkMDCicon("bookmark");
+                                iconBookmark.style = `
                                 color: red;
                                 margin-right: 10px;
                             `;
-                            const divInfoBookmarks = mkElt("p", undefined, [
-                                `
+                                const divInfoBookmarks = mkElt("p", undefined, [
+                                    `
                                     Mindmap bookmarks are snapshots of bookmark state.
                                     They disappear when you close the mindmap.
                                     (You can however make a bookmark persistent by giving it a name.)
                                 `,
-                            ])
-                            const body = mkElt("div", undefined, [
-                                mkElt("h2", undefined, [
-                                    iconBookmark,
-                                    "Bookmark"
-                                ]),
-                                divInfoBookmarks,
-                                divActions,
-                            ]);
-                            let dlg;
-                            btnRemove.addEventListener("click", evt => {
-                                evt.stopPropagation();
-                                lblChecked.classList.remove("bookmarked");
-                                btnBookmark.classList.remove("bookmarked");
-                                modMdc.mkMDCsnackbar("Removed bookmark");
-                                dlg.mdc.close();
-                            });
-                            btnSaveNamedBookmark.inert = true;
-                            inpName.addEventListener("input", evt => {
-                                const val = inpName.value.trim();
+                                ])
+                                const body = mkElt("div", undefined, [
+                                    mkElt("h2", undefined, [
+                                        iconBookmark,
+                                        "Bookmark"
+                                    ]),
+                                    divInfoBookmarks,
+                                    divActions,
+                                ]);
+                                let dlg;
+                                btnRemove.addEventListener("click", evt => {
+                                    evt.stopPropagation();
+                                    lblChecked.classList.remove("bookmarked");
+                                    btnBookmark.classList.remove("bookmarked");
+                                    modMdc.mkMDCsnackbar("Removed bookmark");
+                                    dlg.mdc.close();
+                                });
+                                btnSaveNamedBookmark.inert = true;
+                                inpName.addEventListener("input", evt => {
+                                    const val = inpName.value.trim();
 
-                                if (val.length > 0) {
-                                    const oldNames = getBookmarkNames();
-                                    if (oldNames.includes(val)) {
-                                        btnSaveNamedBookmark.inert = true;
-                                        modMdc.setValidityMDC(inpName, `Name "${val}" already in use`);
-                                        return;
+                                    if (val.length > 0) {
+                                        const oldNames = getBookmarkNames();
+                                        if (oldNames.includes(val)) {
+                                            btnSaveNamedBookmark.inert = true;
+                                            modMdc.setValidityMDC(inpName, `Name "${val}" already in use`);
+                                            return;
+                                        }
                                     }
+                                    modMdc.setValidityMDC(inpName, "");
+                                    // btnSaveName.inert = val.length == 0;
+                                    btnSaveNamedBookmark.inert = false;
+                                });
+                                function setBookmarkName(newName) {
+                                    const spanBookmarkTopic = lblChecked.querySelector("span.bookmark-topic");
+                                    const spanName = spanBookmarkTopic.lastElementChild;
+                                    spanName.textContent = newName;
+                                    // lblChecked.classList.add("bookmark-is-named");
                                 }
-                                modMdc.setValidityMDC(inpName, "");
-                                // btnSaveName.inert = val.length == 0;
-                                btnSaveNamedBookmark.inert = false;
-                            });
-                            function setBookmarkName(newName) {
-                                const spanBookmarkTopic = lblChecked.querySelector("span.bookmark-topic");
-                                const spanName = spanBookmarkTopic.lastElementChild;
-                                spanName.textContent = newName;
-                                // lblChecked.classList.add("bookmark-is-named");
-                            }
-                            function getCheckedBookmarkName() {
-                                return getBookmarkName(lblChecked);
-                            }
-                            function getBookmarkName(lblState) {
-                                const spanBookmarkTopic = lblState.querySelector("span.bookmark-topic");
-                                const spanName = spanBookmarkTopic.lastElementChild;
-                                return spanName.textContent;
-                            }
-                            function getBookmarkNames() {
-                                const arr = [...document.querySelectorAll("label.mm4i-history-node")];
-                                return arr.map(lbl => {
-                                    const spanBookmarkTopic = lbl.querySelector("span.bookmark-topic");
+                                function getCheckedBookmarkName() {
+                                    return getBookmarkName(lblChecked);
+                                }
+                                function getBookmarkName(lblState) {
+                                    const spanBookmarkTopic = lblState.querySelector("span.bookmark-topic");
                                     const spanName = spanBookmarkTopic.lastElementChild;
                                     return spanName.textContent;
+                                }
+                                function getBookmarkNames() {
+                                    const arr = [...document.querySelectorAll("label.mm4i-history-node")];
+                                    return arr.map(lbl => {
+                                        const spanBookmarkTopic = lbl.querySelector("span.bookmark-topic");
+                                        const spanName = spanBookmarkTopic.lastElementChild;
+                                        return spanName.textContent;
+                                    });
+                                }
+                                btnSaveNamedBookmark.addEventListener("click", async evt => {
+                                    evt.stopPropagation();
+                                    // const eltNotYet = mkElt("span", { style: "color:red" }, "Handling named bookmarks is not fully implemented yet");
+                                    // modMdc.mkMDCsnackbar(eltNotYet);
+                                    setBookmarkName(inpName.value.trim());
+
+                                    const divList = document.getElementById("mm4i-history-list");
+                                    const radChecked = divList.querySelector("input:checked");
+                                    const lblChecked = radChecked.closest("label");
+                                    const isBookmarked = lblChecked.classList.contains("bookmarked");
+                                    const bookmarkName = getCheckedBookmarkName();
+
+                                    // debugger;
+                                    const modUndo = await importFc4i("undo-redo-tree");
+                                    // if (target.name == "undo-redo-state") {
+                                    const historyNode = radChecked.valueAsObject;
+                                    const fullDisplayState = historyNode.fullState;
+                                    modMMhelpers.checkIsFullMindmapDisplayState(fullDisplayState);
+                                    // const objMindData = fullDisplayState.objDataMind;
+
+                                    // saveMindmapBookmark(mindmapKey, bookmarkName, objMindData);
+                                    saveMindmapBookmark(mindmapKey, bookmarkName, fullDisplayState);
+                                    dlg.mdc.close();
                                 });
+                                dlg = await modMdc.mkMDCdialogAlert(body, "Close");
+                                dlg.dom.style.zIndex = "9999";
                             }
-                            btnSaveNamedBookmark.addEventListener("click", async evt => {
-                                evt.stopPropagation();
-                                // const eltNotYet = mkElt("span", { style: "color:red" }, "Handling named bookmarks is not fully implemented yet");
-                                // modMdc.mkMDCsnackbar(eltNotYet);
-                                setBookmarkName(inpName.value.trim());
-
-                                const divList = document.getElementById("mm4i-history-list");
-                                const radChecked = divList.querySelector("input:checked");
-                                const lblChecked = radChecked.closest("label");
-                                const isBookmarked = lblChecked.classList.contains("bookmarked");
-                                const bookmarkName = getCheckedBookmarkName();
-
-                                // debugger;
-                                const modUndo = await importFc4i("undo-redo-tree");
-                                // if (target.name == "undo-redo-state") {
-                                const historyNode = radChecked.valueAsObject;
-                                const fullDisplayState = historyNode.fullState;
-                                modMMhelpers.checkIsFullMindmapDisplayState(fullDisplayState);
-                                // const objMindData = fullDisplayState.objDataMind;
-
-                                // saveMindmapBookmark(mindmapKey, bookmarkName, objMindData);
-                                saveMindmapBookmark(mindmapKey, bookmarkName, fullDisplayState);
-                                dlg.mdc.close();
-                            });
-                            dlg = await modMdc.mkMDCdialogAlert(body, "Close");
-                            dlg.dom.style.zIndex = "9999";
                         }
                     }
                 }
+
+                const valCurrent = settingUndoRedoTree.value ? "tree" : "linear";
+                const inpCurrent = spanHistoryHeaderLeft.querySelector(`input[value=${valCurrent}]`);
+                inpCurrent.checked = true;
+
+                spanLinearTree.addEventListener("change", async evt => {
+                    evt.stopPropagation();
+                    const target = evt.target;
+                    const value = target.value;
+                    // console.log({ target, value });
+                    if (value == "tree") {
+                        const inpLinear = document.querySelector("input[value=linear]");
+                        console.log({ inpLinear });
+                        // setTimeout(() => { inpLinear.checked = true }, 2000);
+                    }
+                    switch (value) {
+                        case "tree":
+                            modMMhelpers.setUndoRedoTreeStyle(true);
+                            settingUndoRedoTree.value = true;
+                            break;
+                        case "linear":
+                            modMMhelpers.setUndoRedoTreeStyle(false);
+                            settingUndoRedoTree.value = false;
+                            break;
+                        default:
+                    }
+                    const modUndo = await importFc4i("undo-redo-tree");
+                    const hasUndo = modUndo.hasUndoRedo(mindmapKey);
+                    if (hasUndo) {
+                        modUndo.resetHistory(mindmapKey);
+                        updateHistoryPanel();
+                    }
+                });
             }
+            initButtonsLinearTree();
 
-            const valCurrent = settingUndoRedoTree.value ? "tree" : "linear";
-            const inpCurrent = spanHistoryHeaderLeft.querySelector(`input[value=${valCurrent}]`);
-            inpCurrent.checked = true;
 
-            spanLinearTree.addEventListener("change", async evt => {
-                evt.stopPropagation();
-                const target = evt.target;
-                const value = target.value;
-                // console.log({ target, value });
-                if (value == "tree") {
-                    const inpLinear = document.querySelector("input[value=linear]");
-                    console.log({ inpLinear });
-                    // setTimeout(() => { inpLinear.checked = true }, 2000);
-                }
-                switch (value) {
-                    case "tree":
-                        modMMhelpers.setUndoRedoTreeStyle(true);
-                        settingUndoRedoTree.value = true;
-                        break;
-                    case "linear":
-                        modMMhelpers.setUndoRedoTreeStyle(false);
-                        settingUndoRedoTree.value = false;
-                        break;
-                    default:
+            const eltBoth = document.getElementById("both-versions");
+            eltBoth.addEventListener("click", evt => { evt.stopPropagation(); });
+            const btnCloseBV = modMdc.mkMDCiconButton("close", "Remove version info");
+            eltBoth.appendChild(btnCloseBV);
+            btnCloseBV.addEventListener("click", evt => { evt.stopPropagation(); eltBoth.remove(); });
+
+
+
+            const idInitialState = "initial-state-undo-redo";
+            async function updateHistoryPanel() {
+                divHistoryList.textContent = "";
+                let dummyVal = 0;
+                let isInitialState = true;
+                const funAddStateRow = (node, depth, current) => {
+                    const markCurrent = (node === current) ? ">" : "";
+                    const radNode = mkElt("input", {
+                        type: "radio", name: "undo-redo-state",
+                        value: dummyVal++
+                    });
+                    radNode.valueAsObject = node;
+                    radNode.checked = node === current;
+                    const autoTopic = `${node.actionTopic || "N/A"} `;
+                    const spanAutoTopic = mkElt("span", undefined, autoTopic);
+                    spanAutoTopic.classList.add("auto-topic");
+                    const spanBookmarkName = mkElt("span");
+                    const iconBookmark = modMdc.mkMDCicon("bookmark");
+                    iconBookmark.classList.add("icon-bookmark");
+                    iconBookmark.style.zoom = 0.7;
+                    const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                    iconBookmarkHeart.classList.add("icon-bookmark-named");
+                    iconBookmarkHeart.style.zoom = 0.7;
+                    const spanBookmarkedTopic = mkElt("span", undefined, [
+                        iconBookmark,
+                        iconBookmarkHeart,
+                        spanBookmarkName
+                    ]);
+                    spanBookmarkedTopic.classList.add("bookmark-topic");
+                    const spanTopic = mkElt("span", undefined, [spanAutoTopic, spanBookmarkedTopic]);
+                    const eltNode = mkElt("label", undefined, [radNode, spanTopic]);
+                    if (isInitialState) {
+                        isInitialState = false;
+                        radNode.id = idInitialState;
+                    }
+                    // spanTopic.mm4iAutoTopic = autoTopic;
+                    eltNode.classList.add("mm4i-history-node");
+                    eltNode.style.paddingLeft = `${4 + depth * 20}px`;
+                    // divHistoryList.appendChild(eltNode);
+                    divHistoryList.insertBefore(eltNode, divHistoryList.children[0]);
                 }
                 const modUndo = await importFc4i("undo-redo-tree");
-                const hasUndo = modUndo.hasUndoRedo(mindmapKey);
-                if (hasUndo) {
-                    modUndo.resetHistory(mindmapKey);
-                    updateHistoryPanel();
+                const hasHistory = modUndo.hasUndoRedo(mindmapKey);
+                if (!hasHistory) {
+                    const eltNoChanges = mkElt("div", undefined, "No mindmap changes yet");
+                    eltNoChanges.id = "mm4i-history-no-changes";
+                    divHistoryList.appendChild(eltNoChanges);
+                } else {
+                    const btnBookmark = document.getElementById("btn-bookmark");
+                    btnBookmark.inert = false;
+                    modUndo.mapHistoryTree(mindmapKey, funAddStateRow);
                 }
-            });
-        }
-        initButtonsLinearTree();
-
-
-        const eltBoth = document.getElementById("both-versions");
-        eltBoth.addEventListener("click", evt => { evt.stopPropagation(); });
-        const btnCloseBV = modMdc.mkMDCiconButton("close", "Remove version info");
-        eltBoth.appendChild(btnCloseBV);
-        btnCloseBV.addEventListener("click", evt => { evt.stopPropagation(); eltBoth.remove(); });
-
-
-
-        const idInitialState = "initial-state-undo-redo";
-        async function updateHistoryPanel() {
-            divHistoryList.textContent = "";
-            let dummyVal = 0;
-            let isInitialState = true;
-            const funAddStateRow = (node, depth, current) => {
-                const markCurrent = (node === current) ? ">" : "";
-                const radNode = mkElt("input", {
-                    type: "radio", name: "undo-redo-state",
-                    value: dummyVal++
-                });
-                radNode.valueAsObject = node;
-                radNode.checked = node === current;
-                const autoTopic = `${node.actionTopic || "N/A"} `;
-                const spanAutoTopic = mkElt("span", undefined, autoTopic);
-                spanAutoTopic.classList.add("auto-topic");
-                const spanBookmarkName = mkElt("span");
-                const iconBookmark = modMdc.mkMDCicon("bookmark");
-                iconBookmark.classList.add("icon-bookmark");
-                iconBookmark.style.zoom = 0.7;
-                const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
-                iconBookmarkHeart.classList.add("icon-bookmark-named");
-                iconBookmarkHeart.style.zoom = 0.7;
-                const spanBookmarkedTopic = mkElt("span", undefined, [
-                    iconBookmark,
-                    iconBookmarkHeart,
-                    spanBookmarkName
-                ]);
-                spanBookmarkedTopic.classList.add("bookmark-topic");
-                const spanTopic = mkElt("span", undefined, [spanAutoTopic, spanBookmarkedTopic]);
-                const eltNode = mkElt("label", undefined, [radNode, spanTopic]);
-                if (isInitialState) {
-                    isInitialState = false;
-                    radNode.id = idInitialState;
-                }
-                // spanTopic.mm4iAutoTopic = autoTopic;
-                eltNode.classList.add("mm4i-history-node");
-                eltNode.style.paddingLeft = `${4 + depth * 20}px`;
-                // divHistoryList.appendChild(eltNode);
-                divHistoryList.insertBefore(eltNode, divHistoryList.children[0]);
-            }
-            const modUndo = await importFc4i("undo-redo-tree");
-            const hasHistory = modUndo.hasUndoRedo(mindmapKey);
-            if (!hasHistory) {
-                const eltNoChanges = mkElt("div", undefined, "No mindmap changes yet");
-                eltNoChanges.id = "mm4i-history-no-changes";
-                divHistoryList.appendChild(eltNoChanges);
-            } else {
-                const btnBookmark = document.getElementById("btn-bookmark");
-                btnBookmark.inert = false;
-                modUndo.mapHistoryTree(mindmapKey, funAddStateRow);
-            }
-            const dbMindmaps = await importFc4i("db-mindmaps");
-            const arrBm = await dbMindmaps.DBgetAllMindmapBookmarks(mindmapKey);
-            console.log({ arrBm });
-            if (arrBm.length > 0) {
-                const divPersistent = mkElt("div", { class: "mdc-card" });
-                divPersistent.style = `
+                const dbMindmaps = await importFc4i("db-mindmaps");
+                const arrBm = await dbMindmaps.DBgetAllMindmapBookmarks(mindmapKey);
+                console.log({ arrBm });
+                if (arrBm.length > 0) {
+                    const divPersistent = mkElt("div", { class: "mdc-card" });
+                    divPersistent.style = `
                     padding: 10px;
                     margin: 0 10px;
                     background-color: orange;
                 `;
-                const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
-                const eltPersistenHeader = mkElt("div", undefined, [
-                    iconBookmarkHeart,
-                    " Named bookmarks"
-                ]);
-                eltPersistenHeader.style = `
+                    const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                    const eltPersistenHeader = mkElt("div", undefined, [
+                        iconBookmarkHeart,
+                        " Named bookmarks"
+                    ]);
+                    eltPersistenHeader.style = `
                     display: flex;
                 `;
-                divPersistent.appendChild(eltPersistenHeader);
-                divHistoryList.appendChild(divPersistent);
-                arrBm.forEach(bm => {
-                    console.log({ bm });
-                    const { bmName, jsmindmap, keyBookmark } = bm;
-                    console.log({ bmName, jsmindmap });
-                    const radNode = mkElt("input", {
-                        type: "radio",
-                        name: "undo-redo-state",
-                        value: keyBookmark
+                    divPersistent.appendChild(eltPersistenHeader);
+                    divHistoryList.appendChild(divPersistent);
+                    arrBm.forEach(bm => {
+                        console.log({ bm });
+                        const { bmName, jsmindmap, keyBookmark } = bm;
+                        console.log({ bmName, jsmindmap });
+                        const radNode = mkElt("input", {
+                            type: "radio",
+                            name: "undo-redo-state",
+                            value: keyBookmark
+                        });
+                        radNode.valueAsObject = jsmindmap;
+                        const eltBm = mkElt("label", undefined, [radNode, bmName]);
+                        eltBm.dataset.bookmarkName = bmName;
+                        eltBm.classList.add("persistent-bookmark");
+                        divPersistent.appendChild(eltBm);
                     });
-                    radNode.valueAsObject = jsmindmap;
-                    const eltBm = mkElt("label", undefined, [radNode, bmName]);
-                    eltBm.dataset.bookmarkName = bmName;
-                    eltBm.classList.add("persistent-bookmark");
-                    divPersistent.appendChild(eltBm);
-                });
-            }
-        }
-
-        const imgHistoryResizer = mkElt("div");
-        imgHistoryResizer.id = "mm4i-history-resizer-img";
-        const divHistoryResizer = mkElt("span", undefined, imgHistoryResizer);
-        divHistoryResizer.title = "Resize";
-        divHistoryResizer.id = "mm4i-history-resizer";
-
-        const divHistoryHeader = mkElt("div", undefined, [iconHistory, spanHistoryHeaderLeft, divHistoryResizer]);
-        divHistoryHeader.id = "mm4i-history-header";
-
-        const divHistoryList = mkElt("div");
-        divHistoryList.id = "mm4i-history-list";
-
-        const eltHistory = mkElt("div", undefined, [
-            divHistoryHeader,
-            divHistoryList
-        ]);
-        eltHistory.id = "mm4i-history-panel";
-        eltHistory.classList.add("display-none");
-
-        document.body.appendChild(eltHistory);
-
-        divHistoryList.addEventListener("change", evt => {
-            const target = evt.target;
-            console.log({ target });
-            const lblTarget = target.closest("label");
-            const isBookmarked = lblTarget.classList.contains("bookmarked");
-            const btnBookmark = document.getElementById("btn-bookmark");
-            if (isBookmarked) {
-                btnBookmark.classList.add("bookmarked");
-            } else {
-                btnBookmark.classList.remove("bookmarked");
-            }
-        })
-        updateHistoryPanel();
-
-        const resizingHistory = { bcr: undefined, client: undefined };
-        let historyResizerPointerId;
-        function resizeHistory() {
-            if (!divHistoryResizer.hasPointerCapture(historyResizerPointerId)) return;
-            try {
-                const objSizes = modTools.getSavedPointerPos();
-                const { clientX, clientY } = objSizes;
-                const startX = resizingHistory.client.startX;
-                const startY = resizingHistory.client.startY;
-                const dX = startX - clientX;
-                const dY = startY - clientY;
-                // console.log("resizeHistory, dX, dY", dX, dY);
-                if (Number.isNaN(dX) || Number.isNaN(dY)) {
-                    const msg = `isNaN, dX:${dX}, dY:${dY}`;
-                    throw Error(msg);
                 }
-                // console.log("resizeHistory", dX, dY, JSON.parse(JSON.stringify(objSizes)));
-                const oldWidth = resizingHistory.bcr.width;
-                let newX = oldWidth - dX;
-                const oldHeight = resizingHistory.bcr.height;
-                let newY = oldHeight + dY;
-                if (Number.isNaN(newX) || Number.isNaN(newY)) {
-                    const msg = `isNaN, newX:${newX}, newY:${newY}`;
-                    throw Error(msg);
-                }
-                if ((newX < 0) || (newY < 0)) {
-                    console.log(`${newX}<0, ${newY}<0`, { clientX, clientY, resizingHistory });
+            }
+
+            const imgHistoryResizer = mkElt("div");
+            imgHistoryResizer.id = "mm4i-history-resizer-img";
+            const divHistoryResizer = mkElt("span", undefined, imgHistoryResizer);
+            divHistoryResizer.title = "Resize";
+            divHistoryResizer.id = "mm4i-history-resizer";
+
+            const divHistoryHeader = mkElt("div", undefined, [iconHistory, spanHistoryHeaderLeft, divHistoryResizer]);
+            divHistoryHeader.id = "mm4i-history-header";
+
+            const divHistoryList = mkElt("div");
+            divHistoryList.id = "mm4i-history-list";
+
+            const eltHistory = mkElt("div", undefined, [
+                divHistoryHeader,
+                divHistoryList
+            ]);
+            eltHistory.id = "mm4i-history-panel";
+            eltHistory.classList.add("display-none");
+
+            document.body.appendChild(eltHistory);
+
+            divHistoryList.addEventListener("change", evt => {
+                const target = evt.target;
+                console.log({ target });
+                const lblTarget = target.closest("label");
+                const isBookmarked = lblTarget.classList.contains("bookmarked");
+                const btnBookmark = document.getElementById("btn-bookmark");
+                if (isBookmarked) {
+                    btnBookmark.classList.add("bookmarked");
                 } else {
-                    // Use --width/--height to get help from CSS
-                    eltHistory.style.setProperty('--width', `${newX}px`);
-                    eltHistory.style.setProperty('--height', `${newY}px`);
+                    btnBookmark.classList.remove("bookmarked");
                 }
-                throttleSaveHistoryPanelSize();
-            } catch (err) {
-                console.error("resizeHistory", err);
-            }
-            requestAnimationFrame(resizeHistory);
-        }
-        divHistoryResizer.addEventListener("pointerdown", async evt => {
-            // This will be handled before the handler on the document.
-            // So get clientX/clientY here!
-            evt.stopPropagation();
-            historyResizerPointerId = evt.pointerId;
-            divHistoryResizer.setPointerCapture(historyResizerPointerId);
-            eltHistory.classList.add("resizing");
+            })
+            updateHistoryPanel();
 
-            if (true) {
-                const clientX = evt.clientX;
-                const clientY = evt.clientY;
-                if (Number.isNaN(clientX) || Number.isNaN(clientY)) { debugger; }
-
-                modTools.savePointerdownPos(evt);
-
-                resizingHistory.bcr = eltHistory.getBoundingClientRect();
-
-                resizingHistory.client = {};
-                resizingHistory.client.startX = clientX;
-                resizingHistory.client.startY = clientY;
-                resizingHistory.currentPos = {};
-                resizingHistory.currentPos.clientX = clientX;
-                resizingHistory.currentPos.clientY = clientY;
-            }
-            divHistoryResizer.addEventListener("pointermove", funPointermove);
-            function funPointermove(evt) {
-                if (!divHistoryResizer.hasPointerCapture(evt.pointerId)) {
-                    divHistoryResizer.removeEventListener("pointermove", funPointermove);
+            const resizingHistory = { bcr: undefined, client: undefined };
+            let historyResizerPointerId;
+            function resizeHistory() {
+                if (!divHistoryResizer.hasPointerCapture(historyResizerPointerId)) return;
+                try {
+                    const objSizes = modTools.getSavedPointerPos();
+                    const { clientX, clientY } = objSizes;
+                    const startX = resizingHistory.client.startX;
+                    const startY = resizingHistory.client.startY;
+                    const dX = startX - clientX;
+                    const dY = startY - clientY;
+                    // console.log("resizeHistory, dX, dY", dX, dY);
+                    if (Number.isNaN(dX) || Number.isNaN(dY)) {
+                        const msg = `isNaN, dX:${dX}, dY:${dY}`;
+                        throw Error(msg);
+                    }
+                    // console.log("resizeHistory", dX, dY, JSON.parse(JSON.stringify(objSizes)));
+                    const oldWidth = resizingHistory.bcr.width;
+                    let newX = oldWidth - dX;
+                    const oldHeight = resizingHistory.bcr.height;
+                    let newY = oldHeight + dY;
+                    if (Number.isNaN(newX) || Number.isNaN(newY)) {
+                        const msg = `isNaN, newX:${newX}, newY:${newY}`;
+                        throw Error(msg);
+                    }
+                    if ((newX < 0) || (newY < 0)) {
+                        console.log(`${newX}<0, ${newY}<0`, { clientX, clientY, resizingHistory });
+                    } else {
+                        // Use --width/--height to get help from CSS
+                        eltHistory.style.setProperty('--width', `${newX}px`);
+                        eltHistory.style.setProperty('--height', `${newY}px`);
+                    }
+                    throttleSaveHistoryPanelSize();
+                } catch (err) {
+                    console.error("resizeHistory", err);
                 }
-                modTools.savePointerPos(evt);
+                requestAnimationFrame(resizeHistory);
             }
-            divHistoryResizer.addEventListener("pointerup", evt => {
+            divHistoryResizer.addEventListener("pointerdown", async evt => {
+                // This will be handled before the handler on the document.
+                // So get clientX/clientY here!
+                evt.stopPropagation();
+                historyResizerPointerId = evt.pointerId;
+                divHistoryResizer.setPointerCapture(historyResizerPointerId);
+                eltHistory.classList.add("resizing");
+
+                if (true) {
+                    const clientX = evt.clientX;
+                    const clientY = evt.clientY;
+                    if (Number.isNaN(clientX) || Number.isNaN(clientY)) { debugger; }
+
+                    modTools.savePointerdownPos(evt);
+
+                    resizingHistory.bcr = eltHistory.getBoundingClientRect();
+
+                    resizingHistory.client = {};
+                    resizingHistory.client.startX = clientX;
+                    resizingHistory.client.startY = clientY;
+                    resizingHistory.currentPos = {};
+                    resizingHistory.currentPos.clientX = clientX;
+                    resizingHistory.currentPos.clientY = clientY;
+                }
+                divHistoryResizer.addEventListener("pointermove", funPointermove);
+                function funPointermove(evt) {
+                    if (!divHistoryResizer.hasPointerCapture(evt.pointerId)) {
+                        divHistoryResizer.removeEventListener("pointermove", funPointermove);
+                    }
+                    modTools.savePointerPos(evt);
+                }
+                divHistoryResizer.addEventListener("pointerup", evt => {
+                    // afterCaptureResizer();
+                });
+                resizeHistory();
+            });
+            divHistoryResizer.addEventListener("pointercancel", evt => {
+                console.log("<<<<<< HR pointercancel, preventDefault()", evt);
+                evt.preventDefault();
+            });
+            divHistoryResizer.addEventListener("lostpointercapture", evt => {
+                console.log("<<<<<< HR lostpointercapture, preventDefault()", evt);
+                evt.preventDefault();
+                afterCaptureResizer();
+            });
+            divHistoryResizer.addEventListener("pointerleave", evt => {
+                console.log("<<<<<< HR pointerleave, preventDefault()");
+                evt.preventDefault();
                 // afterCaptureResizer();
             });
-            resizeHistory();
-        });
-        divHistoryResizer.addEventListener("pointercancel", evt => {
-            console.log("<<<<<< HR pointercancel, preventDefault()", evt);
-            evt.preventDefault();
-        });
-        divHistoryResizer.addEventListener("lostpointercapture", evt => {
-            console.log("<<<<<< HR lostpointercapture, preventDefault()", evt);
-            evt.preventDefault();
-            afterCaptureResizer();
-        });
-        divHistoryResizer.addEventListener("pointerleave", evt => {
-            console.log("<<<<<< HR pointerleave, preventDefault()");
-            evt.preventDefault();
-            // afterCaptureResizer();
-        });
-        function afterCaptureResizer() {
-            // https://javascript.info/pointer-events
-            divHistoryResizer.onpointerup = null;
-            divHistoryResizer.onpointermove = null;
+            function afterCaptureResizer() {
+                // https://javascript.info/pointer-events
+                divHistoryResizer.onpointerup = null;
+                divHistoryResizer.onpointermove = null;
 
-            resizingHistory.bcr = undefined;
-            resizingHistory.client = undefined;
-            eltHistory.classList.remove("resizing");
-        }
+                resizingHistory.bcr = undefined;
+                resizingHistory.client = undefined;
+                eltHistory.classList.remove("resizing");
+            }
 
-        async function applyUndoRedoState(radUndoRedo) {
-            const undisplayPrevMindmap = async () => {
-                const tnRad = radUndoRedo.tagName;
-                if (tnRad != "INPUT") throw Error(`radUndoRedo is not INPUT: "${tnRad}"`);
-                if (radUndoRedo.name != "undo-redo-state") throw Error("radUndoRedo.name != undo-redo-state");
-                const jmN = document.querySelector("jmnodes");
-                const divZM = jmN.closest(".zoom-move");
-                const divFilter = divZM || jmN
-                divFilter.style.filter = "grayScale(0.5)";
-                divFilter.style.transition = "opacity 0.5s";
-                divFilter.style.opacity = 0;
-                await modTools.waitSeconds(0.5);
-                if (!divZM) {
-                    const divInner = jmN.closest(".jsmind-inner");
-                    divInner.remove();
+            async function applyUndoRedoState(radUndoRedo) {
+                const undisplayPrevMindmap = async () => {
+                    const tnRad = radUndoRedo.tagName;
+                    if (tnRad != "INPUT") throw Error(`radUndoRedo is not INPUT: "${tnRad}"`);
+                    if (radUndoRedo.name != "undo-redo-state") throw Error("radUndoRedo.name != undo-redo-state");
+                    const jmN = document.querySelector("jmnodes");
+                    const divZM = jmN.closest(".zoom-move");
+                    const divFilter = divZM || jmN
+                    divFilter.style.filter = "grayScale(0.5)";
+                    divFilter.style.transition = "opacity 0.5s";
+                    divFilter.style.opacity = 0;
+                    await modTools.waitSeconds(0.5);
+                    if (!divZM) {
+                        const divInner = jmN.closest(".jsmind-inner");
+                        divInner.remove();
+                    } else {
+                        divZM.remove();
+                    }
+                }
+
+                const lblPersistent = radUndoRedo.closest(".persistent-bookmark");
+                // let objMindData;
+                let objHistoryFullDisplay;
+                if (lblPersistent) {
+                    objHistoryFullDisplay = radUndoRedo.valueAsObject;
                 } else {
-                    divZM.remove();
+                    const modUndo = await importFc4i("undo-redo-tree");
+                    const historyNode = radUndoRedo.valueAsObject;
+                    const history = modUndo.getHistory(mindmapKey);
+                    objHistoryFullDisplay = history.navigateToNode(historyNode);
+                }
+                const isSavedBookmark = objHistoryFullDisplay.isSavedBookmark;
+                const objMindStored = objHistoryFullDisplay.objMindStored;
+                if (!objMindStored) {
+                    // debugger;
+                    modMdc.mkMDCsnackbar("Old format naned bookmark, please delete");
+                    return;
+                }
+
+                undisplayPrevMindmap();
+
+                modMMhelpers.checkIsMMformatStored(objMindStored, "event listener change");
+                const dbMindmaps = await importFc4i("db-mindmaps");
+                if (!isSavedBookmark) {
+                    await dbMindmaps.DBsetMindmap(mindmapKey, objMindStored);
+                } else {
+                    delete objHistoryFullDisplay.isSavedBookmark;
+                }
+                delete objHistoryFullDisplay.key;
+
+                modMMhelpers.checkIsFullMindmapDisplayState(objHistoryFullDisplay);
+                // modMMhelpers.checkIsFullMindmapDisplayState(objMindData);
+
+
+                const jm = await modJsEditCommon.displayOurMindmap(objMindStored);
+                if (isSavedBookmark) jm.isSavedBookmark = true;
+                modJsmindDraggable.setOurJm(jm);
+                const modStairs = await importFc4i("stairs");
+                modStairs.exitEditOrView();
+                if (objHistoryFullDisplay) {
+                    modMMhelpers.applyDisplayStateOther(objHistoryFullDisplay.other, jm);
                 }
             }
 
-            const lblPersistent = radUndoRedo.closest(".persistent-bookmark");
-            // let objMindData;
-            let objHistoryFullDisplay;
-            if (lblPersistent) {
-                objHistoryFullDisplay = radUndoRedo.valueAsObject;
-            } else {
-                const modUndo = await importFc4i("undo-redo-tree");
-                const historyNode = radUndoRedo.valueAsObject;
-                const history = modUndo.getHistory(mindmapKey);
-                objHistoryFullDisplay = history.navigateToNode(historyNode);
-            }
-            const isSavedBookmark = objHistoryFullDisplay.isSavedBookmark;
-            const objMindStored = objHistoryFullDisplay.objMindStored;
-            if (!objMindStored) {
-                // debugger;
-                modMdc.mkMDCsnackbar("Old format naned bookmark, please delete");
-                return;
-            }
 
-            undisplayPrevMindmap();
-
-            modMMhelpers.checkIsMMformatStored(objMindStored, "event listener change");
-            const dbMindmaps = await importFc4i("db-mindmaps");
-            if (!isSavedBookmark) {
-                await dbMindmaps.DBsetMindmap(mindmapKey, objMindStored);
-            } else {
-                delete objHistoryFullDisplay.isSavedBookmark;
-            }
-            delete objHistoryFullDisplay.key;
-
-            modMMhelpers.checkIsFullMindmapDisplayState(objHistoryFullDisplay);
-            // modMMhelpers.checkIsFullMindmapDisplayState(objMindData);
+            eltHistory.addEventListener("change", evt => {
+                const target = evt.target;
+                if (target.name == "undo-redo-state") {
+                    applyUndoRedoState(target);
+                }
+            });
 
 
-            const jm = await modJsEditCommon.displayOurMindmap(objMindStored);
-            if (isSavedBookmark) jm.isSavedBookmark = true;
-            modJsmindDraggable.setOurJm(jm);
-            const modStairs = await importFc4i("stairs");
-            modStairs.exitEditOrView();
-            if (objHistoryFullDisplay) {
-                modMMhelpers.applyDisplayStateOther(objHistoryFullDisplay.other, jm);
+            // const btnHistory = modMdc.mkMDCiconButton("deployed_code_history", "Undo/Redo");
+            const btnHistory = modMdc.mkMDCiconButton("history", "Undo/Redo");
+            btnHistory.id = "mm4i-btn-history";
+            let undoIsSetup = false;
+            btnHistory.addEventListener("click", async evt => {
+                evt.stopPropagation();
+                eltHistory.classList.toggle("display-none");
+                if (!eltHistory.classList.contains("display-none")) {
+                    const oldBcr = settingHistoryPanelSize.value;
+                    if (oldBcr == null) return;
+                    const { width, height } = oldBcr;
+                    eltHistory.style.setProperty('--width', `${width}px`);
+                    eltHistory.style.setProperty('--height', `${height}px`);
+                }
+            });
+            document.body.appendChild(btnHistory);
+
+            const modUndo = await importFc4i("undo-redo-tree");
+            document.addEventListener(modUndo.getRecordEventName(), evt => {
+                if (evt.detail.key == mindmapKey) {
+                    updateHistoryPanel();
+                }
+            });
+
+
+
+            async function saveMindmapBookmark(keyName, bookmarkName, objMindData) {
+                // modMMhelpers.checkIsMMformatStored(objMindData, "saveMindmapBookmark");
+                modMMhelpers.checkIsFullMindmapDisplayState(objMindData, "saveMindmapBookmark");
+                const dbMindmaps = await importFc4i("db-mindmaps");
+                return await dbMindmaps.DBsetMindmapBookmark(keyName, bookmarkName, objMindData);
             }
         }
-
-
-        eltHistory.addEventListener("change", evt => {
-            const target = evt.target;
-            if (target.name == "undo-redo-state") {
-                applyUndoRedoState(target);
-            }
-        });
-
-
-        // const btnHistory = modMdc.mkMDCiconButton("deployed_code_history", "Undo/Redo");
-        const btnHistory = modMdc.mkMDCiconButton("history", "Undo/Redo");
-        btnHistory.id = "mm4i-btn-history";
-        let undoIsSetup = false;
-        btnHistory.addEventListener("click", async evt => {
-            evt.stopPropagation();
-            eltHistory.classList.toggle("display-none");
-            if (!eltHistory.classList.contains("display-none")) {
-                const oldBcr = settingHistoryPanelSize.value;
-                if (oldBcr == null) return;
-                const { width, height } = oldBcr;
-                eltHistory.style.setProperty('--width', `${width}px`);
-                eltHistory.style.setProperty('--height', `${height}px`);
-            }
-        });
-        document.body.appendChild(btnHistory);
-
-        const modUndo = await importFc4i("undo-redo-tree");
-        document.addEventListener(modUndo.getRecordEventName(), evt => {
-            if (evt.detail.key == mindmapKey) {
-                updateHistoryPanel();
-            }
-        });
-
-
-
-        async function saveMindmapBookmark(keyName, bookmarkName, objMindData) {
-            // modMMhelpers.checkIsMMformatStored(objMindData, "saveMindmapBookmark");
-            modMMhelpers.checkIsFullMindmapDisplayState(objMindData, "saveMindmapBookmark");
-            const dbMindmaps = await importFc4i("db-mindmaps");
-            return await dbMindmaps.DBsetMindmapBookmark(keyName, bookmarkName, objMindData);
-        }
-
     </script>
 
 </body>
