@@ -1633,22 +1633,29 @@ export async function pageSetup() {
         btnShareMm.id = "btn-sync";
         btnShareMm.addEventListener("click", async evt => {
             evt.stopPropagation();
-            /*
-            if (location.hostname != "localhost") {
-                alert("not implemented yet");
-                return;
-            }
-            */
-            const modShare = await importFc4i("mm4i-share");
-            console.log({ modShare });
-            // const jsonSharedMindmap = { justATest: new Date().toLocaleString() };
-            // const jsonSharedMindmap = modMMhelpers.getFull
-            // const jsonSharedMindmap = await modMMhelpers.getFullMindmapDisplayState(this.THEjmDisplayed);
             const renderer = await getCustomRenderer();
             const jsonSharedMindmap = await renderer.getFullMindmapDisplayState();
             const topic = jsonSharedMindmap.objMindStored.data[0].topic;
+            debugger;
+            const txtDesc = jsonSharedMindmap.objMindStored.data[0].shapeEtc.notes || "(no notes)";
+
+            const taDesc = modMdc.mkMDCtextFieldTextarea("shared-desc-textarea");
+            const tfDesc = modMdc.mkMDCtextareaField("Description", taDesc, txtDesc);
+            const body = mkElt("div", undefined, [
+                mkElt("h2", undefined, `Share mindmap "${topic}"`),
+                tfDesc,
+            ]);
+            const ans = await modMdc.mkMDCdialogConfirm(body, "Share", "Cancel");
+            if (!ans) {
+                return;
+            }
+
+
+            const modShare = await importFc4i("mm4i-share");
+            console.log({ modShare });
+
             const shareTitle = `Shared mindmap "${topic}"`;
-            const shareText = `(temp user input)`;
+            const shareText = taDesc.value;
             modShare.saveDataToShare(jsonSharedMindmap, shareTitle, shareText);
         });
 
