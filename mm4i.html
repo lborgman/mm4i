@@ -21,7 +21,7 @@
 
     <script>
         /* Add OG: */
-        debugger;
+        // debugger;
         const addMeta = (which, content) => {
             const eltMeta = document.createElement("meta");
             eltMeta.setAttribute("property", `og:${which}`);
@@ -1954,7 +1954,7 @@
             const isSavedBookmark = objHistoryFullDisplay.isSavedBookmark;
             const objMindStored = objHistoryFullDisplay.objMindStored;
             if (!objMindStored) {
-                debugger;
+                // debugger;
                 modMdc.mkMDCsnackbar("Old format naned bookmark, please delete");
                 return;
             }

@@ -1720,6 +1720,7 @@ export async function pageSetup() {
         if (sp.size == 0) return true;
         const arrParNames = [...sp.keys()].sort();
         const allowed = ["mindmap", "nodehits", "cachemodules", "share"];
+        allowed.push("fbclid"); // FIX-ME: why???
         for (const p of arrParNames) {
             if (!allowed.includes(p)) {
                 debugger; // eslint-disable-line no-debugger
