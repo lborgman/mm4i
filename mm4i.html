@@ -2,6 +2,22 @@
 <html lang="en">
 
 <head>
+    <script>
+        // Check if domain is active through https
+        // FIX-ME:
+        window.isSecure = window.location.hostname == "localhost" || window.location.protocol == "https:"
+        if (!window.isSecure) {
+            const scripts = document.querySelectorAll('script');
+            scripts.forEach(script => script.remove());
+            setTimeout(() => {
+                document.documentElement.innerHTML = `
+                <h1>MM4I is not available at the moment</h1>
+                Waiting for internet domain activation.
+                `;
+                document.close();
+            }, 1000);
+        }
+    </script>
     <!-- https://blog.pixelfreestudio.com/how-to-implement-lazy-loading-in-pwas/ -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1367,6 +1383,7 @@
         }
     </script>
     <script type="module">
+        if (!window.isSecure) { throw Error("not secure"); }
         if (!window.detectedBot) {
             window["logConsoleHereIs"]("here is mm4i.html");
             // console.log("here is mm4i.html");

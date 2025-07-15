@@ -1767,7 +1767,12 @@ export async function pageSetup() {
                 await modMMhelpers.createAndShowNewMindmap();
             } else {
                 // dialogMindMaps(location.pathname);
-                dialogMindMaps();
+                const eltInfo = !mindmapKey ? undefined
+                : mkElt("p", undefined, [
+                    "Could not find mindmap key==",
+                    mkElt("i", undefined, mindmapKey)
+                ])
+                dialogMindMaps(eltInfo);
             }
         }
         return;
