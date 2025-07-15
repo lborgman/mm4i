@@ -1380,6 +1380,8 @@ export async function pageSetup() {
                     modMdc.mkMDCdialogAlert("not implemented yet");
                 }, seconds * 1000);
                 */
+               const urlSavedMindmap = modMMhelpers.getMindmapURL(mmKey);
+               history.replaceState(null, "dummy", urlSavedMindmap.href);
             }
         });
         const addShareMarker = () => {
