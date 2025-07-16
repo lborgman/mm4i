@@ -193,7 +193,14 @@ export async function createAndShowNewMindmap() {
     root.shapeEtc = {};
     root.shapeEtc.shape = "jsmind-shape-ellipse";
 
-    await saveMindmapPlusUndoRedo(keyName, jsMindMap, "new mindmap");
+    jsMindMap.key = keyName;
+    checkIsMMformatStored(jsMindMap, "createAndShowNewMindmap");
+    
+    const dbMindmaps = await importFc4i("db-mindmaps");
+    const key =  await dbMindmaps.DBsetMindmap(keyName, jsMindMap);
+    if (key != keyName) {
+        throw Error(`key:"${key}" != keyName:"${keyName}"`)
+    }
 
     showMindmap(keyName);
 }
@@ -697,7 +704,7 @@ export function checkIsFullMindmapDisplayState(obj, where) {
  * @param {boolean | undefined } allowIsSavedBookmark;
  * @throws
  */
-export function checkIsMMformatStored(obj, where, arrMayMiss, allowIsSavedBookmark = false) {
+export function checkIsMMformatStored(obj, where, arrMayMiss = undefined, allowIsSavedBookmark = false) {
     const tofWhere = typeof where;
     if (tofWhere != "string") throw Error(`where should be string, is "${tofWhere}`);
     const throwErr = (what) => {
