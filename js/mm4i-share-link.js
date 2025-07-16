@@ -5,6 +5,10 @@ window["logConsoleHereIs"](`here is ${MM4I_SHARE_LINK_FILE}, module, ${MM4I_SHAR
 console.log(`%chere is ${MM4I_SHARE_LINK_FILE} ${MM4I_SHARE_LINK_VER}`, "font-size:20px;");
 if (document.currentScript) { throw `${MM4I_SHARE_LINK_FILE} is not loaded as module`; }
 
+/*
+    https://developers.facebook.com/tools/debug/ - Facebook Sharing Debugger
+    https://www.whatsmydns.net/#AAAA/some4i.eu
+*/
 
 // https://grok.com/chat/f10b142c-077f-452c-843d-d1340481125a
 
