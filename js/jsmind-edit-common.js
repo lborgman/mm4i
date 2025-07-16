@@ -1380,8 +1380,8 @@ export async function pageSetup() {
                     modMdc.mkMDCdialogAlert("not implemented yet");
                 }, seconds * 1000);
                 */
-               const urlSavedMindmap = modMMhelpers.getMindmapURL(mmKey);
-               history.replaceState(null, "dummy", urlSavedMindmap.href);
+                const urlSavedMindmap = modMMhelpers.getMindmapURL(mmKey);
+                history.replaceState(null, "dummy", urlSavedMindmap.href);
             }
         });
         const addShareMarker = () => {
@@ -1459,9 +1459,19 @@ export async function pageSetup() {
         }
     }
 
-    const mindmapKey = new URLSearchParams(location.search).get("mindmap");
-    if (typeof mindmapKey === "string" && mindmapKey.length === 0) {
-        throw Error("Parameter mindmapname should have a value (key/name of a mindmap)");
+    let mindmapKey = new URLSearchParams(location.search).get("mindmap");
+    let mindInStoredFormat;
+    if (typeof mindmapKey === "string") {
+        if (mindmapKey.length === 0) {
+            alert("Parameter mindmapname should have a value (key/name of a mindmap)");
+            mindmapKey = null;
+        } else {
+            mindInStoredFormat = await modMMhelpers.getMindmap(mindmapKey);
+            if (!mindInStoredFormat) {
+                alert(`Could not find mindmap with key=="${mindmapKey}"`);
+                mindmapKey = null;
+            }
+        }
     }
     // const nodeHits = new URLSearchParams(location.search).get("nodehits");
     // const nodeProvider = new URLSearchParams(location.search).get("provider");
@@ -1733,9 +1743,7 @@ export async function pageSetup() {
         return true;
     }
 
-    let mindInStoredFormat;
     if (mindmapKey) {
-        mindInStoredFormat = await modMMhelpers.getMindmap(mindmapKey);
         if (mindInStoredFormat) {
             modMMhelpers.checkIsMMformatStored(mindInStoredFormat, "pageSetup");
             window["current-mindmapKey"] = mindmapKey;
@@ -1768,10 +1776,10 @@ export async function pageSetup() {
             } else {
                 // dialogMindMaps(location.pathname);
                 const eltInfo = !mindmapKey ? undefined
-                : mkElt("p", undefined, [
-                    "Could not find mindmap key==",
-                    mkElt("i", undefined, mindmapKey)
-                ])
+                    : mkElt("p", undefined, [
+                        "Could not find mindmap key==",
+                        mkElt("i", undefined, mindmapKey)
+                    ])
                 dialogMindMaps(eltInfo);
             }
         }
