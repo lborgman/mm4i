@@ -1423,7 +1423,7 @@ export async function pageSetup() {
         // debugger;
         const modShare = await importFc4i("mm4i-share")
         console.log({ modShare });
-        const mindmapData = await modShare.getSharedData(sharedParam);
+        const mindmapData = await modShare.getSharedData(sharepostParam);
         console.log({ mindmapData })
 
         const divInfoSp = mkElt("p", undefined, [
