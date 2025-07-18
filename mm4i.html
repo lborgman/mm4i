@@ -92,15 +92,17 @@
         addMeta("site_name", "MM4I");
         addMeta("image", "https://lborgman.github.io/mm4i/img/mm4i.png");
 
-        const sharedParam = new URLSearchParams(location.search).get("share");
+        // const sharedParam = new URLSearchParams(location.search).get("share");
+        const searchParams = new URLSearchParams(location.search);
+        const sharedParam = searchParams.get("share");
         console.log({ sharedParam });
         if (sharedParam != null) {
-            const sp = new URLSearchParams(sharedParam);
+            // const sp = new URLSearchParams(sharedParam);
 
-            const spTitle = sp.get("title");
+            const spTitle = searchParams.get("title");
             addMeta("title", spTitle);
 
-            const spText = sp.get("text");
+            const spText = searchParams.get("text");
             addMeta("description", spText);
 
             console.log({ spTitle, spText });
