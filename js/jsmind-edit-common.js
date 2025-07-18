@@ -1798,7 +1798,7 @@ export async function pageSetup() {
 
     const nowBefore = Date.now();
 
-    if (!sharedParam) {
+    if (!sharepostParam) {
         const jm = await displayOurMindmap(mindInStoredFormat);
         modMMhelpers.startUndoRedo(mindmapKey, jm);
     }
