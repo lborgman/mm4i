@@ -1731,7 +1731,8 @@ export async function pageSetup() {
         const sp = new URLSearchParams(location.search);
         if (sp.size == 0) return true;
         const arrParNames = [...sp.keys()].sort();
-        const allowed = ["mindmap", "nodehits", "cachemodules", "share"];
+        // FIX-ME: text and title should only be allowed if share.
+        const allowed = ["mindmap", "nodehits", "cachemodules", "share", "text", "title"];
         allowed.push("fbclid"); // FIX-ME: why???
         for (const p of arrParNames) {
             if (!allowed.includes(p)) {
