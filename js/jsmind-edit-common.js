@@ -1329,12 +1329,14 @@ export function setTopic4undoRedo(topic) {
 export async function pageSetup() {
     checkParamNames();
 
-    const sharedParam = new URLSearchParams(location.search).get("share");
+    // const sharedParam = new URLSearchParams(location.search).get("share");
+    const searchParams = new URLSearchParams(location.search);
+    const sharedParam = searchParams.get("share");
     console.log({ sharedParam });
     if (sharedParam != null) {
-        const sp = new URLSearchParams(sharedParam);
-        const spTitle = sp.get("title");
-        const spText = sp.get("text");
+        // const sp = new URLSearchParams(sharedParam);
+        const spTitle = searchParams.get("title");
+        const spText = searchParams.get("text");
 
         const btnDownloadShared = modMdc.mkMDCiconButton("edit_arrow_down", "Save to your device", 40);
         btnDownloadShared.style = `
