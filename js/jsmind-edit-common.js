@@ -1771,7 +1771,7 @@ export async function pageSetup() {
             });
         }
     }
-    if (!mindInStoredFormat && !sharedParam) {
+    if (!mindInStoredFormat && !sharepostParam) {
         if (funMindmapsDialog) {
             funMindmapsDialog();
         } else {
