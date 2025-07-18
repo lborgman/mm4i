@@ -84,12 +84,23 @@ async function saveToSupabaseThenShare(jsonSharedMindmap, shareTitle, shareText)
 // const shareUrl = `${MM4I_PWA}?share=${encodeURIComponent(postId)}&token=${encodeURIComponent(accessToken)}`;
 // FIX-ME: make link compotion more readable
 function shareLinkWithPostContent(postId, accessToken, shareTitle, shareText) {
-    const sharePart = encodeURIComponent(
+    const sharePost =
+        // encodeURIComponent(
         // `post=${postId}&token=${accessToken}&title=${shareTitle}&text=${shareText}`
-        `post=${postId}&token=${accessToken}`
-    );
+        // "sharepost="+encodeURIComponent( postId)+"&token="+encodeURIComponent(accessToken);
+        // encodeURIComponent( postId)+"&token="+encodeURIComponent(accessToken);
+        encodeURIComponent(postId);
+    ;
+    const shareToken = encodeURIComponent(accessToken);
     // const shareUrl = `${MM4I_PWA}?share=${sharePart}`;
-    const shareUrl = `${MM4I_PWA}?share=${sharePart}&title=${shareTitle}&text=${shareText}`;
+    const shareUrl = `${MM4I_PWA}?sharepost=${sharePost}&token=${shareToken}&title=${shareTitle}&text=${shareText}`;
+    const shareURL = new URL(MM4I_PWA);
+    shareURL.searchParams.set( "sharepost", sharePost);
+    shareURL.searchParams.set( "token", shareToken);
+    shareURL.searchParams.set( "title", shareTitle);
+    shareURL.searchParams.set( "text", shareText);
+    // const shareUrl = shareURL.toString();
+    // const shareURL = new URL(MM4I_PWA);
     if (navigator.share) {
         navigator.share({
             title: shareTitle,
