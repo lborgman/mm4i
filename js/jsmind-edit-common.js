@@ -1330,10 +1330,13 @@ export async function pageSetup() {
     checkParamNames();
 
     // const sharedParam = new URLSearchParams(location.search).get("share");
+    // const searchParams = new URLSearchParams(location.search);
+    // const sharedParam = searchParams.get("share");
+    // console.log({ sharedParam });
     const searchParams = new URLSearchParams(location.search);
-    const sharedParam = searchParams.get("share");
-    console.log({ sharedParam });
-    if (sharedParam != null) {
+    const sharepostParam = searchParams.get("sharepost");
+    console.log({ sharepostParam });
+    if (sharepostParam != null) {
         // const sp = new URLSearchParams(sharedParam);
         const spTitle = searchParams.get("title");
         const spText = searchParams.get("text");
