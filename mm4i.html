@@ -43,6 +43,7 @@
  * Detects if the current user is a known official web crawler (e.g., Googlebot, Facebook).
  * @returns {string|null} The name of the detected bot or null if no known bot is detected.
  */
+        /*
         function getOfficialBotName() {
             const userAgent = navigator.userAgent;
 
@@ -78,9 +79,69 @@
 
             return null; // Not a known official bot
         }
+        */
 
-        window.detectedBot = getOfficialBotName();
+        // window.detectedBot = getOfficialBotName();
         // window.detectedBot = true; // FIX-ME:
+
+        window.detectedBot = isBot(navigator.userAgent);
+
+        function isBot(userAgent) {
+            if (!userAgent) return false;
+            const ua = userAgent.toLowerCase();
+
+            // Step 1: Exact or explicit known bot names (for precision)
+            const exactBots = [
+                "googlebot",
+                "bingbot",
+                "yandexbot",
+                "duckduckbot",
+                "baiduspider",
+                "slurp",                 // Yahoo
+                "sogou",
+                "exabot",
+                "facebot",
+                "facebookexternalhit",
+                "ia_archiver",
+                "twitterbot",
+                "linkedinbot",
+                "pinterestbot",
+                "petalbot",
+                "semrushbot",
+                "dotbot",
+                "ahrefsbot",
+                "mj12bot"
+                // ...add more as needed
+            ];
+
+            if (exactBots.some(bot => ua.includes(bot))) {
+                return true;
+            }
+
+            // Step 2: General "bot-like" substrings, only if not part of a legitimate browser string
+            const genericIndicators = [
+                "bot",
+                "crawl",
+                "spider",
+                "archive",
+                "monitor",
+                "snippet",
+                "seo",        // for SEO-specific parsers/crawlers
+                "preview",    // used by some social link previews
+                "whatsapp",
+                "telegram"
+            ];
+
+            // Check if the UA contains any generic pattern, but ignore if "mozilla" (typical browser) in UA
+            if (
+                genericIndicators.some(indicator => ua.includes(indicator)) &&
+                !ua.includes("mozilla")
+            ) {
+                return true;
+            }
+
+            return false;
+        }
 
         const addMeta = (which, content) => {
             const oldMeta = document.querySelector(`meta[property="og:${which}"]`);
