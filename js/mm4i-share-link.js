@@ -133,11 +133,13 @@ function copyToClipboard(url) {
 
 export async function getSharedData(sharedParam) {
     console.log({ sharedParam });
-    // debugger;
+    debugger;
 
-    const sp = new URLSearchParams(sharedParam);
+    // const sp = new URLSearchParams(sharedParam);
+    const sp = new URLSearchParams(location.search);
 
-    const postId = sp.get("post");
+    // const postId = sp.get("post");
+    const postId = sp.get("sharepost");
     if (!postId) {
         debugger;
         alert('Error: No post ID provided');
