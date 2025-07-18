@@ -31,10 +31,10 @@ const MM4I_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ
 export async function saveDataToShare(jsonSharedMindmap, shareTitle, shareText) {
     if (!shareTitle) throw Error("NO SHARE TITLE GIVEN");
     if (!shareText) throw Error("NO SHARE TEXT GIVEN");
-    await saveDataToShareSupabase(jsonSharedMindmap, shareTitle, shareText);
+    await saveToSupabaseThenShare(jsonSharedMindmap, shareTitle, shareText);
 }
 
-async function saveDataToShareSupabase(jsonSharedMindmap, shareTitle, shareText) {
+async function saveToSupabaseThenShare(jsonSharedMindmap, shareTitle, shareText) {
     const accessToken = crypto.randomUUID(); // Generate a random token for extra security
 
     try {
@@ -72,27 +72,27 @@ async function saveDataToShareSupabase(jsonSharedMindmap, shareTitle, shareText)
         // const shareTitle = "share title";
         // const shareText = "share text";
 
-        sharePostLink(postId, accessToken, shareTitle, shareText);
+        shareLinkWithPostContent(postId, accessToken, shareTitle, shareText);
     } catch (error) {
         console.error('Error:', error);
         alert('Failed to save data');
     }
 }
 
-function sharePostLink(postId, accessToken, shareTitle, shareText) {
-    // Include accessToken in the URL if using token-based access
-    // const shareUrl = `https://your-pwa.com/share?post=${encodeURIComponent(postId)}&token=${encodeURIComponent(accessToken)}`;
-    // const shareUrl = `${MM4I_PWA}?share=${encodeURIComponent(postId)}&token=${encodeURIComponent(accessToken)}`;
-    // FIX-ME: make link compotion more readable
+// Include accessToken in the URL if using token-based access
+// const shareUrl = `https://your-pwa.com/share?post=${encodeURIComponent(postId)}&token=${encodeURIComponent(accessToken)}`;
+// const shareUrl = `${MM4I_PWA}?share=${encodeURIComponent(postId)}&token=${encodeURIComponent(accessToken)}`;
+// FIX-ME: make link compotion more readable
+function shareLinkWithPostContent(postId, accessToken, shareTitle, shareText) {
     const sharePart = encodeURIComponent(
-        `post=${postId}&token=${accessToken}&title=${shareTitle}&text=${shareText}`
+        // `post=${postId}&token=${accessToken}&title=${shareTitle}&text=${shareText}`
+        `post=${postId}&token=${accessToken}`
     );
-    const shareUrl = `${MM4I_PWA}?share=${sharePart}`;
+    // const shareUrl = `${MM4I_PWA}?share=${sharePart}`;
+    const shareUrl = `${MM4I_PWA}?share=${sharePart}&title=${shareTitle}&text=${shareText}`;
     if (navigator.share) {
         navigator.share({
-            // title: 'Check out my data!',
             title: shareTitle,
-            // text: 'View my shared data in this PWA.',
             text: shareText,
             url: shareUrl,
         })
