@@ -89,14 +89,16 @@
             // document.head.appendChild(eltMeta);
             document.currentScript.insertAdjacentElement('afterend', eltMeta);
         }
-        addMeta("site_name", "MM4I");
-        addMeta("image", "https://lborgman.github.io/mm4i/img/mm4i.png");
+        // addMeta("site_name", "MM4I");
+        // addMeta("image", "https://lborgman.github.io/mm4i/img/mm4i.png");
 
         // const sharedParam = new URLSearchParams(location.search).get("share");
         const searchParams = new URLSearchParams(location.search);
-        const sharedParam = searchParams.get("share");
-        console.log({ sharedParam });
-        if (sharedParam != null) {
+        // const sharedParam = searchParams.get("share");
+        // console.log({ sharedParam });
+        const sharepostParam = searchParams.get("sharepost");
+        console.log({ sharepostParam });
+        if (sharepostParam != null) {
             // const sp = new URLSearchParams(sharedParam);
 
             const spTitle = searchParams.get("title");
