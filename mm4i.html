@@ -26,7 +26,7 @@
     <meta name="author" content="Lennart Borgman">
     <meta name="description" content="Mindmaps web page that you can manipulate on your phone">
 
-    <meta property="og:url" content="https://some4i.eu/mm4i.html">
+    <meta property="og:url" content="https://some4i.eu/mm4i/mm4i.html">
     <meta property="og:type" content="website">
     <meta property="og:title" content="mm4i (Mindmaps 4 Internet)">
     <meta property="og:image" content="https://lborgman.github.io/mm4i/img/mm4i.png">
@@ -170,6 +170,7 @@
             const spText = searchParams.get("text");
             addMeta("description", spText);
 
+            addMeta("url", location.href);
             console.log({ spTitle, spText });
 
             const head = document.head;
