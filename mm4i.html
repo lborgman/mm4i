@@ -87,6 +87,10 @@
         // window.detectedBot = true; // FIX-ME:
 
         window.detectedBot = isBot(navigator.userAgent);
+        const sp = new URLSearchParams(location.href);
+        let uacf = "NOUACF";
+        uacf = sp.get("uacf");
+        if (uacf) { window.detectedBot = true; } else { uacf = "NOUACF"; }
 
         function isBot(userAgent) {
             if (!userAgent) return false;
@@ -167,7 +171,8 @@
             // const sp = new URLSearchParams(sharedParam);
 
             const spTitle = searchParams.get("title");
-            addMeta("title", spTitle);
+            // addMeta("title", spTitle);
+            addMeta("title", `${spTitle} (${uacf})`);
 
             const spText = searchParams.get("text");
             addMeta("description", spText);
