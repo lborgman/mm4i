@@ -1,4 +1,4 @@
-// This is for Vercel, initial code is from perplexity.ai
+////// This is for Vercel, initial code is from perplexity.ai
 // @ts-check
 
 // /api/prerender.js — Vercel Edge Function to proxy requests to Prerender.io
@@ -17,7 +17,8 @@ export async function GET(request) {
     const url = new URL(request.url);
 
     // Detect if user agent is a bot / crawler (basic check)
-    const isBot = /bot|crawler|facebook|spider|robot|crawling/i.test(userAgent);
+    // const isBot = /bot|crawler|facebook|spider|robot|crawling/i.test(userAgent);
+    const isBot = true;
     if (!isBot) {
         return new Response("Not a crawler", { status: 403 });
     }
@@ -30,7 +31,8 @@ export async function GET(request) {
     }
 
     // Construct prerender.io service request URL
-    const prerenderUrl = `https://service.prerender.io/${targetUrl}`;
+    const prerenderUrl = `https://service.prerender.io/${targetUrl}&uacf=${encodeURI(userAgent)}`;
+
 
     try {
         // Call prerender.io API with the token header
