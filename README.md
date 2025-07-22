@@ -2,7 +2,8 @@
 
 # Mindmaps 4 Internet
 
-Mindmaps that you create and edit in your mobile phone. Or in your desktop computer.
+Mindmaps that you create and edit in your mobile phone.
+Or in your desktop computer.
 
 MM4I (Mindmaps 4 Internet) offers that.
         No installation required - since it is a web page.
