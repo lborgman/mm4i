@@ -7,6 +7,7 @@ export const config = {
 };
 
 export async function GET(request) {
+    console.log("starting prerende.js GET");
     const PRERENDER_TOKEN = process.env.PRERENDER_TOKEN;
     if (!PRERENDER_TOKEN) {
         return new Response("Prerender token not configured", { status: 500 });
