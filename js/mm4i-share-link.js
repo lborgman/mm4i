@@ -68,39 +68,24 @@ async function saveToSupabaseThenShare(jsonSharedMindmap, shareTitle, shareText)
         const txtResult = await response.text();
         console.log({ resultTxt: txtResult });
         const jsonResult = JSON.parse(txtResult);
-        const postId = jsonResult[0].id; // Get the UUID from Supabase
-        // const shareTitle = "share title";
-        // const shareText = "share text";
+        const supabasePostId = jsonResult[0].id; // Get the UUID from Supabase
 
-        shareLinkWithPostContent(postId, accessToken, shareTitle, shareText);
+        shareLinkWithPostContent(supabasePostId, accessToken, shareTitle, shareText);
     } catch (error) {
         console.error('Error:', error);
         alert('Failed to save data');
     }
 }
 
-// Include accessToken in the URL if using token-based access
-// const shareUrl = `https://your-pwa.com/share?post=${encodeURIComponent(postId)}&token=${encodeURIComponent(accessToken)}`;
-// const shareUrl = `${MM4I_PWA}?share=${encodeURIComponent(postId)}&token=${encodeURIComponent(accessToken)}`;
-// FIX-ME: make link compotion more readable
-function shareLinkWithPostContent(postId, accessToken, shareTitle, shareText) {
-    const sharePost =
-        // encodeURIComponent(
-        // `post=${postId}&token=${accessToken}&title=${shareTitle}&text=${shareText}`
-        // "sharepost="+encodeURIComponent( postId)+"&token="+encodeURIComponent(accessToken);
-        // encodeURIComponent( postId)+"&token="+encodeURIComponent(accessToken);
-        encodeURIComponent(postId);
-    ;
+function shareLinkWithPostContent(supabasePostId, accessToken, shareTitle, shareText) {
+    const sharePost = encodeURIComponent(supabasePostId);
     const shareToken = encodeURIComponent(accessToken);
-    // const shareUrl = `${MM4I_PWA}?share=${sharePart}`;
     const shareUrl = `${MM4I_PWA}?sharepost=${sharePost}&token=${shareToken}&title=${shareTitle}&text=${shareText}`;
     const shareURL = new URL(MM4I_PWA);
     shareURL.searchParams.set( "sharepost", sharePost);
     shareURL.searchParams.set( "token", shareToken);
     shareURL.searchParams.set( "title", shareTitle);
     shareURL.searchParams.set( "text", shareText);
-    // const shareUrl = shareURL.toString();
-    // const shareURL = new URL(MM4I_PWA);
     if (navigator.share) {
         navigator.share({
             title: shareTitle,

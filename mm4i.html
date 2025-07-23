@@ -33,7 +33,10 @@
     <meta property="og:image:alt" content="Example screenshot of mm4i">
     <meta property="og:image:width" content="404">
     <meta property="og:image:height" content="186">
-    <meta property="og:description" content="Mindmaps web page that you can manipulate on your phone">
+    <meta property="og:description" content="
+        Mindmaps editor in your web browser.
+        (Note: If you want to share a mindmap then use the share button inside mm4i.)
+        ">
 
     <!-- See index.html -->
     <base href=".">
@@ -41,113 +44,11 @@
     <script>
         /* Add OG: */
 
-        /**
- * Detects if the current user is a known official web crawler (e.g., Googlebot, Facebook).
- * @returns {string|null} The name of the detected bot or null if no known bot is detected.
- */
-        /*
-        function getOfficialBotName() {
-            const userAgent = navigator.userAgent;
-
-            // A list of common official bot User-Agent substrings.
-            // This list is not exhaustive but covers many major platforms.
-            const knownBots = {
-                "Googlebot": "Googlebot",
-                "Bingbot": "bingbot",
-                "Slurp": "Slurp", // Yahoo's bot
-                "DuckDuckBot": "DuckDuckBot",
-                "Baiduspider": "Baiduspider",
-                "YandexBot": "YandexBot",
-                "Sogou": "Sogou",
-                "facebookexternalhit": "Facebook", // For link previews
-                "Facebot": "Facebook", // Another Facebook bot
-                "Twitterbot": "Twitterbot", // For link previews (cards)
-                "LinkedInBot": "LinkedInBot", // For link previews
-                "Pinterestbot": "Pinterestbot",
-                "Slackbot": "Slackbot",
-                "Discordbot": "Discordbot",
-                "WhatsApp": "WhatsApp", // For link previews
-                "TelegramBot": "TelegramBot"
-            };
-
-            for (const botName in knownBots) {
-                // Using a case-insensitive regex for broader matching
-                const regex = new RegExp(knownBots[botName], "i");
-                if (regex.test(userAgent)) {
-                    console.log("getOfficialBotName", botName);
-                    return botName; // Return the common name of the bot
-                }
-            }
-
-            return null; // Not a known official bot
-        }
-        */
-
-        // window.detectedBot = getOfficialBotName();
-        // window.detectedBot = true; // FIX-ME:
-
-        window.detectedBot = isBot(navigator.userAgent);
-        const sp = new URLSearchParams(location.href);
+        const searchParams = new URLSearchParams(location.href);
         let uacf = "NOUACF";
-        uacf = sp.get("uacf");
+        uacf = searchParams.get("uacf");
         if (uacf) { window.detectedBot = true; } else { uacf = "NOUACF"; }
 
-        function isBot(userAgent) {
-            if (!userAgent) return false;
-            const ua = userAgent.toLowerCase();
-
-            // Step 1: Exact or explicit known bot names (for precision)
-            const exactBots = [
-                "googlebot",
-                "bingbot",
-                "yandexbot",
-                "duckduckbot",
-                "baiduspider",
-                "slurp",                 // Yahoo
-                "sogou",
-                "exabot",
-                "facebot",
-                "facebookexternalhit",
-                "ia_archiver",
-                "twitterbot",
-                "linkedinbot",
-                "pinterestbot",
-                "petalbot",
-                "semrushbot",
-                "dotbot",
-                "ahrefsbot",
-                "mj12bot"
-                // ...add more as needed
-            ];
-
-            if (exactBots.some(bot => ua.includes(bot))) {
-                return true;
-            }
-
-            // Step 2: General "bot-like" substrings, only if not part of a legitimate browser string
-            const genericIndicators = [
-                "bot",
-                "crawl",
-                "spider",
-                "archive",
-                "monitor",
-                "snippet",
-                "seo",        // for SEO-specific parsers/crawlers
-                "preview",    // used by some social link previews
-                "whatsapp",
-                "telegram"
-            ];
-
-            // Check if the UA contains any generic pattern, but ignore if "mozilla" (typical browser) in UA
-            if (
-                genericIndicators.some(indicator => ua.includes(indicator)) &&
-                !ua.includes("mozilla")
-            ) {
-                return true;
-            }
-
-            return false;
-        }
 
         const addMeta = (which, content) => {
             const oldMeta = document.querySelector(`meta[property="og:${which}"]`);
@@ -158,17 +59,14 @@
             // document.head.appendChild(eltMeta);
             document.currentScript.insertAdjacentElement('afterend', eltMeta);
         }
-        // addMeta("site_name", "MM4I");
-        // addMeta("image", "https://lborgman.github.io/mm4i/img/mm4i.png");
 
-        // const sharedParam = new URLSearchParams(location.search).get("share");
-        const searchParams = new URLSearchParams(location.search);
-        // const sharedParam = searchParams.get("share");
-        // console.log({ sharedParam });
         const sharepostParam = searchParams.get("sharepost");
         console.log({ sharepostParam });
         if (sharepostParam != null) {
-            // const sp = new URLSearchParams(sharedParam);
+            ////// See shareLinkWithPostContent in mm4i-share-links.js
+            // There are 4 parts: sharepost, title, text and token.
+            // Token is not used here (it is for accessing the post part, which is the mindmap).
+            // Title and text are used for og meta tags.
 
             const spTitle = searchParams.get("title");
             // addMeta("title", spTitle);
@@ -179,14 +77,12 @@
 
             addMeta("url", location.href);
             console.log({ spTitle, spText });
-
-            const head = document.head;
-            console.log({ head });
         }
 
     </script>
 
     <!-- <script>console.log("baseURI", document.baseURI);</script> -->
+    <!-- 
     <script>
         /*
             This implementation is after many questions to Copilot.
@@ -241,6 +137,7 @@
         }
         // addMut(document.head);
     </script>
+     -->
 
     <script src="./init-error.js"></script>
 
