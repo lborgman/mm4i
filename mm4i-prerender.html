@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script>
+        // Check if domain is active through https
+        // FIX-ME:
+        window.isSecure = window.location.hostname == "localhost" || window.location.protocol == "https:"
+        if (!window.isSecure) {
+            const scripts = document.querySelectorAll('script');
+            scripts.forEach(script => script.remove());
+            setTimeout(() => {
+                document.documentElement.innerHTML = `
+                <h1>MM4I is not available at the moment</h1>
+                Waiting for internet domain activation.
+                `;
+                document.close();
+            }, 1000);
+        }
+    </script>
+    <!-- https://blog.pixelfreestudio.com/how-to-implement-lazy-loading-in-pwas/ -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- This page © Copyright 2023, Lennart Borgman -->
+    <meta name="author" content="Lennart Borgman">
+    <meta name="description" content="Mindmaps web page that you can manipulate on your phone">
+
+    <meta property="og:url" content="https://some4i.eu/mm4i/mm4i.html">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="mm4i (Mindmaps 4 Internet)">
+    <meta property="og:image" content="https://some4i.eu/mm4i/img/mm4i.png">
+    <meta property="og:image:alt" content="Example screenshot of mm4i">
+    <meta property="og:image:width" content="404">
+    <meta property="og:image:height" content="186">
+    <meta property="og:description" content="
+        Mindmaps editor in your web browser.
+        (Note: If you want to share a mindmap then use the share button inside mm4i.)
+        ">
+
+    <!-- See index.html -->
+    <base href=".">
+
+    <script>
+        /* Add OG: */
+
+        const searchParams = new URLSearchParams(location.href);
+        let uacf = "NOUACF";
+        uacf = searchParams.get("uacf");
+        if (uacf) { window.detectedBot = true; } else { uacf = "NOUACF"; }
+
+
+        const addMeta = (which, content) => {
+            const oldMeta = document.querySelector(`meta[property="og:${which}"]`);
+            oldMeta?.remove();
+            const eltMeta = document.createElement("meta");
+            eltMeta.setAttribute("property", `og:${which}`);
+            eltMeta.setAttribute("content", content);
+            // document.head.appendChild(eltMeta);
+            document.currentScript.insertAdjacentElement('afterend', eltMeta);
+        }
+
+        const sharepostParam = searchParams.get("sharepost");
+        console.log({ sharepostParam });
+        if (sharepostParam != null) {
+            ////// See shareLinkWithPostContent in mm4i-share-links.js
+            // There are 4 parts: sharepost, title, text and token.
+            // Token is not used here (it is for accessing the post part, which is the mindmap).
+            // Title and text are used for og meta tags.
+
+            const spTitle = searchParams.get("title");
+            // addMeta("title", spTitle);
+            addMeta("title", `${spTitle} (${uacf})`);
+
+            const spText = searchParams.get("text");
+            addMeta("description", spText);
+
+            addMeta("url", location.href);
+            console.log({ spTitle, spText });
+        }
+    </script>
+    

@@ -1,0 +1,1 @@
+node -e "require('fs').readFile('mm4i.html', 'utf8', (err, data) => { if (err) throw err; const content = data.split('<!-- OG -->')[0]; require('fs').writeFile('mm4i-prerender.html', content, (err) => { if (err) throw err; }); });"

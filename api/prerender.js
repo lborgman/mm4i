@@ -14,7 +14,7 @@ export async function GET(request) {
 
     // Get user-agent and requested URL
     const userAgent = request.headers.get("user-agent") || "";
-    const url = new URL(request.url);
+    const urlRequest = new URL(request.url);
 
     // Detect if user agent is a bot / crawler (basic check)
     // const isBot = /bot|crawler|facebook|spider|robot|crawling/i.test(userAgent);
@@ -25,13 +25,18 @@ export async function GET(request) {
 
     // Extract the target URL to prerender: expect ?url=original-site-url
     // If not provided, fallback to homepage (adjust as needed)
-    const targetUrl = url.searchParams.get("url");
+    const targetUrl = urlRequest.searchParams.get("url");
     if (!targetUrl) {
         return new Response("Missing url parameter", { status: 400 });
     }
 
+    const urlTarget = new URL(targetUrl);
+    if (urlTarget.pathname.endsWith("mm4i.html")) {
+        urlTarget.pathname = urlTarget.pathname.slice(0, -5) + "-prerender.html";
+    }
+
     // Construct prerender.io service request URL
-    const prerenderUrl = `https://service.prerender.io/${targetUrl}&uacf=${encodeURI(userAgent)}`;
+    const prerenderUrl = `https://service.prerender.io/${urlTarget.href}&uacf=${encodeURI(userAgent)}`;
 
 
     try {
