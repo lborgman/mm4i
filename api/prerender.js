@@ -14,6 +14,7 @@ export async function GET(request) {
 
     // Get user-agent and requested URL
     const userAgent = request.headers.get("user-agent") || "";
+    console.log("userAgent", userAgent);
     const urlRequest = new URL(request.url);
 
     // Detect if user agent is a bot / crawler (basic check)
@@ -26,6 +27,7 @@ export async function GET(request) {
     // Extract the target URL to prerender: expect ?url=original-site-url
     // If not provided, fallback to homepage (adjust as needed)
     const targetUrl = urlRequest.searchParams.get("url");
+    console.log("targetUrl", targetUrl);
     if (!targetUrl) {
         return new Response("Missing url parameter", { status: 400 });
     }
@@ -37,6 +39,7 @@ export async function GET(request) {
 
     // Construct prerender.io service request URL
     const prerenderUrl = `https://service.prerender.io/${urlTarget.href}&uacf=${encodeURI(userAgent)}`;
+    console.log("prerenderUrl", prerenderUrl);
 
 
     try {
@@ -60,6 +63,7 @@ export async function GET(request) {
             headers: responseHeaders,
         });
     } catch (err) {
+        console.error("Error fetching prerender page", err);
         return new Response("Error fetching prerendered page", { status: 500 });
     }
 }
