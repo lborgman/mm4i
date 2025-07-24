@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/mm4i.html", "destination": "/api/prerender.js" }
+  ]
+}
