@@ -9,12 +9,31 @@ export const config = {
 
 
 export async function GET(request) {
-    console.log("starting prerende.js GET");
-    const PRERENDER_TOKEN = process.env.PRERENDER_TOKEN;
-    if (!PRERENDER_TOKEN) {
-        console.error("Prerender token not configured");
-        return new Response("Prerender token not configured", { status: 500 });
+    console.log("starting prerende.js GET", request.url);
+    const mkErrResponse = (msg) => {
+        console.error(`prerender GET: ${msg}`);
+        return new Response(`Error prerender GET: ${msg}`, { status: 500 });
     }
+    const url = new URL(request.url);
+    const pathname = url.pathname;
+    if (!pathname.endsWith("/mm4i.html")) {
+        return new Response("Not mm4i.html", { status: 403 });
+    }
+
+    const origin = url.origin;  // base URL like https://your-domain.vercel.app
+    const templateResponse = await fetch(`${origin}/mm4i-template.html`);
+    if (!templateResponse.ok) {
+        return mkErrResponse('Failed to load static template');
+    }
+
+    const html = await templateResponse.text();
+
+    // (Your logic to optionally proxy bots or just return static HTML here)
+
+    return new Response(html, {
+        status: 200,
+        headers: { 'Content-Type': 'text/html' },
+    });
 
     // Get user-agent and requested URL
     const userAgent = request.headers.get("user-agent") || "";
@@ -59,6 +78,7 @@ export async function GET(request) {
         // Call prerender.io API with the token header
         const prerenderRes = await fetch(prerenderUrl, {
             headers: {
+                // @ts-ignore
                 "X-Prerender-Token": PRERENDER_TOKEN,
             },
         });
