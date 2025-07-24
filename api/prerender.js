@@ -25,8 +25,8 @@ export async function GET(request) {
     const isBot = /bot|crawler|facebook|spider|robot|crawling/i.test(userAgent);
     // const isBot = true;
     if (!isBot) {
-        // const tempUaErr = `TEMP error ua detection: "${userAgent}"`;
-        // console.error(tempUaErr);
+        const tempUaErr = `TEMP error ua detection: "${userAgent}"`;
+        console.error(tempUaErr);
         // return new Response(tempUaErr, { status: 500 });
         // Return error response for the user:
         return new Response(`<h1>temp error for ua detection</h1><p>ua: "${userAgent}"</p>`, {
