@@ -6,10 +6,13 @@ export const config = {
     runtime: "edge", // make it an Edge Function for lower latency
 };
 
+
+
 export async function GET(request) {
     console.log("starting prerende.js GET");
     const PRERENDER_TOKEN = process.env.PRERENDER_TOKEN;
     if (!PRERENDER_TOKEN) {
+        console.error("Prerender token not configured");
         return new Response("Prerender token not configured", { status: 500 });
     }
 
@@ -19,9 +22,12 @@ export async function GET(request) {
     const urlRequest = new URL(request.url);
 
     // Detect if user agent is a bot / crawler (basic check)
-    // const isBot = /bot|crawler|facebook|spider|robot|crawling/i.test(userAgent);
-    const isBot = true;
+    const isBot = /bot|crawler|facebook|spider|robot|crawling/i.test(userAgent);
+    // const isBot = true;
     if (!isBot) {
+        const tempUaErr = `TEMP error ua detection: "${userAgent}"`;
+        console.error(tempUaErr);
+        return new Response(tempUaErr, { status: 500 });
         return new Response("Not a crawler", { status: 403 });
     }
 
