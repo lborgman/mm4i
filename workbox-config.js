@@ -11,7 +11,7 @@ module.exports = {
 		'node_modules/**/*',
 		'temp.js',
 		'woff-codepoints.js',
-		'prerender.js',
+		'**/api/prerender.js',
 	],
 	swSrc: 'sw-input.js',
 	swDest: 'sw-workbox.js',
