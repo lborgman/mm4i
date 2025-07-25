@@ -26,11 +26,46 @@ export async function GET(request) {
         return mkErrResponse('Failed to load static template');
     }
 
-    const html = await templateResponse.text();
 
-    // (Your logic to optionally proxy bots or just return static HTML here)
+    ////// (Logic to optionally proxy bots or just return static HTML here)
 
-    return new Response(html, {
+    const htmlTemplate = await templateResponse.text();
+
+    const sp = new URLSearchParams(url.href);
+    const title = sp.get("title");
+    const text = sp.get("text");
+    let htmlResponse = htmlTemplate;
+    if (title || text) {
+        const escapeHtmlAttr = (str) => {
+            return str
+                .replace(/&/g, '&amp;')   // Must be first
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')    // Optional but safe
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');  // Use numeric for broader compatibility
+        }
+
+        const arrTemplate = htmlTemplate.split("<!-- OGDYN -->");
+        if (arrTemplate.length != 3) {
+            return mkErrResponse(`Expected 3 parts, but got ${arrTemplate.length}`);
+        }
+        let strDyn = "";
+        if (title) {
+            strDyn += "\n";
+            strDyn += `<meta property="og:title" content="${escapeHtmlAttr(title)}"`;
+            strDyn += "\n";
+        }
+        if (text) {
+            strDyn += "\n";
+            strDyn += `<meta property="og:description" content="${escapeHtmlAttr(text)}"`;
+            strDyn += "\n";
+        }
+        arrTemplate[1] = strDyn;
+        htmlResponse = arrTemplate.join("\n<!-- NEW OGDYN -->\n");
+    }
+
+
+    return new Response(htmlResponse, {
         status: 200,
         headers: { 'Content-Type': 'text/html' },
     });
