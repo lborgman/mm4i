@@ -12,6 +12,7 @@ module.exports = {
 		'temp.js',
 		'woff-codepoints.js',
 		'**/api/prerender.js',
+		'package.json',
 	],
 	swSrc: 'sw-input.js',
 	swDest: 'sw-workbox.js',
