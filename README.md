@@ -9,7 +9,8 @@ MM4I (Mindmaps 4 Internet) offers that.
         No installation required - since it is a web page.
         You can start it here:
 
-<a href="https://lborgman.github.io/mm4i/mm4i.html">
+<a href="https://mm4i.vercel.app/mm4i.html">
+    <!-- https://lborgman.github.io/mm4i/mm4i.html" -->
     <figure>
     <img src="./img/mm4i.svg" width="40px" title="Start Mindmaps 4 Internet">
     </figure>
