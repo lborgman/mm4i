@@ -873,7 +873,7 @@ export class CustomRenderer4jsMind {
         const lblBorderColor = mkCtrlColor("border.color", "black");
 
         function onCtrlChgBorderWidth() {
-            const dialogBW = currentShapeEtc.border.width;
+            const dialogBW = currentShapeEtc.border?.width || 0;
             if (dialogBW > 0) {
                 // divBorder.classList.remove("no-specified-border");
                 divBorderDetails.inert = false;
@@ -936,7 +936,7 @@ export class CustomRenderer4jsMind {
             lblBorderColor,
             divBorderStyle
         ]);
-        if (currentShapeEtc.border.width == 0) divBorderDetails.inert = true;
+        if ((!currentShapeEtc.border) || (currentShapeEtc.border.width == 0)) divBorderDetails.inert = true;
         const divCanBorder = mkElt("div", { class: "if-can-border" }, [
             divSliBorderWidth,
             divBorderDetails
@@ -2139,7 +2139,7 @@ export class CustomRenderer4jsMind {
                 mkElt("div", undefined, ["Vertical offset:", divSliShadowOffY]),
                 mkElt("div", undefined, mkCtrlColor("shadow.color", "red")),
             ]);
-        if (currentShapeEtc.shadow.blur == 0) divShadowDetails.inert = true;
+        if ((!currentShapeEtc.shadow) || (currentShapeEtc.shadow.blur == 0)) divShadowDetails.inert = true;
         const divShadow = mkElt("div", undefined, [
             mkElt("div", undefined, ["Shadow blur:", divSliShadowBlur]),
             divShadowDetails
@@ -2162,7 +2162,7 @@ export class CustomRenderer4jsMind {
             await mkSlider4shapeEtc("shadow.blur", eltCont, 0, 50, 0, 5, title, funChange);
         }
         function onCtrlChgShadowBlur() {
-            const shadowBlur = currentShapeEtc.shadow.blur;
+            const shadowBlur = currentShapeEtc.shadow?.blur || 0;
             // no-specified-border
             // debugger;
             if (shadowBlur > 0) {
