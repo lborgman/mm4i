@@ -1,7 +1,7 @@
 // @NOts-check
 // FIX-ME: ts-check does not work correct in this file, why?
 
-const SW_VERSION = "0.1.596";
+const SW_VERSION = "0.1.597";
 
 // https://www.npmjs.com/package/workbox-sw
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
@@ -51,7 +51,8 @@ workbox.routing.registerRoute(
         if (url.pathname == "/mm4i/") return false; // README.md
         return true;
     },
-    workbox.precaching.createHandlerBoundToURL('mm4i.html')
+    // workbox.precaching.createHandlerBoundToURL('mm4i.html');
+    workbox.precaching.createHandlerBoundToURL('mm4i-template.html')
 );
 
 
