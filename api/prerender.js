@@ -52,12 +52,12 @@ export async function GET(request) {
         let strDyn = "";
         if (title) {
             strDyn += "\n";
-            strDyn += `<meta property="og:title" content="${escapeHtmlAttr(title)}"`;
+            strDyn += `<meta property="og:title" content="${escapeHtmlAttr(title)}">`;
             strDyn += "\n";
         }
         if (text) {
             strDyn += "\n";
-            strDyn += `<meta property="og:description" content="${escapeHtmlAttr(text)}"`;
+            strDyn += `<meta property="og:description" content="${escapeHtmlAttr(text)}">`;
             strDyn += "\n";
         }
         arrTemplate[1] = strDyn;
