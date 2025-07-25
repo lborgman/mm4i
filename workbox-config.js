@@ -13,6 +13,7 @@ module.exports = {
 		'woff-codepoints.js',
 		'**/api/prerender.js',
 		'package.json',
+		'vercel.json',
 	],
 	swSrc: 'sw-input.js',
 	swDest: 'sw-workbox.js',
