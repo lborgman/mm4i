@@ -211,6 +211,7 @@ function mkButton(attrib, inner) {
     return btn;
 }
 */
+/*
 (function () {
     // FIXME: Just return if from Puppeteer;
     // https://antoinevastel.com/bot%20detection/2018/01/17/detect-chrome-headless-v2.html
@@ -293,7 +294,7 @@ function mkButton(attrib, inner) {
 
     popupDialog(title, body, "info");
 })();
-
+*/
 async function getWebBrowserInfo() {
     // const modInappSpy = await import('https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.module.min.js');
     // const urlInappSpy = 'https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.module.min.js';
@@ -335,6 +336,19 @@ async function getWebBrowserInfo() {
     }
     function getIsPWA() { return "browser" != getDisplayMode(); }
 
+    function checkForSyntaxNx() {
+        try {
+            new Function('n?.x');
+            return true;
+        } catch (err) {
+            console.log(err);
+            console.error("Syntax n?.x not recognized");
+            debugger; // eslint-disable-line no-debugger
+            // missingFeatures.push("Syntax n?.x not recognized");
+        }
+        return false;
+    }
+
     async function detectEnvironment() {
         // @ts-ignore - the module link is ok
         // const module = await import('https://cdn.jsdelivr.net/npm/inapp-spy@5.0.0/dist/index.mjs');
@@ -344,6 +358,7 @@ async function getWebBrowserInfo() {
         const isPWA = getIsPWA();
         const isMobile = isMobileDevice();
         const isAndroidWView = isAndroidWebView();
+        const canSyntaxNx = checkForSyntaxNx();
         return {
             isChromium,
             isMobile,
@@ -352,6 +367,7 @@ async function getWebBrowserInfo() {
             isInApp,
             inAppBrowserName: appName || null,
             inAppBrowserKey: appKey || null,
+            canSyntaxNx,
         };
     }
 
