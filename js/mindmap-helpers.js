@@ -195,9 +195,9 @@ export async function createAndShowNewMindmap() {
 
     jsMindMap.key = keyName;
     checkIsMMformatStored(jsMindMap, "createAndShowNewMindmap");
-    
+
     const dbMindmaps = await importFc4i("db-mindmaps");
-    const key =  await dbMindmaps.DBsetMindmap(keyName, jsMindMap);
+    const key = await dbMindmaps.DBsetMindmap(keyName, jsMindMap);
     if (key != keyName) {
         throw Error(`key:"${key}" != keyName:"${keyName}"`)
     }
@@ -880,4 +880,41 @@ export async function applyDisplayStateOther(objDisplayStateOther, jm) {
                 throw Error(`applyDisplayStateOther, unknown key: ${key}`);
         }
     });
+}
+
+
+export async function checkWebBrowser() {
+    const webbrowserInfo = await modTools.promWebBrowserInfo;
+    const missingFeatures = [];
+    try {
+        new Function('n?.x');
+    } catch (err) {
+        console.log(err);
+        debugger; // eslint-disable-line no-debugger
+        missingFeatures.push("Syntax n?.x not recognized");
+    }
+    // debugger;
+    const divKeys = mkElt("p");
+    for (const key in webbrowserInfo) {
+        const val = webbrowserInfo[key];
+        const divLine = mkElt("div", undefined, [
+            mkElt("b", undefined, `${key}: `),
+            `${val}`
+        ]);
+        divKeys.appendChild(divLine);
+    }
+    const body = mkElt("div", undefined, [
+        mkElt("h2", undefined, "Any browser problem?"),
+        divKeys
+    ]);
+    if (missingFeatures.length > 0) {
+        const divMissing = mkElt("p");
+        body.appendChild(divMissing);
+        missingFeatures.forEach(missing => {
+            const divLine = mkElt("div", undefined, missing);
+            divMissing.appendChild(divLine);
+        });
+    }
+    const modMdc = await importFc4i("util-mdc");
+    modMdc.mkMDCdialogAlert(body);
 }

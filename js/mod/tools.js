@@ -294,12 +294,79 @@ function mkButton(attrib, inner) {
     popupDialog(title, body, "info");
 })();
 
+async function getWebBrowserInfo() {
+    // const modInappSpy = await import('https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.module.min.js');
+    // const urlInappSpy = 'https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.module.min.js';
+    // const urlInappSpy = "https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.global.min.js";
+    // const urlInappSpy = "https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.mjs";
+    // const modInappSpy = await import(urlInappSpy);
+
+
+    // debugger;
+
+    function getRealBrands() {
+        const userAgentData = navigator["userAgentData"];
+        if (!userAgentData || !userAgentData?.brands) return [];
+        return userAgentData.brands.filter(brand =>
+            !/[^a-zA-Z0-9]/.test(brand.brand)
+        );
+    }
+
+    function isChromiumBased() {
+        const brands = getRealBrands();
+        return brands.some(brand =>
+            /Chromium|Chrome|GoogleChrome|MicrosoftEdge|Opera|Brave/i.test(brand.brand)
+        ) || !!window.chrome;
+    }
+
+    function isMobileDevice() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    }
+
+    // PWA
+    function getDisplayMode() {
+        const modes = ['fullscreen', 'standalone', 'minimal-ui', 'browser'];
+        for (const mode of modes) {
+            if (window.matchMedia(`(display-mode: ${mode})`).matches) {
+                return mode;
+            }
+        }
+        return 'browser'; // fallback
+    }
+    function getIsPWA() { return "browser" != getDisplayMode(); }
+
+    async function detectEnvironment() {
+        // @ts-ignore - the module link is ok
+        // const module = await import('https://cdn.jsdelivr.net/npm/inapp-spy@5.0.0/dist/index.mjs');
+        const module = await import('https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.mjs');
+        const { isInApp, appKey, appName } = module.default();
+        const isChromium = isChromiumBased();
+        const isPWA = getIsPWA();
+        const isMobile = isMobileDevice();
+        const isAndroidWView = isAndroidWebView();
+        return {
+            isChromium,
+            isMobile,
+            isAndroidWView,
+            isPWA,
+            isInApp,
+            inAppBrowserName: appName || null,
+            inAppBrowserKey: appKey || null,
+        };
+    }
+
+    const env = await detectEnvironment();
+    console.log(env);
+    return env;
+}
+export const promWebBrowserInfo = getWebBrowserInfo();
+
+
 // https://developers.google.com/web/fundamentals/performance/rail
-
-
 
 // console.log("?????????? adding error event listener!"); // Just because things behave a bit strange sometimes.
 
+/////// FIX-ME: urls must be per pwa
 // Put external URL:s here since we need them for error reporting.
 // const theGitHubIssuesURL = "https://github.com/lborgman/easy-cap-ed/issues";
 // const theGitHubIssuesURL = undefined; // "";
