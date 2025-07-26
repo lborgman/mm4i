@@ -903,9 +903,48 @@ export async function checkWebBrowser() {
         ]);
         divKeys.appendChild(divLine);
     }
+
+    const dbMindmaps = await importFc4i("db-mindmaps");
+    const arrMindmaps = await dbMindmaps.DBgetAllMindmaps();
+    const divNumMindmaps = mkElt("div", undefined,
+        mkElt("b", undefined, `Num mindmaps: ${arrMindmaps.length}`));
+    const divMindmapsList = mkElt("div");
+    divMindmapsList.style = `
+        display: flex;
+        flex-direction: row;
+        gap: 5px;
+    `;
+    const divMindmaps = mkElt("p", undefined, [divNumMindmaps, divMindmapsList]);
+
+    arrMindmaps.forEach(r => {
+        const mm = r.jsmindmap;
+        if (mm.format != "node_array") throw Error(`Expected format "node_array": ${mm.format}`);
+        const root = mm.data[0];
+        if (root.id != "root") throw Error(`Not root: ${root.id}`);
+        const eltTopic = mkElt("div", undefined, root.topic);
+        eltTopic.style = `
+            background: blue;
+            color: white;
+            padding: 0px 4px;
+            border-radius: 2px;
+        `;
+        divMindmapsList.appendChild(eltTopic)
+    });
+
+    const spanDebugging = mkElt("div", undefined,
+        "This is shown temporary for debugging. Just ignore it.");
+    spanDebugging.style = `
+        padding: 8px;
+        background: blue;
+        color: white;
+        border: 2px solid white;
+        border-radius: 4px;
+    `;
+    const divDebugging = mkElt("div", undefined, spanDebugging);
     const body = mkElt("div", undefined, [
         mkElt("h2", undefined, "Any browser problem?"),
-        divKeys
+        divDebugging,
+        divKeys, divMindmaps
     ]);
     if (missingFeatures.length > 0) {
         const divMissing = mkElt("p");
@@ -915,6 +954,12 @@ export async function checkWebBrowser() {
             divMissing.appendChild(divLine);
         });
     }
+    await modTools.waitSeconds(2);
     const modMdc = await importFc4i("util-mdc");
-    modMdc.mkMDCdialogAlert(body);
+    const alertRes = await modMdc.mkMDCdialogAlert(body);
+    console.log({ alertRes });
+    const dom = alertRes.dom;
+    const dlg = dom.querySelector(".mdc-dialog__surface")
+    dlg.style.background = "lightblue";
+
 }
