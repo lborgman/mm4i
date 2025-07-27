@@ -894,14 +894,14 @@ export async function checkWebBrowser() {
         missingFeatures.push("Syntax n?.x not recognized");
     }
     // debugger;
-    const divKeys = mkElt("p");
+    const divWebbrowserInfoKeys = mkElt("p");
     for (const key in webbrowserInfo) {
         const val = webbrowserInfo[key];
         const divLine = mkElt("div", undefined, [
             mkElt("b", undefined, `${key}: `),
             `${val}`
         ]);
-        divKeys.appendChild(divLine);
+        divWebbrowserInfoKeys.appendChild(divLine);
     }
 
     const dbMindmaps = await importFc4i("db-mindmaps");
@@ -944,8 +944,23 @@ export async function checkWebBrowser() {
     const body = mkElt("div", undefined, [
         mkElt("h2", undefined, "Any browser problem?"),
         divDebugging,
-        divKeys, divMindmaps
+        divWebbrowserInfoKeys, divMindmaps
     ]);
+    if (webbrowserInfo.isInnApp) {
+        const url = webbrowserInfo.url;
+        const eltA = mkElt("a", { target: "_new", href: url }, url);
+        eltA.style = `
+            padding: 8px;
+            background: aliceblue;
+            border-radius: 4px;
+        `;
+        const divInApp = mkElt("p", undefined, [
+            `Displayed in ${webbrowserInfo.inAppBrowserName}`,
+            eltA
+        ]);
+        body.appendChild(divInApp);
+    }
+    /*
     if (missingFeatures.length > 0) {
         const divMissing = mkElt("p");
         body.appendChild(divMissing);
@@ -954,6 +969,7 @@ export async function checkWebBrowser() {
             divMissing.appendChild(divLine);
         });
     }
+    */
     await modTools.waitSeconds(2);
     const modMdc = await importFc4i("util-mdc");
     const alertRes = await modMdc.mkMDCdialogAlert(body);

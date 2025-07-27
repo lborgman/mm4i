@@ -359,6 +359,7 @@ async function getWebBrowserInfo() {
         const isMobile = isMobileDevice();
         const isAndroidWView = isAndroidWebView();
         const canSyntaxNx = checkForSyntaxNx();
+        const url = location.href;
         return {
             isChromium,
             isMobile,
@@ -367,6 +368,7 @@ async function getWebBrowserInfo() {
             isInApp,
             inAppBrowserName: appName || null,
             inAppBrowserKey: appKey || null,
+            url,
             canSyntaxNx,
         };
     }
