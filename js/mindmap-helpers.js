@@ -948,6 +948,12 @@ export async function checkWebBrowser() {
     ]);
     if (webbrowserInfo.isInApp) {
         const url = webbrowserInfo.url;
+        const btn = modMdc.mkMDCbutton("Open in your web browser");
+        btn.addEventListener("click", evt => {
+            evt.stopPropagation();
+            // Try to open in the user's standalone browser
+            window.open(url, '_blank', 'noopener');
+        });
         const eltA = mkElt("a", { target: "_blank", rel: "noopener", href: url }, url);
         eltA.style = `
             padding: 8px;
@@ -956,6 +962,7 @@ export async function checkWebBrowser() {
         `;
         const divInApp = mkElt("p", undefined, [
             `Displayed in ${webbrowserInfo.inAppBrowserName}`,
+            btn,
             eltA
         ]);
         body.appendChild(divInApp);
