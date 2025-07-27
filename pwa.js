@@ -196,15 +196,43 @@ class WaitUntil {
 }
 const waitUntilNotCachedLoaded = new WaitUntil("pwa-loaded-not-cached");
 
-if (await PWAhasInternet()) {
-    loadNotCached();
-} else {
-    window.addEventListener("online", async evt => {
-        if (!await PWAhasInternet()) return;
-        loadNotCached();
-    });
+// Check in-app web browser
+let mayInstall = true;
+try {
+    const modInappSpy = await import('https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.mjs');
+    const { isInApp, appKey, appName } = modInappSpy.default();
+    if (isInApp) {
+        console.warn(`Can't install, is in-app web browser: ${appName} (${appKey})`)
+        mayInstall = false;
+    }
+} catch (err) {
+    debugger; // eslint-disable-line no-debugger
+    console.error(err);
 }
 
+if (mayInstall) {
+    if (await PWAhasInternet()) {
+        loadNotCached();
+    } else {
+        window.addEventListener("online", async evt => {
+            if (!await PWAhasInternet()) return;
+            loadNotCached();
+        });
+    }
+    // Delay startSW so we can override defaults:
+    setTimeout(startSW, 500);
+} else {
+    // If it was installed before we added in-app test, then unregister service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            registrations.forEach(registration => {
+                registration.unregister().then(success => {
+                    console.log('Service worker unregistered:', success);
+                });
+            });
+        });
+    }
+}
 
 
 
@@ -400,8 +428,6 @@ export function setVersionSWfun(funVersion) {
 
 
 
-// Delay startSW so we can override defaults:
-setTimeout(startSW, 500);
 
 async function startSW() {
     await waitUntilNotCachedLoaded.promReady();

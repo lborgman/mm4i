@@ -949,7 +949,8 @@ export async function checkWebBrowser() {
     if (true || webbrowserInfo.isInApp) {
         const url = webbrowserInfo.url;
         const modMdc = await importFc4i("util-mdc");
-        const btn = modMdc.mkMDCbutton("Open in your web browser", "raised");
+        // const btn = modMdc.mkMDCbutton("Open in web browser", "raised");
+        const btn = modMdc.mkMDCbutton("Open in web browser", "raised");
         btn.addEventListener("click", evt => {
             evt.stopPropagation();
             // Try to open in the user's standalone browser
