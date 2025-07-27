@@ -349,11 +349,16 @@ async function getWebBrowserInfo() {
         return false;
     }
 
+    function getAndroidApp() {
+        const referrer = document.referrer;
+        if (referrer.startsWith('android-app://')) return referrer;
+    }
+
     async function detectEnvironment() {
         // @ts-ignore - the module link is ok
-        // const module = await import('https://cdn.jsdelivr.net/npm/inapp-spy@5.0.0/dist/index.mjs');
-        const module = await import('https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.mjs');
-        const { isInApp, appKey, appName } = module.default();
+        const modInappSpy = await import('https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.mjs');
+        const { isInApp, appKey, appName } = modInappSpy.default();
+        const isAndroidApp = getAndroidApp();
         const isChromium = isChromiumBased();
         const isPWA = getIsPWA();
         const isMobile = isMobileDevice();
@@ -365,6 +370,7 @@ async function getWebBrowserInfo() {
             isMobile,
             isAndroidWView,
             isPWA,
+            isAndroidApp,
             isInApp,
             inAppBrowserName: appName || null,
             inAppBrowserKey: appKey || null,
