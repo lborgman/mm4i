@@ -948,7 +948,7 @@ export async function checkWebBrowser() {
     ]);
     if (webbrowserInfo.isInApp) {
         const url = webbrowserInfo.url;
-        const eltA = mkElt("a", { target: "_new", href: url }, url);
+        const eltA = mkElt("a", { target: "_blank", rel: "noopener", href: url }, url);
         eltA.style = `
             padding: 8px;
             background: aliceblue;
