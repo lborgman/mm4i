@@ -946,9 +946,10 @@ export async function checkWebBrowser() {
         divDebugging,
         divWebbrowserInfoKeys, divMindmaps
     ]);
-    if (webbrowserInfo.isInApp) {
+    if (true || webbrowserInfo.isInApp) {
         const url = webbrowserInfo.url;
-        const btn = modMdc.mkMDCbutton("Open in your web browser");
+        const modMdc = await importFc4i("util-mdc");
+        const btn = modMdc.mkMDCbutton("Open in your web browser", "raised");
         btn.addEventListener("click", evt => {
             evt.stopPropagation();
             // Try to open in the user's standalone browser
@@ -960,9 +961,10 @@ export async function checkWebBrowser() {
             background: aliceblue;
             border-radius: 4px;
         `;
-        const divInApp = mkElt("p", undefined, [
-            `Displayed in ${webbrowserInfo.inAppBrowserName}`,
-            btn,
+        const appName = webbrowserInfo.inAppBrowserName || "(unknown app)";
+        const divInApp = mkElt("div", undefined, [
+            `Displayed in ${appName}`,
+            mkElt("p", undefined, btn),
             eltA
         ]);
         body.appendChild(divInApp);
