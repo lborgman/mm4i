@@ -946,7 +946,7 @@ export async function checkWebBrowser() {
         divDebugging,
         divWebbrowserInfoKeys, divMindmaps
     ]);
-    if (webbrowserInfo.isInnApp) {
+    if (webbrowserInfo.isInApp) {
         const url = webbrowserInfo.url;
         const eltA = mkElt("a", { target: "_new", href: url }, url);
         eltA.style = `
