@@ -955,7 +955,7 @@ export async function checkWebBrowser() {
         border-radius: 4px;
     `;
     const divDebuggingInfo = mkElt("div", undefined, spanDebuggingMessage);
-    debugger;
+    // debugger;
     const eltDivDet =
         mkElt("div", undefined, [
             mkElt("h2", undefined, "Any browser problem?"),
@@ -970,22 +970,53 @@ export async function checkWebBrowser() {
         divDebuggingInfo,
         eltDetails
     ]);
+    let divCountdown;
+    const spanCountdown = mkElt("span", undefined, "COUNTDOWN");
+    const modMdc = await importFc4i("util-mdc");
+    const btnStay = modMdc.mkMDCbutton("Stay", "raised");
     if (true || webbrowserInfo.isInApp) {
         const url = webbrowserInfo.url;
         const appName = webbrowserInfo.inAppBrowserName || "(unknown app)";
         const divInApp = mkElt("div", undefined, [
             `Displayed in ${appName}`,
-            mkElt("p", undefined, url)
+            mkElt("p", undefined, url),
         ]);
+        if (!webbrowserInfo.isInApp) {
+            const url = webbrowserInfo.url;
+            divCountdown = mkElt("div", undefined, [spanCountdown, btnStay]);
+            body.appendChild(divCountdown);
+        }
         // body.appendChild(divInApp);
         body.insertBefore(divInApp, body.firstElementChild);
     }
     await modTools.waitSeconds(2);
-    const modMdc = await importFc4i("util-mdc");
     const alertRes = await modMdc.mkMDCdialogAlert(body);
     console.log({ alertRes });
     const dom = alertRes.dom;
     const dlg = dom.querySelector(".mdc-dialog__surface")
     dlg.style.background = "lightblue";
 
+    let tmr;
+    let numSec = 8;
+    btnStay.addEventListener("click", evt => {
+        evt.stopPropagation();
+        clearTimeout(tmr);
+    })
+    if (!webbrowserInfo.isInApp) {
+        startCountdownClose();
+    }
+    function startCountdownClose() {
+        function restartTimer() {
+            numSec--;
+            if (numSec < 0) {
+                alertRes.mdc.close();
+                return;
+            }
+            tmr = setTimeout(() => {
+                spanCountdown.textContent = `Closing in ${numSec}...`;
+                restartTimer();
+            }, 1000);
+        }
+        restartTimer();
+    }
 }
