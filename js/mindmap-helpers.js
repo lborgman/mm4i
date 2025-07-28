@@ -945,54 +945,41 @@ export async function checkWebBrowser() {
         divMindmapsList.appendChild(eltTopic)
     });
 
-    const spanDebugging = mkElt("div", undefined,
+    const spanDebuggingMessage = mkElt("div", undefined,
         "This is shown temporary for debugging. Just ignore it.");
-    spanDebugging.style = `
+    spanDebuggingMessage.style = `
         padding: 8px;
         background: blue;
         color: white;
         border: 2px solid white;
         border-radius: 4px;
     `;
-    const divDebugging = mkElt("div", undefined, spanDebugging);
+    const divDebuggingInfo = mkElt("div", undefined, spanDebuggingMessage);
+    debugger;
+    const eltDivDet =
+        mkElt("div", undefined, [
+            mkElt("h2", undefined, "Any browser problem?"),
+            divWebbrowserInfoKeys, divMindmaps
+        ]);
+    const eltDetails =
+        mkElt("details", undefined, [
+            mkElt("summary", undefined, "Debugging details"),
+            eltDivDet
+        ]);
     const body = mkElt("div", undefined, [
-        mkElt("h2", undefined, "Any browser problem?"),
-        divDebugging,
-        divWebbrowserInfoKeys, divMindmaps
+        divDebuggingInfo,
+        eltDetails
     ]);
     if (true || webbrowserInfo.isInApp) {
         const url = webbrowserInfo.url;
-        const modMdc = await importFc4i("util-mdc");
-        /*
-        // const btn = modMdc.mkMDCbutton("Open in web browser", "raised");
-        const btn = modMdc.mkMDCbutton("Open in web browser", "raised");
-        btn.addEventListener("click", evt => {
-            evt.stopPropagation();
-            // Try to open in the user's standalone browser
-            window.open(url, '_blank', 'noopener');
-        });
-        */
-        // const eltA = mkElt("a", { target: "_blank", rel: "noopener", href: url }, url);
-        // eltA.style = ` padding: 8px; background: aliceblue; border-radius: 4px; `;
         const appName = webbrowserInfo.inAppBrowserName || "(unknown app)";
         const divInApp = mkElt("div", undefined, [
             `Displayed in ${appName}`,
-            // mkElt("p", undefined, btn),
-            // eltA
             mkElt("p", undefined, url)
         ]);
-        body.appendChild(divInApp);
+        // body.appendChild(divInApp);
+        body.insertBefore(divInApp, body.firstElementChild);
     }
-    /*
-    if (missingFeatures.length > 0) {
-        const divMissing = mkElt("p");
-        body.appendChild(divMissing);
-        missingFeatures.forEach(missing => {
-            const divLine = mkElt("div", undefined, missing);
-            divMissing.appendChild(divLine);
-        });
-    }
-    */
     await modTools.waitSeconds(2);
     const modMdc = await importFc4i("util-mdc");
     const alertRes = await modMdc.mkMDCdialogAlert(body);
