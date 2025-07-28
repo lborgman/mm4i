@@ -973,11 +973,7 @@ export async function checkWebBrowser() {
         });
         */
         // const eltA = mkElt("a", { target: "_blank", rel: "noopener", href: url }, url);
-        eltA.style = `
-            padding: 8px;
-            background: aliceblue;
-            border-radius: 4px;
-        `;
+        // eltA.style = ` padding: 8px; background: aliceblue; border-radius: 4px; `;
         const appName = webbrowserInfo.inAppBrowserName || "(unknown app)";
         const divInApp = mkElt("div", undefined, [
             `Displayed in ${appName}`,
