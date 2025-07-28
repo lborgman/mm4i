@@ -100,7 +100,7 @@ export async function getFullMindmapDisplayState(jmDisplayed) {
 
 async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
     checkIsMMformatJmdisplayed(jmDisplayed, "saveMindmapPlusUndoRedo");
-    const dbMindmaps = await importFc4i("db-mindmaps");
+    // const dbMindmaps = await importFc4i("db-mindmaps");
     const modUndo = await importFc4i("undo-redo-tree");
     if (!modUndo.hasUndoRedo(keyName)) {
         await startUndoRedo(keyName, jmDisplayed);
@@ -115,7 +115,18 @@ async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUp
     const objMindData = jmDisplayed.get_data("node_array");
     objMindData.key = keyName;
     // return await dbMindmaps.DBsetMindmap(keyName, jmDisplayed, lastUpdated, lastSynced, privacy);
+    // return await dbMindmaps.DBsetMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy);
+    return await checkInappAndSaveMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy);
+}
+async function checkInappAndSaveMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy) {
+    const webbrowserInfo = await modTools.promWebBrowserInfo;
+    if (webbrowserInfo.isInApp !== false) {
+        modTools.mkMDCsnackbar("Did not save because in-app browser");
+        return;
+    }
+    const dbMindmaps = await importFc4i("db-mindmaps");
     return await dbMindmaps.DBsetMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy);
+    // return await checkInappAndSaveMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy);
 }
 
 export async function DBundo(keyName) {
@@ -129,7 +140,8 @@ export async function DBundo(keyName) {
         debugger; // eslint-disable-line no-debugger
     }
     const dbMindmaps = await importFc4i("db-mindmaps");
-    return await dbMindmaps.DBsetMindmap(keyName, objDataMind);
+    // return await dbMindmaps.DBsetMindmap(keyName, objDataMind);
+    return await checkInappAndSaveMindmap(keyName, objDataMind);
 }
 export async function DBredo(keyName) {
     if (arguments.length != 1) { throw Error(`Should have 1 argument: ${arguments.length}`); }
@@ -138,7 +150,8 @@ export async function DBredo(keyName) {
     // debugger; // eslint-disable-line no-debugger
     const objDataMind = await modUndo.actionRedo(keyName);
     const dbMindmaps = await importFc4i("db-mindmaps");
-    await dbMindmaps.DBsetMindmap(keyName, objDataMind);
+    // await dbMindmaps.DBsetMindmap(keyName, objDataMind);
+    await checkInappAndSaveMindmap(keyName, objDataMind);
     return objDataMind
 }
 export function DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
@@ -197,7 +210,8 @@ export async function createAndShowNewMindmap() {
     checkIsMMformatStored(jsMindMap, "createAndShowNewMindmap");
 
     const dbMindmaps = await importFc4i("db-mindmaps");
-    const key = await dbMindmaps.DBsetMindmap(keyName, jsMindMap);
+    // const key = await dbMindmaps.DBsetMindmap(keyName, jsMindMap);
+    const key = await checkInappAndSaveMindmap(keyName, jsMindMap);
     if (key != keyName) {
         throw Error(`key:"${key}" != keyName:"${keyName}"`)
     }
@@ -949,6 +963,7 @@ export async function checkWebBrowser() {
     if (true || webbrowserInfo.isInApp) {
         const url = webbrowserInfo.url;
         const modMdc = await importFc4i("util-mdc");
+        /*
         // const btn = modMdc.mkMDCbutton("Open in web browser", "raised");
         const btn = modMdc.mkMDCbutton("Open in web browser", "raised");
         btn.addEventListener("click", evt => {
@@ -956,7 +971,8 @@ export async function checkWebBrowser() {
             // Try to open in the user's standalone browser
             window.open(url, '_blank', 'noopener');
         });
-        const eltA = mkElt("a", { target: "_blank", rel: "noopener", href: url }, url);
+        */
+        // const eltA = mkElt("a", { target: "_blank", rel: "noopener", href: url }, url);
         eltA.style = `
             padding: 8px;
             background: aliceblue;
@@ -965,8 +981,9 @@ export async function checkWebBrowser() {
         const appName = webbrowserInfo.inAppBrowserName || "(unknown app)";
         const divInApp = mkElt("div", undefined, [
             `Displayed in ${appName}`,
-            mkElt("p", undefined, btn),
-            eltA
+            // mkElt("p", undefined, btn),
+            // eltA
+            mkElt("p", undefined, url)
         ]);
         body.appendChild(divInApp);
     }

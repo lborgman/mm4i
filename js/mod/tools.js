@@ -296,14 +296,6 @@ function mkButton(attrib, inner) {
 })();
 */
 async function getWebBrowserInfo() {
-    // const modInappSpy = await import('https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.module.min.js');
-    // const urlInappSpy = 'https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.module.min.js';
-    // const urlInappSpy = "https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.global.min.js";
-    // const urlInappSpy = "https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.mjs";
-    // const modInappSpy = await import(urlInappSpy);
-
-
-    // debugger;
 
     function getRealBrands() {
         const userAgentData = navigator["userAgentData"];
@@ -353,14 +345,28 @@ async function getWebBrowserInfo() {
         const referrer = document.referrer;
         if (referrer.startsWith('android-app://')) return referrer;
     }
+    async function getHasSW() {
+        const arrRegistrations = await navigator.serviceWorker.getRegistrations();
+        if (!arrRegistrations) return false;
+        if (arrRegistrations.length == 0) return false;
+        return true;
+    }
+
 
     async function detectEnvironment() {
-        // @ts-ignore - the module link is ok
-        const modInappSpy = await import('https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.mjs');
+        let modInappSpy;
+        try {
+            // @ts-ignore - the module link is ok
+            modInappSpy = await import('https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.mjs');
+        } catch (err) {
+            console.log("detectEnvironment", err);
+            return;
+        }
         const { isInApp, appKey, appName } = modInappSpy.default();
         const isAndroidApp = getAndroidApp();
         const isChromium = isChromiumBased();
         const isPWA = getIsPWA();
+        const hasSW = await getHasSW();
         const isMobile = isMobileDevice();
         const isAndroidWView = isAndroidWebView();
         const canSyntaxNx = checkForSyntaxNx();
@@ -370,6 +376,7 @@ async function getWebBrowserInfo() {
             isMobile,
             isAndroidWView,
             isPWA,
+            hasSW,
             isAndroidApp,
             isInApp,
             inAppBrowserName: appName || null,
