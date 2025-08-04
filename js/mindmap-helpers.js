@@ -974,49 +974,62 @@ export async function checkWebBrowser() {
     const spanCountdown = mkElt("span", undefined, "COUNTDOWN");
     const modMdc = await importFc4i("util-mdc");
     const btnStay = modMdc.mkMDCbutton("Stay", "raised");
-    if (true || webbrowserInfo.isInApp) {
-        const url = webbrowserInfo.url;
+    if (!webbrowserInfo.isInApp) {
+        const pretendIsInApp = confirm("Not in-app. Pretend is in app?")
+        if (pretendIsInApp) {
+            webbrowserInfo.isInApp = true;
+            webbrowserInfo.inAppBrowserName = "(PRETEND IN-APP)";
+        }
+    }
+    if (webbrowserInfo.isInApp) {
+        const urlVisited = webbrowserInfo.url;
+        const aUrl = mkElt("a", { href: urlVisited }, urlVisited);
         const appName = webbrowserInfo.inAppBrowserName || "(unknown app)";
         const divInApp = mkElt("div", undefined, [
             `Displayed in ${appName}`,
-            mkElt("p", undefined, url),
+            mkElt("p", undefined, [
+                "URL visited: ",
+                aUrl
+            ]),
         ]);
-        if (!webbrowserInfo.isInApp) {
-            const url = webbrowserInfo.url;
-            divCountdown = mkElt("div", undefined, [spanCountdown, btnStay]);
-            body.appendChild(divCountdown);
-        }
+        // if (!webbrowserInfo.isInApp) {
+        const url = webbrowserInfo.url;
+        divCountdown = mkElt("div", undefined, [spanCountdown, btnStay]);
+        body.appendChild(divCountdown);
+        // }
         // body.appendChild(divInApp);
         body.insertBefore(divInApp, body.firstElementChild);
-    }
-    await modTools.waitSeconds(2);
-    const alertRes = await modMdc.mkMDCdialogAlert(body);
-    console.log({ alertRes });
-    const dom = alertRes.dom;
-    const dlg = dom.querySelector(".mdc-dialog__surface")
-    dlg.style.background = "lightblue";
+        await modTools.waitSeconds(2);
+        setTimeout(() => { if (btnStay.isConnected) btnStay.focus(); }, 0.2 * 1000);
+        const alertRes = await modMdc.mkMDCdialogAlert(body);
+        console.log({ alertRes });
+        const dom = alertRes.dom;
+        const dlg = dom.querySelector(".mdc-dialog__surface")
+        dlg.style.background = "lightblue";
 
-    let tmr;
-    let numSec = 8;
-    btnStay.addEventListener("click", evt => {
-        evt.stopPropagation();
-        clearTimeout(tmr);
-    })
-    if (!webbrowserInfo.isInApp) {
+        let tmr;
+        let numSec = 8;
+        btnStay.addEventListener("click", evt => {
+            evt.stopPropagation();
+            clearTimeout(tmr);
+            divCountdown.remove();
+        })
+        // if (!webbrowserInfo.isInApp) {
         startCountdownClose();
-    }
-    function startCountdownClose() {
-        function restartTimer() {
-            numSec--;
-            if (numSec < 0) {
-                alertRes.mdc.close();
-                return;
+        // }
+        function startCountdownClose() {
+            function restartTimer() {
+                numSec--;
+                if (numSec < 0) {
+                    alertRes.mdc.close();
+                    return;
+                }
+                tmr = setTimeout(() => {
+                    spanCountdown.textContent = `Closing in ${numSec}...`;
+                    restartTimer();
+                }, 1000);
             }
-            tmr = setTimeout(() => {
-                spanCountdown.textContent = `Closing in ${numSec}...`;
-                restartTimer();
-            }, 1000);
+            restartTimer();
         }
-        restartTimer();
     }
 }
