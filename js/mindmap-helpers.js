@@ -121,7 +121,8 @@ async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUp
 async function checkInappAndSaveMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy) {
     const webbrowserInfo = await modTools.promWebBrowserInfo;
     if (webbrowserInfo.isInApp !== false) {
-        modTools.mkMDCsnackbar("Did not save because in-app browser");
+        const modMdc = await importFc4i("util-mdc");
+        modMdc.mkMDCsnackbar("Did not save because in-app browser");
         return;
     }
     const dbMindmaps = await importFc4i("db-mindmaps");
