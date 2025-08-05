@@ -1390,8 +1390,12 @@
             const modMdc = await importFc4i("util-mdc");
             modMdc.setIconsFor("mm4i");
 
+
+
+            const webbrowserInfo = await modTools.promWebBrowserInfo;
+
             const modMMhelpers = await importFc4i("mindmap-helpers");
-            modMMhelpers.checkWebBrowser();
+            modMMhelpers.checkWebBrowser(); // FIX-ME: temporary for debugging!
 
 
 

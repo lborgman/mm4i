@@ -113,7 +113,7 @@ async function shareLinkWithPostContent(supabasePostId, accessToken, shareTitle,
 
 export async function getSharedData(sharedParam) {
     console.log({ sharedParam });
-    debugger; // eslint-disable-line no-debugger
+    // debugger; // eslint-disable-line no-debugger
 
     // const sp = new URLSearchParams(sharedParam);
     const sp = new URLSearchParams(location.search);

@@ -1341,7 +1341,8 @@ export async function pageSetup() {
         const spTitle = searchParams.get("title");
         const spText = searchParams.get("text");
 
-        const btnDownloadShared = modMdc.mkMDCiconButton("edit_arrow_down", "Save to your device", 40);
+        // const btnDownloadShared = modMdc.mkMDCiconButton("edit_arrow_down", "Save to your device", 40);
+        const btnDownloadShared = modMdc.mkMDCiconButton("info", "Show info about this mindmap", 40);
         btnDownloadShared.style = `
             border-radius: 50%;
             background-color: #fff4;
