@@ -5,6 +5,8 @@ window["logConsoleHereIs"](`here is ${MM4I_SHARE_LINK_FILE}, module, ${MM4I_SHAR
 console.log(`%chere is ${MM4I_SHARE_LINK_FILE} ${MM4I_SHARE_LINK_VER}`, "font-size:20px;");
 if (document.currentScript) { throw `${MM4I_SHARE_LINK_FILE} is not loaded as module`; }
 
+const importFc4i = window["importFc4i"];
+
 /*
     https://developers.facebook.com/tools/debug/ - Facebook Sharing Debugger
     https://www.whatsmydns.net/#AAAA/some4i.eu
@@ -70,22 +72,23 @@ async function saveToSupabaseThenShare(jsonSharedMindmap, shareTitle, shareText)
         const jsonResult = JSON.parse(txtResult);
         const supabasePostId = jsonResult[0].id; // Get the UUID from Supabase
 
-        shareLinkWithPostContent(supabasePostId, accessToken, shareTitle, shareText);
+        await shareLinkWithPostContent(supabasePostId, accessToken, shareTitle, shareText);
     } catch (error) {
         console.error('Error:', error);
         alert('Failed to save data');
     }
 }
 
-function shareLinkWithPostContent(supabasePostId, accessToken, shareTitle, shareText) {
+async function shareLinkWithPostContent(supabasePostId, accessToken, shareTitle, shareText) {
+    const modTools = await importFc4i("toolsJs");
     const sharePost = encodeURIComponent(supabasePostId);
     const shareToken = encodeURIComponent(accessToken);
     const shareUrl = `${MM4I_PWA}?sharepost=${sharePost}&token=${shareToken}&title=${shareTitle}&text=${shareText}`;
     const shareURL = new URL(MM4I_PWA);
-    shareURL.searchParams.set( "sharepost", sharePost);
-    shareURL.searchParams.set( "token", shareToken);
-    shareURL.searchParams.set( "title", shareTitle);
-    shareURL.searchParams.set( "text", shareText);
+    shareURL.searchParams.set("sharepost", sharePost);
+    shareURL.searchParams.set("token", shareToken);
+    shareURL.searchParams.set("title", shareTitle);
+    shareURL.searchParams.set("text", shareText);
     if (navigator.share) {
         navigator.share({
             title: shareTitle,
@@ -95,21 +98,13 @@ function shareLinkWithPostContent(supabasePostId, accessToken, shareTitle, share
             .then(() => console.log('Shared successfully'))
             .catch(error => {
                 console.error('Error sharing:', error);
-                copyToClipboard(shareUrl);
+                modTools.copyTextToClipboard(shareUrl);
             });
     } else {
-        copyToClipboard(shareUrl);
+        modTools.copyTextToClipboard(shareUrl);
     }
 }
 
-function copyToClipboard(url) {
-    navigator.clipboard.writeText(url)
-        .then(() => alert('Link copied to clipboard: ' + url))
-        .catch(error => {
-            console.error('Error copying:', error);
-            alert('Copy this link: ' + url);
-        });
-}
 
 // document.getElementById('saveAndShareButton').addEventListener('click', saveAndShareData);
 
@@ -118,7 +113,7 @@ function copyToClipboard(url) {
 
 export async function getSharedData(sharedParam) {
     console.log({ sharedParam });
-    debugger;
+    debugger; // eslint-disable-line no-debugger
 
     // const sp = new URLSearchParams(sharedParam);
     const sp = new URLSearchParams(location.search);
@@ -126,14 +121,14 @@ export async function getSharedData(sharedParam) {
     // const postId = sp.get("post");
     const postId = sp.get("sharepost");
     if (!postId) {
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         alert('Error: No post ID provided');
         return;
     }
 
     const accessToken = sp.get("token");
     if (!accessToken) {
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         alert('Error: No accessToken provided');
         return;
     }
@@ -164,7 +159,7 @@ export async function getSharedData(sharedParam) {
             throw new Error(`Failed to fetch supabase data: ${error.message}`);
         }
         if (!data) {
-            debugger;
+            debugger; // eslint-disable-line no-debugger
             return;
         }
         console.log({ data });
@@ -207,10 +202,10 @@ export async function getSharedData(sharedParam) {
         if (response.ok) {
             const result = await response.json();
             console.log({ result })
-            debugger;
+            debugger; // eslint-disable-line no-debugger
             const data = result[0].data;
         } else {
-            debugger;
+            debugger; // eslint-disable-line no-debugger
         }
     } catch (error) {
         console.error('Error:', error);

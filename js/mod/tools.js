@@ -1327,6 +1327,18 @@ export async function fetchReTLD() {
     return reTLD;
 }
 
+export async function copyTextToClipboard(url) {
+    const modMdc = await importFc4i("util-mdc");
+    navigator.clipboard.writeText(url)
+        .then(() => {
+            modMdc.mkMDCsnackbar('Copied to clipboard');
+        })
+        .catch(error => {
+            console.error('Error copying:', error);
+            debugger; // eslint-disable-line no-debugger
+            alert('Copy this link: ' + url);
+        });
+}
 
 export function showInfoPermissionsClipboard() {
     showInfoPermissions("Can't read clipboard");

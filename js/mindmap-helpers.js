@@ -34,7 +34,7 @@ export function getUndoRedoTreeStyle() { return undoRedoTreeStyle; }
 
 export async function startUndoRedo(keyName, jmDisplayed) {
     if (!jmDisplayed.get_selected_node) {
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         throw Error("!jmDisplayed.get_selected_node");
     }
     // checkisformat
@@ -140,7 +140,7 @@ export async function DBundo(keyName) {
         console.error("objDataMind is null");
         debugger; // eslint-disable-line no-debugger
     }
-    const dbMindmaps = await importFc4i("db-mindmaps");
+    // const dbMindmaps = await importFc4i("db-mindmaps");
     // return await dbMindmaps.DBsetMindmap(keyName, objDataMind);
     return await checkInappAndSaveMindmap(keyName, objDataMind);
 }
@@ -150,7 +150,7 @@ export async function DBredo(keyName) {
     const modUndo = await importFc4i("undo-redo-tree");
     // debugger; // eslint-disable-line no-debugger
     const objDataMind = await modUndo.actionRedo(keyName);
-    const dbMindmaps = await importFc4i("db-mindmaps");
+    // const dbMindmaps = await importFc4i("db-mindmaps");
     // await dbMindmaps.DBsetMindmap(keyName, objDataMind);
     await checkInappAndSaveMindmap(keyName, objDataMind);
     return objDataMind
@@ -210,7 +210,7 @@ export async function createAndShowNewMindmap() {
     jsMindMap.key = keyName;
     checkIsMMformatStored(jsMindMap, "createAndShowNewMindmap");
 
-    const dbMindmaps = await importFc4i("db-mindmaps");
+    // const dbMindmaps = await importFc4i("db-mindmaps");
     // const key = await dbMindmaps.DBsetMindmap(keyName, jsMindMap);
     const key = await checkInappAndSaveMindmap(keyName, jsMindMap);
     if (key != keyName) {
@@ -668,7 +668,7 @@ export function checkIsMMformatJmdisplayed(obj, where) {
     const throwErr = (what) => {
         const msg = `(checkIsMMformatJmdisplayed) ${where}: ${what}`;
         console.error(msg);
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         throw Error(msg);
     }
     const tofObj = typeof obj;
@@ -694,7 +694,7 @@ export function checkIsFullMindmapDisplayState(obj, where) {
     const throwErr = (what) => {
         const msg = `checkIsFullMindmapDisplayState, ${where}: ${what}`
         console.error(msg, obj);
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         throw Error(msg);
     }
     // const arrTemplate = [ "objDataMind", "other" ]
@@ -947,7 +947,7 @@ export async function checkWebBrowser() {
     });
 
     const spanDebuggingMessage = mkElt("div", undefined,
-        "This is shown temporary for debugging. Just ignore it.");
+        "The rest is shown temporary for debugging. Just ignore it.");
     spanDebuggingMessage.style = `
         padding: 8px;
         background: blue;
@@ -967,9 +967,15 @@ export async function checkWebBrowser() {
             mkElt("summary", undefined, "Debugging details"),
             eltDivDet
         ]);
-    const body = mkElt("div", undefined, [
+    const cardDebugging = mkElt("div", { class: "mdc-card" }, [
         divDebuggingInfo,
         eltDetails
+    ]);
+    cardDebugging.style = `
+        padding: 10px;
+    `;
+    const body = mkElt("div", undefined, [
+        cardDebugging
     ]);
     let divCountdown;
     const spanCountdown = mkElt("span", undefined, "COUNTDOWN");
@@ -986,11 +992,31 @@ export async function checkWebBrowser() {
         const urlVisited = webbrowserInfo.url;
         const aUrl = mkElt("a", { href: urlVisited }, urlVisited);
         const appName = webbrowserInfo.inAppBrowserName || "(unknown app)";
+        // copyTextToClipboard
+        const eltApp = mkElt("span", undefined, `"${appName}"`);
+        eltApp.style = `
+            display: inline-block;
+            font-weight: bold;
+        `;
+        const btnCopyUrl = modMdc.mkMDCbutton("Copy link", "raised");
+        btnCopyUrl.addEventListener("click", evt => {
+            evt.stopPropagation();
+            modTools.copyTextToClipboard(urlVisited);
+        });
         const divInApp = mkElt("div", undefined, [
             `Displayed in ${appName}`,
             mkElt("p", undefined, [
-                "URL visited: ",
-                aUrl
+                `
+                    This mindmap is displayed inside the app `,
+                eltApp,
+                `.  If you want to change this mindmap (or create your own mindmaps)
+                    you may start by first copying the link to the mindmap
+                    and open the link in your web browser.
+                `
+            ]),
+            mkElt("p", undefined, [
+                // "URL visited: ", aUrl
+                btnCopyUrl
             ]),
         ]);
         // if (!webbrowserInfo.isInApp) {
