@@ -1396,8 +1396,8 @@ export async function pageSetup() {
             })
 
             const divSave = mkElt("p", undefined, [
-
-            ])
+                btnSave
+            ]);
             const body = mkElt("div", undefined, [
                 mkElt("h2", undefined, "Shared mindmap"),
                 // mkElt("p", undefined, `Save this mindmap to your device.`),
