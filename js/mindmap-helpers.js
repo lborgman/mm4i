@@ -1020,7 +1020,7 @@ export async function checkWebBrowser() {
             ]),
         ]);
         // if (!webbrowserInfo.isInApp) {
-        const url = webbrowserInfo.url;
+        // const url = webbrowserInfo.url;
         divCountdown = mkElt("div", undefined, [spanCountdown, btnStay]);
         body.appendChild(divCountdown);
         // }
