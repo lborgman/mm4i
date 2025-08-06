@@ -1343,10 +1343,7 @@ export async function pageSetup() {
 
         // const btnDownloadShared = modMdc.mkMDCiconButton("edit_arrow_down", "Save to your device", 40);
         const btnDownloadShared = modMdc.mkMDCiconButton("info", "Show info about this mindmap", 40);
-        btnDownloadShared.style = `
-            border-radius: 50%;
-            background-color: #fff4;
-        `;
+        btnDownloadShared.style = ` border-radius: 50%; background-color: #fff4; `;
         btnDownloadShared.addEventListener("click", async evt => {
             evt.stopPropagation();
             if (spTitle == null) {
@@ -1370,6 +1367,10 @@ export async function pageSetup() {
             divInfoShared.style.padding = "10px";
 
             const btnSave = modMdc.mkMDCbutton("Save", "raised");
+            const divSave = mkElt("p", undefined, [
+                btnSave
+            ]);
+
             btnSave.addEventListener("click", evt => {
                 evt.stopPropagation();
                 const eltTell = document.getElementById("shared-marker");
@@ -1393,11 +1394,9 @@ export async function pageSetup() {
                 const urlSavedMindmap = modMMhelpers.getMindmapURL(mmKey);
                 history.replaceState(null, "dummy", urlSavedMindmap.href);
 
-            })
+                divSave.textContent = "Saved to your device";
+            });
 
-            const divSave = mkElt("p", undefined, [
-                btnSave
-            ]);
             const body = mkElt("div", undefined, [
                 mkElt("h2", undefined, "Shared mindmap"),
                 // mkElt("p", undefined, `Save this mindmap to your device.`),
@@ -1405,27 +1404,27 @@ export async function pageSetup() {
                 divSave
             ]);
             modMdc.mkMDCdialogAlert(body, "Close");
-                /*
-            console.log({ ans });
-            if (ans) {
-                const eltTell = document.getElementById("shared-marker");
-                const seconds = 1.2;
-                if (!eltTell) {
-                    throw Error("Did not get shared-marker");
-                }
-                eltTell.style.opacity = "1";
-                eltTell.style.transition = `opacity ${seconds}s`;
-                eltTell.style.opacity = "0";
-                delete jmDisplayed.isSavedBookmark;
-                modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "Save shared");
-                const mmKey = modMMhelpers.getNextMindmapKey();
-                const objDataMind = jmDisplayed.get_data("node_array");
-                objDataMind.meta.name = mmKey;
-                modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, "Saved SHARED");
-                const urlSavedMindmap = modMMhelpers.getMindmapURL(mmKey);
-                history.replaceState(null, "dummy", urlSavedMindmap.href);
+            /*
+        console.log({ ans });
+        if (ans) {
+            const eltTell = document.getElementById("shared-marker");
+            const seconds = 1.2;
+            if (!eltTell) {
+                throw Error("Did not get shared-marker");
             }
-                */
+            eltTell.style.opacity = "1";
+            eltTell.style.transition = `opacity ${seconds}s`;
+            eltTell.style.opacity = "0";
+            delete jmDisplayed.isSavedBookmark;
+            modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "Save shared");
+            const mmKey = modMMhelpers.getNextMindmapKey();
+            const objDataMind = jmDisplayed.get_data("node_array");
+            objDataMind.meta.name = mmKey;
+            modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, "Saved SHARED");
+            const urlSavedMindmap = modMMhelpers.getMindmapURL(mmKey);
+            history.replaceState(null, "dummy", urlSavedMindmap.href);
+        }
+            */
         });
         const addShareMarker = () => {
             const divInfo = mkElt("div", undefined,
