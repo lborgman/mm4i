@@ -1371,7 +1371,7 @@ export async function pageSetup() {
                 btnSave
             ]);
 
-            btnSave.addEventListener("click", evt => {
+            btnSave.addEventListener("click", async evt => {
                 evt.stopPropagation();
                 const eltTell = document.getElementById("shared-marker");
                 const seconds = 1.2;
@@ -1390,12 +1390,21 @@ export async function pageSetup() {
                 debugger; // eslint-disable-line no-debugger
                 const objDataMind = jmDisplayed.get_data("node_array");
                 objDataMind.meta.name = mmKey;
+                /*
                 const saved = modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, "Saved SHARED");
                 if (saved != true) {
                     divSave.textContent = "Some error, not saved";
                     divSave.style.color = "red";
                     return;
                 }
+                */
+
+                const dbMindmaps = await importFc4i("db-mindmaps");
+                // const res = await dbMindmaps.DBsetMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy);
+                const objMindData = jmDisplayed.get_data("node_array");
+                const res = await dbMindmaps.DBsetMindmap(keyName, objMindData);
+                console.log({ res });
+                debugger;
                 const urlSavedMindmap = modMMhelpers.getMindmapURL(mmKey);
                 history.replaceState(null, "dummy", urlSavedMindmap.href);
 
