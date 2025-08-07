@@ -167,6 +167,7 @@ export function DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
         throw Error(`actionTopic is not string: ${typeof actionTopic}`);
     }
     throttleDBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic);
+    return true;
 }
 async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     // if (!checkIsMMformatJmdisplayed(jmDisplayed)) throw Error("!checkIsMMformatJmdisplayed(jmDisplayed))");

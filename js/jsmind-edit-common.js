@@ -1390,7 +1390,12 @@ export async function pageSetup() {
                 debugger; // eslint-disable-line no-debugger
                 const objDataMind = jmDisplayed.get_data("node_array");
                 objDataMind.meta.name = mmKey;
-                modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, "Saved SHARED");
+                const saved = modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, "Saved SHARED");
+                if (saved != true) {
+                    divSave.textContent = "Some error, not saved";
+                    divSave.style.color = "red";
+                    return;
+                }
                 const urlSavedMindmap = modMMhelpers.getMindmapURL(mmKey);
                 history.replaceState(null, "dummy", urlSavedMindmap.href);
 
