@@ -1401,8 +1401,8 @@ export async function pageSetup() {
 
                 const dbMindmaps = await importFc4i("db-mindmaps");
                 // const res = await dbMindmaps.DBsetMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy);
-                const objMindData = jmDisplayed.get_data("node_array");
-                const res = await dbMindmaps.DBsetMindmap(keyName, objMindData);
+                // const objMindData = jmDisplayed.get_data("node_array");
+                const res = await dbMindmaps.DBsetMindmap(mmKey, objDataMind);
                 console.log({ res });
                 debugger;
                 const urlSavedMindmap = modMMhelpers.getMindmapURL(mmKey);
