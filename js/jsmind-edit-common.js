@@ -1390,6 +1390,7 @@ export async function pageSetup() {
                 debugger; // eslint-disable-line no-debugger
                 const objDataMind = jmDisplayed.get_data("node_array");
                 objDataMind.meta.name = mmKey;
+                objDataMind.key = mmKey;
                 /*
                 const saved = modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, "Saved SHARED");
                 if (saved != true) {
