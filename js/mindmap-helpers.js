@@ -181,7 +181,10 @@ async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
 
     // await saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, (new Date()).toISOString());
     // debugger;
-    await saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, (new Date()).toISOString());
+    const resSave = await saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, (new Date()).toISOString());
+    console.log({resSave});
+    debugger;
+    return resSave;
 }
 
 export function getNextMindmapKey() { return "mm-" + new Date().toISOString(); }
