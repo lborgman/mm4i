@@ -1387,13 +1387,12 @@ export async function pageSetup() {
                 const divInApp = mkElt("div", undefined, [
                     `Displayed in ${appName}`,
                     mkElt("p", undefined, [
-                        `
-                    This mindmap is at the moment displayed inside the app `,
+                        `This mindmap is at the moment displayed inside the app `,
                         eltApp,
-                        `.  If you want to change this mindmap (or create your own mindmaps)
-                    you may start by first copying the link to the mindmap
-                    and open the link in your web browser.
-                `
+                        ` (which has it's own web browser).
+                        If you want to change this mindmap (or create your own mindmaps)
+                        you may start by first copying the link to the mindmap
+                        and open that link in your web browser.`
                     ]),
                     mkElt("p", undefined, [
                         btnCopyUrl

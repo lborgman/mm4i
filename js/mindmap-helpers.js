@@ -183,7 +183,7 @@ async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     // await saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, (new Date()).toISOString());
     // debugger;
     const resSave = await saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, (new Date()).toISOString());
-    console.log({resSave});
+    console.log({ resSave });
     debugger;
     return resSave;
 }
@@ -985,6 +985,8 @@ export async function checkWebBrowser() {
     const spanCountdown = mkElt("span", undefined, "COUNTDOWN");
     const modMdc = await importFc4i("util-mdc");
     const btnStay = modMdc.mkMDCbutton("Stay", "raised");
+
+
     if (!webbrowserInfo.isInApp) {
         const pretendIsInApp = confirm("Not in-app. Pretend is in app?")
         if (pretendIsInApp) {
@@ -1061,6 +1063,20 @@ export async function checkWebBrowser() {
                 }, 1000);
             }
             restartTimer();
+        }
+    }
+    {
+        const chkReverseInApp = mkElt("input", { type: "checkbox" });
+        const lblReverseInApp = mkElt("label", undefined, ["Pretend revese in-app: ", chkReverseInApp]);
+        const body = mkElt("div", undefined, [
+            lblReverseInApp,
+        ]);
+        await modMdc.mkMDCdialogConfirm(body, "Continue");
+        console.log("chkReverse", chkReverseInApp.checked);
+        const reverse = chkReverseInApp.checked;
+        debugger;
+        if (reverse) {
+            webbrowserInfo.isInApp = !webbrowserInfo.isInApp; // FIX-ME: 
         }
     }
 }
