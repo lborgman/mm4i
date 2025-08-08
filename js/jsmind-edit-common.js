@@ -1354,7 +1354,7 @@ export async function pageSetup() {
             const mmTitle = m ? m[1] : spTitle;
             const mmDesc = spText;
             const divInfoShared = mkElt("div", { class: "mdc-card" }, [
-                mkElt("b", { style: "font-size:1.2em" }, "Origin:"),
+                mkElt("b", { style: "font-size:1.2em" }, "Origin"),
                 mkElt("b", undefined, [
                     mkElt("i", undefined, "Title: "),
                     mmTitle
@@ -1446,12 +1446,13 @@ export async function pageSetup() {
         });
         const addShareMarker = () => {
             if (spTitle == null) throw Error("spTitle == null");
-            const pos = spTitle.indexOf('"');
-            const txtLinked = spTitle.slice(0, pos-1);
+            // const pos = spTitle.indexOf('"');
+            // const txtLinked = spTitle.slice(0, pos-1);
             const divInfo = mkElt("div", undefined,
                 // mkElt("b", undefined, `${spTitle}: `),
-                mkElt("b", undefined, `${txtLinked} `),
-                spText,
+                // mkElt("b", undefined, `${txtLinked} `),
+                mkElt("b", undefined, "Linked mindmap"),
+                // spText,
             )
             divInfo.style = `
                 display: flex;
