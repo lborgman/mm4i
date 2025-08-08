@@ -1399,6 +1399,7 @@ export async function pageSetup() {
                         btnCopyUrl
                     ]),
                 ]);
+                body.appendChild(divInApp);
             } else {
                 const btnSaveLinked = modMdc.mkMDCbutton("Save", "raised");
                 const divSaveLinked = mkElt("p", undefined, [
