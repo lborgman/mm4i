@@ -1354,7 +1354,7 @@ export async function pageSetup() {
             const mmTitle = m ? m[1] : spTitle;
             const mmDesc = spText;
             const divInfoShared = mkElt("div", { class: "mdc-card" }, [
-                mkElt("b", { style: "font-size:1.2em" }, "Origin"),
+                mkElt("b", { style: "font-size:1.2em" }, "Origin:"),
                 mkElt("b", undefined, [
                     mkElt("i", undefined, "Title: "),
                     mmTitle
@@ -1405,6 +1405,10 @@ export async function pageSetup() {
                 // const objMindData = jmDisplayed.get_data("node_array");
                 const res = await dbMindmaps.DBsetMindmap(mmKey, objDataMind);
                 console.log({ res });
+                if (res != mmKey) {
+                    debugger; 
+                    throw Error(`res (${res}) != mmKey (${mmKey})`)
+                }
                 debugger;
                 const urlSavedMindmap = modMMhelpers.getMindmapURL(mmKey);
                 history.replaceState(null, "dummy", urlSavedMindmap.href);
@@ -1413,8 +1417,7 @@ export async function pageSetup() {
             });
 
             const body = mkElt("div", undefined, [
-                mkElt("h2", undefined, "Shared mindmap"),
-                // mkElt("p", undefined, `Save this mindmap to your device.`),
+                mkElt("h2", undefined, "Linked mindmap"),
                 divInfoShared,
                 divSave
             ]);
@@ -1442,8 +1445,12 @@ export async function pageSetup() {
             */
         });
         const addShareMarker = () => {
+            if (spTitle == null) throw Error("spTitle == null");
+            const pos = spTitle.indexOf('"');
+            const txtLinked = spTitle.slice(0, pos-1);
             const divInfo = mkElt("div", undefined,
-                mkElt("b", undefined, `${spTitle}: `),
+                // mkElt("b", undefined, `${spTitle}: `),
+                mkElt("b", undefined, `${txtLinked} `),
                 spText,
             )
             divInfo.style = `
@@ -1488,7 +1495,7 @@ export async function pageSetup() {
         ]);
         if (!mindmapData) {
             const body = mkElt("div", undefined, [
-                mkElt("h2", undefined, "Could not find shared mindmap"),
+                mkElt("h2", undefined, "Could not find linked mindmap"),
                 mkElt("p", undefined, "It have probably been deleted."),
                 divInfoSp
             ])
@@ -1723,7 +1730,7 @@ export async function pageSetup() {
             const modShare = await importFc4i("mm4i-share");
             console.log({ modShare });
 
-            const shareTitle = `Shared mindmap "${topic}"`;
+            const shareTitle = `Linked mindmap "${topic}"`;
             const shareText = taDesc.value;
             modShare.saveDataToShare(jsonSharedMindmap, shareTitle, shareText);
         });
