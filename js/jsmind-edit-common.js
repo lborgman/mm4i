@@ -1342,9 +1342,9 @@ export async function pageSetup() {
         const spText = searchParams.get("text");
 
         // const btnDownloadShared = modMdc.mkMDCiconButton("edit_arrow_down", "Save to your device", 40);
-        const btnDownloadShared = modMdc.mkMDCiconButton("info", "Show info about this mindmap", 40);
-        btnDownloadShared.style = ` border-radius: 50%; background-color: #fff4; `;
-        btnDownloadShared.addEventListener("click", async evt => {
+        const btnInfoLinked = modMdc.mkMDCiconButton("info", "Show info about this mindmap", 40);
+        btnInfoLinked.style = ` border-radius: 50%; background-color: #fff4; `;
+        btnInfoLinked.addEventListener("click", async evt => {
             evt.stopPropagation();
             if (spTitle == null) {
                 debugger; // eslint-disable-line no-debugger
@@ -1365,94 +1365,98 @@ export async function pageSetup() {
                 ])
             ]);
             divInfoShared.style.padding = "10px";
-
-            const btnSave = modMdc.mkMDCbutton("Save", "raised");
-            const divSave = mkElt("p", undefined, [
-                btnSave
-            ]);
-
-            btnSave.addEventListener("click", async evt => {
-                evt.stopPropagation();
-                const eltTell = document.getElementById("shared-marker");
-                const seconds = 1.2;
-                if (!eltTell) {
-                    debugger; // eslint-disable-line no-debugger
-                    throw Error("Did not get shared-marker");
-                }
-                eltTell.style.opacity = "1";
-                eltTell.style.transition = `opacity ${seconds}s`;
-                eltTell.style.opacity = "0";
-                // ourdisp requestsave
-                delete jmDisplayed.isSavedBookmark;
-                modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "Save shared");
-                const mmKey = modMMhelpers.getNextMindmapKey();
-                // jmDisplayed.meta.name = mmKey;
-                debugger; // eslint-disable-line no-debugger
-                const objDataMind = jmDisplayed.get_data("node_array");
-                objDataMind.meta.name = mmKey;
-                objDataMind.key = mmKey;
-                /*
-                const saved = modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, "Saved SHARED");
-                if (saved != true) {
-                    divSave.textContent = "Some error, not saved";
-                    divSave.style.color = "red";
-                    return;
-                }
-                */
-
-                const dbMindmaps = await importFc4i("db-mindmaps");
-                // const res = await dbMindmaps.DBsetMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy);
-                // const objMindData = jmDisplayed.get_data("node_array");
-                const res = await dbMindmaps.DBsetMindmap(mmKey, objDataMind);
-                console.log({ res });
-                if (res != mmKey) {
-                    debugger; 
-                    throw Error(`res (${res}) != mmKey (${mmKey})`)
-                }
-                debugger;
-                const urlSavedMindmap = modMMhelpers.getMindmapURL(mmKey);
-                history.replaceState(null, "dummy", urlSavedMindmap.href);
-
-                divSave.textContent = "Saved to your device";
-            });
-
             const body = mkElt("div", undefined, [
                 mkElt("h2", undefined, "Linked mindmap"),
-                divInfoShared,
-                divSave
+                divInfoShared
+                // divSaveLinked
             ]);
-            modMdc.mkMDCdialogAlert(body, "Close");
-            /*
-        console.log({ ans });
-        if (ans) {
-            const eltTell = document.getElementById("shared-marker");
-            const seconds = 1.2;
-            if (!eltTell) {
-                throw Error("Did not get shared-marker");
+
+            const webbrowserInfo = await modTools.promWebBrowserInfo;
+            if (webbrowserInfo.isInApp !== false) {
+                const urlVisited = webbrowserInfo.url;
+                // const aUrl = mkElt("a", { href: urlVisited }, urlVisited);
+                const appName = webbrowserInfo.inAppBrowserName || "(unknown app)";
+                const eltApp = mkElt("span", undefined, `"${appName}"`);
+                eltApp.style = ` display: inline-block; font-weight: bold; `;
+
+                const btnCopyUrl = modMdc.mkMDCbutton("Copy link", "raised");
+                btnCopyUrl.addEventListener("click", evt => {
+                    evt.stopPropagation();
+                    modTools.copyTextToClipboard(urlVisited);
+                });
+                const divInApp = mkElt("div", undefined, [
+                    `Displayed in ${appName}`,
+                    mkElt("p", undefined, [
+                        `
+                    This mindmap is at the moment displayed inside the app `,
+                        eltApp,
+                        `.  If you want to change this mindmap (or create your own mindmaps)
+                    you may start by first copying the link to the mindmap
+                    and open the link in your web browser.
+                `
+                    ]),
+                    mkElt("p", undefined, [
+                        btnCopyUrl
+                    ]),
+                ]);
+            } else {
+                const btnSaveLinked = modMdc.mkMDCbutton("Save", "raised");
+                const divSaveLinked = mkElt("p", undefined, [
+                    btnSaveLinked
+                ]);
+                body.appendChild(divSaveLinked);
+
+                btnSaveLinked.addEventListener("click", async evt => {
+                    evt.stopPropagation();
+                    const eltTell = document.getElementById("shared-marker");
+                    const seconds = 1.2;
+                    if (!eltTell) {
+                        debugger; // eslint-disable-line no-debugger
+                        throw Error("Did not get shared-marker");
+                    }
+                    eltTell.style.opacity = "1";
+                    eltTell.style.transition = `opacity ${seconds}s`;
+                    eltTell.style.opacity = "0";
+                    // ourdisp requestsave
+                    delete jmDisplayed.isSavedBookmark;
+                    modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "Save shared");
+                    const mmKey = modMMhelpers.getNextMindmapKey();
+                    // jmDisplayed.meta.name = mmKey;
+                    debugger; // eslint-disable-line no-debugger
+                    const objDataMind = jmDisplayed.get_data("node_array");
+                    objDataMind.meta.name = mmKey;
+                    objDataMind.key = mmKey;
+                    /*
+                    const saved = modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, "Saved SHARED");
+                    if (saved != true) {
+                        divSave.textContent = "Some error, not saved";
+                        divSave.style.color = "red";
+                        return;
+                    }
+                    */
+
+                    const dbMindmaps = await importFc4i("db-mindmaps");
+                    // const res = await dbMindmaps.DBsetMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy);
+                    // const objMindData = jmDisplayed.get_data("node_array");
+                    const res = await dbMindmaps.DBsetMindmap(mmKey, objDataMind);
+                    console.log({ res });
+                    if (res != mmKey) {
+                        debugger;
+                        throw Error(`res (${res}) != mmKey (${mmKey})`)
+                    }
+                    debugger;
+                    const urlSavedMindmap = modMMhelpers.getMindmapURL(mmKey);
+                    history.replaceState(null, "dummy", urlSavedMindmap.href);
+
+                    divSaveLinked.textContent = "Saved to your device";
+                });
             }
-            eltTell.style.opacity = "1";
-            eltTell.style.transition = `opacity ${seconds}s`;
-            eltTell.style.opacity = "0";
-            delete jmDisplayed.isSavedBookmark;
-            modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "Save shared");
-            const mmKey = modMMhelpers.getNextMindmapKey();
-            const objDataMind = jmDisplayed.get_data("node_array");
-            objDataMind.meta.name = mmKey;
-            modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, "Saved SHARED");
-            const urlSavedMindmap = modMMhelpers.getMindmapURL(mmKey);
-            history.replaceState(null, "dummy", urlSavedMindmap.href);
-        }
-            */
+            modMdc.mkMDCdialogAlert(body, "Close");
         });
         const addShareMarker = () => {
             if (spTitle == null) throw Error("spTitle == null");
-            // const pos = spTitle.indexOf('"');
-            // const txtLinked = spTitle.slice(0, pos-1);
             const divInfo = mkElt("div", undefined,
-                // mkElt("b", undefined, `${spTitle}: `),
-                // mkElt("b", undefined, `${txtLinked} `),
                 mkElt("b", undefined, "Linked mindmap"),
-                // spText,
             )
             divInfo.style = `
                 display: flex;
@@ -1462,7 +1466,7 @@ export async function pageSetup() {
             `;
             const eltTellShared = mkElt("div", undefined, [
                 divInfo,
-                btnDownloadShared
+                btnInfoLinked
             ]);
             eltTellShared.style = `
                 position: fixed;
