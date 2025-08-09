@@ -1088,6 +1088,10 @@ export async function checkWebBrowser() {
             lblReverseInApp,
             divWebbrowserInfoKeys, divMindmaps
         ]);
+        setTimeout(() => {
+            const scrim = body.closest(".mdc-dialog--open");
+            scrim.style.zIndex = "9999";
+        }, 500);
         await modMdc.mkMDCdialogConfirm(body, "Continue");
         console.log("chkReverse", chkReverseInApp.checked);
         const reverse = chkReverseInApp.checked;
