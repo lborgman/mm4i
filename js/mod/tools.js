@@ -157,7 +157,7 @@ export function wait4mutations(elt, ms, observeWhat, msMaxWait) {
                     restartTimer();
                 });
             }
-            setTimeout(fin, msTimer);
+            tmr = setTimeout(fin, msTimer);
             mu?.observe(elt, observeWhat);
         }
         // const mu = new MutationObserver(mutations => { restartTimer(); });
@@ -309,7 +309,9 @@ async function getWebBrowserInfo() {
         const brands = getRealBrands();
         return brands.some(brand =>
             /Chromium|Chrome|GoogleChrome|MicrosoftEdge|Opera|Brave/i.test(brand.brand)
-        ) || !!window.chrome;
+        ) ||
+        // !!window.chrome;
+        !!window["chrome"];
     }
 
     function isMobileDevice() {
@@ -958,7 +960,7 @@ class FetchError extends Error {
 // });
 
 // throw Error("testing error...");
-var theFirebaseCurrentUser;
+var theFirebaseCurrentUser = null;
 // var theFirebaseCurrentUserEmail;
 
 /*
@@ -1014,6 +1016,8 @@ async function popupDialog(title, body, severity) {
     let styleDia = "max-width:90vw; max-height:80vh; overflow:auto; color:black; ";
     switch (severity) {
         case "error":
+            /*
+            // No longer used, PWA runs separated
             {
                 (async () => {
                     try {
@@ -1042,6 +1046,7 @@ async function popupDialog(title, body, severity) {
                     }
                 })();
             }
+            */
             styleDia += "background:yellow; border:2px solid red;";
             break;
         case "warning":
@@ -1063,7 +1068,7 @@ async function popupDialog(title, body, severity) {
         const closeBtn = mkElt("button", { style: styleBtn }, "CLOSE");
         // FIXME: the native dialog is broken 2020-07-15
         closeBtn.addEventListener("click", () => {
-            dialog.close();
+            // dialog.close();
             document.body.removeChild(dialog);
             window.onbeforeunload = null;
         });
@@ -1077,6 +1082,7 @@ async function popupDialog(title, body, severity) {
             ]));
         dialog.classList.add("error-popup");
         document.body.appendChild(dialog);
+        // @ts-ignore
         dialog.showModal();
     } else {
         throw Error("useDialog should be true");
@@ -2546,7 +2552,7 @@ export function animateZoom(element, startZoom, endZoom, msDuration, msStep = 20
             if (elapsedSinceLastRepaint >= msStep) {
                 currentStep++;
                 const zoomValue = startZoom + stepIncrement * currentStep;
-                element.style.zoom = zoomValue;
+                element.style.zoom = `${zoomValue}`;
                 lastRepaintTime = currentTime; // Update last repaint time
 
                 if (currentStep >= totalSteps) {
@@ -2619,7 +2625,7 @@ export function haveSameKeys(obj1, obj2, arrMayMiss) {
                 tellError("val2 is not object", val2);
                 return false;
             }
-            if (!haveSameKeys(val1, val2)) {
+            if (!haveSameKeys(val1, val2, undefined)) {
                 return false;
             }
         }

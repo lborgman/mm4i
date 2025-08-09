@@ -181,10 +181,10 @@ async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     const [keyName] = metaName.split("/");
 
     // await saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, (new Date()).toISOString());
-    // debugger;
+    // debugger; // eslint-disable-line no-debugger
     const resSave = await saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, (new Date()).toISOString());
-    console.log({ resSave });
-    debugger;
+    // console.log({ resSave });
+    // debugger; // eslint-disable-line no-debugger
     return resSave;
 }
 
@@ -250,7 +250,7 @@ export function getMindmapTopicO(jsMm) {
 export async function getMindmapTopic(key) {
     const dbMindmaps = await importFc4i("db-mindmaps");
     const jsMm = await dbMindmaps.DBgetMindmap(key);
-    // debugger;
+    // debugger; // eslint-disable-line no-debugger
     return getMindmapTopicO(jsMm);
 }
 
@@ -301,8 +301,13 @@ async function dialogCreateMindMap() {
         pTopicOk,
     ]);
     setTimeout(() => {
-        btnOk = title.closest("div.mdc-dialog").querySelector("button");
+        if (!title) return;
+        // btnOk = title.closest("div.mdc-dialog").querySelector("button");
+        const dlg = title.closest("div.mdc-dialog");
+        if (!dlg) return;
+        btnOk = dlg.querySelector("button");
         console.log({ btnOk });
+        if (!btnOk) return;
         btnOk.disabled = true;
     });
     const res = await modMdc.mkMDCdialogConfirm(body);
@@ -376,6 +381,7 @@ export function mkEltLinkMindmapA(topic, mkey, mhits, provider) {
         url.searchParams.set("nodehits", hits);
     }
     const eltA = mkElt("a", undefined, topic);
+    // @ts-ignore
     eltA.href = url;
     return eltA;
 }
@@ -729,7 +735,7 @@ export function checkIsMMformatStored(obj, where, arrMayMiss = undefined, allowI
     const throwErr = (what) => {
         const msg = `(checkIsMmformatStored) ${where}: ${what}`;
         console.error(msg);
-        debugger; // eslint-disable-line no-ebugger;
+        debugger; // eslint-disable-line no-debugger
         throw Error(msg);
     }
 
@@ -833,7 +839,7 @@ export async function removeAllSpan4marks() {
     const elt = eltJmnodes.querySelector(`span.${cssClass4Mark}`);
     if (elt) {
         console.log({ elt });
-        debugger;
+        // debugger;
         const arr = [...eltJmnodes.querySelectorAll(`span.${cssClass4Mark}`)];
         console.log({ arr });
     }
@@ -876,7 +882,9 @@ export async function addSpan4Mark(eltJmnode, cssClass, iconName) {
 
 export async function applyDisplayStateOther(objDisplayStateOther, jm) {
     const modZoomMove = await importFc4i("zoom-move");
-    if (typeof objDisplayStateOther != "object") debugger;
+    if (typeof objDisplayStateOther != "object") {
+        debugger; // eslint-disable-line no-debugger
+    }
     const keys = Object.keys(objDisplayStateOther);
     keys.forEach(async key => {
         switch (key) {
@@ -895,7 +903,7 @@ export async function applyDisplayStateOther(objDisplayStateOther, jm) {
                 modZoomMove.setMoved(moved);
                 break;
             default:
-                debugger;
+                debugger; // eslint-disable-line no-debugger
                 throw Error(`applyDisplayStateOther, unknown key: ${key}`);
         }
     });
@@ -1090,14 +1098,16 @@ export async function checkWebBrowser() {
         ]);
         setTimeout(() => {
             const scrim = body.closest(".mdc-dialog--open");
+            if (!scrim) return;
+            // @ts-ignore
             scrim.style.zIndex = "9999";
         }, 500);
         await modMdc.mkMDCdialogConfirm(body, "Continue");
-        console.log("chkReverse", chkReverseInApp.checked);
+        // console.log("chkReverse", chkReverseInApp.checked);
+        // @ts-ignore
         const reverse = chkReverseInApp.checked;
-        debugger;
         if (reverse) {
-            webbrowserInfo.isInApp = !webbrowserInfo.isInApp; // FIX-ME: 
+            webbrowserInfo.isInApp = !webbrowserInfo.isInApp;
         }
     }
 }

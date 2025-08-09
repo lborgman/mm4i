@@ -213,9 +213,7 @@ class PointHandle {
         if (eltJmnodeFrom) {
             eltJmnodeFrom = undefined;
         }
-        if (eltOverJmnode) {
-
-        }
+        // if (eltOverJmnode) { }
         modJsmindDraggable.stopNow();
         instMoveAtDragBorder.hideMover();
     }
@@ -463,7 +461,7 @@ function requestCheckPointerHandleMove() {
     requestAnimationFrame(requestCheckPointerHandleMove);
 }
 let eltJmnodeFrom;
-let eltOverJmnode;
+// let eltOverJmnode;
 let movePointHandleProblem = false;
 // let im = 0;
 function movePointHandle() {
@@ -489,7 +487,7 @@ function movePointHandle() {
     } catch (err) {
         movePointHandleProblem = true;
         console.error("movePointHandle", err);
-        debugger;
+        debugger; // eslint-disable-line no-debugger
     }
 }
 /////////////////////////////////////////////////////
@@ -879,7 +877,7 @@ function mkMenuItemA(lbl, url) {
     li.addEventListener("click", evt => {
         // evt.preventDefault();
         evt.stopPropagation();
-        hideContextMenu();
+        // hideContextMenu(); // FIX-ME:
     });
     return li;
 }
@@ -915,15 +913,18 @@ function mkMenuItem(lbl, fun, keyHint) {
     });
     return li;
 }
-let /** @type {HTMLElement|undefined} */ divContextMenu;
+// let /** @type {HTMLElement|undefined} */ divContextMenu;
 let jmDisplayed;
 
+/*
 function hideContextMenu() {
     if (!divContextMenu) return;
     divContextMenu.style.display = "none";
     setTimeout(focusSelectedNode, 2000);
 }
+*/
 // FIX-ME: The node does not get DOM focus???
+/*
 function focusSelectedNode() {
     // FIX-ME: What is wrong with jmDisplayed here???
     try {
@@ -936,6 +937,7 @@ function focusSelectedNode() {
         console.log("*** focusSelectedNode", { err });
     }
 }
+*/
 
 
 const extraPageMenuItems = [];
@@ -1147,7 +1149,7 @@ function addZoomMoveLayer(eltContainer) {
     const eltInner = eltContainer?.querySelector("div.jsmind-inner");
     if (!eltInner) throw Error("Could not find div.jsmind-inner");
     if (!eltInner.closest("div.zoom-move")) {
-        // debugger;
+        // debugger; // eslint-disable-line no-debugger
         const eltZoomMove = document.createElement("div");
         eltZoomMove.classList.add("zoom-move");
         // @ts-ignore
@@ -1182,7 +1184,7 @@ async function addDragBorders(jmDisplayed) {
         instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60, eltShow);
     } catch (err) {
         console.error({ err });
-        debugger;
+        debugger; // eslint-disable-line no-debugger
     }
 }
 export async function displayOurMindmap(mindStored) {
@@ -1366,7 +1368,7 @@ export async function pageSetup() {
             ]);
             divInfoShared.style.padding = "10px";
             const body = mkElt("div", undefined, [
-                mkElt("h2", undefined, "Linked mindmap"),
+                mkElt("h2", undefined, "Link to MM4I"),
                 divInfoShared
                 // divSaveLinked
             ]);
@@ -1387,13 +1389,14 @@ export async function pageSetup() {
                 const divInApp = mkElt("div", undefined, [
                     `Displayed in ${appName}`,
                     mkElt("p", undefined, [
-                        `This mindmap is at the moment displayed inside the app `,
-                        eltApp,
-                        ` (which has it's own web browser).
-                        If you want to change this mindmap (or create your own mindmaps)
-                        you may start by first copying the link to the mindmap
-                        and open that link in your web browser.`
-                    ]),
+                        `MM4I (Mindmaps 4 Internet) is at the moment displayed inside the app `,
+                        eltApp, `.
+                        This prevents MM4I to work as it should.`]),
+                    mkElt("p", undefined, `
+                        Unfortunately some apps (like ${appName}) may prevent you from
+                        directly open the link to MM4I in your web browser.
+                        So you must copy that link and then open that link in your web browser.`
+                    ),
                     mkElt("p", undefined, [
                         btnCopyUrl
                     ]),
@@ -1441,10 +1444,10 @@ export async function pageSetup() {
                     const res = await dbMindmaps.DBsetMindmap(mmKey, objDataMind);
                     console.log({ res });
                     if (res != mmKey) {
-                        debugger;
+                        debugger; // eslint-disable-line no-debugger
                         throw Error(`res (${res}) != mmKey (${mmKey})`)
                     }
-                    debugger;
+                    debugger; // eslint-disable-line no-debugger
                     const urlSavedMindmap = modMMhelpers.getMindmapURL(mmKey);
                     history.replaceState(null, "dummy", urlSavedMindmap.href);
 
@@ -1456,7 +1459,7 @@ export async function pageSetup() {
         const addShareMarker = () => {
             if (spTitle == null) throw Error("spTitle == null");
             const divInfo = mkElt("div", undefined,
-                mkElt("b", undefined, "Linked mindmap"),
+                mkElt("b", undefined, "Link to MM4I"),
             )
             divInfo.style = `
                 display: flex;
@@ -1484,7 +1487,7 @@ export async function pageSetup() {
             eltTellShared.id = "shared-marker";
             document.body.appendChild(eltTellShared);
         }
-        // debugger;
+        // debugger; // eslint-disable-line no-debugger
         const modShare = await importFc4i("mm4i-share")
         console.log({ modShare });
         const mindmapData = await modShare.getSharedData(sharepostParam);
@@ -1505,12 +1508,12 @@ export async function pageSetup() {
                 divInfoSp
             ])
             await modMdc.mkMDCdialogConfirm(body, "Close");
-            // debugger;
+            // debugger; // eslint-disable-line no-debugger
             dialogMindMaps();
             return;
         } else {
             addShareMarker();
-            // debugger;
+            // debugger; // eslint-disable-line no-debugger
             const objMS = mindmapData.objMindStored;
             objMS.key = "SHARED";
             modMMhelpers.checkIsFullMindmapDisplayState(mindmapData, "SHARED");
@@ -1521,10 +1524,10 @@ export async function pageSetup() {
 
             const objOther = mindmapData.other;
             delete objOther.moved;
-            // debugger;
+            // debugger; // eslint-disable-line no-debugger
             modMMhelpers.applyDisplayStateOther(objOther, jm);
             // return;
-            // debugger;
+            // debugger; // eslint-disable-line no-debugger
         }
     }
 
@@ -1682,6 +1685,7 @@ export async function pageSetup() {
                 // setProviderNodeHits();
                 // } else {
                 inpSearch.focus();
+                // @ts-ignore
                 const strSearch = inpSearch.value.trim();
                 if (strSearch.length > 0) {
                     restartJsmindSearch();
@@ -1783,6 +1787,7 @@ export async function pageSetup() {
         }
     })();
     function doJsmindSearch() {
+        // @ts-ignore
         const strSearch = inpSearch.value.trim();
         if (strSearch == "") {
             const eltJmnodes = getJmnodesFromJm(jmDisplayed);
@@ -1996,15 +2001,19 @@ export async function pageSetup() {
     });
     function getNextNodeId() { return ++highestNodeId; }
 
+    /*
     function hideContextMenuOnEvent(evt) {
         if (!divContextMenu) return;
         if (!targetIsJmnode(evt) && !divContextMenu.contains(evt.target)) hideContextMenu();
     }
+    */
 
     if (!jsMindContainer) throw Error("jsMindContainer is null");
-    // These bubbles up:
-    jsMindContainer.addEventListener("pointerdown", evt => hideContextMenuOnEvent(evt));
     let toldChangesNotSaved = false;
+
+
+    //// These bubbles up:
+    // jsMindContainer.addEventListener("pointerdown", evt => hideContextMenuOnEvent(evt)); // FIX-ME:
     jsMindContainer.addEventListener("click", evt => {
         // evt.stopPropagation();
         // evt.preventDefault();
@@ -2031,7 +2040,7 @@ export async function pageSetup() {
         modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, `${theChange} ${topic}`);
     });
 
-    function targetIsJmnode(evt) {
+    function _targetIsJmnode(evt) {
         const targ = evt.target;
         const jmnode = targ.closest("jmnode");
         return jmnode;
@@ -2249,7 +2258,7 @@ export async function pageSetup() {
                     jm.select_node(mother);
                 }
             }
-            hideContextMenu();
+            // hideContextMenu(); // FIX-ME:
         }
 
         // has-notes-mark
@@ -2277,11 +2286,14 @@ export async function pageSetup() {
 
             pChoices.addEventListener("input", evt => {
                 const target = evt.target;
+                if (target == null) { throw Error("pChoices evt.target == null"); }
                 console.log("input", evt, target);
+                // @ts-ignore
                 settingPointHandle.value = target.value;
             })
             function makeChoice(value, txt) {
                 const radChoice = mkElt("input", { type: "radio", name: "point-choice", value });
+                // @ts-ignore
                 if (phType == value) radChoice.checked = true;
                 const lblChoice = mkElt("label", undefined, [radChoice, txt]);
                 return mkElt("div", undefined, lblChoice);
