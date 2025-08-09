@@ -981,12 +981,13 @@ export async function checkWebBrowser() {
     const body = mkElt("div", undefined, [
         cardDebugging
     ]);
-    let divCountdown;
-    const spanCountdown = mkElt("span", undefined, "COUNTDOWN");
+    // let divCountdown;
+    // const spanCountdown = mkElt("span", undefined, "COUNTDOWN");
     const modMdc = await importFc4i("util-mdc");
-    const btnStay = modMdc.mkMDCbutton("Stay", "raised");
+    // const btnStay = modMdc.mkMDCbutton("Stay", "raised");
 
 
+    /*
     if (!webbrowserInfo.isInApp) {
         const pretendIsInApp = confirm("Not in-app. Pretend is in app?")
         if (pretendIsInApp) {
@@ -996,9 +997,7 @@ export async function checkWebBrowser() {
     }
     if (webbrowserInfo.isInApp) {
         const urlVisited = webbrowserInfo.url;
-        const aUrl = mkElt("a", { href: urlVisited }, urlVisited);
         const appName = webbrowserInfo.inAppBrowserName || "(unknown app)";
-        // copyTextToClipboard
         const eltApp = mkElt("span", undefined, `"${appName}"`);
         eltApp.style = `
             display: inline-block;
@@ -1027,49 +1026,67 @@ export async function checkWebBrowser() {
         ]);
         // if (!webbrowserInfo.isInApp) {
         // const url = webbrowserInfo.url;
-        divCountdown = mkElt("div", undefined, [spanCountdown, btnStay]);
-        body.appendChild(divCountdown);
+        // divCountdown = mkElt("div", undefined, [spanCountdown, btnStay]);
+        // body.appendChild(divCountdown);
         // }
         // body.appendChild(divInApp);
         body.insertBefore(divInApp, body.firstElementChild);
         await modTools.waitSeconds(2);
-        setTimeout(() => { if (btnStay.isConnected) btnStay.focus(); }, 0.2 * 1000);
+        // setTimeout(() => { if (btnStay.isConnected) btnStay.focus(); }, 0.2 * 1000);
         const alertRes = await modMdc.mkMDCdialogAlert(body);
         console.log({ alertRes });
         const dom = alertRes.dom;
         const dlg = dom.querySelector(".mdc-dialog__surface")
         dlg.style.background = "lightblue";
-
-        let tmr;
-        let numSec = 8;
-        btnStay.addEventListener("click", evt => {
-            evt.stopPropagation();
-            clearTimeout(tmr);
-            divCountdown.remove();
-        })
-        // if (!webbrowserInfo.isInApp) {
-        startCountdownClose();
-        // }
-        function startCountdownClose() {
-            function restartTimer() {
-                numSec--;
-                if (numSec < 0) {
-                    alertRes.mdc.close();
-                    return;
-                }
-                tmr = setTimeout(() => {
-                    spanCountdown.textContent = `Closing in ${numSec}...`;
-                    restartTimer();
-                }, 1000);
-            }
-            restartTimer();
-        }
     }
+    */
     {
         const chkReverseInApp = mkElt("input", { type: "checkbox" });
         const lblReverseInApp = mkElt("label", undefined, ["Pretend revese in-app: ", chkReverseInApp]);
+        // the rest is shown temporary
+        // any browser problems
+        const divWebbrowserInfoKeys = mkElt("p");
+        for (const key in webbrowserInfo) {
+            const val = webbrowserInfo[key];
+            const divLine = mkElt("div", undefined, [
+                mkElt("b", undefined, `${key}: `),
+                `${val}`
+            ]);
+            divWebbrowserInfoKeys.appendChild(divLine);
+        }
+
+        const dbMindmaps = await importFc4i("db-mindmaps");
+        const arrMindmaps = await dbMindmaps.DBgetAllMindmaps();
+        const divNumMindmaps = mkElt("div", undefined,
+            mkElt("b", undefined, `Num mindmaps: ${arrMindmaps.length}`));
+        const divMindmapsList = mkElt("div");
+        divMindmapsList.style = `
+            display: flex;
+            flex-direction: row;
+            gap: 5px;
+        `;
+        const divMindmaps = mkElt("p", undefined, [divNumMindmaps, divMindmapsList]);
+
+        arrMindmaps.forEach(r => {
+            const mm = r.jsmindmap;
+            if (mm.format != "node_array") throw Error(`Expected format "node_array": ${mm.format}`);
+            const root = mm.data[0];
+            if (root.id != "root") throw Error(`Not root: ${root.id}`);
+            const eltTopic = mkElt("div", undefined, root.topic);
+            eltTopic.style = `
+                background: blue;
+                color: white;
+                padding: 0px 4px;
+                border-radius: 2px;
+            `;
+            divMindmapsList.appendChild(eltTopic)
+        });
+
+
         const body = mkElt("div", undefined, [
+            mkElt("h2", undefined, "Debug in-app"),
             lblReverseInApp,
+            divWebbrowserInfoKeys, divMindmaps
         ]);
         await modMdc.mkMDCdialogConfirm(body, "Continue");
         console.log("chkReverse", chkReverseInApp.checked);
