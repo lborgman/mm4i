@@ -2,12 +2,16 @@
 
 # Mindmaps 4 Internet
 
-Mindmaps that you create and edit in your mobile phone.
-Or in your desktop computer.
+> MM4I (Mindmaps 4 Internet) is a mindmapping tool accessible
+directly through your web browser, designed to work
+both on mobile phones and on desktop computers.
+You can create and edit mindmaps without needing to install
+any software, and your work is stored locally for offline use.
+Key features include the ability to **visually enhance nodes** with
+**notes**, **search** nodes and notes, **dynamically link nodes** (through the search function), and a **visual undo/redo history**.
 
-MM4I (Mindmaps 4 Internet) offers that.
-        No installation required - since it is a web page.
-        You can start it here:
+
+You can start MM4I here:
 
 <a href="https://mm4i.vercel.app/mm4i.html">
     <!-- https://lborgman.github.io/mm4i/mm4i.html" -->
@@ -15,9 +19,6 @@ MM4I (Mindmaps 4 Internet) offers that.
     <img src="./img/mm4i.svg" width="40px" title="Start Mindmaps 4 Internet">
     </figure>
 </a>
-
-The mindmaps you create are stored locally in your web browser on your computer or mobile. 
-And even if this is a web page you can work offline. 
 
 
 ## Usage
@@ -61,7 +62,9 @@ Ever since I first saw mindmaps in practical use I have wanted to use it myself.
 
 Putting the mindmap in a computer could be a good idea, I thought.  And then, preferably the computer I always bring with me, my mobile.
 
-Yes, I know. There are some apps for Android that can do this. But I never install apps from unknown developers because of potential security problems. There are less such problem with an approach like this since this web app is basically a web page.
+Yes, I know. There are some apps for Android that can do this. But I never install apps from unknown developers because of potential security problems.
+
+There are much less security problem with a web page. And you can actually run a web page like this offline. (You have to *"install"* it, but for a web app like MM4I the *"install"* just means that the sources for the web page is cached locally on you device.)
 
 
 ## Acknowledgement
