@@ -1806,7 +1806,7 @@ export async function pageSetup() {
         if (sp.size == 0) return true;
         const arrParNames = [...sp.keys()].sort();
         // FIX-ME: text and title should only be allowed if share.
-        const allowed = ["mindmap", "nodehits", "cachemodules", "sharepost", "token", "text", "title"];
+        const allowed = ["debug", "mindmap", "nodehits", "cachemodules", "sharepost", "token", "text", "title"];
         allowed.push("fbclid"); // FIX-ME: why???
         for (const p of arrParNames) {
             if (!allowed.includes(p)) {
@@ -2438,7 +2438,7 @@ function hasTouchEvents() {
 // Utility functions.
 
 // FIX-ME: Should be in jsmind core
-function getDOMeltFromNode(node) { return jsMind.my_get_DOM_element_from_node(node); }
+// function getDOMeltFromNode(node) { return jsMind.my_get_DOM_element_from_node(node); }
 function getNodeIdFromDOMelt(elt) { return jsMind.my_get_nodeID_from_DOM_element(elt); }
 // basicInit4jsmind();
 

@@ -920,7 +920,12 @@ export async function checkWebBrowser() {
         debugger; // eslint-disable-line no-debugger
         missingFeatures.push("Syntax n?.x not recognized");
     }
-    // debugger;
+
+
+    const modMdc = await importFc4i("util-mdc");
+
+    const chkReverseInApp = mkElt("input", { type: "checkbox" });
+    const lblReverseInApp = mkElt("label", undefined, ["Pretend revese in-app: ", chkReverseInApp]);
     const divWebbrowserInfoKeys = mkElt("p");
     for (const key in webbrowserInfo) {
         const val = webbrowserInfo[key];
@@ -937,10 +942,10 @@ export async function checkWebBrowser() {
         mkElt("b", undefined, `Num mindmaps: ${arrMindmaps.length}`));
     const divMindmapsList = mkElt("div");
     divMindmapsList.style = `
-        display: flex;
-        flex-direction: row;
-        gap: 5px;
-    `;
+            display: flex;
+            flex-direction: row;
+            gap: 5px;
+        `;
     const divMindmaps = mkElt("p", undefined, [divNumMindmaps, divMindmapsList]);
 
     arrMindmaps.forEach(r => {
@@ -950,164 +955,31 @@ export async function checkWebBrowser() {
         if (root.id != "root") throw Error(`Not root: ${root.id}`);
         const eltTopic = mkElt("div", undefined, root.topic);
         eltTopic.style = `
-            background: blue;
-            color: white;
-            padding: 0px 4px;
-            border-radius: 2px;
-        `;
-        divMindmapsList.appendChild(eltTopic)
-    });
-
-    const spanDebuggingMessage = mkElt("div", undefined,
-        "The rest is shown temporary for debugging. Just ignore it.");
-    spanDebuggingMessage.style = `
-        padding: 8px;
-        background: blue;
-        color: white;
-        border: 2px solid white;
-        border-radius: 4px;
-    `;
-    const divDebuggingInfo = mkElt("div", undefined, spanDebuggingMessage);
-    // debugger;
-    const eltDivDet =
-        mkElt("div", undefined, [
-            mkElt("h2", undefined, "Any browser problem?"),
-            divWebbrowserInfoKeys, divMindmaps
-        ]);
-    const eltDetails =
-        mkElt("details", undefined, [
-            mkElt("summary", undefined, "Debugging details"),
-            eltDivDet
-        ]);
-    const cardDebugging = mkElt("div", { class: "mdc-card" }, [
-        divDebuggingInfo,
-        eltDetails
-    ]);
-    cardDebugging.style = `
-        padding: 10px;
-    `;
-    const body = mkElt("div", undefined, [
-        cardDebugging
-    ]);
-    // let divCountdown;
-    // const spanCountdown = mkElt("span", undefined, "COUNTDOWN");
-    const modMdc = await importFc4i("util-mdc");
-    // const btnStay = modMdc.mkMDCbutton("Stay", "raised");
-
-
-    /*
-    if (!webbrowserInfo.isInApp) {
-        const pretendIsInApp = confirm("Not in-app. Pretend is in app?")
-        if (pretendIsInApp) {
-            webbrowserInfo.isInApp = true;
-            webbrowserInfo.inAppBrowserName = "(PRETEND IN-APP)";
-        }
-    }
-    if (webbrowserInfo.isInApp) {
-        const urlVisited = webbrowserInfo.url;
-        const appName = webbrowserInfo.inAppBrowserName || "(unknown app)";
-        const eltApp = mkElt("span", undefined, `"${appName}"`);
-        eltApp.style = `
-            display: inline-block;
-            font-weight: bold;
-        `;
-        const btnCopyUrl = modMdc.mkMDCbutton("Copy link", "raised");
-        btnCopyUrl.addEventListener("click", evt => {
-            evt.stopPropagation();
-            modTools.copyTextToClipboard(urlVisited);
-        });
-        const divInApp = mkElt("div", undefined, [
-            `Displayed in ${appName}`,
-            mkElt("p", undefined, [
-                `
-                    This mindmap is at the moment displayed inside the app `,
-                eltApp,
-                `.  If you want to change this mindmap (or create your own mindmaps)
-                    you may start by first copying the link to the mindmap
-                    and open the link in your web browser.
-                `
-            ]),
-            mkElt("p", undefined, [
-                // "URL visited: ", aUrl
-                btnCopyUrl
-            ]),
-        ]);
-        // if (!webbrowserInfo.isInApp) {
-        // const url = webbrowserInfo.url;
-        // divCountdown = mkElt("div", undefined, [spanCountdown, btnStay]);
-        // body.appendChild(divCountdown);
-        // }
-        // body.appendChild(divInApp);
-        body.insertBefore(divInApp, body.firstElementChild);
-        await modTools.waitSeconds(2);
-        // setTimeout(() => { if (btnStay.isConnected) btnStay.focus(); }, 0.2 * 1000);
-        const alertRes = await modMdc.mkMDCdialogAlert(body);
-        console.log({ alertRes });
-        const dom = alertRes.dom;
-        const dlg = dom.querySelector(".mdc-dialog__surface")
-        dlg.style.background = "lightblue";
-    }
-    */
-    {
-        const chkReverseInApp = mkElt("input", { type: "checkbox" });
-        const lblReverseInApp = mkElt("label", undefined, ["Pretend revese in-app: ", chkReverseInApp]);
-        // the rest is shown temporary
-        // any browser problems
-        const divWebbrowserInfoKeys = mkElt("p");
-        for (const key in webbrowserInfo) {
-            const val = webbrowserInfo[key];
-            const divLine = mkElt("div", undefined, [
-                mkElt("b", undefined, `${key}: `),
-                `${val}`
-            ]);
-            divWebbrowserInfoKeys.appendChild(divLine);
-        }
-
-        const dbMindmaps = await importFc4i("db-mindmaps");
-        const arrMindmaps = await dbMindmaps.DBgetAllMindmaps();
-        const divNumMindmaps = mkElt("div", undefined,
-            mkElt("b", undefined, `Num mindmaps: ${arrMindmaps.length}`));
-        const divMindmapsList = mkElt("div");
-        divMindmapsList.style = `
-            display: flex;
-            flex-direction: row;
-            gap: 5px;
-        `;
-        const divMindmaps = mkElt("p", undefined, [divNumMindmaps, divMindmapsList]);
-
-        arrMindmaps.forEach(r => {
-            const mm = r.jsmindmap;
-            if (mm.format != "node_array") throw Error(`Expected format "node_array": ${mm.format}`);
-            const root = mm.data[0];
-            if (root.id != "root") throw Error(`Not root: ${root.id}`);
-            const eltTopic = mkElt("div", undefined, root.topic);
-            eltTopic.style = `
                 background: blue;
                 color: white;
                 padding: 0px 4px;
                 border-radius: 2px;
             `;
-            divMindmapsList.appendChild(eltTopic)
-        });
+        divMindmapsList.appendChild(eltTopic)
+    });
 
 
-        const body = mkElt("div", undefined, [
-            mkElt("h2", undefined, "Debug in-app"),
-            lblReverseInApp,
-            divWebbrowserInfoKeys, divMindmaps
-        ]);
-        setTimeout(() => {
-            const scrim = body.closest(".mdc-dialog--open");
-            if (!scrim) return;
-            // @ts-ignore
-            scrim.style.zIndex = "9999";
-        }, 500);
-        await modMdc.mkMDCdialogConfirm(body, "Continue");
-        // console.log("chkReverse", chkReverseInApp.checked);
+    const body = mkElt("div", undefined, [
+        mkElt("h2", undefined, "Debug in-app"),
+        lblReverseInApp,
+        divWebbrowserInfoKeys, divMindmaps
+    ]);
+    setTimeout(() => {
+        const scrim = body.closest(".mdc-dialog--open");
+        if (!scrim) return;
         // @ts-ignore
-        const reverse = chkReverseInApp.checked;
-        if (reverse) {
-            webbrowserInfo.isInApp = !webbrowserInfo.isInApp;
-        }
+        scrim.style.zIndex = "9999";
+    }, 500);
+    await modMdc.mkMDCdialogConfirm(body, "Continue");
+    // console.log("chkReverse", chkReverseInApp.checked);
+    // @ts-ignore
+    const reverse = chkReverseInApp.checked;
+    if (reverse) {
+        webbrowserInfo.isInApp = !webbrowserInfo.isInApp;
     }
 }

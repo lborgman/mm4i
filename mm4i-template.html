@@ -1114,7 +1114,6 @@
             flex-direction: row;
             gap: 4px;
             align-items: center;
-            NObackground-color: orange;
             color: black;
         }
 
@@ -1149,9 +1148,7 @@
             display: inline-flex;
         }
 
-        .bookmarked span.auto-topic {
-            NOdisplay: none;
-        }
+        /* .bookmarked span.auto-topic { NOdisplay: none; } */
 
         span.icon-bookmark {
             display: none;
@@ -1261,7 +1258,6 @@
         #mm4i-history-header {
             background: darkblue;
             color: white;
-            NOpadding: 6px;
             position: relative;
             white-space: nowrap;
         }
@@ -1286,7 +1282,6 @@
             aspect-ratio: 1 / 1;
             height: 20px;
             background-image: url(./img/top-right-resizer.svg);
-            NObackground-color: rgba(0, 0, 0, 0.5);
             background-size: cover;
         }
 
@@ -1390,18 +1385,17 @@
             const modMdc = await importFc4i("util-mdc");
             modMdc.setIconsFor("mm4i");
 
+            const modMMhelpers = await importFc4i("mindmap-helpers");
 
 
             const webbrowserInfo = await modTools.promWebBrowserInfo;
 
-            const modMMhelpers = await importFc4i("mindmap-helpers");
-            modMMhelpers.checkWebBrowser(); // FIX-ME: temporary for debugging!
+            const hasDebug = searchParams.has("debug");
+            if (hasDebug) { modMMhelpers.checkWebBrowser(); }
 
 
 
-            // let useOrigJsmind = confirm("Use orig jsMind?");
             let useOrigJsmind = false;
-            // let useOrigJsmind = true;
             window["useOrigJsmind"] = useOrigJsmind;
 
             let modJsmindDraggable;

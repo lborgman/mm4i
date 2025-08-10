@@ -4,7 +4,7 @@ window["logConsoleHereIs"](`here is tools.js, module, ${TOOLS_VER}`);
 if (document.currentScript) { throw "tools.js is not loaded as module"; }
 
 const mkElt = window["mkElt"];
-const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
+// const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 const importFc4i = window["importFc4i"];
 
 // https://firebase.google.com/docs/reference/js/firebase.auth.Error
@@ -2605,7 +2605,7 @@ export function haveSameKeys(obj1, obj2, arrMayMiss) {
             return false;
         }
     } else {
-        if (!keys1.every((key, i) => {
+        if (!keys1.every((key, _i) => {
             return arrMayMiss.includes(key) || keys2.includes(key);
         })) {
             tellError("Not same keys 2", keys1, keys2, arrMayMiss);
