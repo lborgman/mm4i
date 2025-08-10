@@ -1328,6 +1328,7 @@ export function setTopic4undoRedo(topic) {
     // if (topic4undoRedo != undefined) throw Error(`topic4undoRedo != undefined`);
     topic4undoRedo = topic;
 }
+let mindmapKeyNotFound;
 export async function pageSetup() {
     checkParamNames();
 
@@ -1532,6 +1533,7 @@ export async function pageSetup() {
     }
 
     let mindmapKey = new URLSearchParams(location.search).get("mindmap");
+
     let mindInStoredFormat;
     if (typeof mindmapKey === "string") {
         if (mindmapKey.length === 0) {
@@ -1540,7 +1542,8 @@ export async function pageSetup() {
         } else {
             mindInStoredFormat = await modMMhelpers.getMindmap(mindmapKey);
             if (!mindInStoredFormat) {
-                alert(`Could not find mindmap with key=="${mindmapKey}"`);
+                // alert(`Could not find mindmap with key=="${mindmapKey}"`);
+                mindmapKeyNotFound = mindmapKey;
                 mindmapKey = null;
             }
         }
@@ -1806,7 +1809,7 @@ export async function pageSetup() {
         if (sp.size == 0) return true;
         const arrParNames = [...sp.keys()].sort();
         // FIX-ME: text and title should only be allowed if share.
-        const allowed = ["debug", "mindmap", "nodehits", "cachemodules", "sharepost", "token", "text", "title"];
+        const allowed = ["debug", "mindmap", "nodehits", "mm-notfound", "cachemodules", "sharepost", "token", "text", "title"];
         allowed.push("fbclid"); // FIX-ME: why???
         for (const p of arrParNames) {
             if (!allowed.includes(p)) {
@@ -2579,7 +2582,34 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
     const showNew = !arrMindmapsHits;
 
     const eltTitle = mkElt("h2", undefined, "Mindmaps");
-    info = info || "";
+    if (mindmapKeyNotFound) {
+        if (info) {
+            debugger;
+            throw Error(`mindmapkeyNotFound=="${mindmapKeyNotFound}" and info=="${info}"`);
+        }
+
+        const infoStart = mkElt("div", undefined, [
+            mkElt("div", undefined, "Mindmap key not found:"),
+            mkElt("div", undefined, mkElt("b", undefined, mindmapKeyNotFound))
+        ])
+        info = mkElt("p", { class: "mdc-card" }, [
+            infoStart
+        ]);
+        info.style = `
+            padding: 10px;
+            background-color: yellow;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        `;
+        // FIX-ME: maybe more info?
+        info.appendChild(
+            mkElt("div", undefined, "maybe more info?")
+        );
+
+    } else {
+        info = info || "";
+    }
 
     arrMindmapsHits = arrMindmapsHits || await dbMindmaps.DBgetAllMindmaps();
     const arrToShow = arrMindmapsHits.map(mh => {
