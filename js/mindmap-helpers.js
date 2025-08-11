@@ -119,7 +119,8 @@ async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUp
     return await checkInappAndSaveMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy);
 }
 async function checkInappAndSaveMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy) {
-    const webbrowserInfo = await modTools.promWebBrowserInfo;
+    // const webbrowserInfo = await modTools.promWebBrowserInfo;
+    const webbrowserInfo = await window["promWebBrowserInfo"];
     if (webbrowserInfo.isInApp !== false) {
         const modMdc = await importFc4i("util-mdc");
         modMdc.mkMDCsnackbar("Did not save because in-app browser");
@@ -911,7 +912,8 @@ export async function applyDisplayStateOther(objDisplayStateOther, jm) {
 
 
 export async function checkWebBrowser() {
-    const webbrowserInfo = await modTools.promWebBrowserInfo;
+    // const webbrowserInfo = await modTools.promWebBrowserInfo;
+    const webbrowserInfo = await window["promWebBrowserInfo"];
     const missingFeatures = [];
     try {
         new Function('n?.x');

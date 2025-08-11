@@ -1388,7 +1388,8 @@
             const modMMhelpers = await importFc4i("mindmap-helpers");
 
 
-            const webbrowserInfo = await modTools.promWebBrowserInfo;
+            // const webbrowserInfo = await modTools.promWebBrowserInfo;
+            const webbrowserInfo = await window["promWebBrowserInfo"];
 
             const hasDebug = searchParams.has("debug");
             if (hasDebug) { modMMhelpers.checkWebBrowser(); }

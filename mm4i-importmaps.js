@@ -176,7 +176,7 @@ const baseUrl = (() => {
         // "rxdb-setup-webpack": "./rxdb-setup-webpack.js",
         // "rxdb-mm4i": "./js/rxdb-mm4i.js",
         "mm4i-replication": "./js/mm4i-replication.js",
-        
+
         "idb-replicator": "./js/mod/idb-replicator.js",
     };
 
@@ -290,5 +290,112 @@ const baseUrl = (() => {
         return mod;
     }
     window["importFc4i"] = importFc4i;
+
+
+
+    async function getWebBrowserInfo() {
+
+        function getRealBrands() {
+            const userAgentData = navigator["userAgentData"];
+            if (!userAgentData || !userAgentData?.brands) return [];
+            return userAgentData.brands.filter(brand =>
+                !/[^a-zA-Z0-9]/.test(brand.brand)
+            );
+        }
+
+        function isChromiumBased() {
+            const brands = getRealBrands();
+            return brands.some(brand =>
+                /Chromium|Chrome|GoogleChrome|MicrosoftEdge|Opera|Brave/i.test(brand.brand)
+            ) ||
+                // !!window.chrome;
+                !!window["chrome"];
+        }
+
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+
+        // PWA
+        function getDisplayMode() {
+            const modes = ['fullscreen', 'standalone', 'minimal-ui', 'browser'];
+            for (const mode of modes) {
+                if (window.matchMedia(`(display-mode: ${mode})`).matches) {
+                    return mode;
+                }
+            }
+            return 'browser'; // fallback
+        }
+        function getIsPWA() { return "browser" != getDisplayMode(); }
+
+        function checkForSyntaxNx() {
+            try {
+                new Function('n?.x');
+                return true;
+            } catch (err) {
+                console.log(err);
+                console.error("Syntax n?.x not recognized");
+                debugger; // eslint-disable-line no-debugger
+                // missingFeatures.push("Syntax n?.x not recognized");
+            }
+            return false;
+        }
+
+        function getAndroidApp() {
+            const referrer = document.referrer;
+            if (referrer.startsWith('android-app://')) return referrer;
+        }
+        async function getHasSW() {
+            const arrRegistrations = await navigator.serviceWorker.getRegistrations();
+            if (!arrRegistrations) return false;
+            if (arrRegistrations.length == 0) return false;
+            return true;
+        }
+
+        function isAndroidWebView() {
+            // https://developer.chrome.com/multidevice/user-agent
+            return (navigator.userAgent.indexOf(" wv") !== -1);
+        }
+
+
+        async function detectEnvironment() {
+            let modInappSpy;
+            try {
+                // @ts-ignore - the module link is ok
+                modInappSpy = await import('https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.mjs');
+            } catch (err) {
+                console.log("detectEnvironment", err);
+                return;
+            }
+            const { isInApp, appKey, appName } = modInappSpy.default();
+            const isAndroidApp = getAndroidApp();
+            const isChromium = isChromiumBased();
+            const isPWA = getIsPWA();
+            const hasSW = await getHasSW();
+            const isMobile = isMobileDevice();
+            const isAndroidWView = isAndroidWebView();
+            const canSyntaxNx = checkForSyntaxNx();
+            const url = location.href;
+            return {
+                isChromium,
+                isMobile,
+                isAndroidWView,
+                isPWA,
+                hasSW,
+                isAndroidApp,
+                isInApp,
+                inAppBrowserName: appName || null,
+                inAppBrowserKey: appKey || null,
+                url,
+                canSyntaxNx,
+            };
+        }
+
+        const env = await detectEnvironment();
+        console.log(env);
+        return env;
+    }
+    const promWebBrowserInfo = getWebBrowserInfo();
+    window["promWebBrowserInfo"] = promWebBrowserInfo;
 
 }

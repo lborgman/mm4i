@@ -1374,7 +1374,8 @@ export async function pageSetup() {
                 // divSaveLinked
             ]);
 
-            const webbrowserInfo = await modTools.promWebBrowserInfo;
+            // const webbrowserInfo = await modTools.promWebBrowserInfo;
+            const webbrowserInfo = await window["promWebBrowserInfo"];
             if (webbrowserInfo.isInApp !== false) {
                 const urlVisited = webbrowserInfo.url;
                 // const aUrl = mkElt("a", { href: urlVisited }, urlVisited);

@@ -295,7 +295,7 @@ function mkButton(attrib, inner) {
     popupDialog(title, body, "info");
 })();
 */
-async function getWebBrowserInfo() {
+async function _getWebBrowserInfo() {
 
     function getRealBrands() {
         const userAgentData = navigator["userAgentData"];
@@ -392,7 +392,7 @@ async function getWebBrowserInfo() {
     console.log(env);
     return env;
 }
-export const promWebBrowserInfo = getWebBrowserInfo();
+// export const promWebBrowserInfo = _getWebBrowserInfo();
 
 
 // https://developers.google.com/web/fundamentals/performance/rail
@@ -417,8 +417,7 @@ const theErrorPopupId = "error-popup";
 const theStartTime = new Date();
 
 
-export function isAndroidWebView() {
-    // return true;
+function isAndroidWebView() {
     // https://developer.chrome.com/multidevice/user-agent
     return (navigator.userAgent.indexOf(" wv") !== -1);
 }
