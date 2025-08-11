@@ -189,6 +189,13 @@ const baseUrl = (() => {
      * @returns 
      */
     async function importFc4i(idOrLink) {
+        const webBrowserInfo = await window["promWebBrowserInfo"];
+        const isInApp = webBrowserInfo.isInApp;
+        const tofIsInApp = typeof isInApp;
+        if (tofIsInApp != "boolean") {
+            debugger; // eslint-disable-line no-debugger
+            throw Error(`tofIsInapp == "${tofIsInApp}"`);
+        }
         if (idOrLink.startsWith("https://")) {
             return await import(idOrLink);
         }
@@ -259,10 +266,12 @@ const baseUrl = (() => {
             ourImportLink = relUrl;
             // ourImportLink = new URL(relUrl, baseUrl);
         }
-        if (noCache) {
+        if (noCache || isInApp) {
             ////// This is for non-PWA.
             // Unfortunately there is no standard yet to discover if running as PWA.
-            let objNotCached = importFc4i_nocachenames[ourImportLink];
+            // Same problem with in-app web browser!
+            // let objNotCached = importFc4i_nocachenames[ourImportLink];
+            let objNotCached = importFc4i_nocachenames[idOrLink];
             if (!objNotCached) {
                 objNotCached = {};
                 // console.log("%cimportFc4i new avoid caching", "background:yellow; color:red;", ourImportLink);
@@ -272,11 +281,13 @@ const baseUrl = (() => {
                 const urlNotCached = new URL(ourImportLink, baseUrl);
                 urlNotCached.searchParams.set("nocacheRand", getRandomString());
                 objNotCached.href = urlNotCached.href;
-                importFc4i_nocachenames[ourImportLink] = objNotCached;
+                // importFc4i_nocachenames[ourImportLink] = objNotCached;
+                importFc4i_nocachenames[idOrLink] = objNotCached;
             }
             if (!objNotCached.mod) {
-                // const mod = await import(urlNotCached.href);
+                isImporting[idOrLink] = getStackTrace();
                 const mod = await import(objNotCached.href);
+                isImporting[idOrLink] = false;
                 // There is no way to discover if a module has been imported so cache the module here:
                 objNotCached.mod = mod;
             } else {
@@ -287,6 +298,10 @@ const baseUrl = (() => {
         isImporting[idOrLink] = getStackTrace();
         const mod = await import(ourImportLink);
         isImporting[idOrLink] = false;
+        {
+            const objCached = { mod };
+            importFc4i_nocachenames[idOrLink] = objCached;
+        }
         return mod;
     }
     window["importFc4i"] = importFc4i;
