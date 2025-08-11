@@ -1391,8 +1391,17 @@
             // const webbrowserInfo = await modTools.promWebBrowserInfo;
             const webbrowserInfo = await window["promWebBrowserInfo"];
 
+            let calledCheckWebBrowser = false;
             const hasDebug = searchParams.has("debug");
-            if (hasDebug) { modMMhelpers.checkWebBrowser(); }
+            if (hasDebug) {
+                calledCheckWebBrowser = true;
+                modMMhelpers.checkWebBrowser();
+            }
+            if (!calledCheckWebBrowser) {
+                if (webbrowserInfo.isInApp) {
+                    modMMhelpers.checkWebBrowser();
+                }
+            }
 
 
 
