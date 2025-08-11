@@ -484,7 +484,7 @@ export function getMdcTfObj(input) {
 export function setMdcInputValid(input, valid, ok) {
     if (ok != "ok") {
         console.warn("setMdcInputValid called without ok");
-        debugger;
+        // debugger; // eslint-disable-line no-debugger
     }
     /*
     if (valid) {

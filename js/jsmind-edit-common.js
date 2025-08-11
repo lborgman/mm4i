@@ -2585,7 +2585,7 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
     const eltTitle = mkElt("h2", undefined, "Mindmaps");
     if (mindmapKeyNotFound) {
         if (info) {
-            debugger;
+            debugger; // eslint-disable-line no-debugger
             throw Error(`mindmapkeyNotFound=="${mindmapKeyNotFound}" and info=="${info}"`);
         }
 

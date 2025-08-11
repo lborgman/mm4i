@@ -290,7 +290,7 @@ export async function dialogStairs() {
         stepPrevNext(undefined);
     }
 
-    function OLDexitEditOrView() {
+    function _OLDexitEditOrView() {
         const shield = document.getElementById(vieweditShieldId);
         shield?.remove();
         const control = document.getElementById(vieweditControlId);
@@ -355,7 +355,7 @@ export async function dialogStairs() {
         addStairMark(eltJmnode, nStep);
     }
 
-    function OLDclearStairMarks() {
+    function _OLDclearStairMarks() {
         const qsa = document.querySelectorAll("jmnodes jmnode div.stair-mark");
         qsa.forEach(mark => mark.remove());
     }

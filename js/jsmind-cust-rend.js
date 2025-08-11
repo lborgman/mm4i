@@ -2256,10 +2256,10 @@ export class CustomRenderer4jsMind {
 
         function setupShadowTab() {
             if (shadowTabWasSetup) return;
-            const promBlur = addSliShadowBlur();
+            const _promBlur = addSliShadowBlur();
             // const promSpread = addSliShadowSpread();
-            const promOffX = addSliShadowOffX();
-            const promOffY = addSliShadowOffY();
+            const _promOffX = addSliShadowOffX();
+            const _promOffY = addSliShadowOffY();
             // if (!(sliShadowOffX && sliShadowOffY && sliShadowBlur)) return;
             shadowTabWasSetup = true;
         }
