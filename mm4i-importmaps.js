@@ -367,7 +367,10 @@ const baseUrl = (() => {
                 console.log("detectEnvironment", err);
                 return;
             }
-            const { isInApp, appKey, appName } = modInappSpy.default();
+            let isInApp = false, appKey = "(none)", appName = "(none)";
+            if (modInappSpy) {
+                ({ isInApp, appKey, appName } = modInappSpy.default());
+            }
             const isAndroidApp = getAndroidApp();
             const isChromium = isChromiumBased();
             const isPWA = getIsPWA();
