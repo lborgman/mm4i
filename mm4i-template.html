@@ -48,7 +48,7 @@
     <script>
         /* Add OG: */
 
-        const searchParams = new URLSearchParams(location.href);
+        const searchParams = new URLSearchParams(location.search);
         let uacf = "NOUACF";
         uacf = searchParams.get("uacf");
         if (uacf) { window.detectedBot = true; } else { uacf = "NOUACF"; }
