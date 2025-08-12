@@ -457,14 +457,12 @@ const baseUrl = (() => {
                 font-weight: bold;
             }
             #mm4i-image {
-                background-image: url(https://lborgman.github.io/mm4i/img/mm4i.png);
-                background-image: url(https://static-cdn.sr.se/images/2071/44f57e40-91fa-4c2a-a343-3d394a3315a5.jpg?preset=2048x1152&format=webp);
-                background-image: url(https://www.originalmacguy.com/wp-content/uploads/2022/11/1280-mindmapping.jpeg);
                 background-image: url(https://mm4i.vercel.app/img/mm4i.svg);
                 width: 200px;
                 height: 100px;
                 background-repeat: no-repeat;
                 background-size: contain;
+                background-position: center;
                 opacity: 0.5;
             }
         </head>
@@ -486,7 +484,7 @@ const baseUrl = (() => {
               Use the three-dot menu in the upper left corner.
             </dd>
             <dt>On iPhone:</dt>
-            <dd style="font-style:italic; color:grey">
+            <dd style="font-style:italic; color:#eee">
               (No idea. Someone has to tell me.)
             </dd>
           </dl>
