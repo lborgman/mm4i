@@ -486,8 +486,8 @@ const baseUrl = (() => {
               Use the three-dot menu in the upper left corner.
             </dd>
             <dt>On iPhone:</dt>
-            <dd>
-              No idea. Someone has to tell me.
+            <dd style="font-style:italic; color:grey">
+              (No idea. Someone has to tell me.)
             </dd>
           </dl>
         </details>
