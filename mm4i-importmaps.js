@@ -428,6 +428,7 @@ const baseUrl = (() => {
         tellOpenInExternalBrowser();
     }
     function tellOpenInExternalBrowser() {
+        window["dontDisplayError"] = true;
         const doIt = () => {
             // FIX-ME: image...
             let innerHtml = `
