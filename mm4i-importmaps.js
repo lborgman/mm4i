@@ -415,5 +415,55 @@ const baseUrl = (() => {
     }
     const promWebBrowserInfo = getWebBrowserInfo();
     window["promWebBrowserInfo"] = promWebBrowserInfo;
+    (async () => {
+        const webBrowserInfo = await promWebBrowserInfo;
+        if (webBrowserInfo?.isInApp) {
+            tellOpenInExternalBrowser();
+        }
+    })();
+
+    const sp = new URLSearchParams(location.search);
+    // debugger;
+    if (sp.has("inapp")) {
+        tellOpenInExternalBrowser();
+    }
+    function tellOpenInExternalBrowser() {
+        const doIt = () => {
+            // FIX-ME: image...
+            let innerHtml = `
+        <head>
+        <style>
+            body {
+                background: #808000;
+                color: black;
+                padding: 0px 30px;
+            }
+            #mm4i-image {
+                background-image: url(https://lborgman.github.io/mm4i/img/mm4i.png);
+                background-image: url(https://static-cdn.sr.se/images/2071/44f57e40-91fa-4c2a-a343-3d394a3315a5.jpg?preset=2048x1152&format=webp);
+                background-image: url(https://www.originalmacguy.com/wp-content/uploads/2022/11/1280-mindmapping.jpeg);
+                width: 200px;
+                height: 100px;
+                background-repeat: no-repeat;
+                background-size: contain;
+                opacity: 0.5;
+            }
+        </head>
+        `;
+            document.documentElement.innerHTML = innerHtml;
+            const body = document.createElement("body");
+            body.innerHTML = `
+        <div>
+            <h1>MM4i (Mindmap 4 Internet)</h1>
+            Please open this in your external web browser.
+        </div>
+        <p id="mm4i-image"></p>
+        `;
+            const oldBody = document.body;
+            oldBody?.remove();
+            document.documentElement.appendChild(body);
+        }
+        setTimeout(() => doIt(), 1000);
+    }
 
 }

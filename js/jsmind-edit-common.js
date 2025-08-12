@@ -1810,7 +1810,7 @@ export async function pageSetup() {
         if (sp.size == 0) return true;
         const arrParNames = [...sp.keys()].sort();
         // FIX-ME: text and title should only be allowed if share.
-        const allowed = ["debug", "mindmap", "nodehits", "mm-notfound", "cachemodules", "sharepost", "token", "text", "title"];
+        const allowed = ["debug", "inapp", "mindmap", "nodehits", "sharepost", "token", "text", "title"];
         allowed.push("fbclid"); // FIX-ME: why???
         for (const p of arrParNames) {
             if (!allowed.includes(p)) {
