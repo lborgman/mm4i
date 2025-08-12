@@ -439,7 +439,7 @@ const baseUrl = (() => {
         if (sp.has("sharepost")) {
             htmlWhat = `
                 <p id="what">
-                    This is a link to MM4I mindmap.
+                    This is a link to a MM4I mindmap.
                 </p>
             `;
         }
