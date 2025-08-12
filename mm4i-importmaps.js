@@ -189,6 +189,7 @@ const baseUrl = (() => {
      * @returns 
      */
     async function importFc4i(idOrLink) {
+        if (window["in-app-screen"]) return;
         const webBrowserInfo = await window["promWebBrowserInfo"];
         const isInApp = webBrowserInfo.isInApp;
         const tofIsInApp = typeof isInApp;
@@ -428,7 +429,7 @@ const baseUrl = (() => {
         tellOpenInExternalBrowser();
     }
     function tellOpenInExternalBrowser() {
-        window["dontDisplayError"] = true;
+        window["in-app-screen"] = true;
         const doIt = () => {
             // FIX-ME: image...
             let innerHtml = `

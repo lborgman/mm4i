@@ -14,7 +14,7 @@ logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
      * @param {Event} evt 
      */
     const doDisplay = (evt) => {
-        if (window["dontDisplayError"]) return;
+        if (window["in-app-screen"]) return;
         if (numErrors++ > 0) return; // Only display one error
         console.log("in doDisplay", evt);
         if (evt instanceof ErrorEvent) {
