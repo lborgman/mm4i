@@ -430,6 +430,12 @@ const baseUrl = (() => {
     }
     function tellOpenInExternalBrowser() {
         window["in-app-screen"] = true;
+        const sp = new URLSearchParams(location.search);
+        let htmlWhat = `
+            <p>
+                This is a link to MM4I.
+            </p>
+        `;
         const doIt = () => {
             // FIX-ME: image...
             let innerHtml = `
@@ -439,6 +445,9 @@ const baseUrl = (() => {
                 background: #808000;
                 color: black;
                 padding: 0px 30px;
+            }
+            #what {
+                font-weight: bold;
             }
             #mm4i-image {
                 background-image: url(https://lborgman.github.io/mm4i/img/mm4i.png);
@@ -457,6 +466,7 @@ const baseUrl = (() => {
             body.innerHTML = `
         <div>
             <h1>MM4i (Mindmap 4 Internet)</h1>
+            ${htmlWhat}
             Please open this in your external web browser.
         </div>
         <p id="mm4i-image"></p>
