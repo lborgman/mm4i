@@ -430,12 +430,19 @@ const baseUrl = (() => {
     }
     function tellOpenInExternalBrowser() {
         window["in-app-screen"] = true;
-        const sp = new URLSearchParams(location.search);
         let htmlWhat = `
-            <p>
+            <p id="what">
                 This is a link to MM4I.
             </p>
         `;
+        const sp = new URLSearchParams(location.search);
+        if (sp.has("sharepost")) {
+            htmlWhat = `
+                <p id="what">
+                    This is a link to MM4I mindmap.
+                </p>
+            `;
+        }
         const doIt = () => {
             // FIX-ME: image...
             let innerHtml = `
