@@ -7,8 +7,9 @@ directly through your web browser, designed to work
 both on mobile phones and on desktop computers.
 You can create and edit mindmaps without needing to install
 any software, and your work is stored locally for offline use.
-Key features include the ability to **visually enhance nodes** with
-**notes**, **search** nodes and notes, **dynamically link nodes** (through the search function), and a **visual undo/redo history**.
+Key features include the ability to **visually enhance nodes**, add
+**notes** to nodes, **search** nodes and notes, **dynamically link nodes**
+(through the search function), create **paths** between nodes (called "stairs"), and a **visual undo/redo history**.
 
 
 You can start MM4I here:
