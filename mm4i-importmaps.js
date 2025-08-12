@@ -478,6 +478,15 @@ const baseUrl = (() => {
             Please open this in your external web browser.
         </div>
         <p id="mm4i-image"></p>
+        <details>
+          <summary>How to open in externa web browser</summary>
+          <dl>
+            <dt>On Android:</dt>
+            <dd>
+              Use the three-dot menu in the upper left corner.
+            </dd>
+          </dl>
+        </details>
         `;
             const oldBody = document.body;
             oldBody?.remove();
