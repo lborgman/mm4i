@@ -460,6 +460,7 @@ const baseUrl = (() => {
                 background-image: url(https://lborgman.github.io/mm4i/img/mm4i.png);
                 background-image: url(https://static-cdn.sr.se/images/2071/44f57e40-91fa-4c2a-a343-3d394a3315a5.jpg?preset=2048x1152&format=webp);
                 background-image: url(https://www.originalmacguy.com/wp-content/uploads/2022/11/1280-mindmapping.jpeg);
+                background-image: url(https://mm4i.vercel.app/img/mm4i.svg);
                 width: 200px;
                 height: 100px;
                 background-repeat: no-repeat;
