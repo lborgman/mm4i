@@ -116,9 +116,11 @@ function informDragStatus(msg) {
     const eltStatus = document.getElementById(id) || mkElt("div", { id }, mkElt("div"));
     if (!eltStatus.parentElement) document.body.appendChild(eltStatus)
     if (msg === undefined) {
-        eltStatus.style.display = null;
+        // eltStatus.style.display = null;
+        eltStatus.attributeStyleMap.delete("display");
     } else {
         eltStatus.style.display = "block";
+        if (eltStatus.firstElementChild == null) throw Error("eltStatus.firstElementChild == null");
         eltStatus.firstElementChild.textContent = msg;
     }
 }

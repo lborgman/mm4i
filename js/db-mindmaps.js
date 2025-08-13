@@ -3,11 +3,13 @@ const version = "0.2.00";
 window["logConsoleHereIs"](`here is db-mindmaps.js, module ${version}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
+const importFc4i = window["importFc4i"];
+const modIdbCmn = await importFc4i("idb-common");
+
 // const useLocalStorage = true;
 const useLocalStorage = false;
 const idbStoreMm = "mindmaps";
 let strPrefix = "jsmindmap-";
-const modIdbCmn = await importFc4i("idb-common");
 
 export function setDBprefix(prefix) {
     strPrefix = prefix;
@@ -51,10 +53,10 @@ export async function DBgetAllMindmaps() {
  */
 export async function DBsetMindmap(keyName, jsMindMap, lastUpdated, lastSynced, privacy) {
     if (!jsMindMap.key) {
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         jsMindMap.key = keyName;
     }
-    DBcheckIsMMformatStored(jsMindMap, "DBsetMindmap");
+    DBcheckIsMMformatStored(jsMindMap, "DBsetMindmap", undefined);
     // if (keyName !== jsMindMap.meta.name) throw Error(`key=${keyName} but objMindmap.meta.name=${jsMindMap.meta.name}`);
     const metaName = jsMindMap.meta.name;
     const [metaKey, _oldUpdated, _lastSynced, _privacy] = metaName.split("/");
@@ -96,7 +98,7 @@ export async function DBgetMindmap(key) {
         return JSON.parse(json);
     } else {
         const obj = await modIdbCmn.getDbKey(idbStoreMm, key);
-        if (obj) { DBcheckIsMMformatStored(obj, "DBgetMindmap"); }
+        if (obj) { DBcheckIsMMformatStored(obj, "DBgetMindmap", undefined); }
         return obj;
     }
 }
@@ -122,7 +124,7 @@ async function DBcheckIsMMformatStored(obj, where, arrMayMiss) {
     const throwErr = (what) => {
         const msg = `(DBcheckIsMmformatStored) ${where}: ${what}`;
         console.error(msg);
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         throw Error(msg);
     }
 

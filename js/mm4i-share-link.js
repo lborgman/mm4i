@@ -14,7 +14,7 @@ const importFc4i = window["importFc4i"];
 
 // https://grok.com/chat/f10b142c-077f-452c-843d-d1340481125a
 
-const MM4I_SUPABASE_PROJECT = "mm4ishare";
+// const MM4I_SUPABASE_PROJECT = "mm4ishare";
 // const MM4I_SUPABASE_ID = "";
 const MM4I_SUPABASE_URL = "https://dpjaiwxctqpdezuinieq.supabase.co";
 
@@ -172,66 +172,4 @@ export async function getSharedData(sharedParam) {
         console.error('Error:', error);
         throw new Error(`Error fetching supabase data: ${error.message}`);
     }
-
-
-    return;
-
-    try {
-        const headers = {
-            'Content-Type': 'application/json',
-            // 'apikey': '<your-supabase-anon-key>',
-            'apikey': MM4I_SUPABASE_ANON_KEY,
-            // 'Authorization': 'Bearer <your-supabase-anon-key>',
-            'Authorization': `Bearer ${MM4I_SUPABASE_ANON_KEY}`,
-        };
-        if (accessToken) {
-            headers['x-access-token'] = accessToken;
-        }
-
-        const response = await fetch(
-            // `https://<your-supabase-project>.supabase.co/rest/v1/shared_data?id=eq.${postId}`,
-            // `https://${MM4I_SUPABASE_PROJECT}.supabase.co/rest/v1/shared_data?id=eq.${postId}`,
-            `${MM4I_SUPABASE_URL}/rest/v1/shared_data?id=eq.${postId}`,
-            {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({}),
-            }
-        );
-
-        if (response.ok) {
-            const result = await response.json();
-            console.log({ result })
-            debugger; // eslint-disable-line no-debugger
-            const data = result[0].data;
-        } else {
-            debugger; // eslint-disable-line no-debugger
-        }
-    } catch (error) {
-        console.error('Error:', error);
-    }
 }
-
-/*
-const srcSupabaseJs = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-const modSupabaseJs = await import(srcSupabaseJs);
-console.log({ modSupabaseJs });
-
-debugger;
-
-const supabase = modSupabaseJs.createClient(MM4I_SUPABASE_URL, MM4I_SUPABASE_ANON_KEY);
-console.log({ supabase });
-*/
-
-/*
-// <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-//or
-// <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-const { createClient } = modSupabaseJs;
-
-debugger;
-// Create a single supabase client for interacting with your database
-const supabase = createClient('https://xyzcompany.supabase.co', 'public-anon-key');
-console.log({ supabase });
-debugger;
-*/

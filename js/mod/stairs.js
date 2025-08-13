@@ -145,7 +145,7 @@ export async function dialogStairs() {
         ourStairs.sort((a, b) => { return a.nameStair.localeCompare(b.nameStair); });
         ourStairs.forEach(obj => {
             const nameStair = obj.nameStair;
-            const strVal = obj.strStair;
+            // const strVal = obj.strStair;
             // const btnName = modMdc.mkMDCbutton(nameStair);
             const spanName = mkElt("span", undefined, nameStair);
             spanName.style = `
@@ -181,8 +181,8 @@ export async function dialogStairs() {
               grid-template-columns: 1fr 40px 40px 40px;
               NOgap: 10px;
         `;
-            divEntry.dataset.nameStair = name;
-            divEntry.dataset.strStair = strVal;
+            // divEntry.dataset.nameStair = name;
+            // divEntry.dataset.strStair = strVal;
             // divOurStairs.appendChild(divEntry);
             divOurStairs.appendChild(divEntry);
         });

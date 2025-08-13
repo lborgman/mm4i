@@ -205,8 +205,11 @@ export class CustomRenderer4jsMind {
             });
             divThemeChoices.addEventListener("input", evt => {
                 evt.stopPropagation();
-                console.log("theme input", evt.target);
-                selectedThemeCls = evt.target?.value;
+                if (evt.target == null) { throw Error("divThemeChoices input, evt.target == null"); }
+                const target = /** @type {HTMLInputElement} */ (evt.target);
+                console.log("theme input", target);
+                // if (target.tagName != "input")
+                selectedThemeCls = target.value;
                 // setJsmindTheme(jmnodesCopied, theme);
                 funDebounceSomethingToSaveMm();
             });
@@ -895,7 +898,6 @@ export class CustomRenderer4jsMind {
         */
 
         const divSliBorderWidth = mkElt("p", undefined, "Width: ");
-        let sliBorderWidth;
         async function addSliBorderWidth() {
             const eltCont = divSliBorderWidth;
             const title = "Border width";
@@ -906,7 +908,7 @@ export class CustomRenderer4jsMind {
 
         const initialBorderStyle = initialShapeEtc.border?.style || "solid";
         function mkAltBorderStyle(styleName) {
-            const inp = mkElt("input", { type: "radio", name: "borderstyle", value: styleName });
+            const inp = /** @type {HTMLInputElement} */ (mkElt("input", { type: "radio", name: "borderstyle", value: styleName }));
             if (styleName == initialBorderStyle) inp.checked = true;
             const eltShow = mkElt("span", undefined, styleName);
             const ss = eltShow.style;
@@ -955,15 +957,6 @@ export class CustomRenderer4jsMind {
             if (borderTabwasSetup) return;
             borderTabwasSetup = true;
             addSliBorderWidth();
-            if (!sliBorderWidth) return;
-            /*
-            debugger;
-            inpBorderColor.value = initialShapeEtc.border?.color || "black";
-            const borderStyle = initialShapeEtc.border?.style;
-            divBorder.querySelectorAll("input[name=borderstyle]")
-                // @ts-ignore
-                .forEach((inp) => { if (inp.value == borderStyle) inp.checked = true });
-            */
         }
         function activateBorderTab() {
             // FIX-ME:
@@ -987,7 +980,7 @@ export class CustomRenderer4jsMind {
             const bgName = initBgObj ? initBgObj.bgName : "bg-choice-none";
             const bgVal = initBgObj ? initBgObj.bgValue : undefined;
             console.log({ bgName, bgVal });
-            const rad = /** @type {HTMLInputElement} */ divBgChoices.querySelector(`#${bgName}`);
+            const rad = /** @type {HTMLInputElement} */ (divBgChoices.querySelector(`#${bgName}`));
             if (!rad) throw Error(`Could not find #${bgName}`);
             rad.checked = true;
             switch (bgName) {
@@ -1064,8 +1057,10 @@ export class CustomRenderer4jsMind {
                         })();
 
                         const d = rad.closest("div.bg-choice");
+                        if (d == null) throw Error("d == null");
                         setBgNodeChoiceValid(d, true);
                         const det = d.querySelector("details")
+                        if (det == null) throw Error("det == null");
                         det.open = true;
                     }
                     break;
@@ -2514,44 +2509,10 @@ export class CustomRenderer4jsMind {
 
         /////////// Border
 
-        // let initValSliBorderWidth;
-        /*
-        function getCtrlValBorderWidth(val) {
-            // FIX-ME:
-            const mdc = sliBorderWidth?.myMdc;
-            return mdc?.getValue();
-        }
-        */
-
         function getCtrlValBorderStyle() {
             return divBorderStyle.querySelector("[name=borderstyle]:checked").value;
         }
 
-        // function getCtrlValBorderColor() { return inpBorderColor.value; }
-
-
-        /*
-        function getCtrlValShadowBlur() {
-            const mdc = sliShadowBlur?.myMdc;
-            return mdc?.getValue();
-        }
-        */
-        /*
-        function onCtrlsChgShadow() {
-            // const b = getCtrlValShadowBlur();
-            const b = getFromShapeEtc("shadow.blur", currentShapeEtc) || 0;
-            if (b <= 0) { eltCopied.style.filter = "none"; return; }
-            const s = getFromShapeEtc("shadow.spread", currentShapeEtc) || 0;
-            const x = getFromShapeEtc("shadow.offX", currentShapeEtc) || 0;
-            const y = getFromShapeEtc("shadow.offY", currentShapeEtc) || 0;
-            if (isNaN(b) || isNaN(x) || isNaN(y)) {
-                console.error("Some shadow val is not set yet");
-                return;
-            }
-            const c = getFromShapeEtc("shadow.color", currentShapeEtc) || "red";
-            eltCopied.style.filter = `drop-shadow(${x}px ${y}px ${b}px ${s}px ${c})`;
-        }
-        */
 
         let btnSave;
         function getBtnSave() {
