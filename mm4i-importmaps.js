@@ -411,7 +411,7 @@ const baseUrl = (() => {
         }
 
         const env = await detectEnvironment();
-        console.log(env);
+        // console.log(env);
         return env;
     }
     const promWebBrowserInfo = getWebBrowserInfo();

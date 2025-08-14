@@ -1338,7 +1338,7 @@ export async function pageSetup() {
     // console.log({ sharedParam });
     const searchParams = new URLSearchParams(location.search);
     const sharepostParam = searchParams.get("sharepost");
-    console.log({ sharepostParam });
+    // console.log({ sharepostParam });
     if (sharepostParam != null) {
         // const sp = new URLSearchParams(sharedParam);
         const spTitle = searchParams.get("title");

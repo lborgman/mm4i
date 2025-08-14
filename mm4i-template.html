@@ -65,7 +65,7 @@
         }
 
         const sharepostParam = searchParams.get("sharepost");
-        console.log({ sharepostParam });
+        // console.log({ sharepostParam });
         if (sharepostParam != null) {
             ////// See shareLinkWithPostContent in mm4i-share-links.js
             // There are 4 parts: sharepost, title, text and token.
@@ -1461,7 +1461,7 @@
                 spanHistoryHeaderLeft.appendChild(spanLinearTree);
                 spanHistoryHeaderLeft.id = "span-history-left";
 
-                const btnBookmark = modMdc.mkMDCiconButton("bookmark");
+                const btnBookmark = modMdc.mkMDCiconButton("bookmark", "Add/remove bookmark");
                 btnBookmark.id = "btn-bookmark";
                 btnBookmark.inert = true;
                 spanHistoryHeaderLeft.appendChild(btnBookmark);
@@ -1798,7 +1798,7 @@
                 }
                 const dbMindmaps = await importFc4i("db-mindmaps");
                 const arrBm = await dbMindmaps.DBgetAllMindmapBookmarks(mindmapKey);
-                console.log({ arrBm });
+                // console.log({ arrBm });
                 if (arrBm.length > 0) {
                     const divPersistent = mkElt("div", { class: "mdc-card" });
                     divPersistent.style = `
@@ -1817,9 +1817,9 @@
                     divPersistent.appendChild(eltPersistenHeader);
                     divHistoryList.appendChild(divPersistent);
                     arrBm.forEach(bm => {
-                        console.log({ bm });
+                        // console.log({ bm });
                         const { bmName, jsmindmap, keyBookmark } = bm;
-                        console.log({ bmName, jsmindmap });
+                        // console.log({ bmName, jsmindmap });
                         const radNode = mkElt("input", {
                             type: "radio",
                             name: "undo-redo-state",

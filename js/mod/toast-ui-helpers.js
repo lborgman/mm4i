@@ -19,7 +19,7 @@ if (document.currentScript) throw Error("import .currentScript"); // is module
 let searchNodeParams;
 export function setupSearchNodes(searchPar) {
     searchNodeParams = searchPar;
-    console.log({ searchNodeParams });
+    // console.log({ searchNodeParams });
 }
 
 const modToastUI = window["toastui"] || await importFc4i("toast-ui");

@@ -257,7 +257,7 @@ export class UndoRedoTreeWithDiff {
       const actionTopic = node.actionTopic;
       const numChildren = node.children.length;
       if (numChildren > 0) {
-        console.log("walkSubtree", actionTopic, numChildren);
+        // console.log("walkSubtree", actionTopic, numChildren);
         node.children.forEach(child => walkSubtree(child, depth + 1));
       }
 
@@ -272,7 +272,7 @@ export class UndoRedoTreeWithDiff {
     // return jsonStringifySorted(state);
     const strJson = jsonStringifySorted(state);
     const obj = JSON.parse(strJson);
-    console.log({ obj });
+    // console.log({ obj });
     const strJson2 = jsonStringifySorted(obj);
     if (strJson != strJson2) {
       debugger; // eslint-disable-line no-debugger
