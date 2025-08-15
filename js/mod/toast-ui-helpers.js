@@ -22,7 +22,8 @@ export function setupSearchNodes(searchPar) {
     // console.log({ searchNodeParams });
 }
 
-const modToastUI = window["toastui"] || await importFc4i("toast-ui");
+// const modToastUI = window["toastui"] || await importFc4i("toast-ui");
+const toastUI = window["toastui"];
 
 async function dialogLinkURL(editor) {
     // debugger;
@@ -355,6 +356,9 @@ function doSearchPreview(valSearchstring) {
 
 }
 
+
+let editorViewer;
+
 /**
  * 
  * @param {HTMLDivElement} divEditor 
@@ -441,20 +445,16 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
         dialogLinkURL(toastEditor);
     }
 
-    /*
-    function insertTagCommand(dummy) {
-        console.log("tagCommand clicked", dummy);
-        dialogTag(toastEditor);
-    }
-    */
 
 
     toastEditor = makeFakedViewer();
 
-
     // https://github.com/nhn/tui.editor/issues/3298
     function makeFakedViewer() {
-        const editorViewer = new modToastUI.Editor({
+        // FIX-ME: Use weakMap if several editors!
+        // FIX-ME: Destroy editor earlier
+        editorViewer?.destroy();
+        editorViewer = new toastUI.Editor({
             el: divEditor,
             toolbarItems: objToolbarItems,
             placeholder: valuePlaceholder,
@@ -471,8 +471,6 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
         editorViewer.addCommand("wysiwyg", "searchCommand", insertSearchCommand);
         editorViewer.addCommand("markdown", "myLinkCommand", insertLinkCommand);
         editorViewer.addCommand("wysiwyg", "myLinkCommand", insertLinkCommand);
-        // editorViewer.addCommand("markdown", "tagCommand", insertTagCommand);
-        // editorViewer.addCommand("wysiwyg", "tagCommand", insertTagCommand);
 
 
         editorViewer.options.el.classList.add("faked-viewer");
@@ -487,36 +485,6 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
         if (!eltModeSwitch) throw Error(`Did not find "${modeSwiSelector}"`);
         // @ts-ignore
         eltModeSwitch.style.display = null;
-
-        /*
-        const arrC = [...divEditor.querySelectorAll(".toastui-editor-ww-container div[contenteditable=true]")];
-        if (arrC.length != 1) throw Error(`Expected to match 1 contenteditable, got ${arrC.length}`);
-        const arrC0 = arrC[0];
-        arrC0.setAttribute("tabindex", "-1");
-        // @ts-ignore
-        arrC0.style = `
-            padding: 0;
-        `;
-        const eltDialogContent = arrC0.closest(".mdc-dialog__content");
-        // @ts-ignore
-        eltDialogContent.style.paddingBottom = "0px";
- 
-        const selectorWWcont = "div.toastui-editor-ww-container";
-        const previewWWcont = divEditor.querySelector(selectorWWcont);
-        if (!previewWWcont) throw Error(`Could not find "${selectorWWcont}`);
- 
-        const arrCmContenteditable = [...previewWWcont.querySelectorAll("[contenteditable]")];
-        const lenArrCm = arrCmContenteditable.length;
-        if (lenArrCm != 1) {
-            debugger;
-        }
-        let cmContenteditable;
-        cmContenteditable = cmContenteditable || arrCmContenteditable[0];
-        const stCmContenteditable = getComputedStyle(cmContenteditable);
-        const pointerEvensCm = stCmContenteditable["pointer-events"];
-        console.log({ cmContenteditable, pointerEvensCm });
-        // debugger;
-        */
 
 
 
@@ -552,21 +520,6 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
         return editorViewer;
     }
 
-    /*
-    toastViewer = toastPreview || new modToastUI.Editor.factory({
-        viewer: true,
-        el: divEditor,
-        initialValue: initialMD,
-        // previewStyle: "none",
-        // initialEditType: "wysiwyg",
-        // customHTMLRenderer: mm4iRenderer,
-        usageStatistics: false,
-    });
- 
-    window["myToastViewer"] = toastViewer;
-    console.log({ toastViewer });
-    */
-
 
 
 
@@ -600,93 +553,6 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
                 btnEditMyNotes.textContent = "edit_off";
             }
             return;
-            /*
-
-
-            btnEditMyNotes.remove();
-            const ourElt = toastViewer.options.el;
-            const valueInitial = toastViewer.options.initialValue;
-            // console.log({ ourElt });
-            toastViewer.destroy();
-            ourElt.innerHTML = "";
-
-
-            toastEditor = new modToastUI.Editor({
-                el: ourElt,
-                toolbarItems: objToolbarItems,
-                initialValue: valueInitial,
-                // customHTMLRenderer: mm4iRenderer,
-                // previewStyle: "vertical",
-                previewStyle: "tab",
-                initialEditType: "markdown",
-                usageStatistics: false,
-            });
-            console.log({ toastEditor });
-            toastEditor.on("change", () => {
-                const divEditor = toastEditor.options.el;
-                const latestSaved = decodeURIComponent(divEditor.dataset.latestSaved);
-                const currentValue = toastEditor.getMarkdown();
-                const needSave = latestSaved != currentValue;
-
-                if (needSave) {
-                    callersSaveFun(currentValue);
-                    divEditor.dataset.latestSaved = encodeURIComponent(currentValue);
-                }
-            });
-            async function handleCursorChangeWW(_evt) {
-                savedCursorPosition = toastEditor.getSelection();
-            }
-            async function handleCursorChangeMD(_evt) {
-                savedCursorPosition = toastEditor.getSelection();
-            }
-            const elts = toastEditor.getEditorElements();
-            const eltMD = elts.mdEditor;
-            eltMD.addEventListener("keyup", handleCursorChangeMD);
-            eltMD.addEventListener("pointerup", handleCursorChangeMD);
-            const eltWW = elts.wwEditor;
-            eltWW.addEventListener("keyup", handleCursorChangeWW);
-            eltWW.addEventListener("pointerup", handleCursorChangeWW);
-
-            window["MYtoastEditor"] = toastEditor;
-
-
-            // Looking for workaround for the cursor move bug in Toast UI. 
-
-            // Suggested by Deep Seek.
-
-            let savedCursorPosition = [1, 1];
-            const callersSaveFun = await onEdit(toastEditor);
-            const tofSaveFun = typeof callersSaveFun;
-            if (tofSaveFun != "function") throw Error(`onEdit(...) returned type "${tofSaveFun}", expeced "function"`);
-            const lenSaveFun = callersSaveFun.length;
-            if (lenSaveFun != 1) throw Error(`Function return by onEdit(...) takes ${lenSaveFun} parameters, expected 1`);
-
-            // function saveCursorPosition() { savedCursorPosition = getCursorPosition(); }
-
-            async function restoreCursorPosition() {
-                // const st = "background:red;";
-                // console.log("%crestoreCursorPosition", st, savedCursorPosition.toString());
-                if (savedCursorPosition == undefined) return;
-                const saved0 = savedCursorPosition[0];
-                const pos = saved0;
-                await modTools.wait4mutations(toastEditor.options.el);
-                setCursorPos(toastEditor, pos);
-            }
-
-            toastEditor.on('changeMode', (_newMode) => {
-                // await modTools.wait4mutations(toastEditor.options.el);
-                // await modTools.waitSeconds(1);
-                // setTimeout(() => {
-                restoreCursorPosition();
-                // }, 1);
-            });
-
-
-            // const sel = toastEditor.getSelection();
-            toastEditor.addCommand("markdown", "searchCommand", insertSearchCommand);
-            toastEditor.addCommand("wysiwyg", "searchCommand", insertSearchCommand);
-            toastEditor.changeMode("wysiwyg");
-            */
 
         });
         return btnEditMyNotes;
@@ -879,7 +745,7 @@ export function mySetCursorPos(posWysiwyg) {
 
 
 function convertMarkdownToHtml(markdownString) {
-    return modToastUI.Editor.factory({
+    return toastUI.Editor.factory({
         el: document.createElement('div'),
         initialValue: markdownString,
         initialEditType: 'markdown'

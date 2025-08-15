@@ -379,7 +379,12 @@ export class CustomRenderer4jsMind {
 
         /** @param {string} val @returns {void} */
         const onChangeMMdesc = (val) => {
-            root_node.data.shapeEtc.notes = val.trimEnd();
+            const notes = val.trimEnd();
+            if (notes.length > 0) {
+                root_node.data.shapeEtc.notes = notes;
+            } else {
+                delete root_node.data.shapeEtc.notes;
+            }
             modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, "Edit mindmap description");
         };
 
@@ -671,7 +676,12 @@ export class CustomRenderer4jsMind {
         const objClose = {};
         /** @type {Object | undefined} */ let toastNotesEditor;
         const onChange = (val) => {
-            shapeEtc.notes = val.trimEnd();
+            const notes = val.trimEnd();
+            if (notes.length > 0) {
+                shapeEtc.notes = notes;
+            } else {
+                delete shapeEtc.notes;
+            }
             modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, `Edit notes "${node.topic}"`);
         };
 
@@ -684,6 +694,7 @@ export class CustomRenderer4jsMind {
                 evt.preventDefault();
                 evt.stopPropagation();
                 setTimeout(() => {
+                    debugger;
                     const btnSave = getBtnSave();
                     const btnCancel = btnSave.nextElementSibling;
                     const divS = btnSave.closest("div.mdc-dialog__surface");
@@ -717,46 +728,36 @@ export class CustomRenderer4jsMind {
             if (btnSave?.textContent != "save") throw Error("Did not find the save button");
             return btnSave;
         }
-        /*
-        function setStateBtnSaveDisabled(disable) {
-            const tof = typeof disable;
-            if (tof != "boolean") throw Error(`Expected boolean, got ${tof} disable:${disable}`);
-            const btn = getBtnSave();
-            if (!btn) return;
-            btn.disabled = disable
-        }
-        */
-        // function setStateBtnSaveable() { setStateBtnSaveDisabled(!somethingToSaveNotes()); }
-        // const debounceStateBtnSaveable = debounce(setStateBtnSaveable, 300);
-        // function requestSetStateBtnSaveable() { debounceStateBtnSaveable(); }
-        // requestSetStateBtnSaveable();
-        // FIX-ME: move to mdc-util
-        // setTimeout(() => setStateBtnSaveDisabled(true), 50);
 
         function funCheckSave(save) {
             if (!save) return somethingToSaveNotes();
-            shapeEtc.notes = toastNotesEditor.getMarkdown().trimEnd();
+            const notes = toastNotesEditor.getMarkdown().trimEnd();
+            if (notes.length > 0) {
+                shapeEtc.notes = notes;
+            } else {
+                delete shapeEtc.notes;
+            }
             modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed);
         }
         // const useConfirm = true;
         const useConfirm = false;
-        if (useConfirm) {
-            await modMdc.mkMDCdialogConfirm(body, "close", null, funCheckSave);
-        } else {
-            const btnClose = modMdc.mkMDCbutton("Close");
-            const eltActions = modMdc.mkMDCdialogActions([btnClose]);
-            const retMkDialog = await modMdc.mkMDCdialog(body, eltActions);
-            ///// retMkDialog.mdc.close(); <- this is the original call
-            // const funClose = function() { retMkDialog.mdc.close(); } // btn: ok
-            // const funClose = function() { this.mdc.close(); }.bind(retMkDialog); // works, but why
-            const funClose = function () {
-                this.close();
-            }.bind(retMkDialog.mdc); // works
-            objClose.funClose = funClose;
-            btnClose.addEventListener("click", () => {
-                funClose();
-            });
-        }
+        // if (useConfirm) {
+        // await modMdc.mkMDCdialogConfirm(body, "close", null, funCheckSave);
+        // } else {
+        const btnClose = modMdc.mkMDCbutton("Close");
+        const eltActions = modMdc.mkMDCdialogActions([btnClose]);
+        const retMkDialog = await modMdc.mkMDCdialog(body, eltActions);
+        ///// retMkDialog.mdc.close(); <- this is the original call
+        // const funClose = function() { retMkDialog.mdc.close(); } // btn: ok
+        // const funClose = function() { this.mdc.close(); }.bind(retMkDialog); // works, but why
+        const funClose = function () {
+            this.close();
+        }.bind(retMkDialog.mdc); // works
+        objClose.funClose = funClose;
+        btnClose.addEventListener("click", () => {
+            funClose();
+        });
+        // }
     }
     async editNodeDialog(eltJmnode, scrollToNotes) {
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
