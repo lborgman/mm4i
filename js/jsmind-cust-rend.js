@@ -660,7 +660,8 @@ export class CustomRenderer4jsMind {
         const node = jmDisplayed.get_node(node_ID)
         const node_data = node.data;
         const shapeEtc = node_data.shapeEtc || {};
-        const initialVal = shapeEtc.notes || "";
+        const initialNotes = shapeEtc.notes || "";
+        let currentNotes = initialNotes;
 
         const divEasyMdeOuterWrapper = mkElt("div");
 
@@ -676,9 +677,9 @@ export class CustomRenderer4jsMind {
         const objClose = {};
         /** @type {Object | undefined} */ let toastNotesEditor;
         const onChange = (val) => {
-            const notes = val.trimEnd();
-            if (notes.length > 0) {
-                shapeEtc.notes = notes;
+            currentNotes = val.trimEnd();
+            if (currentNotes.length > 0) {
+                shapeEtc.notes = currentNotes;
             } else {
                 delete shapeEtc.notes;
             }
@@ -688,13 +689,13 @@ export class CustomRenderer4jsMind {
         body.appendChild(divEasyMdeOuterWrapper);
         // FIX-ME: remove setTimeout??
         setTimeout(async () => {
-            const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, initialVal, placeholder, onChange, objClose);
+            const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, initialNotes, placeholder, onChange, objClose);
             // let btnSave;
             btnEdit.addEventListener("click", (evt) => {
                 evt.preventDefault();
                 evt.stopPropagation();
                 setTimeout(() => {
-                    debugger;
+                    // debugger;
                     const btnSave = getBtnSave();
                     const btnCancel = btnSave.nextElementSibling;
                     const divS = btnSave.closest("div.mdc-dialog__surface");
@@ -714,10 +715,14 @@ export class CustomRenderer4jsMind {
             });
         }, 1);
 
+        /*
         function somethingToSaveNotes() {
             if (!toastNotesEditor) throw Error(`toastNotesEditor is ${toastNotesEditor}`);
-            return toastNotesEditor.getMarkdown().trimEnd() != initialVal;
+            return toastNotesEditor.getMarkdown().trimEnd() != initialNotes;
         }
+        */
+
+
         function getBtnSave() {
             if (btnSave) return btnSave;
             const contBtns = document.body.querySelector(".mdc-dialog__actions");
@@ -729,35 +734,12 @@ export class CustomRenderer4jsMind {
             return btnSave;
         }
 
-        function funCheckSave(save) {
-            if (!save) return somethingToSaveNotes();
-            const notes = toastNotesEditor.getMarkdown().trimEnd();
-            if (notes.length > 0) {
-                shapeEtc.notes = notes;
-            } else {
-                delete shapeEtc.notes;
-            }
-            modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed);
+        await modMdc.mkMDCdialogConfirm(body, "close");
+        // We may have deleted notes, but we can't have added notes here.
+        if (currentNotes.length == 0) {
+            const eltMark = eltJmnode.querySelector(".has-notes-mark");
+            eltMark.remove();
         }
-        // const useConfirm = true;
-        const useConfirm = false;
-        // if (useConfirm) {
-        // await modMdc.mkMDCdialogConfirm(body, "close", null, funCheckSave);
-        // } else {
-        const btnClose = modMdc.mkMDCbutton("Close");
-        const eltActions = modMdc.mkMDCdialogActions([btnClose]);
-        const retMkDialog = await modMdc.mkMDCdialog(body, eltActions);
-        ///// retMkDialog.mdc.close(); <- this is the original call
-        // const funClose = function() { retMkDialog.mdc.close(); } // btn: ok
-        // const funClose = function() { this.mdc.close(); }.bind(retMkDialog); // works, but why
-        const funClose = function () {
-            this.close();
-        }.bind(retMkDialog.mdc); // works
-        objClose.funClose = funClose;
-        btnClose.addEventListener("click", () => {
-            funClose();
-        });
-        // }
     }
     async editNodeDialog(eltJmnode, scrollToNotes) {
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
