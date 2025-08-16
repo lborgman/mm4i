@@ -1188,12 +1188,12 @@ async function dialogSetRoot(selected_node) {
         modMdc.mkMDCsnackbar("Canceled (root not changed)");
         return;
     }
-    debugger;
+    // debugger;
     console.log({ jmDisplayed });
     const objMindData = jmDisplayed.get_data("node_array");
     console.log({ objMindData });
     const mindStored = objMindData;
-    const root_node = jmDisplayed.get_root();
+    // const root_node = jmDisplayed.get_root();
     const id_selected = selected_node.id;
 
     ///// Reverse links
@@ -1211,40 +1211,97 @@ async function dialogSetRoot(selected_node) {
         }
         return arr[0];
     }
-    /**
-     * 
-     * @param {Object} node 
-     * @returns {Object} 
-     */
-    const reverseLink = (node) => {
-        debugger;
-        const parentId = node.parentid;
-        const direction = node.direction;
-        const parentNode = get_node(parentId);
-        console.log({ node, parentId, direction });
-        return parentNode;
-    }
-    debugger;
-    let node_arr = get_node( id_selected );
+    // debugger;
+    // let node_arr = get_node( id_selected );
+    // let n = 0;
+    // while (n++ < 100 && node_arr.id != "root") { node_arr = reverseLink(node_arr); }
+    const arrRootPath = [id_selected];
+    const objRootPath = {};
+    objRootPath[id_selected] = get_node(id_selected);
+    let id_in_path = id_selected;
     let n = 0;
-    while (n++ < 100 && node_arr.id != "root") {
-        node_arr = reverseLink(node_arr);
+    while (n++ < 100 && id_in_path != "root") {
+        const arr_node = get_node(id_in_path);
+        id_in_path = arr_node.parentid;
+        arrRootPath.push(id_in_path);
+        const parent_in_path = get_node(id_in_path);
+        if (id_in_path != parent_in_path.id) {
+            throw Error(`id_in_path != parent_in_path.id`);
+        }
+        objRootPath[id_in_path] = parent_in_path;
+    }
+
+
+    ///////// Switch root ids
+    /*
+    let node_root;
+    let node_selected;
+    mindStored.data.forEach(node => {
+        if (node.id == "root") { node_root = node; }
+        if (node.id == id_selected) { node_selected = node; }
+    });
+    // debugger;
+    if (!node_root) throw Error("Could not find id root");
+    node_root.id = id_selected;
+    node_root.isroot = false;
+
+    const currentDirection = selected_node.direction;
+    const newDirection = currentDirection == -1? "right": "left";
+    node_root.direction = newDirection;
+
+    if (!node_selected) throw Error(`Could not find id ${id_selected}`);
+    node_root.id = id_selected;
+    node_selected.id = "root";
+    node_selected.isroot = true;
+    node_selected.parentid = undefined;
+    */
+    debugger;
+
+
+
+    ///// Walk to root
+    const currentDirection = selected_node.direction;
+    const newDirection = currentDirection == -1? "right": "left";
+    let prev_node;
+    for (let n = 0; n < arrRootPath.length; n++) {
+        const this_id = arrRootPath[n];
+        const this_node = objRootPath[this_id];
+        const next_id = arrRootPath[n + 1];
+        const next_node = next_id ? objRootPath[next_id] : undefined;
+        this_node.direction = newDirection;
+        // debugger;
+        if (next_node) {
+            // next_node.parentid = this_node.id;
+            this_node.parentid = next_node.id;
+        } else {
+            if (!this_node.isroot) {
+                debugger;
+                throw Error(`this_node.isroot == "${this_node.isroot}"`)
+            }
+            delete this_node.isroot;
+            const new_root_id = arrRootPath[0]
+            const new_root = objRootPath[new_root_id];
+            new_root.isroot = true;
+            const new_root_old_id = new_root.id;
+            new_root.id = "root";
+            this_node.id = new_root_old_id;
+            this_node.parentid = prev_node.id;
+        }
+        prev_node = this_node;
     }
     debugger;
 
-    ///// Switch ids
-    // selected_node.id = "root";
-    // selected_node.isroot = true;
-    // root_node.id = id_selected;
-    mindStored.data.forEach(node => {
-        if (node.id == "root") { node.id = id_selected; }
-        if (node.id == id_selected) { node.id = "root"; }
 
-    });
-    debugger;
-    // jmDisplayed = 
-    jmDisplayed = await displayMindMap(mindStored);
-    modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "displayOurMindmap");
+    // history modUndo 
+    const mindmapKey = new URLSearchParams(location.search).get("mindmap");
+    mindStored.key = mindmapKey;
+
+    console.log({ mindStored });
+
+    // jmDisplayed = await displayMindMap(mindStored);
+    jmDisplayed = await displayOurMindmap(mindStored);
+    modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "dialogSetRoot");
+    // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, "Change root");
 }
 async function applyOurMindmapGlobals(jmDisplayed) {
     const modCustRend = await importFc4i("jsmind-cust-rend");
@@ -1285,7 +1342,7 @@ export async function displayOurMindmap(mindStored) {
     connectFsm(); // Using mm4i version
     // }
 
-    // We need another layer to handle zoom/move:
+    // We need another layer to handle zoom-move:
     if (modJsmindDraggable.setJmnodeDragged) {
         addZoomMoveLayer(eltJmdisplayContainer);
         addDragBorders(jmDisplayed);
