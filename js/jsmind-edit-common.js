@@ -1167,6 +1167,85 @@ async function dialogEditMindmap() {
     const rend = await modCustRend.getOurCustomRenderer();
     await rend.editMindmapDialog();
 }
+async function dialogSetRoot(selected_node) {
+    console.log({ selected_node });
+    if (selected_node.isroot) { throw Error("selected_node.isroot"); }
+    const node_topic = selected_node.topic;
+    // debugger;
+    const eltNotReady = mkElt("p", undefined, "DO NOT USE YET!");
+    eltNotReady.style = `
+        color: red;
+        font-weight: bold;
+        font-size: 1.2rem;
+    `;
+    const body = mkElt("div", undefined, [
+        eltNotReady,
+        mkElt("h2", undefined, `Make "${node_topic}" new mindmap root`)
+    ]);
+    const ans = await modMdc.mkMDCdialogConfirm(body, "Set new root", "Cancel");
+    console.log({ ans });
+    if (!ans) {
+        modMdc.mkMDCsnackbar("Canceled (root not changed)");
+        return;
+    }
+    debugger;
+    console.log({ jmDisplayed });
+    const objMindData = jmDisplayed.get_data("node_array");
+    console.log({ objMindData });
+    const mindStored = objMindData;
+    const root_node = jmDisplayed.get_root();
+    const id_selected = selected_node.id;
+
+    ///// Reverse links
+    /**
+     * 
+     * @param {string} id 
+     * @returns {Object}
+     */
+    const get_node = (id) => {
+        const arr = mindStored.data.filter(n => n.id == id);
+        const lenArr = arr.length;
+        if (lenArr != 1) {
+            debugger;
+            throw Error(`lenArr == ${lenArr}`);
+        }
+        return arr[0];
+    }
+    /**
+     * 
+     * @param {Object} node 
+     * @returns {Object} 
+     */
+    const reverseLink = (node) => {
+        debugger;
+        const parentId = node.parentid;
+        const direction = node.direction;
+        const parentNode = get_node(parentId);
+        console.log({ node, parentId, direction });
+        return parentNode;
+    }
+    debugger;
+    let node_arr = get_node( id_selected );
+    let n = 0;
+    while (n++ < 100 && node_arr.id != "root") {
+        node_arr = reverseLink(node_arr);
+    }
+    debugger;
+
+    ///// Switch ids
+    // selected_node.id = "root";
+    // selected_node.isroot = true;
+    // root_node.id = id_selected;
+    mindStored.data.forEach(node => {
+        if (node.id == "root") { node.id = id_selected; }
+        if (node.id == id_selected) { node.id = "root"; }
+
+    });
+    debugger;
+    // jmDisplayed = 
+    jmDisplayed = await displayMindMap(mindStored);
+    modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "displayOurMindmap");
+}
 async function applyOurMindmapGlobals(jmDisplayed) {
     const modCustRend = await importFc4i("jsmind-cust-rend");
     modCustRend.setOurCustomRendererJm(jmDisplayed);
@@ -2131,6 +2210,21 @@ export async function pageSetup() {
         const liEditMindmap = mkMenuItem("Edit Mindmap", dialogEditMindmap, "Dblclick");
         if (!document.querySelector("jmnode")) { liEditMindmap.setAttribute("inert", ""); }
 
+        const liSetRoot = mkMenuItem("Set as Mindmap root", () => { dialogSetRoot(selected_node) });
+        if (!document.querySelector("jmnode")) {
+            liSetRoot.setAttribute("inert", "");
+        } else {
+            // markIfNoSelected(liSetRoot);
+            if (!selected_node) {
+                liSetRoot.setAttribute("inert", "");
+            } else {
+                const isAlreadyRoot = selected_node.isroot;
+                if (isAlreadyRoot) {
+                    liSetRoot.setAttribute("inert", "");
+                }
+            }
+        }
+
         const modStairs = await importFc4i("stairs");
         const liMindmapStairs = mkMenuItem("Mindmap stair paths", modStairs.dialogStairs);
         if (!document.querySelector("jmnode")) { liMindmapStairs.setAttribute("inert", ""); }
@@ -2336,6 +2430,7 @@ export async function pageSetup() {
             modMdc.mkMDCmenuItemSeparator(),
             liCreateMindmap,
             liEditMindmap,
+            liSetRoot,
             liMindmapStairs,
             liMindmapsA,
             liMindmapSync,
