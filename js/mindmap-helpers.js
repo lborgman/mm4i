@@ -985,3 +985,108 @@ export async function checkWebBrowser() {
         webbrowserInfo.isInApp = !webbrowserInfo.isInApp;
     }
 }
+
+
+/**
+ * Check if nodeArray is a valid mindmap node array 
+ * (From Grok)
+ * 
+ * @param {Object[]} nodeArray 
+ * @returns {Object} An object containing:
+ *   - `isValid` {boolean}: `true` if the mindmap is valid, `false` otherwise.
+ *   - `error` {string|null}: Error message if the mindmap is invalid, or `null` if valid.
+ */
+export function isValidMindmapNodeArray(nodeArray) {
+    // Check if the array is non-empty
+    if (!Array.isArray(nodeArray) || nodeArray.length === 0) {
+        return { isValid: false, error: "Node array is empty or not an array" };
+    }
+
+    // Collect all node IDs and check for uniqueness
+    const idSet = new Set();
+    for (const node of nodeArray) {
+        if (!node.id) {
+            return { isValid: false, error: `Node missing id: ${JSON.stringify(node)}` };
+        }
+        if (idSet.has(node.id)) {
+            return { isValid: false, error: `Duplicate id found: ${node.id}` };
+        }
+        idSet.add(node.id);
+    }
+
+    // Count root nodes (nodes with no parentId or parentId: null)
+    // const rootNodes = nodeArray.filter(node => node.parentId === null || node.parentId === undefined);
+    const rootNodes = nodeArray.filter(node => node.parentid === null || node.parentid === undefined);
+    if (rootNodes.length !== 1) {
+        return { isValid: false, error: `Expected exactly one root node, found ${rootNodes.length}` };
+    }
+
+    // Check for valid parent references and collect parentIds
+    // const parentIds = new Set(nodeArray.map(node => node.parentId).filter(id => id !== null && id !== undefined));
+    const parentIds = new Set(nodeArray.map(node => node.parentid).filter(id => id !== null && id !== undefined));
+    for (const parentId of parentIds) {
+        if (!idSet.has(parentId)) {
+            return { isValid: false, error: `Invalid parentId: ${parentId} does not exist` };
+        }
+    }
+
+    // Check for cycles using DFS
+    const visited = new Set();
+    const recStack = new Set();
+
+    function detectCycle(nodeId, parentPath = []) {
+        if (!nodeId) return false; // Skip null/undefined parentIds (root)
+        if (recStack.has(nodeId)) {
+            return true; // Cycle detected
+        }
+        if (visited.has(nodeId)) return false; // Already explored, no cycle
+
+        visited.add(nodeId);
+        recStack.add(nodeId);
+
+        // Find all children of the current node
+        // const children = nodeArray.filter(node => node.parentId === nodeId);
+        const children = nodeArray.filter(node => node.parentid === nodeId);
+        for (const child of children) {
+            if (detectCycle(child.id, [...parentPath, nodeId])) {
+                return true;
+            }
+        }
+
+        recStack.delete(nodeId);
+        return false;
+    }
+
+    // Start cycle detection from the root
+    const rootNode = rootNodes[0];
+    if (detectCycle(rootNode.id)) {
+        return { isValid: false, error: "Cycle detected in the mindmap" };
+    }
+
+    // Check if all non-root nodes are reachable (no orphans)
+    const reachable = new Set([rootNode.id]);
+    function markReachable(nodeId) {
+        // const children = nodeArray.filter(node => node.parentId === nodeId);
+        const children = nodeArray.filter(node => node.parentid === nodeId);
+        for (const child of children) {
+            reachable.add(child.id);
+            markReachable(child.id);
+        }
+    }
+    markReachable(rootNode.id);
+
+    if (reachable.size !== nodeArray.length) {
+        console.log({ reachable, nodeArray });
+        return { isValid: false, error: "Some nodes are unreachable (orphaned)" };
+    }
+
+    return { isValid: true, error: null };
+}
+export function checkValidMindmapNodeArray(nodeArray) {
+    const res = isValidMindmapNodeArray(nodeArray);
+    if (!res.isValid) {
+        // debugger;
+        console.error(`Invalid node array, ${res.error}:`, nodeArray);
+        throw Error(`Invalid mindmap node array: ${res.error}`);
+    }
+}

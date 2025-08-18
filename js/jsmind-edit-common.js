@@ -1167,7 +1167,7 @@ async function dialogEditMindmap() {
     const rend = await modCustRend.getOurCustomRenderer();
     await rend.editMindmapDialog();
 }
-async function dialogSetRoot(selected_node) {
+async function dialogSetRoot(selected_node, mindmapKey) {
     console.log({ selected_node });
     if (selected_node.isroot) { throw Error("selected_node.isroot"); }
     const node_topic = selected_node.topic;
@@ -1188,12 +1188,14 @@ async function dialogSetRoot(selected_node) {
         modMdc.mkMDCsnackbar("Canceled (root not changed)");
         return;
     }
-    // debugger;
+
+
     console.log({ jmDisplayed });
     const objMindData = jmDisplayed.get_data("node_array");
     console.log({ objMindData });
     const mindStored = objMindData;
-    // const root_node = jmDisplayed.get_root();
+    modMMhelpers.checkValidMindmapNodeArray(mindStored.data);
+    // const old_root_node = jmDisplayed.get_root();
     const id_selected = selected_node.id;
 
     ///// Reverse links
@@ -1211,10 +1213,6 @@ async function dialogSetRoot(selected_node) {
         }
         return arr[0];
     }
-    // debugger;
-    // let node_arr = get_node( id_selected );
-    // let n = 0;
-    // while (n++ < 100 && node_arr.id != "root") { node_arr = reverseLink(node_arr); }
     const arrRootPath = [id_selected];
     const objRootPath = {};
     objRootPath[id_selected] = get_node(id_selected);
@@ -1231,37 +1229,31 @@ async function dialogSetRoot(selected_node) {
         objRootPath[id_in_path] = parent_in_path;
     }
 
+    const currentDirection = selected_node.direction;
+    const newDirection = currentDirection == -1 ? "right" : "left";
 
-    ///////// Switch root ids
-    /*
-    let node_root;
-    let node_selected;
-    mindStored.data.forEach(node => {
-        if (node.id == "root") { node_root = node; }
-        if (node.id == id_selected) { node_selected = node; }
+    const arrNodes = mindStored.data;
+
+
+    //// Collect direct kids
+    const setSelectedKids = new Set();
+    const setOldRootKids = new Set();
+    arrNodes.forEach(n => {
+        if (n.parentid == "root") {
+            // n.parentid = "OLDroot";
+            setOldRootKids.add(n);
+        }
+        if (n.parentid == id_selected) {
+            // n.parentid = "OLDselected";
+            setSelectedKids.add(n);
+        }
     });
     // debugger;
-    if (!node_root) throw Error("Could not find id root");
-    node_root.id = id_selected;
-    node_root.isroot = false;
-
-    const currentDirection = selected_node.direction;
-    const newDirection = currentDirection == -1? "right": "left";
-    node_root.direction = newDirection;
-
-    if (!node_selected) throw Error(`Could not find id ${id_selected}`);
-    node_root.id = id_selected;
-    node_selected.id = "root";
-    node_selected.isroot = true;
-    node_selected.parentid = undefined;
-    */
-    debugger;
 
 
 
-    ///// Walk to root
-    const currentDirection = selected_node.direction;
-    const newDirection = currentDirection == -1? "right": "left";
+
+    ///// Walk to root, flip direction and switch root ids
     let prev_node;
     for (let n = 0; n < arrRootPath.length; n++) {
         const this_id = arrRootPath[n];
@@ -1269,38 +1261,81 @@ async function dialogSetRoot(selected_node) {
         const next_id = arrRootPath[n + 1];
         const next_node = next_id ? objRootPath[next_id] : undefined;
         this_node.direction = newDirection;
-        // debugger;
+
         if (next_node) {
-            // next_node.parentid = this_node.id;
             this_node.parentid = next_node.id;
         } else {
             if (!this_node.isroot) {
                 debugger;
                 throw Error(`this_node.isroot == "${this_node.isroot}"`)
             }
-            delete this_node.isroot;
             const new_root_id = arrRootPath[0]
             const new_root = objRootPath[new_root_id];
-            new_root.isroot = true;
             const new_root_old_id = new_root.id;
+
+            delete new_root.parentid;
+            new_root.isroot = true;
+            delete new_root.direction;
             new_root.id = "root";
+
+            delete this_node.isroot;
+            this_node.parentid = "root";
             this_node.id = new_root_old_id;
-            this_node.parentid = prev_node.id;
         }
         prev_node = this_node;
     }
-    debugger;
+
+    console.log("mindStored.data", mindStored.data);
+    modMMhelpers.checkValidMindmapNodeArray(mindStored.data);
+    setOldRootKids.forEach(n => { if (!n.isroot) n.parentid = id_selected; });
+    console.log("mindStored.data", mindStored.data);
+    // debugger;
+    modMMhelpers.checkValidMindmapNodeArray(mindStored.data);
+    setSelectedKids.forEach(n => n.parentid = "root");
+    modMMhelpers.checkValidMindmapNodeArray(mindStored.data);
+
+    ///// Find direct kids of old root pointing at wrong side
+    // debugger;
+    const wrongSideOfOldRoot = new Set();
+    setOldRootKids.forEach(n => {
+        if (n.direction != newDirection) { wrongSideOfOldRoot.add(n.id); }
+    });
+
+    ////// Search old root kids
+    let oldSize = wrongSideOfOldRoot.size;
+    let biggerSize = true;
+    while (biggerSize) {
+        arrNodes.forEach(n => {
+            if (wrongSideOfOldRoot.has(n.parentid)) {
+                if (n.direction != newDirection) { wrongSideOfOldRoot.add(n.id); }
+            }
+        });
+        const newSize = wrongSideOfOldRoot.size;
+        biggerSize = newSize > oldSize;
+        oldSize = newSize;
+    }
+
+    ////// Flip old root kids
+    wrongSideOfOldRoot.forEach(id => {
+        const n = get_node(id);
+        n.direction = newDirection;
+    });
+
+
 
 
     // history modUndo 
-    const mindmapKey = new URLSearchParams(location.search).get("mindmap");
+    // const mindmapKey = new URLSearchParams(location.search).get("mindmap");
     mindStored.key = mindmapKey;
 
     console.log({ mindStored });
+    // debugger;
+    modMMhelpers.checkValidMindmapNodeArray(mindStored.data);
 
     // jmDisplayed = await displayMindMap(mindStored);
     jmDisplayed = await displayOurMindmap(mindStored);
     modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "dialogSetRoot");
+    jmDisplayed.select_node(jmDisplayed.get_root());
     // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, "Change root");
 }
 async function applyOurMindmapGlobals(jmDisplayed) {
@@ -2267,7 +2302,7 @@ export async function pageSetup() {
         const liEditMindmap = mkMenuItem("Edit Mindmap", dialogEditMindmap, "Dblclick");
         if (!document.querySelector("jmnode")) { liEditMindmap.setAttribute("inert", ""); }
 
-        const liSetRoot = mkMenuItem("Set as Mindmap root", () => { dialogSetRoot(selected_node) });
+        const liSetRoot = mkMenuItem("Set as Mindmap root", () => { dialogSetRoot(selected_node, mindmapKey) });
         if (!document.querySelector("jmnode")) {
             liSetRoot.setAttribute("inert", "");
         } else {
