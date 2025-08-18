@@ -967,9 +967,23 @@ function getEltFsm() {
 
 let pageMenu;
 function hidePageMenu() {
+    if (!pageMenu?.isConnected) return;
     pageMenu.style.opacity = 0;
     setTimeout(() => { pageMenu.remove(); }, 300);
 }
+
+document.addEventListener("pointerdown", evt => {
+    console.log("pointerdown for hidePageMenu");
+    if (evt.target) {
+        const target = /** @type {HTMLElement} */ (evt.target);
+        const btn = target.closest("#mm4i-menu-button");
+        if (btn) return;
+    }
+    if (pageMenu.isConnected) {
+        evt.stopImmediatePropagation();
+        hidePageMenu();
+    }
+}, { capture: true });
 
 
 
