@@ -1090,3 +1090,150 @@ export function checkValidMindmapNodeArray(nodeArray) {
         throw Error(`Invalid mindmap node array: ${res.error}`);
     }
 }
+
+
+export function setNewRoot(new_root_node, mindStored, mindmapKey) {
+
+    const newRootId = new_root_node.id;
+
+    ///// Reverse links
+    /**
+     * 
+     * @param {string} id 
+     * @returns {Object}
+     */
+    const get_node = (id) => {
+        const arr = mindStored.data.filter(n => n.id == id);
+        const lenArr = arr.length;
+        if (lenArr != 1) {
+            debugger;
+            throw Error(`lenArr == ${lenArr}`);
+        }
+        return arr[0];
+    }
+    const arrRootPath = [newRootId];
+    const objRootPath = {};
+    objRootPath[newRootId] = get_node(newRootId);
+    let id_in_path = newRootId;
+    let n = 0;
+    while (n++ < 100 && id_in_path != "root") {
+        const arr_node = get_node(id_in_path);
+        id_in_path = arr_node.parentid;
+        arrRootPath.push(id_in_path);
+        const parent_in_path = get_node(id_in_path);
+        if (id_in_path != parent_in_path.id) {
+            throw Error(`id_in_path != parent_in_path.id`);
+        }
+        objRootPath[id_in_path] = parent_in_path;
+    }
+
+    const currentDirection = new_root_node.direction;
+    const newDirection = currentDirection == -1 ? "right" : "left";
+
+    const arrNodes = mindStored.data;
+
+
+    //// Collect direct kids
+    const setSelectedKids = new Set();
+    const setOldRootKids = new Set();
+    arrNodes.forEach(n => {
+        if (n.parentid == "root") {
+            // n.parentid = "OLDroot";
+            setOldRootKids.add(n);
+        }
+        if (n.parentid == newRootId) {
+            // n.parentid = "OLDselected";
+            setSelectedKids.add(n);
+        }
+    });
+    // debugger;
+
+
+
+
+    ///// Walk to root, flip direction and switch root ids
+    let prev_node;
+    for (let n = 0; n < arrRootPath.length; n++) {
+        const this_id = arrRootPath[n];
+        const this_node = objRootPath[this_id];
+        const next_id = arrRootPath[n + 1];
+        const next_node = next_id ? objRootPath[next_id] : undefined;
+        this_node.direction = newDirection;
+
+        if (next_node) {
+            this_node.parentid = next_node.id;
+        } else {
+            if (!this_node.isroot) {
+                debugger;
+                throw Error(`this_node.isroot == "${this_node.isroot}"`)
+            }
+            const new_root_id = arrRootPath[0]
+            const new_root = objRootPath[new_root_id];
+            const new_root_old_id = new_root.id;
+
+            delete new_root.parentid;
+            new_root.isroot = true;
+            delete new_root.direction;
+            new_root.id = "root";
+
+            delete this_node.isroot;
+            this_node.parentid = "root";
+            this_node.id = new_root_old_id;
+        }
+        prev_node = this_node;
+    }
+
+    console.log("mindStored.data", mindStored.data);
+    // modMMhelpers.checkValidMindmapNodeArray(mindStored.data);
+    checkValidMindmapNodeArray(mindStored.data);
+    setOldRootKids.forEach(n => { if (!n.isroot) n.parentid = newRootId; });
+    console.log("mindStored.data", mindStored.data);
+    // debugger;
+    // modMMhelpers.checkValidMindmapNodeArray(mindStored.data);
+    checkValidMindmapNodeArray(mindStored.data);
+    setSelectedKids.forEach(n => n.parentid = "root");
+    // modMMhelpers.checkValidMindmapNodeArray(mindStored.data);
+    checkValidMindmapNodeArray(mindStored.data);
+
+    ///// Find direct kids of old root pointing at wrong side
+    // debugger;
+    const wrongSideOfOldRoot = new Set();
+    setOldRootKids.forEach(n => {
+        if (n.direction != newDirection) { wrongSideOfOldRoot.add(n.id); }
+    });
+
+    ////// Search old root kids
+    let oldSize = wrongSideOfOldRoot.size;
+    let biggerSize = true;
+    while (biggerSize) {
+        arrNodes.forEach(n => {
+            if (wrongSideOfOldRoot.has(n.parentid)) {
+                if (n.direction != newDirection) { wrongSideOfOldRoot.add(n.id); }
+            }
+        });
+        const newSize = wrongSideOfOldRoot.size;
+        biggerSize = newSize > oldSize;
+        oldSize = newSize;
+    }
+
+    ////// Flip old root kids
+    wrongSideOfOldRoot.forEach(id => {
+        const n = get_node(id);
+        n.direction = newDirection;
+    });
+
+
+
+
+    // history modUndo 
+    // const mindmapKey = new URLSearchParams(location.search).get("mindmap");
+    const metaKey = mindStored.meta.name.split("/")[0];
+    if (metaKey != mindmapKey) throw Error(`metaKey != mindmapKey: ${metaKey} != ${mindmapKey}`);
+    // mindStored.key = mindmapKey;
+    mindStored.key = metaKey;
+
+    console.log({ mindStored });
+    // debugger;
+    // modMMhelpers.checkValidMindmapNodeArray(mindStored.data);
+    checkValidMindmapNodeArray(mindStored.data);
+}
