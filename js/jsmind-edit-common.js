@@ -1587,7 +1587,8 @@ export async function pageSetup() {
             modMMhelpers.checkIsFullMindmapDisplayState(mindmapData, "SHARED");
             // const jm = await displayOurMindmap(objMindData);
             const jm = await displayOurMindmap(objMS);
-            jm.isSavedBookmark = true; // FIX-ME:
+            // jm.isSavedBookmark = true; // FIX-ME:
+            jm.NOT_SAVEABLE = "This is a linked mindmap";
             // modJsmindDraggable.setOurJm(jm);
 
             const objOther = mindmapData.other;
