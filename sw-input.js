@@ -1,7 +1,7 @@
 // @NOts-check
 // FIX-ME: ts-check does not work correct in this file, why?
 
-const SW_VERSION = "0.2.015";
+const SW_VERSION = "0.2.018";
 
 // https://www.npmjs.com/package/workbox-sw
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');

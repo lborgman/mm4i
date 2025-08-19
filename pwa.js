@@ -197,17 +197,30 @@ class WaitUntil {
 const waitUntilNotCachedLoaded = new WaitUntil("pwa-loaded-not-cached");
 
 // Check in-app web browser
-let mayInstall = true;
-try {
-    const modInappSpy = await import('https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.mjs');
-    const { isInApp, appKey, appName } = modInappSpy.default();
-    if (isInApp) {
-        console.warn(`Can't install, is in-app web browser: ${appName} (${appKey})`)
-        mayInstall = false;
+let mayInstall = await PWAhasInternet();
+if (mayInstall) {
+    try {
+        const modInappSpy = await import('https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.mjs');
+        const { isInApp, appKey, appName } = modInappSpy.default();
+        if (isInApp) {
+            console.warn(`Can't install, is in-app web browser: ${appName} (${appKey})`)
+            mayInstall = false;
+            // If it was installed before we added in-app test, then unregister service worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    registrations.forEach(registration => {
+                        registration.unregister().then(success => {
+                            console.log('isInApp, Service worker unregistered:', success);
+                        });
+                    });
+                });
+            }
+
+        }
+    } catch (err) {
+        debugger; // eslint-disable-line no-debugger
+        console.error(err);
     }
-} catch (err) {
-    debugger; // eslint-disable-line no-debugger
-    console.error(err);
 }
 
 if (mayInstall) {
@@ -222,16 +235,6 @@ if (mayInstall) {
     // Delay startSW so we can override defaults:
     setTimeout(startSW, 500);
 } else {
-    // If it was installed before we added in-app test, then unregister service worker
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(registrations => {
-            registrations.forEach(registration => {
-                registration.unregister().then(success => {
-                    console.log('Service worker unregistered:', success);
-                });
-            });
-        });
-    }
 }
 
 

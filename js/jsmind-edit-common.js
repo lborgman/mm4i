@@ -973,16 +973,17 @@ function hidePageMenu() {
 }
 
 document.addEventListener("pointerdown", evt => {
-    console.log("pointerdown for hidePageMenu");
+    // console.log("pointerdown for hidePageMenu");
+    if (!pageMenu?.isConnected) { return; }
     if (evt.target) {
         const target = /** @type {HTMLElement} */ (evt.target);
         const btn = target.closest("#mm4i-menu-button");
         if (btn) return;
     }
-    if (pageMenu.isConnected) {
-        evt.stopImmediatePropagation();
-        hidePageMenu();
-    }
+    // if (pageMenu?.isConnected) {
+    evt.stopImmediatePropagation();
+    hidePageMenu();
+    // }
 }, { capture: true });
 
 
@@ -1192,11 +1193,11 @@ async function dialogSetRoot(selected_node, mindmapKey) {
         font-weight: bold;
         font-size: 1.2rem;
     `;
-    const body = mkElt("div", undefined, [
+    const body2 = mkElt("div", undefined, [
         eltNotReady,
         mkElt("h2", undefined, `Make "${node_topic}" new mindmap root`)
     ]);
-    const ans = await modMdc.mkMDCdialogConfirm(body, "Set new root", "Cancel");
+    const ans = await modMdc.mkMDCdialogConfirm(body2, "Set new root", "Cancel");
     console.log({ ans });
     if (!ans) {
         modMdc.mkMDCsnackbar("Canceled (root not changed)");
@@ -1213,9 +1214,19 @@ async function dialogSetRoot(selected_node, mindmapKey) {
     // setNewRoot(id_selected, mindStored);
     modMMhelpers.setNewRoot(selected_node, mindStored, mindmapKey);
 
-    // jmDisplayed = await displayMindMap(mindStored);
-    jmDisplayed = await displayOurMindmap(mindStored);
-    modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "dialogSetRoot");
+    const body = mkElt("div", undefined, [
+        "Save new root?"
+    ]);
+    const save = await modMdc.mkMDCdialogConfirm(body, "Save", "Don't save");
+    console.log({ save });
+    if (save) {
+        jmDisplayed = await displayOurMindmap(mindStored);
+        modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "dialogSetRoot");
+        alert("saving of new root is not implemented yet");
+    } else {
+        jmDisplayed = await displayOurMindmap(mindStored);
+        modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "dialogSetRoot");
+    }
     jmDisplayed.select_node(jmDisplayed.get_root());
     // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, "Change root");
 }
