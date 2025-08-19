@@ -1222,7 +1222,8 @@ async function dialogSetRoot(selected_node, mindmapKey) {
     if (save) {
         jmDisplayed = await displayOurMindmap(mindStored);
         modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "dialogSetRoot");
-        alert("saving of new root is not implemented yet");
+        modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, `Set root to ${node_topic}`); // FIX-ME: delay
+        // alert("saving of new root is not implemented yet");
     } else {
         jmDisplayed = await displayOurMindmap(mindStored);
         modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "dialogSetRoot");
