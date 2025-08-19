@@ -2495,7 +2495,8 @@ export function mkMDCsnackbar(msg, msTimeout, styles) {
     snackbar.timeoutMs = msTimeout || 4000; // min
 
     document.body.appendChild(eltSnackbar);
-    eltSnackbar.style.zIndex = 9999; // set to 8 by MDC, why??
+    // eltSnackbar.style.zIndex = 9999; // set to 8 by MDC, why??
+    eltSnackbar.style.zIndex = 2147483647; // set to 8 by MDC, why??
 
     eltSurface.style.backgroundColor = objStyles["background-color"];
     eltLabel.style.color = objStyles["color"];
