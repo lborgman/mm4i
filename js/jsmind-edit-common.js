@@ -1187,14 +1187,10 @@ async function dialogSetRoot(selected_node, mindmapKey) {
     if (selected_node.isroot) { throw Error("selected_node.isroot"); }
     const node_topic = selected_node.topic;
     // debugger;
-    const eltNotReady = mkElt("p", undefined, "DO NOT USE YET!");
-    eltNotReady.style = `
-        color: red;
-        font-weight: bold;
-        font-size: 1.2rem;
-    `;
+    // const eltNotReady = mkElt("p", undefined, "DO NOT USE YET!");
+    // eltNotReady.style = ` color: red; font-weight: bold; font-size: 1.2rem; `;
     const body2 = mkElt("div", undefined, [
-        eltNotReady,
+        // eltNotReady,
         mkElt("h2", undefined, `Make "${node_topic}" new mindmap root`)
     ]);
     const ans = await modMdc.mkMDCdialogConfirm(body2, "Set new root", "Cancel");
@@ -1214,10 +1210,24 @@ async function dialogSetRoot(selected_node, mindmapKey) {
     // setNewRoot(id_selected, mindStored);
     modMMhelpers.setNewRoot(selected_node, mindStored, mindmapKey);
 
+    const strSave = "Save";
+    const strDontSave = "Don't save";
+    const eltDifference = mkElt("details", undefined, [
+        mkElt("summary", undefined, "What's the different?"),
+        mkElt("div", undefined, [
+            mkElt("dl", undefined, [
+                mkElt("dt", undefined, strSave),
+                mkElt("dd", undefined, "Everything works as usual."),
+                mkElt("dt", undefined, strDontSave),
+                mkElt("dd", undefined, "The changes you will make will only show on screen. They will not be saved."),
+            ])
+        ])
+    ])
     const body = mkElt("div", undefined, [
-        "Save new root?"
+        mkElt("h2", undefined, "Save new root?"),
+        eltDifference
     ]);
-    const save = await modMdc.mkMDCdialogConfirm(body, "Save", "Don't save");
+    const save = await modMdc.mkMDCdialogConfirm(body, strSave, strDontSave);
     console.log({ save });
     if (save) {
         jmDisplayed = await displayOurMindmap(mindStored);
