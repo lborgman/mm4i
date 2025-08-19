@@ -1226,6 +1226,7 @@ async function dialogSetRoot(selected_node, mindmapKey) {
         // alert("saving of new root is not implemented yet");
     } else {
         jmDisplayed = await displayOurMindmap(mindStored);
+        jmDisplayed.NOT_SAVEABLE = "Set root choice was to not save";
         modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "dialogSetRoot");
     }
     jmDisplayed.select_node(jmDisplayed.get_root());

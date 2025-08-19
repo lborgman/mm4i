@@ -99,6 +99,11 @@ export async function getFullMindmapDisplayState(jmDisplayed) {
 }
 
 async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
+    if (jmDisplayed.NOT_SAVEABLE) {
+        const modMdc = await importFc4i("util-mdc");
+        const msgNS = jmDisplayed.NOT_SAVEABLE;
+        modMdc.mkMDCsnackbar(`Did not save: ${msgNS}`, 10 * 1000);
+    }
     checkIsMMformatJmdisplayed(jmDisplayed, "saveMindmapPlusUndoRedo");
     // const dbMindmaps = await importFc4i("db-mindmaps");
     const modUndo = await importFc4i("undo-redo-tree");
@@ -689,7 +694,7 @@ export function checkIsMMformatJmdisplayed(obj, where) {
         "shortcut", "version", "view"
     ];
     const objTemplate = Object.fromEntries(arrTemplate.map(item => [item, true]));
-    if (!modTools.haveSameKeys(objTemplate, obj)) {
+    if (!modTools.haveSameKeys(objTemplate, obj, ["NOT_SAVEABLE"])) {
         throw Error("Not isMMformatJsMind");
     }
 }
