@@ -102,9 +102,7 @@ async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUp
     if (jmDisplayed.NOT_SAVEABLE) {
         const modMdc = await importFc4i("util-mdc");
         const msgNS = jmDisplayed.NOT_SAVEABLE;
-        const elt = modMdc.mkMDCsnackbar(`Did not save: ${msgNS}`, 10 * 1000);
-        console.log({ elt });
-        debugger;
+        modMdc.mkMDCsnackbar(`Did not save: ${msgNS}`, 10 * 1000);
         return;
     }
     checkIsMMformatJmdisplayed(jmDisplayed, "saveMindmapPlusUndoRedo");

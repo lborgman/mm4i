@@ -2724,8 +2724,12 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
         const btnDelete = await modMdc.mkMDCiconButton("delete_forever", "Delete mindmap");
         btnDelete.addEventListener("click", errorHandlerAsyncEvent(async evt => {
             evt.stopPropagation();
-            const eltQdelete = mkElt("span", undefined, ["Delete ", mkElt("b", undefined, topic)]);
-            const answerIsDelete = await modMdc.mkMDCdialogConfirm(eltQdelete);
+            const eltQdelete = mkElt("span", undefined, ["Delete mindmap ", mkElt("b", undefined, topic), "?"]);
+            const body = mkElt("div", undefined, [
+                eltQdelete,
+                mkElt("p", undefined, `Please note that this action cannot be undone!`)
+            ])
+            const answerIsDelete = await modMdc.mkMDCdialogConfirm(body, "Delete", "Cancel");
             if (answerIsDelete) {
                 console.log("*** del mm");
                 const eltLi = btnDelete.closest("li");
