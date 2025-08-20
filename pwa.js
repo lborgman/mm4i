@@ -84,8 +84,8 @@ const logStyle = "background:yellowgreen; color:black; padding:2px; border-radiu
 const logStrongStyle = logStyle + " font-size:18px;";
 const styleInstallEvents = logStrongStyle + "color:red;";
 function logConsole(...msg) { console.log(`%cpwa.js`, logStyle, ...msg); }
-function logStrongConsole(...msg) { console.log(`%cpwa.js`, logStrongStyle, ...msg); }
-function logInstallEvent(...msg) { console.log("%cpwa-nc", styleInstallEvents, ...msg); }
+function logStrongConsole(...msg) { console.warn(`%cpwa.js`, logStrongStyle, ...msg); }
+function logInstallEvent(...msg) { console.warn("%cpwa.js", styleInstallEvents, ...msg); }
 
 logStrongConsole(`Here is pwa.js, module ${version}`, import.meta.url);
 
@@ -138,7 +138,7 @@ function addScreenDebugRow(...txt) {
     if (secDebug.parentElement == null) return;
     if (secDebug.textContent.trim() == "") {
         const btnClose = mkElt("button", undefined, "Close debug output");
-        btnClose.addEventListener("click", evt => secDebug.remove());
+        btnClose.addEventListener("click", _evt => secDebug.remove());
         const rowClose = mkElt("div", undefined, btnClose);
         secDebug.appendChild(rowClose);
     }
@@ -227,7 +227,7 @@ if (mayInstall) {
     if (await PWAhasInternet()) {
         loadNotCached();
     } else {
-        window.addEventListener("online", async evt => {
+        window.addEventListener("online", async _evt => {
             if (!await PWAhasInternet()) return;
             loadNotCached();
         });
@@ -370,7 +370,7 @@ function addVersionDialog(theEltVersion) {
 
         const chkLogToScreen = mkElt("input", { type: "checkbox" });
         chkLogToScreen.checked = mayLogToScreen;
-        chkLogToScreen.addEventListener("input", evt => {
+        chkLogToScreen.addEventListener("input", _evt => {
             mayLogToScreen = !mayLogToScreen;
             if (mayLogToScreen) {
                 localStorage.setItem(keyLogToScreen, "may log to screen");
@@ -398,7 +398,7 @@ function addVersionDialog(theEltVersion) {
         const divClose = mkElt("p", undefined, btnClose);
         dlg.appendChild(divClose);
         document.body.appendChild(dlg);
-        btnClose.addEventListener("click", evt => {
+        btnClose.addEventListener("click", _evt => {
             dlg.close();
             dlg.remove();
         });
@@ -629,13 +629,13 @@ async function promptForUpdate(waitingVersion) {
     document.body.appendChild(dlgPromptUpdate);
     dlgPromptUpdate.showModal();
 
-    return new Promise((resolve, reject) => {
-        btnSkip.addEventListener("click", evt => {
+    return new Promise((resolve, _reject) => {
+        btnSkip.addEventListener("click", _evt => {
             resolve(false);
             dlgPromptUpdate.classList.add("transparent");
             setTimeout(() => { dlgPromptUpdate.remove(); }, msDlgUpdateTransition);
         });
-        btnUpdate.addEventListener("click", evt => {
+        btnUpdate.addEventListener("click", _evt => {
             dlgPromptUpdate.textContent = "Updating, please wait ...";
             dlgPromptUpdate.classList.add("updating");
             window.onbeforeunload = null;
@@ -677,7 +677,8 @@ window["PWAhasInternet"] = PWAhasInternet;
 export function getDisplayMode() {
     let displayMode = 'browser';
     const mqStandAlone = '(display-mode: standalone)';
-    if (navigator.standalone || window.matchMedia(mqStandAlone).matches) {
+    // if (navigator.standalone || window.matchMedia(mqStandAlone).matches)
+    if (window.matchMedia(mqStandAlone).matches) {
         displayMode = 'standalone';
     }
     return displayMode;
@@ -733,7 +734,7 @@ function finishAndShowDlgErr(dlgErr, moreInConsole) {
 
     const btnClose = document.createElement("button");
     btnClose.textContent = "Close";
-    btnClose.addEventListener("click", evt => { dlgErr.remove(); })
+    btnClose.addEventListener("click", _evt => { dlgErr.remove(); })
     const pClose = document.createElement("p");
     pClose.appendChild(btnClose);
     dlgErr.appendChild(pClose);
@@ -787,10 +788,11 @@ function setupForInstall() {
             `This will add an icon to your home screen (or desktop).
             If relevant it also make it possible to share from other apps to this app.`,
         ]),
+        // @ts-ignore - available in chromium browsers
         mkElt("p", undefined, ["navigator.userAgentData.platform: ", navigator.userAgentData?.platform]),
     ]);
     const btnInstall = mkElt("button", undefined, "Install");
-    btnInstall.addEventListener("click", async (evt) => {
+    btnInstall.addEventListener("click", async (_evt) => {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         logConsole(`User response to the install prompt: ${outcome}`);
@@ -798,7 +800,7 @@ function setupForInstall() {
     });
 
     const btnLater = mkElt("button", undefined, "Later");
-    btnLater.addEventListener("click", (evt) => {
+    btnLater.addEventListener("click", (_evt) => {
         logInstallEvent("dialog .remove");
         dialogInstallPromotion.remove();
     });
@@ -814,6 +816,7 @@ function setupForInstall() {
         logInstallEvent("hideInstallPromotion");
     }
     async function createEltInstallPromotion() {
+        debugger;
         logInstallEvent("createEltInstallPromotion START");
         await promiseDOMready();
         logInstallEvent("createEltInstallPromotion END, display = null");

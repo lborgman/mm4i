@@ -1112,7 +1112,6 @@ export function setNewRoot(new_root_node, mindStored, mindmapKey) {
         const arr = mindStored.data.filter(n => n.id == id);
         const lenArr = arr.length;
         if (lenArr != 1) {
-            debugger;
             throw Error(`lenArr == ${lenArr}`);
         }
         return arr[0];
@@ -1158,7 +1157,7 @@ export function setNewRoot(new_root_node, mindStored, mindmapKey) {
 
 
     ///// Walk to root, flip direction and switch root ids
-    let prev_node;
+    // let prev_node;
     for (let n = 0; n < arrRootPath.length; n++) {
         const this_id = arrRootPath[n];
         const this_node = objRootPath[this_id];
@@ -1170,7 +1169,6 @@ export function setNewRoot(new_root_node, mindStored, mindmapKey) {
             this_node.parentid = next_node.id;
         } else {
             if (!this_node.isroot) {
-                debugger;
                 throw Error(`this_node.isroot == "${this_node.isroot}"`)
             }
             const new_root_id = arrRootPath[0]
@@ -1186,7 +1184,7 @@ export function setNewRoot(new_root_node, mindStored, mindmapKey) {
             this_node.parentid = "root";
             this_node.id = new_root_old_id;
         }
-        prev_node = this_node;
+        // prev_node = this_node;
     }
 
     console.log("mindStored.data", mindStored.data);

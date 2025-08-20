@@ -675,7 +675,7 @@ export class CustomRenderer4jsMind {
         const placeholder = mkNodeNotesPlaceholder(node);
         // let retMkDialog;
         const objClose = {};
-        /** @type {Object | undefined} */ let toastNotesEditor;
+        /* @type {Object | undefined} */ // let toastNotesEditor;
         const onChange = (val) => {
             currentNotes = val.trimEnd();
             if (currentNotes.length > 0) {
