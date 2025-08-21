@@ -200,7 +200,25 @@ const waitUntilNotCachedLoaded = new WaitUntil("pwa-loaded-not-cached");
 let mayInstall = await PWAhasInternet();
 if (mayInstall) {
     try {
-        const modInappSpy = await import('https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.mjs');
+        // const modInappSpy = await import('https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.mjs');
+        let modInappSpy;
+        const moduleUrl = 'https://cdn.jsdelivr.net/npm/inapp-spy@latest/dist/index.mjs';
+        try {
+            const response = await fetch(moduleUrl, { method: 'HEAD' }); // or 'GET' if needed
+            if (response.ok) {
+                modInappSpy = await import(moduleUrl);
+                // Use the module here
+            } else {
+                console.error(`Module ${moduleUrl} not available: ${response.status}`);
+                debugger; // eslint-disable-line no-debugger
+                mayInstall = false;
+            }
+        } catch (err) {
+            debugger; // eslint-disable-line no-debugger
+            console.error(`Failed to fetch module ${moduleUrl}:`, err);
+            mayInstall = false;
+        }
+
         const { isInApp, appKey, appName } = modInappSpy.default();
         if (isInApp) {
             console.warn(`Can't install, is in-app web browser: ${appName} (${appKey})`)
@@ -224,17 +242,11 @@ if (mayInstall) {
 }
 
 if (mayInstall) {
-    if (await PWAhasInternet()) {
-        loadNotCached();
-    } else {
-        window.addEventListener("online", async _evt => {
-            if (!await PWAhasInternet()) return;
-            loadNotCached();
-        });
-    }
+    loadNotCached();
     // Delay startSW so we can override defaults:
     setTimeout(startSW, 500);
 } else {
+    console.log("Can't install");
 }
 
 
@@ -816,7 +828,7 @@ function setupForInstall() {
         logInstallEvent("hideInstallPromotion");
     }
     async function createEltInstallPromotion() {
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         logInstallEvent("createEltInstallPromotion START");
         await promiseDOMready();
         logInstallEvent("createEltInstallPromotion END, display = null");

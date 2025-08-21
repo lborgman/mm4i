@@ -4,14 +4,16 @@
 const PWA_NOT_CACHED_VERSION = "1.2.00";
 export function getVersion() { return PWA_NOT_CACHED_VERSION; }
 
+const mkElt = window["mkElt"];
+
 const doSwReset = false;
 let pwaFuns;
 
 const logStyle = "background:yellowgreen; color:black; padding:2px; border-radius:2px;";
 const logStrongStyle = logStyle + " font-size:18px;";
 // const styleInstallEvents = logStrongStyle + "color:red;";
-function logConsole(...msg) {
-    // console.log(`%cpwa-nc.js`, logStyle, ...msg);
+function logConsole(..._msg) {
+    // console.log(`%cpwa-nc.js`, logStyle, ..._msg);
 }
 function logStrongConsole(...msg) {
     console.log(`%cpwa-nc.js`, logStrongStyle, ...msg);
@@ -76,8 +78,8 @@ function addDebugLocation(loc) {
 
 async function addDebugSWinfo() {
 
-    // await checkRegistration();
-    async function checkRegistration() {
+    // await _checkRegistration();
+    async function _checkRegistration() {
         // I can't find any really good and simple documentation for this.
         // (I avoid specs...)
         // https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker/state
@@ -131,7 +133,7 @@ async function addDebugSWinfo() {
     const u = new URL(loc);
     u.pathname = "manifest.json";
     addDebugLocation(u.href);
-    // logStrongConsole(`navigator.userAgentData.platform: ${navigator.userAgentData?.platform}`);
+    // @ts-ignore
     addScreenDebugRow(`navigator.userAgentData.platform: ${navigator.userAgentData?.platform}`);
 }
 
@@ -149,11 +151,16 @@ async function checkPWA() {
         addScreenDebugRow(`DISPLAY_MODE_LAUNCH: ${displayMode}`);
     });
     // https://web.dev/get-installed-related-apps/
+    // @ts-ignore
     const relatedApps = navigator.getInstalledRelatedApps ? await navigator.getInstalledRelatedApps() : [];
-    addScreenDebugRow(`Related apps (${relatedApps.length}):`);
-    relatedApps.forEach((app) => {
-        addScreenDebugRow(`${app.id}, ${app.platform}, ${app.url}`);
-    });
+    if (relatedApps) {
+        addScreenDebugRow(`Related apps (${relatedApps.length}):`);
+        relatedApps.forEach((app) => {
+            addScreenDebugRow(`${app.id}, ${app.platform}, ${app.url}`);
+        });
+    } else {
+        addScreenDebugRow("relatedApps is not supported in your web browser")
+    }
 }
 
 async function setupServiceWorker() {
@@ -170,7 +177,7 @@ async function setupServiceWorker() {
             }
         });
 
-    const showSkipWaitingPrompt = async (event) => {
+    const showSkipWaitingPrompt = async (_evt) => {
         // Assuming the user accepted the update, set up a listener
         // that will reload the page as soon as the previously waiting
         // service worker has taken control.
@@ -201,9 +208,11 @@ async function setupServiceWorker() {
         showSkipWaitingPrompt(event);
     });
 
-    wb.addEventListener('activated', async (event) => {
+    wb.addEventListener('activated', async (_evt) => {
         logStrongConsole("activated");
         const regSW = await navigator.serviceWorker.getRegistration();
+        if (!regSW) throw Error(`regSW == "${regSW}"`)
+        if (!regSW.active) throw Error(`regSW.active == "${regSW.active}`);
         const swLoc = regSW.active.scriptURL;
         logStrongConsole("activated, add error event listener", { regSW });
         regSW.active.addEventListener("error", evt => {
@@ -214,14 +223,14 @@ async function setupServiceWorker() {
 
 
     // FIXME: is this supported???
-    wb.addEventListener('error', (event) => {
-        console.log("%cError from sw", "color:orange; background:black", { error });
+    wb.addEventListener('error', (evt) => {
+        console.log("%cError from sw", "color:orange; background:black", { evt });
     });
 
 
     wb.getSW().then(sw => {
         sw.addEventListener("error", evt => {
-            console.log("%cError from getSW sw", "color:red; background:black", { error });
+            console.log("%cError from getSW sw", "color:red; background:black", { evt });
         });
         sw.onerror = (swerror) => {
             console.log("%cError from getSW sw", "color:red; background:black", { swerror });
@@ -231,7 +240,7 @@ async function setupServiceWorker() {
     });
 
     try {
-        const swRegistration = await wb.register(); //notice the file name
+        const _swRegistration = await wb.register(); //notice the file name
         // https://web.dev/two-way-communication-guide/
 
         // Can't use wb.messageSW because this goes to the latest registered version, not the active
