@@ -2211,8 +2211,9 @@ export async function pageSetup() {
             const eltNotReady = mkElt("p", undefined, "Not ready!");
             eltNotReady.style = `color:red; font-size:1.2rem`;
             const modAi = await importFc4i("access-gemini");
-            const apiOk = modAi.apiIsWorking();
-            const eltNoAPI = mkElt("p", undefined, "Can't use Gemini API.");
+            const apiError = modAi.apiError();
+            const apiOk = !apiError;
+            const eltNoAPI = mkElt("p", undefined, `Gemini API Error: ${apiError}`);
             eltNoAPI.style.color = "red";
             const eltOk = apiOk ? "" : eltNoAPI;
             const body = mkElt("div", undefined, [

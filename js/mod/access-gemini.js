@@ -54,6 +54,6 @@ const prompt = "Are you ok?"
 const answer = await ask(prompt);
 console.log("Answer:", answer);
 
-export function apiIsWorking() {
-    return !answer.error;
+export function apiError() {
+    return answer.error;
 }
