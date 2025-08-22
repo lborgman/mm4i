@@ -2205,6 +2205,40 @@ export async function pageSetup() {
         }
         const liCreateMindmap = mkMenuItem("Create Mindmap", createMindMap);
 
+        const generateMindMap = async () => {
+            const inpLink = modMdc.mkMDCtextFieldInput(undefined, "text");
+            const tfLink = modMdc.mkMDCtextField("Link to article/video", inpLink);
+            const eltNotReady = mkElt("p", undefined, "Not ready!");
+            eltNotReady.style = `color:red; font-size:1.2rem`;
+            const modAi = await importFc4i("access-gemini");
+            const apiOk = modAi.apiIsWorking();
+            const eltNoAPI = mkElt("p", undefined, "Can't use Gemini API.");
+            eltNoAPI.style.color = "red";
+            const eltOk = apiOk ? "" : eltNoAPI;
+            const body = mkElt("div", undefined, [
+                eltNotReady,
+                eltOk,
+                mkElt("h2", undefined, "Generate mindmap"),
+                mkElt("p", undefined, `
+                    Article or video to summarize as a mindmap:
+                    `),
+                tfLink,
+            ]);
+            const ans = modMdc.mkMDCdialogConfirm(body, "Generate", "Cancel");
+            if (!ans) {
+                modMdc.mkMDCsnackbar("Canceled");
+                return;
+            }
+            const promptAi = `
+                Summarize "${inpLink}".
+                Return result as a mindmap node array.
+                `;
+            const resultAi = await modAi.ask(promptAi)
+            console.log({ resultAi });
+        }
+        const liGenerateMindmap = mkMenuItem("Generate Mindmap", generateMindMap);
+
+
         const liEditMindmap = mkMenuItem("Edit Mindmap", dialogEditMindmap, "Dblclick");
         if (!document.querySelector("jmnode")) { liEditMindmap.setAttribute("inert", ""); }
 
@@ -2428,6 +2462,7 @@ export async function pageSetup() {
             // liDragAccessibility,
             modMdc.mkMDCmenuItemSeparator(),
             liCreateMindmap,
+            liGenerateMindmap,
             liEditMindmap,
             liMindmapsA,
             modMdc.mkMDCmenuItemSeparator(),

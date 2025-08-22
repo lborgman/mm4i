@@ -1122,6 +1122,7 @@ function startDropShield() {
 }
 startDropShield();
 
+/*
 function loadScriptError(oError) {
     console.log({ oError });
     const msg = `
@@ -1138,6 +1139,7 @@ export function affixScriptToHead(url, onloadFunction) {
     document.head.appendChild(newScript);
     newScript.src = url;
 }
+*/
 
 
 

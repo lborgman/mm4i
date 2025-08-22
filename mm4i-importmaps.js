@@ -178,6 +178,8 @@ const baseUrl = (() => {
         "mm4i-replication": "./js/mm4i-replication.js",
 
         "idb-replicator": "./js/mod/idb-replicator.js",
+
+        "access-gemini": "./js/mod/access-gemini.js",
     };
 
     const isImporting = {};
