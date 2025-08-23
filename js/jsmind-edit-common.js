@@ -2385,8 +2385,11 @@ export async function pageSetup() {
                 const body = mkElt("div", undefined, [
                     mkElt("h2", undefined, "You must ask your AI yourself"),
                     mkElt("p", undefined, `
-                        Since I can't ask Gemini AI at the moment
+                        Since I it at the moment looks technically impossible
+                        to directly ask any of the AI:s that you pay for
                         you must do it yourself.
+                        `),
+                    mkElt("p", undefined, `
                         In the AI of your choice use this prompt:
                         `),
                     eltPrompt,
