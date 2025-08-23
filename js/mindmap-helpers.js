@@ -100,9 +100,12 @@ export async function getFullMindmapDisplayState(jmDisplayed) {
 
 async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
     if (jmDisplayed.NOT_SAVEABLE) {
-        const modMdc = await importFc4i("util-mdc");
         const msgNS = jmDisplayed.NOT_SAVEABLE;
-        modMdc.mkMDCsnackbar(`Did not save: ${msgNS}`, 10 * 1000);
+        if ("string" == typeof msgNS) {
+            const modMdc = await importFc4i("util-mdc");
+            modMdc.mkMDCsnackbar(`Not saving: ${msgNS}`, 10 * 1000);
+            jmDisplayed.NOT_SAVEABLE = true;
+        }
         return;
     }
     checkIsMMformatJmdisplayed(jmDisplayed, "saveMindmapPlusUndoRedo");

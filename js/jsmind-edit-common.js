@@ -2235,7 +2235,7 @@ export async function pageSetup() {
                 tfLink,
                 eltStatus,
             ]);
-            inpLink.addEventListener("input", async evt => {
+            inpLink.addEventListener("input", async _evt => {
                 const i = await window["PWAhasInternet"]();
                 if (!i) {
                     eltStatus.textContent = "No internet connection";
@@ -2263,18 +2263,18 @@ export async function pageSetup() {
                     return;
                 }
                 eltStatus.textContent = "Link seems ok";
-                debugger;
+                // debugger;
             });
             async function isReachableUrl(url) {
                 let reachable = false;
                 let resp;
-                let error;
+                // let error;
                 try {
                     resp = await fetch(url, { method: "HEAD" });
                     reachable = resp.ok;
                 } catch (err) {
                     console.log("HEAD", { err, resp });
-                    error = err;
+                    // error = err;
                 }
                 if (!reachable) {
                     try {
@@ -2287,7 +2287,7 @@ export async function pageSetup() {
                         reachable = resp.ok;
                     } catch (err) {
                         console.log("GET", { err, resp });
-                        error = err;
+                        // error = err;
                     }
                     finally {
                         if (!reachable) {
@@ -2320,11 +2320,16 @@ export async function pageSetup() {
                 const eltStatus = mkElt("p");
                 eltAItextarea.addEventListener("input", _evt => {
                     // console.log(eltAItextarea.value);
-                    // FIX-ME: better check
                     const v = eltAItextarea.value;
                     try {
                         const j = JSON.parse(v);
-                        eltStatus.textContent = "OK";
+                        const nodeArray = normalizeNodeArrayFromAI(j);
+                        const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
+                        if (res.isValid) {
+                            eltStatus.textContent = "OK";
+                        } else {
+                            eltStatus.textContent = res.error;
+                        }
                     } catch (err) {
                         eltStatus.textContent = err;
                     }
@@ -2351,40 +2356,53 @@ export async function pageSetup() {
                 }
                 const strNodeArray = eltAItextarea.value;
                 jsonNodeArray = JSON.parse(strNodeArray);
-                // debugger;
             } else {
                 const resultAi = await modAi.ask(promptAi)
                 console.log({ resultAi });
-                debugger;
+                debugger; // eslint-disable-line no-debugger
             }
             console.log({ jsonNodeArray });
-            // .parentId => .parentid, .text => .topic
-            const nodeArray = jsonNodeArray.map(n => {
-                n.expanded = false;
-                if (!n.topic) {
-                    n.topic = n.text;
-                    delete n.text;
-                }
-                if (n.parentid) return n;
-                const parentid = n.parentId;
-                delete n.parentId;
-                if (parentid) n.parentid = parentid;
-                return n;
-            });
-            // find root
-            let root_node;
-            nodeArray.forEach(n => {
-                if (!n.parentid) {
-                    if (root_node) { throw Error("Found second node with no parent"); }
-                    root_node = n;
-                }
-            });
-            // find root children
-            root_node.isroot = true;
-            const rootId = root_node.id;
-            const rootChildren = [];
-            nodeArray.forEach(n => { if (n.parentid == rootId) rootChildren.push(n); });
-            rootChildren.forEach(n => n.direction = 1);
+
+            const nodeArray = normalizeNodeArrayFromAI(jsonNodeArray);
+            function normalizeNodeArrayFromAI(aiNodeArray) {
+                ////// .parentId => .parentid, .text => .topic
+                // const nodeArray = jsonNodeArray.map(n => {
+                const nodeArray = aiNodeArray.map(n => {
+                    n.expanded = false;
+                    if (!n.topic) {
+                        n.topic = n.text;
+                        delete n.text;
+                    }
+                    if (n.parentid) return n;
+                    const parentid = n.parentId;
+                    delete n.parentId;
+                    if (parentid) n.parentid = parentid;
+                    return n;
+                });
+
+                /////// find root
+                let root_node;
+                nodeArray.forEach(n => {
+                    if (!n.parentid) {
+                        if (root_node) { throw Error("Found second node with no parent"); }
+                        root_node = n;
+                    }
+                });
+                if (!root_node) { throw Error("Did not find mindmap root"); }
+
+                ////// find root children
+                // @ts-ignore
+                root_node.isroot = true;
+                // @ts-ignore
+                const rootId = root_node.id;
+                const rootChildren = [];
+                nodeArray.forEach(n => { if (n.parentid == rootId) rootChildren.push(n); });
+                rootChildren.forEach(n => n.direction = 1);
+
+                return nodeArray;
+            }
+
+
             // debugger;
             const mindStored = {
                 data: nodeArray,
@@ -2394,8 +2412,40 @@ export async function pageSetup() {
             }
             const jm = await displayOurMindmap(mindStored);
             console.log({ jm });
-            jm.NOT_SAVEABLE = "Because it is a generated mindmap";
+            jm.NOT_SAVEABLE = "This is a generated mindmap";
             // debugger;
+            // addShareMarker
+            const addAIgeneratedMarker = () => {
+                // if (spTitle == null) throw Error("spTitle == null");
+                const divInfo = mkElt("div", undefined,
+                    mkElt("b", undefined, "AI generated mindmap"),
+                )
+                divInfo.style = `
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            `;
+                const eltTellGenerated = mkElt("div", undefined, [
+                    divInfo,
+                    // btnInfoLinked
+                ]);
+                eltTellGenerated.style = `
+                    position: fixed; bottom: 0px; left: 0px;
+                    min-height: 50px; min-width: 100px;
+                    max-width: 270px;
+                    display: flex;
+                    gap: 10px;
+                    padding: 10px;
+                    z-index: 99999;
+                    color: black;
+                    background-color: magenta;
+                    background-color: #f068f0;
+                `;
+                eltTellGenerated.id = "generated-marker";
+                document.body.appendChild(eltTellGenerated);
+            }
+            addAIgeneratedMarker();
         }
         const liGenerateMindmap = mkMenuItem("Generate Mindmap", generateMindMap);
 
