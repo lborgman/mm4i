@@ -1029,7 +1029,7 @@ function getUsedOptJmDisplay(mind) {
             case "node_array":
                 for (const idx in mind.data) {
                     const n = mind.data[idx];
-                    if (n.id == "root") {
+                    if (n.id == "root" || !n.parentid) {
                         root_node = n;
                         break;
                     }
@@ -2105,7 +2105,9 @@ export async function pageSetup() {
         if (!eltExpander) return;
         const strNodeId = eltExpander.getAttribute("nodeid");
         if (null == strNodeId) throw Error("jmexpander attribute nodeid is null");
-        const nodeId = parseInt(strNodeId);
+        const str = strNodeId.trim();
+        if (str.length == 0) throw Error("jmexpander attribute nodeid.length == 0");
+        const nodeId = str.match(/^\d+$/) ? parseInt(str) : str;
         jmDisplayed.toggle_node(nodeId);
         // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, "Edit mindmap description");
         if (jmDisplayed.isSavedBookmark) {
@@ -2210,12 +2212,19 @@ export async function pageSetup() {
             const tfLink = modMdc.mkMDCtextField("Link to article/video", inpLink);
             const eltNotReady = mkElt("p", undefined, "Not ready!");
             eltNotReady.style = `color:red; font-size:1.2rem`;
+
             const modAi = await importFc4i("access-gemini");
             const apiError = modAi.apiError();
             const apiOk = !apiError;
-            const eltNoAPI = mkElt("p", undefined, `Gemini API Error: ${apiError}`);
+            // const eltNoAPI = mkElt("p", undefined, `Gemini API Error: ${apiError}`);
+            const eltNoAPI = mkElt("details", undefined, [
+                mkElt("summary", undefined, "Can't use Gemini at the moment"),
+                `Gemini API Error: ${apiError}`,
+            ]);
             eltNoAPI.style.color = "red";
             const eltOk = apiOk ? "" : eltNoAPI;
+
+            const eltStatus = mkElt("p", undefined, "(status)");
             const body = mkElt("div", undefined, [
                 eltNotReady,
                 eltOk,
@@ -2224,18 +2233,169 @@ export async function pageSetup() {
                     Article or video to summarize as a mindmap:
                     `),
                 tfLink,
+                eltStatus,
             ]);
-            const ans = modMdc.mkMDCdialogConfirm(body, "Generate", "Cancel");
+            inpLink.addEventListener("input", async evt => {
+                const i = await window["PWAhasInternet"]();
+                if (!i) {
+                    eltStatus.textContent = "No internet connection";
+                    return;
+                }
+                const s = inpLink.closest("div.mdc-dialog__surface");
+                const b = s.querySelector("button[data-mdc-dialog-action]");
+                const u = inpLink.value.trim();
+                console.log({ u });
+                if (u.length < 13) {
+                    eltStatus.textContent = `Url too short: ${u.length} < 13`;
+                    b.inert = true;
+                    return;
+                }
+                if (!u.startsWith("https://")) {
+                    eltStatus.textContent = "Link must begin with 'https://'";
+                    b.inert = true;
+                    return;
+                }
+                // "head"
+                b.inert = false;
+                const r = await isReachableUrl(u);
+                if (!r) {
+                    eltStatus.textContent = "Can't see if link is ok";
+                    return;
+                }
+                eltStatus.textContent = "Link seems ok";
+                debugger;
+            });
+            async function isReachableUrl(url) {
+                let reachable = false;
+                let resp;
+                let error;
+                try {
+                    resp = await fetch(url, { method: "HEAD" });
+                    reachable = resp.ok;
+                } catch (err) {
+                    console.log("HEAD", { err, resp });
+                    error = err;
+                }
+                if (!reachable) {
+                    try {
+                        resp = await fetch(url, {
+                            method: "GET",
+                            headers: {
+                                "Range": "bytes=0-0" // Request only the first byte
+                            }
+                        });
+                        reachable = resp.ok;
+                    } catch (err) {
+                        console.log("GET", { err, resp });
+                        error = err;
+                    }
+                    finally {
+                        if (!reachable) {
+                            // debugger;
+                        }
+                    }
+                }
+                return reachable;
+            }
+
+            // debugger;
+
+            const ans = await modMdc.mkMDCdialogConfirm(body, "Generate", "Cancel");
             if (!ans) {
                 modMdc.mkMDCsnackbar("Canceled");
                 return;
             }
             const promptAi = `
-                Summarize "${inpLink}".
-                Return result as a mindmap node array.
+                Summarize "${inpLink.value.trim()}".
+                Return result as a mindmap flat node array.
                 `;
-            const resultAi = await modAi.ask(promptAi)
-            console.log({ resultAi });
+            // You may add a field "note" to each node.
+
+            let jsonNodeArray;
+            if (!apiOk) {
+                const eltPrompt = mkElt("p", undefined, [
+                    mkElt("blockquote", undefined, mkElt("b", undefined, promptAi)),
+                ]);
+                const eltAItextarea = mkElt("textarea");
+                const eltStatus = mkElt("p");
+                eltAItextarea.addEventListener("input", _evt => {
+                    // console.log(eltAItextarea.value);
+                    // FIX-ME: better check
+                    const v = eltAItextarea.value;
+                    try {
+                        const j = JSON.parse(v);
+                        eltStatus.textContent = "OK";
+                    } catch (err) {
+                        eltStatus.textContent = err;
+                    }
+                });
+                const eltDivAI = mkElt("p", undefined, [
+                    mkElt("div", undefined, "Paste AI answer here:"),
+                    eltAItextarea,
+                    eltStatus
+                ]);
+                const body = mkElt("div", undefined, [
+                    mkElt("h2", undefined, "You must ask your AI yourself"),
+                    mkElt("p", undefined, `
+                        Since I can't ask Gemini AI at the moment
+                        you must do it yourself.
+                        In the AI of your choice use this prompt:
+                        `),
+                    eltPrompt,
+                    eltDivAI,
+                ]);
+                const ans2 = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel");
+                if (!ans2) {
+                    modMdc.mkMDCsnackbar("Canceled");
+                    return;
+                }
+                const strNodeArray = eltAItextarea.value;
+                jsonNodeArray = JSON.parse(strNodeArray);
+                // debugger;
+            } else {
+                const resultAi = await modAi.ask(promptAi)
+                console.log({ resultAi });
+                debugger;
+            }
+            console.log({ jsonNodeArray });
+            // .parentId => .parentid, .text => .topic
+            const nodeArray = jsonNodeArray.map(n => {
+                n.expanded = false;
+                if (!n.topic) {
+                    n.topic = n.text;
+                    delete n.text;
+                }
+                if (n.parentid) return n;
+                const parentid = n.parentId;
+                delete n.parentId;
+                if (parentid) n.parentid = parentid;
+                return n;
+            });
+            // find root
+            let root_node;
+            nodeArray.forEach(n => {
+                if (!n.parentid) {
+                    if (root_node) { throw Error("Found second node with no parent"); }
+                    root_node = n;
+                }
+            });
+            // find root children
+            root_node.isroot = true;
+            const rootId = root_node.id;
+            const rootChildren = [];
+            nodeArray.forEach(n => { if (n.parentid == rootId) rootChildren.push(n); });
+            rootChildren.forEach(n => n.direction = 1);
+            // debugger;
+            const mindStored = {
+                data: nodeArray,
+                format: "node_array",
+                key: "key-generate",
+                meta: { name: "key-generate" }
+            }
+            const jm = await displayOurMindmap(mindStored);
+            console.log({ jm });
+            jm.NOT_SAVEABLE = "Because it is a generated mindmap";
+            // debugger;
         }
         const liGenerateMindmap = mkMenuItem("Generate Mindmap", generateMindMap);
 

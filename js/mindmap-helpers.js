@@ -742,7 +742,6 @@ export function checkIsMMformatStored(obj, where, arrMayMiss = undefined, allowI
     const throwErr = (what) => {
         const msg = `(checkIsMmformatStored) ${where}: ${what}`;
         console.error(msg);
-        debugger; // eslint-disable-line no-debugger
         throw Error(msg);
     }
 
