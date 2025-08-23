@@ -2305,10 +2305,11 @@ export async function pageSetup() {
                 modMdc.mkMDCsnackbar("Canceled");
                 return;
             }
-            const promptAi = `
-                Summarize "${inpLink.value.trim()}".
-                Return result as a mindmap flat node array (in JavaScript syntax).
-                `;
+            const promptAi = [
+                `Summarize "${inpLink.value.trim()}" `,
+                "Return result as a mindmap flat node array (in JavaScript syntax).",
+                `You may add an optional (non-standard) "notes" field in markdown format to any node.`
+            ].join("\n");
             // You may add a field "note" to each node.
 
             let jsonNodeArray;
@@ -2317,7 +2318,7 @@ export async function pageSetup() {
                 const btnCopy = modMdc.mkMDCbutton("Copy", "raised");
                 btnCopy.addEventListener("click", evt => {
                     evt.stopPropagation();
-                    alert("not implemented yet, use SELECT + COPY");
+                    modTools.copyTextToClipboard(promptAi);
                 });
                 const eltPrompt = mkElt("p", undefined, [
                     mkElt("blockquote", undefined, mkElt("b", undefined, promptAi)),
@@ -2327,6 +2328,7 @@ export async function pageSetup() {
                     display: flex;
                     gap: 10px;
                     flex-direction: row;
+                    align-items: center;
                 `;
                 const eltAItextarea = mkElt("textarea");
                 const eltStatus = mkElt("p");
