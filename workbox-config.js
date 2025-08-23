@@ -10,6 +10,7 @@ module.exports = {
 		'manifest-mm4i.json', 
 		'node_modules/**/*',
 		'temp.js',
+		'temp.json',
 		'woff-codepoints.js',
 		'**/api/prerender.js',
 		'package.json',
