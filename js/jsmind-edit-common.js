@@ -2465,7 +2465,8 @@ export async function pageSetup() {
                 meta: { name: "key-generate" }
             }
             const jm = await displayOurMindmap(mindStored);
-            console.log({ jm });
+            // console.log({ jm });
+            jm.select_node(jm.get_root());
             jm.NOT_SAVEABLE = "This is a generated mindmap";
             // debugger;
             // addShareMarker
