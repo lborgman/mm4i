@@ -2307,15 +2307,27 @@ export async function pageSetup() {
             }
             const promptAi = `
                 Summarize "${inpLink.value.trim()}".
-                Return result as a mindmap flat node array.
+                Return result as a mindmap flat node array (in JavaScript syntax).
                 `;
             // You may add a field "note" to each node.
 
             let jsonNodeArray;
             if (!apiOk) {
+                // const btnCopy = mkElt("button", undefined, "Copy");
+                const btnCopy = modMdc.mkMDCbutton("Copy", "raised");
+                btnCopy.addEventListener("click", evt => {
+                    evt.stopPropagation();
+                    alert("not implemented yet, use SELECT + COPY");
+                });
                 const eltPrompt = mkElt("p", undefined, [
                     mkElt("blockquote", undefined, mkElt("b", undefined, promptAi)),
+                    mkElt("div", undefined, btnCopy)
                 ]);
+                eltPrompt.style = `
+                    display: flex;
+                    gap: 10px;
+                    flex-direction: row;
+                `;
                 const eltAItextarea = mkElt("textarea");
                 const eltStatus = mkElt("p");
                 eltAItextarea.addEventListener("input", _evt => {
@@ -2334,6 +2346,35 @@ export async function pageSetup() {
                         eltStatus.textContent = err;
                     }
                 });
+                const eltDl = mkElt("dl");
+
+                const addAiAlt = (nameAi, link, ok, notes) => {
+                    const eltA = mkElt("a", {
+                        href: link,
+                        target: "_blank"
+                    }, `Open ${nameAi}`);
+                    const eltNotes = mkElt("div", undefined, notes);
+                    eltNotes.style.color = ok? "green": "red";
+                    const eltDt = mkElt("dt", undefined, [
+                        nameAi,
+                        mkElt("dd", undefined, [
+                            eltA,
+                            eltNotes
+                        ])
+                    ]);
+                    eltDl.appendChild(eltDt)
+                }
+                addAiAlt("Gemini (Google)", "https://gemini.google.com", false, "Can't always access the web site (even if it is public)");
+                addAiAlt("Claude (Anthropic)", "https://claude.ai", true, "Seems to work ok");
+                addAiAlt("Grok (xAI)", "https://grok.com", true, "Seems to work ok");
+                addAiAlt("ChatGPT (OpenAI)", "https://chatgpt.com", false, "Not tested yet");
+                addAiAlt("Perplexity", "https://perplexity.ai", false, "Not tested yet (what is it?)");
+                const eltWhichAI = mkElt("details", undefined, [
+                    mkElt("summary", undefined, "Which AI can I use?"),
+                    mkElt("div", undefined,
+                        eltDl
+                    )
+                ]);
                 const eltDivAI = mkElt("p", undefined, [
                     mkElt("div", undefined, "Paste AI answer here:"),
                     eltAItextarea,
@@ -2347,6 +2388,7 @@ export async function pageSetup() {
                         In the AI of your choice use this prompt:
                         `),
                     eltPrompt,
+                    eltWhichAI,
                     eltDivAI,
                 ]);
                 const ans2 = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel");
@@ -2374,8 +2416,11 @@ export async function pageSetup() {
                         delete n.text;
                     }
                     if (n.parentid) return n;
-                    const parentid = n.parentId;
+                    // parentId is for Grok AI
+                    // parent is for Claude AI
+                    const parentid = n.parentId || n.parent;
                     delete n.parentId;
+                    delete n.parent;
                     if (parentid) n.parentid = parentid;
                     return n;
                 });
