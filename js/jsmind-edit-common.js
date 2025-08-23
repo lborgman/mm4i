@@ -2307,7 +2307,7 @@ export async function pageSetup() {
             }
             const promptAi = [
                 `Summarize "${inpLink.value.trim()}" `,
-                "Return result as a mindmap flat node array (in JavaScript syntax).",
+                "Return result as a mindmap flat node array (in JSON syntax).",
                 `You may add an optional (non-standard) "notes" field in markdown format to any node.`
             ].join("\n");
             // You may add a field "note" to each node.
@@ -2334,9 +2334,11 @@ export async function pageSetup() {
                 const eltStatus = mkElt("p");
                 eltAItextarea.addEventListener("input", _evt => {
                     // console.log(eltAItextarea.value);
-                    const v = eltAItextarea.value;
+                    const strAI = eltAItextarea.value;
                     try {
-                        const j = JSON.parse(v);
+                        // There might be something like arr = [] at the start:
+                        // const strNodeArray = strAI.slice(strAI.indexOf("["));
+                        const j = JSON.parse(strAI);
                         const nodeArray = normalizeNodeArrayFromAI(j);
                         const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
                         if (res.isValid) {
@@ -2356,7 +2358,7 @@ export async function pageSetup() {
                         target: "_blank"
                     }, `Open ${nameAi}`);
                     const eltNotes = mkElt("div", undefined, notes);
-                    eltNotes.style.color = ok? "green": "red";
+                    eltNotes.style.color = ok ? "green" : "red";
                     const eltDt = mkElt("dt", undefined, [
                         nameAi,
                         mkElt("dd", undefined, [
@@ -2401,8 +2403,10 @@ export async function pageSetup() {
                     modMdc.mkMDCsnackbar("Canceled");
                     return;
                 }
-                const strNodeArray = eltAItextarea.value;
-                jsonNodeArray = JSON.parse(strNodeArray);
+                const strAI = eltAItextarea.value;
+                // There might be something like arr = [] at the start:
+                // const strNodeArray = strAI.slice(strAI.indexOf("["));
+                jsonNodeArray = JSON.parse(strAI);
             } else {
                 const resultAi = await modAi.ask(promptAi)
                 console.log({ resultAi });
