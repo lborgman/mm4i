@@ -676,7 +676,7 @@ export async function PWAhasInternet() {
     // console.trace("PWAhasInternet: try to fetch", urlHref);
 
     try {
-        const response = await fetch(urlHref, { method: 'HEAD' },)
+        const response = await fetch(urlHref, { method: 'HEAD' });
         logConsole(`PWAhasInternet: YES (any response is actually ok here) response.ok: ${response.ok}`)
         return true;
     } catch {
