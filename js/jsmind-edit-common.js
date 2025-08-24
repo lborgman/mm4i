@@ -2224,25 +2224,14 @@ export async function pageSetup() {
             eltNoAPI.style.color = "red";
             const eltOk = apiOk ? "" : eltNoAPI;
 
-            const eltStatus = mkElt("p", undefined, "(status)");
-            const body = mkElt("div", undefined, [
-                eltNotReady,
-                eltOk,
-                mkElt("h2", undefined, "Generate mindmap"),
-                mkElt("p", undefined, `
-                    Article or video to summarize as a mindmap:
-                    `),
-                tfLink,
-                eltStatus,
-            ]);
+            const eltStatus = mkElt("div", undefined, "(status)");
             inpLink.addEventListener("input", async _evt => {
                 const i = await window["PWAhasInternet"]();
                 if (!i) {
                     eltStatus.textContent = "No internet connection";
                     return;
                 }
-                const s = inpLink.closest("div.mdc-dialog__surface");
-                const b = s.querySelector("button[data-mdc-dialog-action]");
+                const b = divPrompt;
                 const u = inpLink.value.trim();
                 console.log({ u });
                 if (u.length < 13) {
@@ -2260,10 +2249,10 @@ export async function pageSetup() {
                 const r = await isReachableUrl(u);
                 if (!r) {
                     eltStatus.textContent = "Can't see if link is ok";
-                    return;
+                } else {
+                    eltStatus.textContent = "Link seems ok";
                 }
-                eltStatus.textContent = "Link seems ok";
-                // debugger;
+                updatePromptAi();
             });
             async function isReachableUrl(url) {
                 let reachable = false;
@@ -2298,137 +2287,198 @@ export async function pageSetup() {
                 return reachable;
             }
 
-            // debugger;
 
-            const ans = await modMdc.mkMDCdialogConfirm(body, "Generate", "Cancel");
-            if (!ans) {
-                modMdc.mkMDCsnackbar("Canceled");
-                return;
+
+            let promptAi;
+            function updatePromptAi() {
+                promptAi = makePrompt(inpLink.value.trim(), 3);
+                const bPrompt = document.getElementById("prompt-ai");
+                if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
+                bPrompt.textContent = promptAi;
             }
-            const maxLevels = 3;
-            const promptAi = [
-                `Summarize "${inpLink.value.trim()}" `,
-                "Return result as a mindmap flat node array (in JSON syntax).",
-                `To avoid more than ${maxLevels} levels you may add an optional (non-standard)`,
-                `"notes" field in markdown format to any node.`
-            ].join("\n");
-            // You may add a field "note" to each node.
+            function makePrompt(link, maxDepth = 3) {
+                return `
+You are an assistant that summarizes content into a structured mind map.
+
+Task:
+1. Read and process the content at this link: "${link}"
+   - If it's an article: extract and summarize the text. 
+   - If it's a video: use the transcript or main spoken content for the summary.
+2. Summarize the content into hierarchical key points:
+   - Main idea
+   - Major subtopics
+   - Supporting details
+3. Limit the hierarchy to a maximum depth of ${maxDepth} levels.
+4. Output the result as a flat node array in **valid JSON syntax**, where:
+   - "id": unique number for each node
+   - "name": text for the node
+   - "parentId": id of the parent node (null for the main topic)
+   - "notes": additional context or supporting detail (empty string if not available)
+
+Output format example:
+[
+  { "id": 1, "name": "Main Topic", "parentId": null, "notes": "Overall summary" },
+  { "id": 2, "name": "Subtopic A", "parentId": 1, "notes": "Key points about A" },
+  { "id": 3, "name": "Subtopic B", "parentId": 1, "notes": "Key points about B" },
+  { "id": 4, "name": "Detail A1", "parentId": 2, "notes": "Supporting detail for A" }
+]
+
+Important:
+- Do not include explanations outside the JSON.
+- The JSON must be syntactically correct.
+`;
+            }
+
 
             let jsonNodeArray;
-            if (!apiOk) {
-                // const btnCopy = mkElt("button", undefined, "Copy");
-                const btnCopy = modMdc.mkMDCbutton("Copy", "raised");
+
+            const divPrompt = mkDivPrompt();
+            divPrompt.inert = true;
+            function mkDivPrompt() {
+                const btnCopy = modMdc.mkMDCbutton("Copy AI prompt", "raised");
+                btnCopy.style.textTransform = "none";
                 btnCopy.addEventListener("click", evt => {
                     evt.stopPropagation();
                     modTools.copyTextToClipboard(promptAi);
                 });
-                const eltPrompt = mkElt("p", undefined, [
-                    mkElt("blockquote", undefined, mkElt("b", undefined, promptAi)),
-                    mkElt("div", undefined, btnCopy)
+                const bPrompt = mkElt("b", undefined, promptAi);
+                bPrompt.id = "prompt-ai";
+                bPrompt.style.whiteSpace = "pre-wrap";
+                const divNewPrompt = mkElt("div", undefined, [
+                    mkElt("div", undefined, btnCopy),
+                    mkElt("details", undefined, [
+                        mkElt("summary", undefined, "Show AI prompt"),
+                        mkElt("blockquote", undefined, bPrompt)
+                    ])
                 ]);
-                eltPrompt.style = `
+                divNewPrompt.style = `
                     display: flex;
+                    flex-direction: column;
                     gap: 10px;
-                    flex-direction: row;
-                    align-items: center;
+                    NOpadding: 20px;
                 `;
-                const eltAItextarea = mkElt("textarea");
-                const eltStatus = mkElt("p");
-                eltAItextarea.addEventListener("input", _evt => {
-                    // console.log(eltAItextarea.value);
-                    const strAI = eltAItextarea.value;
-                    try {
-                        // There might be something like arr = [] at the start:
-                        // const strNodeArray = strAI.slice(strAI.indexOf("["));
-                        const j = JSON.parse(strAI);
-                        const nodeArray = nodeArrayFromAI2jsmindFormat(j);
-                        const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
-                        if (res.isValid) {
-                            eltStatus.textContent = "OK";
-                        } else {
-                            eltStatus.textContent = res.error;
-                        }
-                    } catch (err) {
-                        eltStatus.textContent = err;
-                    }
-                });
-                const eltDl = mkElt("dl");
+                return divNewPrompt;
+            }
 
-                const addAiAlt = (nameAi, link, ok, notes) => {
-                    const eltA = mkElt("a", {
-                        href: link,
-                        target: "_blank"
-                    }, `Open ${nameAi}`);
-                    const eltNotes = mkElt("div", undefined, notes);
-                    eltNotes.style.color = ok ? "green" : "red";
-                    const eltDt = mkElt("dt", undefined, [
-                        nameAi,
-                        mkElt("dd", undefined, [
-                            eltA,
-                            eltNotes
-                        ])
-                    ]);
-                    eltDl.appendChild(eltDt)
+            const eltAItextarea = mkElt("textarea");
+            const eltInpStatus = mkElt("p");
+            eltAItextarea.addEventListener("input", _evt => {
+                const strAI = eltAItextarea.value;
+                try {
+                    const j = JSON.parse(strAI);
+                    const nodeArray = nodeArrayFromAI2jsmindFormat(j);
+                    const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
+                    if (res.isValid) {
+                        eltInpStatus.textContent = "OK";
+                    } else {
+                        eltInpStatus.textContent = res.error;
+                    }
+                } catch (err) {
+                    eltInpStatus.textContent = err;
                 }
-                addAiAlt("Gemini (Google)", "https://gemini.google.com", false, "Can't always access the web site (even if it is public)");
-                addAiAlt("Claude (Anthropic)", "https://claude.ai", true, "Seems to work ok");
-                addAiAlt("Grok (xAI)", "https://grok.com", true, "Seems to work ok");
-                addAiAlt("ChatGPT (OpenAI)", "https://chatgpt.com", false, "Not tested yet");
-                addAiAlt("Perplexity", "https://perplexity.ai", false, "Not tested yet (what is it?)");
-                const eltWhichAI = mkElt("details", undefined, [
-                    mkElt("summary", undefined, "Which AI can I use?"),
-                    mkElt("div", undefined,
-                        eltDl
-                    )
+            });
+            const eltDl = mkElt("dl");
+
+            const addAiAlt = (nameAi, link, ok, notes) => {
+                const eltA = mkElt("a", {
+                    href: link,
+                    target: "_blank"
+                }, `Open ${nameAi}`);
+                const eltNotes = mkElt("div", undefined, notes);
+                eltNotes.style.color = ok ? "green" : "red";
+                const eltDt = mkElt("dt", undefined, [
+                    nameAi,
+                    mkElt("dd", undefined, [
+                        eltA,
+                        eltNotes
+                    ])
                 ]);
-                const eltDivAI = mkElt("p", undefined, [
-                    mkElt("div", undefined, "Paste AI answer here:"),
-                    eltAItextarea,
-                    eltStatus
-                ]);
-                const body = mkElt("div", undefined, [
-                    mkElt("h2", undefined, "You must ask your AI yourself"),
-                    mkElt("p", undefined, `
+                eltDl.appendChild(eltDt)
+            }
+            addAiAlt("Gemini (Google)", "https://gemini.google.com", false, "Can't always access the web site (even if it is public)");
+            addAiAlt("Claude (Anthropic)", "https://claude.ai", true, "Seems to work ok");
+            addAiAlt("Grok (xAI)", "https://grok.com", true, "Seems to work ok");
+            addAiAlt("ChatGPT (OpenAI)", "https://chatgpt.com", false, "Not tested yet");
+            addAiAlt("Perplexity", "https://perplexity.ai", false, "Not tested yet (what is it?)");
+            const eltWhichAI = mkElt("details", undefined, [
+                mkElt("summary", undefined, "Which AI can I use?"),
+                mkElt("div", undefined,
+                    eltDl
+                )
+            ]);
+            const eltDivAI = mkElt("p", undefined, [
+                mkElt("div", undefined, "Paste AI answer here:"),
+                eltAItextarea,
+                eltStatus
+            ]);
+            const cardInput = mkElt("p", { class: "mdc-card" }, [
+                mkElt("div", undefined, `Article or video to summarize as a mindmap:`),
+                tfLink,
+                eltStatus,
+            ]);
+            cardInput.style = `
+                display: flex;
+                gap: 10px; 
+                flex-direction: column;
+                padding: 20px;
+            `;
+
+            const cardPrompt = mkElt("p", { class: "mdc-card" }, [
+                `In the AI of your choice use this prompt:`,
+                divPrompt,
+                eltWhichAI,
+            ]);
+            cardPrompt.style = `
+                display: flex;
+                gap: 10px; 
+                flex-direction: column;
+                padding: 20px;
+            `;
+            const body = mkElt("div", undefined, [
+                eltNotReady,
+                eltOk,
+                // mkElt("h2", undefined, "You must ask your AI yourself"),
+                mkElt("h2", undefined, "Generate mindmap"),
+
+                cardInput,
+
+                mkElt("p", undefined, `
                         Since it at the moment looks technically impossible
                         to directly ask any of the AI:s on your behalf you must do it yourself.
                         `),
-                    mkElt("p", undefined, `
-                        In the AI of your choice use this prompt:
-                        `),
-                    eltPrompt,
-                    eltWhichAI,
-                    eltDivAI,
-                ]);
-                const ans2 = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel");
-                if (!ans2) {
-                    modMdc.mkMDCsnackbar("Canceled");
-                    return;
-                }
-                const strAI = eltAItextarea.value;
-                // There might be something like arr = [] at the start:
-                // const strNodeArray = strAI.slice(strAI.indexOf("["));
-                jsonNodeArray = JSON.parse(strAI);
-            } else {
-                const resultAi = await modAi.ask(promptAi)
-                console.log({ resultAi });
-                debugger; // eslint-disable-line no-debugger
+                cardPrompt,
+                eltDivAI,
+            ]);
+            const ans = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel");
+            if (!ans) {
+                modMdc.mkMDCsnackbar("Canceled");
+                return;
             }
+            const strAI = eltAItextarea.value;
+            jsonNodeArray = JSON.parse(strAI);
             console.log({ jsonNodeArray });
 
             const nodeArray = nodeArrayFromAI2jsmindFormat(jsonNodeArray);
             function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
-                ////// .parentId => .parentid, .text => .topic
+                // https://chatgpt.com/share/68ab0c5c-abe8-8004-8a37-616c5a28c8ce
+
+                // parentId: Grok AI
+                // parent: Claude AI
+
+                ////// .parentId, .parent => .parentid, .text, .name => .topic
                 ////// .notes
                 const nodeArray = aiNodeArray.map(n => {
                     n.expanded = false;
                     if (!n.topic) {
-                        if (!n.text) throw Error("!n.text");
-                        n.topic = n.text;
+                        let topic;
+                        if (n.text) topic = n.text;
+                        if (n.name) topic = n.name;
+                        if (!topic) throw Error(`!n.text || !n.name: ${JSON.stringify(n)}`);
+                        n.topic = topic;
                         delete n.text;
+                        delete n.name;
                     }
                     if (n.parentid) return n;
-                    // parentId is for Grok AI
-                    // parent is for Claude AI
                     const parentid = n.parentId || n.parent;
                     delete n.parentId;
                     delete n.parent;
