@@ -2305,10 +2305,12 @@ export async function pageSetup() {
                 modMdc.mkMDCsnackbar("Canceled");
                 return;
             }
+            const maxLevels = 3;
             const promptAi = [
                 `Summarize "${inpLink.value.trim()}" `,
                 "Return result as a mindmap flat node array (in JSON syntax).",
-                `You may add an optional (non-standard) "notes" field in markdown format to any node.`
+                `To avoid more than ${maxLevels} levels you may add an optional (non-standard)`,
+                `"notes" field in markdown format to any node.`
             ].join("\n");
             // You may add a field "note" to each node.
 
@@ -2339,7 +2341,7 @@ export async function pageSetup() {
                         // There might be something like arr = [] at the start:
                         // const strNodeArray = strAI.slice(strAI.indexOf("["));
                         const j = JSON.parse(strAI);
-                        const nodeArray = normalizeNodeArrayFromAI(j);
+                        const nodeArray = nodeArrayFromAI2jsmindFormat(j);
                         const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
                         if (res.isValid) {
                             eltStatus.textContent = "OK";
@@ -2414,13 +2416,14 @@ export async function pageSetup() {
             }
             console.log({ jsonNodeArray });
 
-            const nodeArray = normalizeNodeArrayFromAI(jsonNodeArray);
-            function normalizeNodeArrayFromAI(aiNodeArray) {
+            const nodeArray = nodeArrayFromAI2jsmindFormat(jsonNodeArray);
+            function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
                 ////// .parentId => .parentid, .text => .topic
-                // const nodeArray = jsonNodeArray.map(n => {
+                ////// .notes
                 const nodeArray = aiNodeArray.map(n => {
                     n.expanded = false;
                     if (!n.topic) {
+                        if (!n.text) throw Error("!n.text");
                         n.topic = n.text;
                         delete n.text;
                     }
@@ -2431,8 +2434,16 @@ export async function pageSetup() {
                     delete n.parentId;
                     delete n.parent;
                     if (parentid) n.parentid = parentid;
+
+                    const notes = n.notes;
+                    if (notes) {
+                        const shapeEtc = { notes }
+                        n.shapeEtc = shapeEtc;
+                    }
+
                     return n;
                 });
+
 
                 /////// find root
                 let root_node;

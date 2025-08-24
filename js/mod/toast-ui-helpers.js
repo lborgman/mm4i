@@ -23,7 +23,7 @@ export function setupSearchNodes(searchPar) {
 }
 
 // const modToastUI = window["toastui"] || await importFc4i("toast-ui");
-const toastUI = window["toastui"];
+// const toastUI = window["toastui"];
 
 async function dialogLinkURL(editor) {
     // debugger;
@@ -454,13 +454,14 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
         // FIX-ME: Use weakMap if several editors!
         // FIX-ME: Destroy editor earlier
         editorViewer?.destroy();
-        // <script defer src="./ext/toast-ui/editor/3.2.2.js"></script>
-        // function loadScript(src, options = {})
-        // if (typeof toastUI == "undefined") {
+
+        // https://grok.com/share/bGVnYWN5LWNvcHk%3D_7884b147-b776-4b5f-975e-68acc62ad644
         if (!window["toastUI"]) {
+            // <script defer src="./ext/toast-ui/editor/3.2.2.js"></script>
             await window["loadScript"]("./ext/toast-ui/editor/3.2.2.js");
+            window["toastUI"] = window["toastUI"] || window["toastui"];
         }
-        const toastUI = window["toastUI"] || window["toastui"];
+
         editorViewer = new toastUI.Editor({
             el: divEditor,
             toolbarItems: objToolbarItems,
