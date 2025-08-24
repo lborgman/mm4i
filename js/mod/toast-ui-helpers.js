@@ -447,13 +447,20 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
 
 
 
-    toastEditor = makeFakedViewer();
+    toastEditor = await makeFakedViewer();
 
     // https://github.com/nhn/tui.editor/issues/3298
-    function makeFakedViewer() {
+    async function makeFakedViewer() {
         // FIX-ME: Use weakMap if several editors!
         // FIX-ME: Destroy editor earlier
         editorViewer?.destroy();
+        // <script defer src="./ext/toast-ui/editor/3.2.2.js"></script>
+        // function loadScript(src, options = {})
+        // if (typeof toastUI == "undefined") {
+        if (!window["toastUI"]) {
+            await window["loadScript"]("./ext/toast-ui/editor/3.2.2.js");
+        }
+        const toastUI = window["toastUI"] || window["toastui"];
         editorViewer = new toastUI.Editor({
             el: divEditor,
             toolbarItems: objToolbarItems,
