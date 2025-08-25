@@ -2224,7 +2224,7 @@ export async function pageSetup() {
             eltNoAPI.style.color = "red";
             const eltOk = apiOk ? "" : eltNoAPI;
 
-            const eltStatus = mkElt("div", undefined, "(status)");
+            const eltStatus = mkElt("div", undefined, "(empty)");
             inpLink.addEventListener("input", async _evt => {
                 const i = await window["PWAhasInternet"]();
                 if (!i) {
@@ -2366,12 +2366,17 @@ Important:
 
             const eltAItextareaStatus = mkElt("p");
             eltAItextarea.addEventListener("input", _evt => {
-                const strAIraw = eltAItextarea.value;
+                // valid
+                const strAIraw = eltAItextarea.value.trim();
+                if (strAIraw.length == 0) {
+                    eltAItextareaStatus.textContent = "";
+                    return;
+                }
                 let strAIjson = getJsonFromAIstr(strAIraw);
 
                 try {
                     const j = JSON.parse(strAIjson);
-                    const nodeArray = nodeArrayFromAI2jsmindFormat(j);
+                    const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(j);
                     const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
                     if (res.isValid) {
                         const msgStatus = strAIjson == strAIraw ? "OK" : "OK (extracted info)";
@@ -2464,63 +2469,7 @@ Important:
             jsonNodeArray = JSON.parse(getJsonFromAIstr(strAIraw));
             console.log({ jsonNodeArray });
 
-            const nodeArray = nodeArrayFromAI2jsmindFormat(jsonNodeArray);
-            function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
-                // https://chatgpt.com/share/68ab0c5c-abe8-8004-8a37-616c5a28c8ce
-
-                // parentId: Grok AI
-                // parent: Claude AI
-
-                ////// .parentId, .parent => .parentid, .text, .name => .topic
-                ////// .notes
-                const nodeArray = aiNodeArray.map(n => {
-                    n.expanded = false;
-                    if (!n.topic) {
-                        let topic;
-                        if (n.text) topic = n.text;
-                        if (n.name) topic = n.name;
-                        if (!topic) throw Error(`!n.text || !n.name: ${JSON.stringify(n)}`);
-                        n.topic = topic;
-                        delete n.text;
-                        delete n.name;
-                    }
-                    if (n.parentid) return n;
-                    const parentid = n.parentId || n.parent;
-                    delete n.parentId;
-                    delete n.parent;
-                    if (parentid) n.parentid = parentid;
-
-                    const notes = n.notes;
-                    if (notes) {
-                        const shapeEtc = { notes }
-                        n.shapeEtc = shapeEtc;
-                    }
-
-                    return n;
-                });
-
-
-                /////// find root
-                let root_node;
-                nodeArray.forEach(n => {
-                    if (!n.parentid) {
-                        if (root_node) { throw Error("Found second node with no parent"); }
-                        root_node = n;
-                    }
-                });
-                if (!root_node) { throw Error("Did not find mindmap root"); }
-
-                ////// find root children
-                // @ts-ignore
-                root_node.isroot = true;
-                // @ts-ignore
-                const rootId = root_node.id;
-                const rootChildren = [];
-                nodeArray.forEach(n => { if (n.parentid == rootId) rootChildren.push(n); });
-                rootChildren.forEach(n => n.direction = 1);
-
-                return nodeArray;
-            }
+            const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(jsonNodeArray);
 
 
             // debugger;
