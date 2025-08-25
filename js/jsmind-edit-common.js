@@ -2324,8 +2324,8 @@ Output format example:
 ]
 
 Important:
-- Do not include explanations outside the JSON.
 - The JSON must be syntactically correct.
+- Your answer must contain only the JSON.
 `;
             }
 
@@ -2355,26 +2355,32 @@ Important:
                     display: flex;
                     flex-direction: column;
                     gap: 10px;
-                    NOpadding: 20px;
                 `;
                 return divNewPrompt;
             }
 
             const eltAItextarea = mkElt("textarea");
-            const eltInpStatus = mkElt("p");
+            eltAItextarea.style = `
+                width: 100%;
+            `;
+
+            const eltAItextareaStatus = mkElt("p");
             eltAItextarea.addEventListener("input", _evt => {
-                const strAI = eltAItextarea.value;
+                const strAIraw = eltAItextarea.value;
+                let strAIjson = getJsonFromAIstr(strAIraw);
+
                 try {
-                    const j = JSON.parse(strAI);
+                    const j = JSON.parse(strAIjson);
                     const nodeArray = nodeArrayFromAI2jsmindFormat(j);
                     const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
                     if (res.isValid) {
-                        eltInpStatus.textContent = "OK";
+                        const msgStatus = strAIjson == strAIraw ? "OK" : "OK (extracted info)";
+                        eltAItextareaStatus.textContent = msgStatus;
                     } else {
-                        eltInpStatus.textContent = res.error;
+                        eltAItextareaStatus.textContent = res.error;
                     }
                 } catch (err) {
-                    eltInpStatus.textContent = err;
+                    eltAItextareaStatus.textContent = err;
                 }
             });
             const eltDl = mkElt("dl");
@@ -2407,9 +2413,9 @@ Important:
                 )
             ]);
             const eltDivAI = mkElt("p", undefined, [
-                mkElt("div", undefined, "Paste AI answer here:"),
+                mkElt("div", undefined, "Paste the answer from your AI here:"),
                 eltAItextarea,
-                eltStatus
+                eltAItextareaStatus,
             ]);
             const cardInput = mkElt("p", { class: "mdc-card" }, [
                 mkElt("div", undefined, `Article or video to summarize as a mindmap:`),
@@ -2454,8 +2460,8 @@ Important:
                 modMdc.mkMDCsnackbar("Canceled");
                 return;
             }
-            const strAI = eltAItextarea.value;
-            jsonNodeArray = JSON.parse(strAI);
+            const strAIraw = eltAItextarea.value;
+            jsonNodeArray = JSON.parse(getJsonFromAIstr(strAIraw));
             console.log({ jsonNodeArray });
 
             const nodeArray = nodeArrayFromAI2jsmindFormat(jsonNodeArray);
@@ -2561,6 +2567,17 @@ Important:
                 document.body.appendChild(eltTellGenerated);
             }
             addAIgeneratedMarker();
+
+            function getJsonFromAIstr(strAI) {
+                // You may get more from the AI than the JSON:
+                let strOnlyJson = strAI;
+                const p1 = strOnlyJson.indexOf("[");
+                if (p1 > -1) { strOnlyJson = strOnlyJson.slice(p1); }
+                const p2 = strOnlyJson.indexOf("]");
+                if (p2 > -1) { strOnlyJson = strOnlyJson.slice(0, p2 + 1); }
+                return strOnlyJson;
+            }
+
         }
         const liGenerateMindmap = mkMenuItem("Generate Mindmap", generateMindMap);
 
