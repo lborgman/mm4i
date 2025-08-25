@@ -2291,12 +2291,12 @@ export async function pageSetup() {
 
             let promptAi;
             function updatePromptAi() {
-                promptAi = makePrompt(inpLink.value.trim(), 3);
+                promptAi = makeAIprompt(inpLink.value.trim(), 3);
                 const bPrompt = document.getElementById("prompt-ai");
                 if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
                 bPrompt.textContent = promptAi;
             }
-            function makePrompt(link, maxDepth = 3) {
+            function makeAIprompt(link, maxDepth = 3) {
                 return `
 You are an assistant that summarizes content into a structured mind map.
 
@@ -2520,6 +2520,18 @@ Important:
             function getJsonFromAIstr(strAI) {
                 // You may get more from the AI than the JSON:
                 let strOnlyJson = strAI;
+
+                // Remove prompt if it is there:
+                const dummyPromptAI = makeAIprompt("dummy");
+                const a = dummyPromptAI.split("\n");
+                const l = a.length;
+                const lastLine = a[l - 2];
+                const pp = strOnlyJson.indexOf(lastLine);
+                if (pp > -1) {
+                    strOnlyJson = strOnlyJson.slice(pp + lastLine.length);
+                }
+
+                // Remove anyting before or after json:
                 const p1 = strOnlyJson.indexOf("[");
                 if (p1 > -1) { strOnlyJson = strOnlyJson.slice(p1); }
                 const p2 = strOnlyJson.indexOf("]");
