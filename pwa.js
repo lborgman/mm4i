@@ -663,7 +663,12 @@ async function promptForUpdate(waitingVersion) {
 
 function getRandomString() { return Math.random().toString(36).substring(2, 15) }
 
-export async function PWAhasInternet() {
+/**
+ * 
+ * @param {boolean} [log=false] log 
+ * @returns {Promise<boolean>}
+ */
+export async function PWAhasInternet(log = false) {
     // https://dev.to/maxmonteil/is-your-app-online-here-s-how-to-reliably-know-in-just-10-lines-of-js-guide-3in7
     if (!window.navigator.onLine) return false
 
@@ -677,10 +682,10 @@ export async function PWAhasInternet() {
 
     try {
         const response = await fetch(urlHref, { method: 'HEAD' });
-        logConsole(`PWAhasInternet: YES (any response is actually ok here) response.ok: ${response.ok}`)
+        if (log) logConsole(`PWAhasInternet: YES (any response is actually ok here) response.ok: ${response.ok}`)
         return true;
     } catch {
-        logConsole("PWAhasInternet: NO (didn't get response)");
+        if (log) logConsole("PWAhasInternet: NO (didn't get response)");
         return false
     }
 }

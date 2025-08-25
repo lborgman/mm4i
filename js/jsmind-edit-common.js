@@ -31,15 +31,7 @@ window["ourFsm"] = ourFsm;
 modTools.addPosListeners();
 
 let instMoveAtDragBorder;
-// let forceDiffPointHandle = 0;
 
-/*
- * 
- * @param {number | undefined} px 
-export function setDiffPointHandle(px) {
-    forceDiffPointHandle = px;
-}
-*/
 
 class PointHandle {
     static sizePointHandle = 20;
@@ -53,7 +45,6 @@ class PointHandle {
     #diffPointHandle = 1;
 
     /** @type {HTMLElement} */ #eltPointHandle;
-    // @type {HTMLElement} */ #jmnodesPointHandle;
 
     /**
      * 
@@ -305,12 +296,6 @@ const theMirrorWays = [
     // "cloneNode",
 ];
 Object.freeze(theMirrorWays);
-/*
-const ifMirrorWay = (ourWay) => {
-    if (!theMirrorWays.includes(ourWay)) throw Error(`Unknown mirror way: ${ourWay}`);
-    return ourWay == theDragTouchAccWay;
-}
-*/
 
 const checkTheDragTouchAccWay = () => {
     if (!theMirrorWays.includes(theDragTouchAccWay)) throw Error(`Unknown mirror way: ${theDragTouchAccWay}`);
@@ -336,88 +321,6 @@ function switchDragTouchAccWay(newWay) {
 // https://www.labnol.org/embed/google/photos/?ref=hackernoon.com
 // https://hackernoon.com/how-to-embed-single-photos-from-google-photos-on-your-website-and-notion-page
 // https://jumpshare.com/blog/how-to-embed-google-drive-video/
-/*
-async function dialogMirrorWay() {
-    const notWorking = ["useCanvas", "jsmind",];
-    const altWays = theMirrorWays.filter(alt => !notWorking.includes(alt));
-    console.log({ altWays });
-    const altsDesc = {}
-    altsDesc.none = mkElt("div", undefined, [
-        "Default when the only screen input is a mouse or similar."
-    ]);
-
-    // const srcVideoMirror = "https://drive.google.com/file/d/17gmHG7X14szrG04nIskIAAP4mNnr9Tm8/preview";
-    // const srcVideoMirror = "/img/vid/screen-20230513-mirror.mp4";
-    // const posterVideoMirror = "/img/vid/screen-20230513-mirror.jpg";
-    // const aspectratioVideoMirror = "1048 / 1248";
-    // const eltVidMirror = mkVidElt(srcVideoMirror, posterVideoMirror);
-    // altsDesc.cloneNode = mkElt("div", undefined, [ eltVidMirror ]);
-    function mkVidElt(src, poster, aspectRatio) {
-        aspectRatio = aspectRatio || "1 / 1";
-        // https://stackoverflow.com/questions/24157940/iframe-height-auto-css
-        const styleVideo = `
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                aspect-ratio: ${aspectRatio};
-                `;
-        const eltIframe = mkElt("iframe", { style: styleVideo });
-        eltIframe.allowfullscreen = true;
-
-        const styleContainer = `
-                position: relative;
-                 width: 100%;
-                 aspect-ratio: 1048 / 1248;
-                `;
-
-        const eltVideo = mkElt("video", { style: styleContainer });
-        eltVideo.src = src;
-        if (poster) eltVideo.poster = poster;
-        eltVideo.controls = true;
-        // eltVideo.autoplay = true;
-        // eltVideo.load();
-
-        // const divIframeContainer = mkElt("div", { style: styleContainer }, eltIframe);
-        // return divIframeContainer;
-
-        // const divBoth = mkElt("div", undefined, [divIframeContainer, eltVideo]);
-        // return divBoth;
-        return eltVideo;
-    }
-
-    altsDesc.pointHandle = mkElt("div", undefined, [
-        "Default when screen supports touch.",
-        "(no description yet)",
-        // vidPointHandle,
-        // iframePointHandle
-        // divIframePointHandle
-    ]);
-    function mkAltWay(way) {
-        const radio = mkElt("input", { type: "radio", name: "mirrorway", value: way });
-        if (theDragTouchAccWay == way) radio.checked = true;
-        return mkElt("label", undefined, [
-            way, radio,
-            altsDesc[way]
-        ]);
-    }
-
-    const style = [
-        "display: flex",
-        "flex-direction: column",
-        "gap: 20px"
-    ].join("; ");
-    const divChoices = mkElt("div", { style });
-    altWays.forEach(way => divChoices.appendChild(mkAltWay(way)));
-    const body = mkElt("div", undefined, [divChoices]);
-    function getValue() {
-        // return "hej";
-        return divChoices.querySelector('input[name="mirrorway"]:checked')?.value;
-    }
-    return modMdc.mkMDCdialogGetValue(body, getValue, "Ok");
-}
-*/
 
 let theDragTouchAccWay = "none";
 if (hasTouchEvents()) theDragTouchAccWay = "pointHandle";
@@ -445,10 +348,6 @@ let posPointHandle;
 
 
 // https://javascript.info/pointer-events
-/*
- * 
- * @return {EventListenerOrEventListenerObject}
- */
 function requestCheckPointerHandleMove() {
     try {
         if (!pointHandle.stateMoving()) return;
@@ -908,21 +807,11 @@ function mkMenuItem(lbl, fun, keyHint) {
         li.style.backgroundColor = "rgba(0,255,0,0.4)";
         hidePageMenu();
         setTimeout(() => { fun() }, 200);
-
-        // hideContextMenu();
     });
     return li;
 }
-// let /** @type {HTMLElement|undefined} */ divContextMenu;
 let jmDisplayed;
 
-/*
-function hideContextMenu() {
-    if (!divContextMenu) return;
-    divContextMenu.style.display = "none";
-    setTimeout(focusSelectedNode, 2000);
-}
-*/
 // FIX-ME: The node does not get DOM focus???
 /*
 function focusSelectedNode() {
@@ -1507,14 +1396,6 @@ export async function pageSetup() {
                     const objDataMind = jmDisplayed.get_data("node_array");
                     objDataMind.meta.name = mmKey;
                     objDataMind.key = mmKey;
-                    /*
-                    const saved = modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, "Saved SHARED");
-                    if (saved != true) {
-                        divSave.textContent = "Some error, not saved";
-                        divSave.style.color = "red";
-                        return;
-                    }
-                    */
 
                     const dbMindmaps = await importFc4i("db-mindmaps");
                     // const res = await dbMindmaps.DBsetMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy);
@@ -1832,24 +1713,6 @@ export async function pageSetup() {
         btnSyncMm.style.borderLeft = "1px solid rgb(0,0,0,0.4)";
 
 
-        /*
-        const eltTellProvider = mkElt("span");
-        eltTellProvider.id = "elt-tell-provider";
-        if (nodeProvider) {
-            const render = await modCustRend.getOurCustomRenderer();
-            const src = render.getLinkRendererImage(nodeProvider);
-            const eltImg = mkElt("img", { src });
-            eltImg.style.height = "30px";
-            const span = mkElt("span", undefined, [eltImg, " link"]);
-            eltTellProvider.appendChild(span);
-        } else {
-            eltTellProvider.appendChild(mkElt("span", undefined, "dummy (no provider)"));
-        }
-        */
-        // eltProvHits.textContent = "";
-        // eltProvHits.appendChild(eltTellProvider);
-        // eltProvHits.appendChild(btnCloseProvHits);
-
         inpSearch.addEventListener("input", () => {
             restartJsmindSearch();
         })
@@ -1977,15 +1840,6 @@ export async function pageSetup() {
     async function setNodeHitsFromArray(arrIdHits) {
         const eltJmnodes = getJmnodesFromJm(jmDisplayed);
         eltJmnodes.classList.add("showing-hits");
-        /*
-        if (hitType == "provider") {
-            // @ts-ignore
-            jsMindContainer.classList.add("display-jsmind-search");
-            const divInputs = document.getElementById("jsmind-search-inputs");
-            if (!divInputs) { throw Error(`Could not find #jsmind-search-inputs`); }
-            divInputs.classList.add("showing-provider-hits");
-        }
-        */
 
 
         console.log({ arrHits: arrIdHits });
@@ -2082,12 +1936,6 @@ export async function pageSetup() {
     });
     function getNextNodeId() { return ++highestNodeId; }
 
-    /*
-    function hideContextMenuOnEvent(evt) {
-        if (!divContextMenu) return;
-        if (!targetIsJmnode(evt) && !divContextMenu.contains(evt.target)) hideContextMenu();
-    }
-    */
 
     if (!jsMindContainer) throw Error("jsMindContainer is null");
     let toldChangesNotSaved = false;
@@ -2233,7 +2081,7 @@ export async function pageSetup() {
                 }
                 const b = divPrompt;
                 const u = inpLink.value.trim();
-                console.log({ u });
+                // console.log({ u });
                 if (u.length < 13) {
                     eltStatus.textContent = `Url too short: ${u.length} < 13`;
                     b.inert = true;
@@ -2372,14 +2220,14 @@ Important:
                     eltAItextareaStatus.textContent = "";
                     return;
                 }
-                let strAIjson = getJsonFromAIstr(strAIraw);
+                const { strAIjson, cleaned } = getJsonFromAIstr(strAIraw);
 
                 try {
                     const j = JSON.parse(strAIjson);
                     const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(j);
                     const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
                     if (res.isValid) {
-                        const msgStatus = strAIjson == strAIraw ? "OK" : "OK (extracted info)";
+                        const msgStatus = strAIjson == strAIraw ? "OK" : `OK (cleaned: ${cleaned.join(", ")})`;
                         eltAItextareaStatus.textContent = msgStatus;
                     } else {
                         eltAItextareaStatus.textContent = res.error;
@@ -2466,7 +2314,8 @@ Important:
                 return;
             }
             const strAIraw = eltAItextarea.value;
-            jsonNodeArray = JSON.parse(getJsonFromAIstr(strAIraw));
+            const { strAIjson } = getJsonFromAIstr(strAIraw);
+            jsonNodeArray = JSON.parse(strAIjson);
             console.log({ jsonNodeArray });
 
             const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(jsonNodeArray);
@@ -2517,9 +2366,15 @@ Important:
             }
             addAIgeneratedMarker();
 
+            /**
+             * 
+             * @param {string} strAI 
+             * @returns {Object}
+             */
             function getJsonFromAIstr(strAI) {
                 // You may get more from the AI than the JSON:
                 let strOnlyJson = strAI;
+                const cleaned = [];
 
                 // Remove prompt if it is there:
                 const dummyPromptAI = makeAIprompt("dummy");
@@ -2529,14 +2384,22 @@ Important:
                 const pp = strOnlyJson.indexOf(lastLine);
                 if (pp > -1) {
                     strOnlyJson = strOnlyJson.slice(pp + lastLine.length);
+                    cleaned.push("prompt");
                 }
 
                 // Remove anyting before or after json:
                 const p1 = strOnlyJson.indexOf("[");
-                if (p1 > -1) { strOnlyJson = strOnlyJson.slice(p1); }
+                if (p1 > -1) {
+                    strOnlyJson = strOnlyJson.slice(p1);
+                    cleaned.push("before");
+                }
                 const p2 = strOnlyJson.indexOf("]");
-                if (p2 > -1) { strOnlyJson = strOnlyJson.slice(0, p2 + 1); }
-                return strOnlyJson;
+                if (p2 > -1) {
+                    strOnlyJson = strOnlyJson.slice(0, p2 + 1);
+                    cleaned.push("after");
+                }
+                const strAIjson = strOnlyJson;
+                return { strAIjson, cleaned };
             }
 
         }
