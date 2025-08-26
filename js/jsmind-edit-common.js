@@ -1955,7 +1955,7 @@ export async function pageSetup() {
         // doExpanding();
         setTimeout(doExpanding, 1000);
         async function doExpanding() {
-            alert("Bug hunting: click was on expander"); // expanding works with alert here
+            alert("Bug hunting: in timeout click was on expander"); // expanding works with alert here
             // modMdc.mkMDCdialogAlert("Bug hunting: click was on expander"); // 
             await modTools.waitSeconds(1);
             alert("Bug hunting: .waitSeconds(1)"); // expanding works with alert here
