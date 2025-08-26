@@ -2210,6 +2210,8 @@ Important:
             const eltAItextarea = mkElt("textarea");
             eltAItextarea.style = `
                 width: 100%;
+                min-height: 4rem;
+                resize: vertical;
             `;
 
             const eltAItextareaStatus = mkElt("p");
@@ -2265,6 +2267,47 @@ Important:
                     eltDl
                 )
             ]);
+
+            const eltAIprovidersTrouble = mkElt("details", undefined, [
+                mkElt("summary", undefined, "AI providers do not let me ask for you"),
+                mkElt("div", undefined, [
+                    "TODO: explain this problem"
+                ])
+            ]);
+            const eltContentProviderTrouble = mkElt("details", undefined, [
+                mkElt("summary", undefined, "Content providers are blocking AI access"),
+                mkElt("div", undefined, [
+                    `Many content providers are currently blocking AI agents from accessing their web pages.
+                    This is a complicated problems.
+                    I have described part of it here:
+                    `,
+                    mkElt("div", undefined,
+                        mkElt("a", {
+                            href: "https://docs.google.com/document/d/e/2PACX-1vTk7UgA2hjDRuHAOTcbXZhL8yvDqWdYmCJLXXdE4NOZwfSYks0u5K6PT7xzp3K4AXEqIuuQPOESVvVz/pub",
+                            target: "_blank"
+                        }, "Why AI cant summarize a link when you ask it")
+                    ),
+                ]),
+                eltWhichAI,
+            ]);
+            const eltWhyThisTrouble = mkElt("details", { class: "mdc-card" }, [
+                mkElt("summary", { style: "color:darkred" }, "This should have been more easy!"),
+                mkElt("div", undefined, [
+                    mkElt("p", undefined, `
+                        Yes, it should be more easy.
+                        After you have given me a link to an article or video
+                        ideally I should just show you the mindmap.
+                        Unfortunately there are currently two obstacles:
+                        `),
+                    eltContentProviderTrouble,
+                    eltAIprovidersTrouble,
+                ])
+            ]);
+            eltWhyThisTrouble.style = `
+                padding: 10px;
+                background-color: #fff6;
+            `;
+
             const eltDivAI = mkElt("p", undefined, [
                 mkElt("div", undefined, "Paste the answer from your AI here:"),
                 eltAItextarea,
@@ -2285,7 +2328,8 @@ Important:
             const cardPrompt = mkElt("p", { class: "mdc-card" }, [
                 `In the AI of your choice use this prompt:`,
                 divPrompt,
-                eltWhichAI,
+                // eltWhichAI,
+                eltWhyThisTrouble,
             ]);
             cardPrompt.style = `
                 display: flex;
@@ -2301,10 +2345,6 @@ Important:
 
                 cardInput,
 
-                mkElt("p", undefined, `
-                        Since it at the moment looks technically impossible
-                        to directly ask any of the AI:s on your behalf you must do it yourself.
-                        `),
                 cardPrompt,
                 eltDivAI,
             ]);
