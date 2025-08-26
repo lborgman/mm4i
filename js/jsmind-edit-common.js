@@ -1952,7 +1952,8 @@ export async function pageSetup() {
         const eltExpander = target.closest("jmexpander");
         if (!eltExpander) return;
 
-        doExpanding();
+        // doExpanding();
+        setTimeout(doExpanding, 1000);
         async function doExpanding() {
             // alert("Bug hunting: click was on expander"); // expanding works with alert here
             modMdc.mkMDCdialogAlert("Bug hunting: click was on expander"); // 
