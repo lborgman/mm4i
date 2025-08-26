@@ -1952,6 +1952,8 @@ export async function pageSetup() {
         const eltExpander = target.closest("jmexpander");
         if (!eltExpander) return;
         // alert("Bug hunting: click was on expander"); // expanding works with alert here
+        const outerH = eltExpander.outerHTML;
+        alert(`Bug hunting outerH: ${outerH}`); // 
         const expContent = eltExpander.textContent;
         alert(`Bug hunting cont: ${expContent}`); // 
         // FIX-ME: It never reach the next line for generated mindmaps????
