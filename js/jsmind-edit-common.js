@@ -1955,11 +1955,12 @@ export async function pageSetup() {
 
         // FIX-ME: It never reach the next line for generated mindmaps????
         let strNodeId;
+        const hasId = eltExpander.hasAttribute("nodeid");
+        alert(`Bug hunting error, id: ${hasId}`); // 
         try {
             strNodeId = eltExpander.getAttribute("nodeid");
         } catch (err) {
-            alert(`Bug hunting error: "${err}"`); // 
-
+            alert(`Bug hunting error: ${hasId} "${err}"`); // 
         }
 
         alert(`Bug hunting: click was on expander (strNodeId == "${strNodeId}")`); // 
