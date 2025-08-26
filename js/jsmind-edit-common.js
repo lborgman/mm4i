@@ -1951,7 +1951,7 @@ export async function pageSetup() {
         if (!target) return;
         const eltExpander = target.closest("jmexpander");
         if (!eltExpander) return;
-        alert("click was on expander");
+        // alert("Bug hunting: click was on expander");
         const strNodeId = eltExpander.getAttribute("nodeid");
         if (null == strNodeId) throw Error("jmexpander attribute nodeid is null");
         const str = strNodeId.trim();
