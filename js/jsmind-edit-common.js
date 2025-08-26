@@ -1951,44 +1951,48 @@ export async function pageSetup() {
         if (!target) return;
         const eltExpander = target.closest("jmexpander");
         if (!eltExpander) return;
-        // alert("Bug hunting: click was on expander"); // expanding works with alert here
-        modMdc.mkMDCdialogAlert("Bug hunting: click was on expander"); // 
-        await modTools.waitSeconds(1);
-        alert("Bug hunting: .waitSeconds(1)"); // expanding works with alert here
-        const outerH = eltExpander.outerHTML;
-        alert(`Bug hunting outerH: ${outerH}`); // 
-        const expContent = eltExpander.textContent;
-        alert(`Bug hunting cont: ${expContent}`); // 
-        // FIX-ME: It never reach the next line for generated mindmaps????
-        let strNodeId;
-        const hasId = await eltExpander.hasAttribute("nodeid");
-        alert(`Bug hunting error, id: ${hasId}`); // 
-        try {
-            strNodeId = eltExpander.getAttribute("nodeid");
-        } catch (err) {
-            alert(`Bug hunting error: ${hasId} "${err}"`); // 
-        }
 
-        alert(`Bug hunting: click was on expander (strNodeId == "${strNodeId}")`); // 
-        if (null == strNodeId) throw Error("jmexpander attribute nodeid is null");
-        const str = strNodeId.trim();
-        // alert("Bug hunting: click was on expander (after .trim)"); // 
-        if (str.length == 0) throw Error("jmexpander attribute nodeid.length == 0");
-        const nodeId = str.match(/^\d+$/) ? parseInt(str) : str;
-        // alert("Bug hunting: click was on expander (before toggle_node)"); // 
-        jmDisplayed.toggle_node(nodeId);
-        // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, "Edit mindmap description");
-        if (jmDisplayed.isSavedBookmark) {
-            if (!toldChangesNotSaved) {
-                modMdc.mkMDCsnackbar("Changes to named/shared bookmarks are not stored");
+        doExpanding();
+        async function doExpanding() {
+            // alert("Bug hunting: click was on expander"); // expanding works with alert here
+            modMdc.mkMDCdialogAlert("Bug hunting: click was on expander"); // 
+            await modTools.waitSeconds(1);
+            alert("Bug hunting: .waitSeconds(1)"); // expanding works with alert here
+            const outerH = eltExpander.outerHTML;
+            alert(`Bug hunting outerH: ${outerH}`); // 
+            const expContent = eltExpander.textContent;
+            alert(`Bug hunting cont: ${expContent}`); // 
+            // FIX-ME: It never reach the next line for generated mindmaps????
+            let strNodeId;
+            const hasId = await eltExpander.hasAttribute("nodeid");
+            alert(`Bug hunting error, id: ${hasId}`); // 
+            try {
+                strNodeId = eltExpander.getAttribute("nodeid");
+            } catch (err) {
+                alert(`Bug hunting error: ${hasId} "${err}"`); // 
             }
-            toldChangesNotSaved = true;
-            return;
+
+            alert(`Bug hunting: click was on expander (strNodeId == "${strNodeId}")`); // 
+            if (null == strNodeId) throw Error("jmexpander attribute nodeid is null");
+            const str = strNodeId.trim();
+            // alert("Bug hunting: click was on expander (after .trim)"); // 
+            if (str.length == 0) throw Error("jmexpander attribute nodeid.length == 0");
+            const nodeId = str.match(/^\d+$/) ? parseInt(str) : str;
+            // alert("Bug hunting: click was on expander (before toggle_node)"); // 
+            jmDisplayed.toggle_node(nodeId);
+            // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, "Edit mindmap description");
+            if (jmDisplayed.isSavedBookmark) {
+                if (!toldChangesNotSaved) {
+                    modMdc.mkMDCsnackbar("Changes to named/shared bookmarks are not stored");
+                }
+                toldChangesNotSaved = true;
+                return;
+            }
+            const node = jmDisplayed.mind.nodes[nodeId];
+            const topic = node.topic;
+            const theChange = !node.expanded ? "Collapse" : "Expand";
+            modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, `${theChange} ${topic}`);
         }
-        const node = jmDisplayed.mind.nodes[nodeId];
-        const topic = node.topic;
-        const theChange = !node.expanded ? "Collapse" : "Expand";
-        modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, `${theChange} ${topic}`);
     });
 
     function _targetIsJmnode(evt) {
