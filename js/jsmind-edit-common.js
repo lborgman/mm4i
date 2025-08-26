@@ -1956,17 +1956,17 @@ export async function pageSetup() {
         doExpanding();
         // setTimeout(doExpanding, 1000);
         async function doExpanding() {
-            alert("Bug hunting: in timeout click was on expander"); // expanding works with alert here
+            alert("Bug hunting: in timeout click was on expander"); 
             // modMdc.mkMDCdialogAlert("Bug hunting: click was on expander"); // 
-            await modTools.waitSeconds(1);
-            alert("Bug hunting: .waitSeconds(1)"); // expanding works with alert here
-            const outerH = eltExpander.outerHTML;
-            alert(`Bug hunting outerH: ${outerH}`); // 
-            const expContent = eltExpander.textContent;
-            alert(`Bug hunting cont: ${expContent}`); // 
+            // await modTools.waitSeconds(1);
+            // alert("Bug hunting: .waitSeconds(1)"); // expanding works with alert here
+            // const outerH = eltExpander.outerHTML;
+            // alert(`Bug hunting outerH: ${outerH}`); // 
+            // const expContent = eltExpander.textContent;
+            // alert(`Bug hunting cont: ${expContent}`); // 
             // FIX-ME: It never reach the next line for generated mindmaps????
             let strNodeId;
-            const hasId = await eltExpander.hasAttribute("nodeid");
+            const hasId = eltExpander.hasAttribute("nodeid");
             alert(`Bug hunting error, id: ${hasId}`); // 
             try {
                 strNodeId = eltExpander.getAttribute("nodeid");
