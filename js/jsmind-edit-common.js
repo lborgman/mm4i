@@ -1951,12 +1951,15 @@ export async function pageSetup() {
         if (!target) return;
         const eltExpander = target.closest("jmexpander");
         if (!eltExpander) return;
-        // alert("Bug hunting: click was on expander");
+        // alert("Bug hunting: click was on expander"); // expanding works with alert here
         const strNodeId = eltExpander.getAttribute("nodeid");
+        alert(`Bug hunting: click was on expander (strNodeId == "${strNodeId}")`); // 
         if (null == strNodeId) throw Error("jmexpander attribute nodeid is null");
         const str = strNodeId.trim();
+        alert("Bug hunting: click was on expander (after .trim)"); // 
         if (str.length == 0) throw Error("jmexpander attribute nodeid.length == 0");
         const nodeId = str.match(/^\d+$/) ? parseInt(str) : str;
+        alert("Bug hunting: click was on expander (before toggle_node)"); // 
         jmDisplayed.toggle_node(nodeId);
         // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, "Edit mindmap description");
         if (jmDisplayed.isSavedBookmark) {
