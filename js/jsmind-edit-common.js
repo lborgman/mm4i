@@ -1951,6 +1951,7 @@ export async function pageSetup() {
         if (!target) return;
         const eltExpander = target.closest("jmexpander");
         if (!eltExpander) return;
+        alert("click was on expander");
         const strNodeId = eltExpander.getAttribute("nodeid");
         if (null == strNodeId) throw Error("jmexpander attribute nodeid is null");
         const str = strNodeId.trim();
@@ -2283,7 +2284,7 @@ Important:
                     `,
                     mkElt("div", undefined,
                         mkElt("a", {
-                            href: "https://docs.google.com/document/d/e/2PACX-1vTk7UgA2hjDRuHAOTcbXZhL8yvDqWdYmCJLXXdE4NOZwfSYks0u5K6PT7xzp3K4AXEqIuuQPOESVvVz/pub",
+                            href: "https://tinyurl.com/AIvsContProv",
                             target: "_blank"
                         }, "Why AI cant summarize a link when you ask it")
                     ),
