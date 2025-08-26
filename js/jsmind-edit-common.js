@@ -1943,7 +1943,7 @@ export async function pageSetup() {
 
     //// These bubbles up:
     // jsMindContainer.addEventListener("pointerdown", evt => hideContextMenuOnEvent(evt)); // FIX-ME:
-    jsMindContainer.addEventListener("click", evt => {
+    jsMindContainer.addEventListener("click", async evt => {
         // evt.stopPropagation();
         // evt.preventDefault();
         const target = evt.target;
@@ -1955,7 +1955,7 @@ export async function pageSetup() {
 
         // FIX-ME: It never reach the next line for generated mindmaps????
         let strNodeId;
-        const hasId = eltExpander.hasAttribute("nodeid");
+        const hasId = await eltExpander.hasAttribute("nodeid");
         alert(`Bug hunting error, id: ${hasId}`); // 
         try {
             strNodeId = eltExpander.getAttribute("nodeid");
