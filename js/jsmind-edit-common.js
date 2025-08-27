@@ -1956,7 +1956,7 @@ export async function pageSetup() {
         doExpanding();
         // setTimeout(doExpanding, 1000);
         async function doExpanding() {
-            alert("Bug hunting: in timeout click was on expander"); 
+            alert("Bug hunting: in timeout click was on expander");
             // modMdc.mkMDCdialogAlert("Bug hunting: click was on expander"); // 
             // await modTools.waitSeconds(1);
             // alert("Bug hunting: .waitSeconds(1)"); // expanding works with alert here
@@ -2081,7 +2081,7 @@ export async function pageSetup() {
         }
         const liCreateMindmap = mkMenuItem("Create Mindmap", createMindMap);
 
-        const generateMindMap = async () => {
+        async function generateMindMap() {
             const inpLink = modMdc.mkMDCtextFieldInput(undefined, "text");
             const tfLink = modMdc.mkMDCtextField("Link to article/video", inpLink);
             const eltNotReady = mkElt("p", undefined, "Not ready!");
@@ -2377,7 +2377,8 @@ Important:
                 eltNotReady,
                 eltOk,
                 // mkElt("h2", undefined, "You must ask your AI yourself"),
-                mkElt("h2", undefined, "Generate mindmap"),
+                // mkElt("h2", undefined, "generate mindmap"),
+                mkElt("h2", undefined, "Make mindmap from link"),
 
                 cardInput,
 
@@ -2479,7 +2480,8 @@ Important:
             }
 
         }
-        const liGenerateMindmap = mkMenuItem("Generate Mindmap", generateMindMap);
+        // const liGenerateMindmap = mkMenuItem("Generate Mindmap", generateMindMap);
+        const liGenerateMindmap = mkMenuItem("Make Mindmap from Link", generateMindMap);
 
 
         const liEditMindmap = mkMenuItem("Edit Mindmap", dialogEditMindmap, "Dblclick");
@@ -3052,13 +3054,23 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
         // arrLiMenu.push(liNew);
 
         // function mkMDCfab(eltIcon, title, mini, extendTitle)
-        const eltIcon = modMdc.mkMDCicon("add");
-        const btnFab = modMdc.mkMDCfab(eltIcon, "Create new mindmap", true);
-        btnFab.addEventListener("click", errorHandlerAsyncEvent(async () => {
-            await modMMhelpers.createAndShowNewMindmap();
-        }));
-        btnFab.style.marginLeft = "40px";
-        eltTitle.appendChild(btnFab);
+
+        const eltIconNew = modMdc.mkMDCicon("add");
+        const btnFabNew = modMdc.mkMDCfab(eltIconNew, "Create new mindmap", true);
+        btnFabNew.addEventListener("click", () => {
+            modMMhelpers.createAndShowNewMindmap();
+        });
+        btnFabNew.style.marginLeft = "40px";
+        eltTitle.appendChild(btnFabNew);
+
+        const eltIconGenAI = modMdc.mkMDCicon("smart_toy");
+        const btnFabGenAI = modMdc.mkMDCfab(eltIconGenAI, "Make mindmap from link", true);
+        btnFabGenAI.addEventListener("click", () => {
+            // generate mindmap
+            generateMindMap();
+        });
+        btnFabGenAI.style.marginLeft = "20px";
+        eltTitle.appendChild(btnFabGenAI);
     }
     const ul = modMdc.mkMDCmenuUl(arrLiMenu);
     ul.classList.add("mindmap-list");
