@@ -1126,6 +1126,7 @@ async function dialogSetRoot(selected_node, mindmapKey) {
     } else {
         jmDisplayed = await displayOurMindmap(mindStored);
         jmDisplayed.NOT_SAVEABLE = "Set root choice was to not save";
+        document.getElementById("mm4i-btn-history")?.remove();
         modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "dialogSetRoot");
     }
     jmDisplayed.select_node(jmDisplayed.get_root());
@@ -1480,6 +1481,7 @@ export async function pageSetup() {
             const jm = await displayOurMindmap(objMS);
             // jm.isSavedBookmark = true; // FIX-ME:
             jm.NOT_SAVEABLE = "This is a linked mindmap";
+            document.getElementById("mm4i-btn-history")?.remove();
             // modJsmindDraggable.setOurJm(jm);
 
             const objOther = mindmapData.other;
@@ -1968,14 +1970,14 @@ export async function pageSetup() {
             // FIX-ME: It never reach the next line for generated mindmaps????
             let strNodeId;
             const hasId = eltExpander.hasAttribute("nodeid");
-            alert(`Bug hunting error, id: ${hasId}`); // 
+            // alert(`Bug hunting error, id: ${hasId}`); // 
             try {
                 strNodeId = eltExpander.getAttribute("nodeid");
             } catch (err) {
                 alert(`Bug hunting error: ${hasId} "${err}"`); // 
             }
 
-            alert(`Bug hunting: click was on expander (strNodeId == "${strNodeId}")`); // 
+            // alert(`Bug hunting: click was on expander (strNodeId == "${strNodeId}")`); // 
             if (null == strNodeId) throw Error("jmexpander attribute nodeid is null");
             const str = strNodeId.trim();
             // alert("Bug hunting: click was on expander (after .trim)"); // 

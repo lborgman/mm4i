@@ -409,10 +409,9 @@ Important:
     }
     const modJsEditCommon = await importFc4i("jsmind-edit-common");
     const jm = await modJsEditCommon.displayOurMindmap(mindStored);
-    // console.log({ jm });
     jm.select_node(jm.get_root());
-    jm.NOT_SAVEABLE = "This is a generated mindmap";
-    // debugger;
+    jm.NOT_SAVEABLE = "This mindmap is made from a link";
+    document.getElementById("mm4i-btn-history")?.remove();
     // addShareMarker
     const addAIgeneratedMarker = () => {
         // if (spTitle == null) throw Error("spTitle == null");
