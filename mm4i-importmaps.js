@@ -179,7 +179,7 @@ const baseUrl = (() => {
 
         "idb-replicator": "./js/mod/idb-replicator.js",
 
-        "access-gemini": "./js/mod/access-gemini.js",
+        "ai-helpers": "./js/mod/ai-helpers.js",
     };
 
     const isImporting = {};
