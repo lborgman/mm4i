@@ -407,7 +407,8 @@ Important:
         key: "key-generate",
         meta: { name: "key-generate" }
     }
-    const jm = await modMMhelpers.displayOurMindmap(mindStored);
+    const modJsEditCommon = await importFc4i("jsmind-edit-common");
+    const jm = await modJsEditCommon.displayOurMindmap(mindStored);
     // console.log({ jm });
     jm.select_node(jm.get_root());
     jm.NOT_SAVEABLE = "This is a generated mindmap";
