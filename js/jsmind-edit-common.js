@@ -1956,6 +1956,7 @@ export async function pageSetup() {
         doExpanding();
         // setTimeout(doExpanding, 1000);
         async function doExpanding() {
+            if (eltExpander == null) throw Error("eltExpander == null");
             alert("Bug hunting: in timeout click was on expander");
             // modMdc.mkMDCdialogAlert("Bug hunting: click was on expander"); // 
             // await modTools.waitSeconds(1);

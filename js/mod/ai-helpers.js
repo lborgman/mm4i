@@ -59,15 +59,16 @@ export async function askGemini(prompt) {
     return result;
 }
 // promiseDOMready
-const promGeminiOk = new Promise(async function (resolve, reject) {
+const promGeminiOk = new Promise(function (resolve, reject) {
     const prompt = "Are you ok?"
-    const answer = await askGemini(prompt);
-    console.log("Answer:", answer);
-    if (answer.error) {
-        reject(answer.error);
-    } else {
-        resolve(true);
-    }
+    askGemini(prompt).then(answer => {
+        console.log("Gemini answer:", answer);
+        if (answer.error) {
+            reject(answer.error);
+        } else {
+            resolve(true);
+        }
+    });
 });
 
 export async function checkGeminiOk() {
@@ -76,6 +77,7 @@ export async function checkGeminiOk() {
 
 export async function generateMindMap() {
     const modMdc = await importFc4i("util-mdc");
+    const modMMhelpers = await importFc4i("mindmap-helpers");
     const inpLink = modMdc.mkMDCtextFieldInput(undefined, "text");
     const tfLink = modMdc.mkMDCtextField("Link to article/video", inpLink);
     const eltNotReady = mkElt("p", undefined, "Not ready!");
@@ -220,8 +222,9 @@ Important:
     function mkDivPrompt() {
         const btnCopy = modMdc.mkMDCbutton("Copy AI prompt", "raised");
         btnCopy.style.textTransform = "none";
-        btnCopy.addEventListener("click", evt => {
+        btnCopy.addEventListener("click", async evt => {
             evt.stopPropagation();
+            const modTools = await importFc4i("toolsJs");
             modTools.copyTextToClipboard(promptAi);
         });
         const bPrompt = mkElt("b", undefined, promptAi);
@@ -404,7 +407,7 @@ Important:
         key: "key-generate",
         meta: { name: "key-generate" }
     }
-    const jm = await displayOurMindmap(mindStored);
+    const jm = await modMMhelpers.displayOurMindmap(mindStored);
     // console.log({ jm });
     jm.select_node(jm.get_root());
     jm.NOT_SAVEABLE = "This is a generated mindmap";
