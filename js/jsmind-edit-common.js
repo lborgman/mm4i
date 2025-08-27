@@ -2176,7 +2176,8 @@ export async function pageSetup() {
                        output a strict, parse-ready JSON node array
                        (flat; fields: id, name parentid, and optional notes).
                     2. Field "notes": additional context or supporting detail.
-                    2. Limit the hiearchy to max depth ${maxDepth} levels.
+                    3. Limit the hiearchy to max depth ${maxDepth} levels.
+                    4. Return only valid JSON (no extra text).
                 `
                 /*
                 return `
