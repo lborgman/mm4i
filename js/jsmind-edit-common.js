@@ -2172,6 +2172,14 @@ export async function pageSetup() {
             }
             function makeAIprompt(link, maxDepth = 3) {
                 return `
+                    1. Summarize the article (or video) "${link}" into a mind map and
+                       output a strict, parse-ready JSON node array
+                       (flat; fields: id, name parentid, and optional notes).
+                    2. Field "notes": additional context or supporting detail.
+                    2. Limit the hiearchy to max depth ${maxDepth} levels.
+                `
+                /*
+                return `
 You are an assistant that summarizes content into a structured mind map.
 
 Task:
@@ -2198,9 +2206,10 @@ Output format example:
 ]
 
 Important:
-- The JSON must be syntactically correct.
+- Give my strict JSON, parser-ready.
 - Your answer must contain only the JSON.
 `;
+                */
             }
 
 
