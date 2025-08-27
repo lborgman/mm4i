@@ -2081,8 +2081,12 @@ export async function pageSetup() {
         }
         const liCreateMindmap = mkMenuItem("Create Mindmap", createMindMap);
 
+        const makeMindMapFromLink = async () => {
+            const modAIhelpers = await importFc4i("ai-helpers");
+            modAIhelpers.generateMindMap();
+        }
         // const liGenerateMindmap = mkMenuItem("Generate Mindmap", generateMindMap);
-        const liGenerateMindmap = mkMenuItem("Make Mindmap from Link", modAIhelpers.generateMindMap);
+        const liMakeMindmapFromLink = mkMenuItem("Make Mindmap from Link", makeMindMapFromLink);
 
 
         const liEditMindmap = mkMenuItem("Edit Mindmap", dialogEditMindmap, "Dblclick");
@@ -2308,7 +2312,7 @@ export async function pageSetup() {
             // liDragAccessibility,
             modMdc.mkMDCmenuItemSeparator(),
             liCreateMindmap,
-            liGenerateMindmap,
+            liMakeMindmapFromLink,
             liEditMindmap,
             liMindmapsA,
             modMdc.mkMDCmenuItemSeparator(),
