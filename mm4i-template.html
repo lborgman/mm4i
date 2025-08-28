@@ -18,9 +18,10 @@
             }, 1000);
         }
 
+        // https://issues.chromium.org/issues/41172633
         if ('virtualKeyboard' in navigator) {
             // Opt-in to handle layout yourself
-            navigator.virtualKeyboard.overlaysContent = true;
+            // navigator.virtualKeyboard.overlaysContent = true;
 
             // Listen for geometry changes
             navigator.virtualKeyboard.addEventListener('geometrychange', (event) => {
