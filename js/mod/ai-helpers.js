@@ -173,12 +173,14 @@ export async function generateMindMap() {
     }
     function makeAIprompt(link, maxDepth = 3) {
         return `
-                    1. Summarize the article (or video) "${link}" into a mind map and
-                       output a strict, parse-ready JSON node array
-                       (flat; fields: id, name parentid, and optional notes).
-                    2. Field "notes": additional context or supporting detail.
-                    3. Limit the hiearchy to max depth ${maxDepth} levels.
-                    4. Return only valid JSON (no extra text).
+1. Summarize the article (or video)
+   "${link}"
+   into a mind map and
+   output a strict, parse-ready JSON node array
+   (flat; fields: id, name, parentid, and notes).
+2. Optional field "notes": Details. Markdown format.
+3. Limit the hiearchy to max depth ${maxDepth} levels.
+4. Return only valid JSON (no extra text).
                 `
         /*
         return `
@@ -387,7 +389,7 @@ Important:
         cardPrompt,
         eltDivAI,
     ]);
-    const ans = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel");
+    const ans = await modMdc.mkMDCdialogConfirm(body, "Make mindmap", "Cancel");
     if (!ans) {
         modMdc.mkMDCsnackbar("Canceled");
         return;
