@@ -417,7 +417,8 @@ Important:
         // if (spTitle == null) throw Error("spTitle == null");
         const divInfo = mkElt("div", undefined,
             mkElt("b", undefined, "AI generated mindmap"),
-        )
+        );
+        divInfo.classList.add("fixed-at-bottom");
         divInfo.style = `
                 display: flex;
                 flex-direction: column;

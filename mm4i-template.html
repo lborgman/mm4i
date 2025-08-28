@@ -17,6 +17,24 @@
                 document.close();
             }, 1000);
         }
+
+        if ('virtualKeyboard' in navigator) {
+            // Opt-in to handle layout yourself
+            navigator.virtualKeyboard.overlaysContent = true;
+
+            // Listen for geometry changes
+            navigator.virtualKeyboard.addEventListener('geometrychange', (event) => {
+                const { height } = event.target.boundingRect;
+                if (height > 0) {
+                    // console.log('Virtual keyboard is visible with height:', height);
+                    // You can now adjust your UI based on this height
+                    document.documentElement.classList.add("VIRTUAL_KEYBOARD");
+                } else {
+                    // console.log('Virtual keyboard is hidden.');
+                    document.documentElement.classList.remove("VIRTUAL_KEYBOARD");
+                }
+            });
+        }
     </script>
     <!-- https://blog.pixelfreestudio.com/how-to-implement-lazy-loading-in-pwas/ -->
     <meta charset="utf-8">
@@ -203,6 +221,10 @@
         onload="this.onload=null; this.rel='stylesheet'" />
 
     <style>
+        .VIRTUAL_KEYBOARD.fixed-at-bottom {
+            display: none;
+        }
+
         #jsmind-search-div {
             position: fixed;
             top: 0px;
