@@ -2,6 +2,76 @@
 <html lang="en">
 
 <head>
+    <!--
+    <style>
+        /* For virtual keyboard */
+
+        /* Step 1: Hide all elements within the dialog's content. */
+        html.VK_ACTIVE .mdc-dialog__content:has(:focus) * {
+            display: none;
+        }
+
+        /* Step 2: Make the focused element and its ancestors visible again. */
+        /* This rule has a higher specificity to win the cascade. */
+        html.VK_ACTIVE .mdc-dialog__content:has(:focus):has(*) *:has(:focus),
+        html.VK_ACTIVE .mdc-dialog__content:has(:focus):has(*) :focus {
+            display: unset;
+        }
+    </style>
+    -->
+    <style>
+        /* https://polypane.app/css-specificity-calculator/ */
+        /* https://web.dev/learn/css/specificity */
+
+        /* Step 1: Hide all elements within the dialog's content. */
+
+        /* 0,4,2: */
+        html.VK_ACTIVE .mdc-dialog__content:has(.VK_FOCUS:focus-within) div>*,
+
+        /* 0,4,2: */
+        html.VK_ACTIVE .mdc-dialog__content:has(.VK_FOCUS:focus-within) div * {
+
+            display: none;
+        }
+
+        /* Step 2: Make the focused element's chain of parents visible. */
+        /* This rule has a higher specificity to win the cascade. */
+
+        /* 0,5,1: */
+        html.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within *:has(:focus-within),
+
+        html.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within :focus,
+        html.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within .VK_FOCUS:has(:focus),
+        html.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within .VK_FOCUS:has(:focus) * {
+            display: unset;
+        }
+    </style>
+    <script>
+        const basicSelector = "html.VK_ACTIVE .mdc-dialog__content";
+        const strCSS = `
+        /* For virtual keyboard */
+
+        /* Step 1: Hide all elements within the dialog's content. */
+        /* html.VK_ACTIVE .mdc-dialog__content:has(:focus) * { */
+        ${basicSelector}:has(:focus) * {
+            display: none;
+        }
+
+        /* Step 2: Make the focused element and its ancestors visible again. */
+        /* This rule has a higher specificity to win the cascade. */
+        /* html.VK_ACTIVE .mdc-dialog__content:has(:focus):has(*) *:has(:focus), */
+        /* html.VK_ACTIVE .mdc-dialog__content:has(:focus):has(*) :focus { */
+        ${basicSelector}:has(:focus):has(*) *:has(:focus),
+        ${basicSelector}:has(:focus):has(*) :focus {
+            display: unset;
+        }
+        `;
+    </script>
+
+
+
+
+
     <script>
         // Check if domain is active through https
         // FIX-ME:
@@ -24,6 +94,9 @@
             // navigator.virtualKeyboard.overlaysContent = true;
 
             // Listen for geometry changes
+            // https://gomakethings.com/checking-for-focus-in-an-element-using-css-in-your-javascript/
+            // mdc-dialog__content
+            // mdc-text-field
             navigator.virtualKeyboard.addEventListener('geometrychange', (event) => {
                 const { height } = event.target.boundingRect;
                 if (height > 0) {
@@ -222,6 +295,10 @@
         onload="this.onload=null; this.rel='stylesheet'" />
 
     <style>
+        .display-flex {
+            display: flex;
+        }
+
         .VIRTUAL_KEYBOARD.fixed-at-bottom {
             display: none;
         }

@@ -353,26 +353,29 @@ Important:
         eltAItextarea,
         eltAItextareaStatus,
     ]);
-    const cardInput = mkElt("p", { class: "mdc-card" }, [
+    eltDivAI.classList.add("VK_FOCUS");
+
+    const cardInput = mkElt("p", { class: "mdc-card display-flex" }, [
         mkElt("div", undefined, `Article or video to summarize as a mindmap:`),
         tfLink,
         eltStatus,
     ]);
     cardInput.style = `
-                display: flex;
+                NOdisplay: flex;
                 gap: 10px; 
                 flex-direction: column;
                 padding: 20px;
             `;
+    // cardInput.classList.add("VK_FOCUS");
 
-    const cardPrompt = mkElt("p", { class: "mdc-card" }, [
+    const cardPrompt = mkElt("p", { class: "mdc-card display-flex" }, [
         `In the AI of your choice use this prompt:`,
         divPrompt,
         // eltWhichAI,
         eltWhyThisTrouble,
     ]);
     cardPrompt.style = `
-                display: flex;
+                NOdisplay: flex;
                 gap: 10px; 
                 flex-direction: column;
                 padding: 20px;
@@ -383,11 +386,9 @@ Important:
         // mkElt("h2", undefined, "You must ask your AI yourself"),
         // mkElt("h2", undefined, "generate mindmap"),
         mkElt("h2", undefined, "Make mindmap from link"),
-
-        cardInput,
-
-        cardPrompt,
-        eltDivAI,
+        mkElt("div", undefined, cardInput),
+        mkElt("div", undefined, cardPrompt),
+        mkElt("div", undefined, eltDivAI),
     ]);
     const ans = await modMdc.mkMDCdialogConfirm(body, "Make mindmap", "Cancel");
     if (!ans) {

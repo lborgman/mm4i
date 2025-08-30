@@ -180,6 +180,9 @@ const baseUrl = (() => {
         "idb-replicator": "./js/mod/idb-replicator.js",
 
         "ai-helpers": "./js/mod/ai-helpers.js",
+
+        // "jsmind": "https://cdn.jsdelivr.net/npm/jsmind@0.8.5/es6/jsmind.js",
+        "css-specificity": "https://cdn.jsdelivr.net/npm/@bramus/specificity",
     };
 
     const isImporting = {};

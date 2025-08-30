@@ -2634,3 +2634,13 @@ export function haveSameKeys(obj1, obj2, arrMayMiss) {
 
     return true;
 }
+
+
+export async function cssSpecifity(strCssSpecifier) {
+    const modSpec = await importFc4i("css-specificity");
+    // debugger;
+    const c = modSpec.default;
+    const [qn] = c.calculate(strCssSpecifier);
+    // debugger;
+    return qn.toString();
+}
