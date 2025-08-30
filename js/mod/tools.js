@@ -2636,7 +2636,12 @@ export function haveSameKeys(obj1, obj2, arrMayMiss) {
 }
 
 
-export async function cssSpecifity(strCssSpecifier) {
+/**
+ * @async 
+ * @param {string} strCssSpecifier 
+ * @returns {Promise<string>}
+ */
+export async function cssSpecificity(strCssSpecifier) {
     const modSpec = await importFc4i("css-specificity");
     // debugger;
     const c = modSpec.default;

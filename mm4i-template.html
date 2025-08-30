@@ -19,7 +19,7 @@
         }
     </style>
     -->
-    <style>
+    <style id="style-vk">
         /* https://polypane.app/css-specificity-calculator/ */
         /* https://web.dev/learn/css/specificity */
 
@@ -46,26 +46,34 @@
             display: unset;
         }
     </style>
-    <script>
-        const basicSelector = "html.VK_ACTIVE .mdc-dialog__content";
-        const strCSS = `
-        /* For virtual keyboard */
-
-        /* Step 1: Hide all elements within the dialog's content. */
-        /* html.VK_ACTIVE .mdc-dialog__content:has(:focus) * { */
-        ${basicSelector}:has(:focus) * {
-            display: none;
-        }
-
-        /* Step 2: Make the focused element and its ancestors visible again. */
-        /* This rule has a higher specificity to win the cascade. */
-        /* html.VK_ACTIVE .mdc-dialog__content:has(:focus):has(*) *:has(:focus), */
-        /* html.VK_ACTIVE .mdc-dialog__content:has(:focus):has(*) :focus { */
-        ${basicSelector}:has(:focus):has(*) *:has(:focus),
-        ${basicSelector}:has(:focus):has(*) :focus {
-            display: unset;
-        }
-        `;
+    <script type="module">
+        // debugger;
+        const eltVk = document.getElementById("style-vk");
+        const strVk = eltVk.textContent;
+        const arrSel = strVk.split("\n")
+            .map(l => l.trim())
+            .filter(l => l.startsWith("html."))
+            .map(l => l.slice(0, -1));
+        // debugger;
+        const modTools = await importFc4i("toolsJs");
+        const arrProm =
+            arrSel.map(async r => {
+                return new Promise(async (resolve) => {
+                    const spec = await modTools.cssSpecificity(r);
+                    resolve({ spec, r });
+                });
+            });
+        debugger;
+        const arrSettled = await Promise.allSettled(arrProm);
+        // console.log({ arrSettled });
+        const arrSpec = arrSettled.map(s => {
+            const v = s.value;
+            return `${v.spec} ${v.r}`;
+        });
+        console.log({ arrSpec });
+        const resSpec = arrSpec.join("\n");
+        console.log(`Virtual keyboard CSS rules:\n${resSpec}`);
+        debugger;
     </script>
 
 
