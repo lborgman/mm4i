@@ -254,8 +254,10 @@ Important:
                 resize: vertical;
             `;
 
-    const eltAItextareaStatus = mkElt("p");
+    const eltAItextareaStatus = mkElt("div");
+    eltAItextareaStatus.style.lineHeight = "1";
     eltAItextarea.addEventListener("input", _evt => {
+        eltAItextareaStatus.style.color = "unset";
         // valid
         const strAIraw = eltAItextarea.value.trim();
         if (strAIraw.length == 0) {
@@ -273,9 +275,11 @@ Important:
                 eltAItextareaStatus.textContent = msgStatus;
             } else {
                 eltAItextareaStatus.textContent = res.error;
+                eltAItextareaStatus.style.color = "darkred";
             }
         } catch (err) {
             eltAItextareaStatus.textContent = err;
+            eltAItextareaStatus.style.color = "darkred";
         }
     });
     const eltDl = mkElt("dl");
@@ -349,7 +353,7 @@ Important:
             `;
 
     const eltDivAI = mkElt("p", undefined, [
-        mkElt("div", undefined, "Paste the answer from your AI here:"),
+        mkElt("div", undefined, "Paste answer from your AI:"),
         eltAItextarea,
         eltAItextareaStatus,
     ]);

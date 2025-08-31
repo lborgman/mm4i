@@ -25,24 +25,18 @@
 
         /* Step 1: Hide all elements within the dialog's content. */
 
-        /* 0,4,2: */
-        html.VK_ACTIVE .mdc-dialog__content:has(.VK_FOCUS:focus-within) div>*,
-
-        /* 0,4,2: */
-        html.VK_ACTIVE .mdc-dialog__content:has(.VK_FOCUS:focus-within) div * {
-
+        html.VK_ACTIVE .mdc-dialog__content:has(.VK_FOCUS:focus-within)>div>*:not(:focus-within),
+        NOhtml.VK_ACTIVE .mdc-dialog__content:has(.VK_FOCUS:focus-within)>div * {
             display: none;
         }
 
         /* Step 2: Make the focused element's chain of parents visible. */
         /* This rule has a higher specificity to win the cascade. */
 
-        /* 0,5,1: */
-        html.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within *:has(:focus-within),
-
-        html.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within :focus,
-        html.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within .VK_FOCUS:has(:focus),
-        html.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within .VK_FOCUS:has(:focus) * {
+        NOhtml.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within *:has(:focus-within),
+        NOhtml.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within :focus,
+        NOhtml.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within .VK_FOCUS:has(:focus),
+        NOhtml.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within .VK_FOCUS:has(:focus) * {
             display: unset;
         }
     </style>
@@ -55,26 +49,38 @@
             .filter(l => l.startsWith("html."))
             .map(l => l.slice(0, -1));
         // debugger;
-        const modTools = await importFc4i("toolsJs");
-        const arrProm =
-            arrSel.map(async r => {
-                return new Promise(async (resolve) => {
-                    const spec = await modTools.cssSpecificity(r);
-                    resolve({ spec, r });
+        window["vkLogSpecifity"] = vkLogSpecifityLocal;
+        await vkLogSpecifityLocal();
+        async function vkLogSpecifityLocal() {
+            const modTools = await importFc4i("toolsJs");
+            const arrProm =
+                arrSel.map(async r => {
+                    return new Promise(async (resolve) => {
+                        const spec = await modTools.cssSpecificity(r);
+                        resolve({ spec, r });
+                    });
                 });
+            const arrSettled = await Promise.allSettled(arrProm);
+            // console.log({ arrSettled });
+            const arrSpec = arrSettled.map(s => {
+                const v = s.value;
+                return `${v.spec} ${v.r}`;
             });
-        debugger;
-        const arrSettled = await Promise.allSettled(arrProm);
-        // console.log({ arrSettled });
-        const arrSpec = arrSettled.map(s => {
-            const v = s.value;
-            return `${v.spec} ${v.r}`;
-        });
-        console.log({ arrSpec });
-        const resSpec = arrSpec.join("\n");
-        console.log(`Virtual keyboard CSS rules:\n${resSpec}`);
-        debugger;
+            const resSpec = arrSpec.join("\n");
+            console.log(`Virtual keyboard CSS rules:\n${resSpec}`);
+        }
+        window["vkTestRule"] = vkTestRuleLocal;
+        function vkTestRuleLocal(num) {
+            // const strNum = prompt(`Rule number 0-${arrSel.length - 1}:`);
+            // const num = parseInt(strNum)
+            const strSelRule = arrSel[num];
+            console.log(`vkTestRule ${num}`, strSelRule);
+            document.documentElement.classList.add("VK_ACTIVE");
+            const qs = document.querySelectorAll(strSelRule);
+            console.log({ qs });
+        }
     </script>
+
 
 
 
