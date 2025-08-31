@@ -81,7 +81,6 @@
             // const num = parseInt(strNum)
             const strSelRule = arrSel[num];
             console.log(`vkTestRule ${num}`, strSelRule);
-            document.documentElement.classList.add("VK_ACTIVE");
             const qs = document.querySelectorAll(strSelRule);
             console.log({ qs });
         }
@@ -122,12 +121,27 @@
                 if (height > 0) {
                     // console.log('Virtual keyboard is visible with height:', height);
                     // You can now adjust your UI based on this height
-                    document.documentElement.classList.add("VK_ACTIVE");
+                    // document.documentElement.classList.add("VK_ACTIVE");
+                    vkActiveLocal(true);
                 } else {
                     // console.log('Virtual keyboard is hidden.');
-                    document.documentElement.classList.remove("VK_ACTIVE");
+                    // document.documentElement.classList.remove("VK_ACTIVE");
+                    vkActiveLocal(false);
                 }
             });
+            window["vkActive"] = vkActiveLocal;
+            async function vkActiveLocal(active) {
+                const tofActive = typeof active;
+                if ("boolean" != tofActive) throw Error(`vkActive: typeof active == "${tofActive}"`);
+                const modMdc = await importFc4i("util-mdc");
+                if (active) {
+                    document.documentElement.classList.add("VK_ACTIVE");
+                    modMdc.mkMDCsnackbar("Virtual keyboard ON");
+                } else {
+                    document.documentElement.classList.remove("VK_ACTIVE");
+                    modMdc.mkMDCsnackbar("Virtual keyboard OFF");
+                }
+            }
         }
     </script>
     <!-- https://blog.pixelfreestudio.com/how-to-implement-lazy-loading-in-pwas/ -->
