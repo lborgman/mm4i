@@ -109,6 +109,11 @@
 
         // https://issues.chromium.org/issues/41172633
         if ('virtualKeyboard' in navigator) {
+            setTimeout(() => {
+                window["importFc4i"]("util-mdc").then(m => {
+                    m.mkMDCsnackbar("has virtualKeyboard API");
+                });
+            }, 2000);
             // Opt-in to handle layout yourself
             // navigator.virtualKeyboard.overlaysContent = true;
 
