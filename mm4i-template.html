@@ -39,6 +39,12 @@
         NOhtml.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within .VK_FOCUS:has(:focus) * {
             display: unset;
         }
+
+
+        /* Other layout changes */
+        .VK_ACTIVE.fixed-at-bottom {
+            display: none;
+        }
     </style>
     <script type="module">
         // debugger;
@@ -116,10 +122,10 @@
                 if (height > 0) {
                     // console.log('Virtual keyboard is visible with height:', height);
                     // You can now adjust your UI based on this height
-                    document.documentElement.classList.add("VIRTUAL_KEYBOARD");
+                    document.documentElement.classList.add("VK_ACTIVE");
                 } else {
                     // console.log('Virtual keyboard is hidden.');
-                    document.documentElement.classList.remove("VIRTUAL_KEYBOARD");
+                    document.documentElement.classList.remove("VK_ACTIVE");
                 }
             });
         }
@@ -311,10 +317,6 @@
     <style>
         .display-flex {
             display: flex;
-        }
-
-        .VIRTUAL_KEYBOARD.fixed-at-bottom {
-            display: none;
         }
 
         #jsmind-search-div {
