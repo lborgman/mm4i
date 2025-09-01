@@ -1947,6 +1947,7 @@ export async function pageSetup() {
     //// These bubbles up:
     // jsMindContainer.addEventListener("pointerdown", evt => hideContextMenuOnEvent(evt)); // FIX-ME:
     jsMindContainer.addEventListener("click", async evt => {
+        function log4bug(msg) { console.log(`%c${msg}`, "color:red;"); }
         // evt.stopPropagation();
         // evt.preventDefault();
         const target = evt.target;
@@ -1956,6 +1957,7 @@ export async function pageSetup() {
         if (!eltExpander) return;
 
         // alert("Bug hunting: click was on expander (before doExpanding)"); // expanding works with alert here
+        log4bug("before doExpanding");
 
         doExpanding();
         // setTimeout(doExpanding, 1000);
@@ -1963,6 +1965,7 @@ export async function pageSetup() {
             if (eltExpander == null) throw Error("eltExpander == null");
 
             // alert("Bug hunting: before hasAttribute, click was on expander");
+            log4bug("Bug hunting: before hasAttribute, click was on expander");
 
             // modMdc.mkMDCdialogAlert("Bug hunting: click was on expander"); // 
             // await modTools.waitSeconds(1);
@@ -1975,10 +1978,12 @@ export async function pageSetup() {
             let strNodeId;
             const hasId = eltExpander.hasAttribute("nodeid");
             // alert(`Bug hunting error, id: ${hasId}`); // 
+            log4bug(`Bug hunting error, id: ${hasId}`); // 
             try {
                 strNodeId = eltExpander.getAttribute("nodeid");
             } catch (err) {
                 alert(`Bug hunting error: ${hasId} "${err}"`); // 
+                log4bug(`Bug hunting error: ${hasId} "${err}"`); // 
             }
 
             // alert(`Bug hunting: click was on expander (strNodeId == "${strNodeId}")`); // 
@@ -1988,10 +1993,12 @@ export async function pageSetup() {
             if (str.length == 0) throw Error("jmexpander attribute nodeid.length == 0");
             const nodeId = str.match(/^\d+$/) ? parseInt(str) : str;
             // alert("Bug hunting: click was on expander (before toggle_node)"); // 
+            log4bug("Bug hunting: click was on expander (before toggle_node)"); // 
             jmDisplayed.toggle_node(nodeId);
             // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, "Edit mindmap description");
             if (jmDisplayed.isSavedBookmark) {
                 if (!toldChangesNotSaved) {
+                    log4bug("Changes to named/shared bookmarks are not stored");
                     modMdc.mkMDCsnackbar("Changes to named/shared bookmarks are not stored");
                 }
                 toldChangesNotSaved = true;
@@ -2000,6 +2007,7 @@ export async function pageSetup() {
             const node = jmDisplayed.mind.nodes[nodeId];
             const topic = node.topic;
             const theChange = !node.expanded ? "Collapse" : "Expand";
+            log4bug(`theChange: ${theChange}`);
             modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, `${theChange} ${topic}`);
         }
     });
