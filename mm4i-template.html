@@ -41,9 +41,21 @@
         }
 
 
-        /* Other layout changes */
-        .VK_ACTIVE.fixed-at-bottom {
+        /* Virtual keyboard layoutchanges */
+        html.VK_ACTIVE #body .fixed-at-bottom {
             display: none;
+        }
+
+        #shared-marker.fixed-at-bottom {
+            display: flex;
+        }
+
+        #generated-marker.fixed-at-bottom {
+            display: flex;
+        }
+
+        #div-bottom-debug.fixed-at-bottom {
+            display: grid;
         }
     </style>
     <script type="module">
@@ -1091,9 +1103,9 @@
         #stair-view-edit-shield {
             position: fixed;
             top: 0px;
-            left: 0px;
-            bottom: 0px;
-            right: 0px;
+            left: 0;
+            bottom: 0;
+            right: 0;
             z-index: 998;
             background-color: rgba(25, 25, 112, 0.4);
             pointer-events: none;
@@ -1206,8 +1218,8 @@
         /* History */
         #mm4i-btn-history {
             position: fixed;
-            bottom: 0px;
-            left: 0px;
+            bottom: 0;
+            left: 0;
             z-index: 1000;
             background-color: #c0ca33;
             background-color: lightseagreen;
@@ -1218,7 +1230,7 @@
             opacity: 1;
             display: block;
             position: fixed;
-            bottom: 0px;
+            bottom: 0;
             left: 50px;
             z-index: 1000;
             user-select: none;
@@ -1432,7 +1444,7 @@
 
 </head>
 
-<body class="NOno-test-items show-stair-button">
+<body id="body" class="NOno-test-items show-stair-button">
     <div id="both-versions">
         <span id="PWA-version"></span>
         <span style="color:rgb(80,0,0);">0.0B</span>
@@ -2175,6 +2187,7 @@
             // const btnHistory = modMdc.mkMDCiconButton("deployed_code_history", "Undo/Redo");
             const btnHistory = modMdc.mkMDCiconButton("history", "Undo/Redo");
             btnHistory.id = "mm4i-btn-history";
+            btnHistory.classList.add("fixed-at-bottom");
             let undoIsSetup = false;
             btnHistory.addEventListener("click", async evt => {
                 evt.stopPropagation();

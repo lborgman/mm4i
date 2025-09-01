@@ -1438,13 +1438,14 @@ export async function pageSetup() {
                 min-height: 50px;
                 min-width: 100px;
                 max-width: 270px;
-                display: flex;
+                NOdisplay: flex;
                 gap: 10px;
                 padding: 10px;
                 z-index: 99999;
                 background: red;
             `;
             eltTellShared.id = "shared-marker";
+            eltTellShared.classList.add("fixed-at-bottom");
             document.body.appendChild(eltTellShared);
         }
         // debugger; // eslint-disable-line no-debugger
@@ -2745,11 +2746,15 @@ function getBottomDebug() {
                 padding: 4px;
                 background-color: black;
                 bottom: 0;
-                display: grid;
+                NOdisplay: grid;
                 grid-template-columns: 50px 1fr 1fr 1fr;
                 cursor: default;
                 pointer-events: all;
             `;
+
+    eltBottomDebug.id = "div-bottom-debug";
+    // eltBottomDebug.classList.add("div-bottom-debug");
+    eltBottomDebug.classList.add("fixed-at-bottom");
     document.body.appendChild(eltBottomDebug);
 
 }

@@ -425,7 +425,7 @@ Important:
         const divInfo = mkElt("div", undefined,
             mkElt("b", undefined, "AI generated mindmap"),
         );
-        divInfo.classList.add("fixed-at-bottom");
+        // divInfo.classList.add("fixed-at-bottom");
         divInfo.style = `
                 display: flex;
                 flex-direction: column;
@@ -437,10 +437,10 @@ Important:
             // btnInfoLinked
         ]);
         eltTellGenerated.style = `
-                    position: fixed; bottom: 0px; left: 0px;
+                    position: fixed; bottom: 0; left: 0;
                     min-height: 50px; min-width: 100px;
                     max-width: 270px;
-                    display: flex;
+                    NOdisplay: flex;
                     gap: 10px;
                     padding: 10px;
                     z-index: 99999;
@@ -449,6 +449,8 @@ Important:
                     background-color: #f068f0;
                 `;
         eltTellGenerated.id = "generated-marker";
+        eltTellGenerated.classList.add("generated-marker");
+        eltTellGenerated.classList.add("fixed-at-bottom");
         document.body.appendChild(eltTellGenerated);
     }
     addAIgeneratedMarker();

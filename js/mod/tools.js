@@ -310,8 +310,8 @@ async function _getWebBrowserInfo() {
         return brands.some(brand =>
             /Chromium|Chrome|GoogleChrome|MicrosoftEdge|Opera|Brave/i.test(brand.brand)
         ) ||
-        // !!window.chrome;
-        !!window["chrome"];
+            // !!window.chrome;
+            !!window["chrome"];
     }
 
     function isMobileDevice() {
@@ -2649,3 +2649,4 @@ export async function cssSpecificity(strCssSpecifier) {
     // debugger;
     return qn.toString();
 }
+window["cssSpecificity"] = cssSpecificity;
