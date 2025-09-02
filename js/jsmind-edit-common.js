@@ -1947,7 +1947,7 @@ export async function pageSetup() {
     //// These bubbles up:
     // jsMindContainer.addEventListener("pointerdown", evt => hideContextMenuOnEvent(evt)); // FIX-ME:
     window["logToQueue"] = modTools.logToQueue;
-    window["logToQueue"]("START");
+    // window["logToQueue"]("START");
     jsMindContainer.addEventListener("click", async evt => {
         let to;
         function log4bug(msg) {
