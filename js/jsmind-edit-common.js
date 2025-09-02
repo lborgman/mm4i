@@ -1952,8 +1952,8 @@ export async function pageSetup() {
         let to;
         function log4bug(msg) {
             // console.log(`%c${msg}`, "color:red;");
-            // modTools.logToQueue(msg);
-            window["logToQueue"](msg);
+            modTools.logToQueue(msg);
+            // window["logToQueue"](msg);
             if (!to) {
                 to = setTimeout(show4bugLogs, 2000);
             }
