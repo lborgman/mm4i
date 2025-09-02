@@ -1946,11 +1946,14 @@ export async function pageSetup() {
 
     //// These bubbles up:
     // jsMindContainer.addEventListener("pointerdown", evt => hideContextMenuOnEvent(evt)); // FIX-ME:
+    window["logToQueue"] = modTools.logToQueue;
+    window["logToQueue"]("START");
     jsMindContainer.addEventListener("click", async evt => {
         let to;
         function log4bug(msg) {
             // console.log(`%c${msg}`, "color:red;");
-            modTools.logToQueue(msg);
+            // modTools.logToQueue(msg);
+            window["logToQueue"](msg);
             if (!to) {
                 to = setTimeout(show4bugLogs, 2000);
             }
