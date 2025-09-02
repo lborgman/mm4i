@@ -1947,7 +1947,36 @@ export async function pageSetup() {
     //// These bubbles up:
     // jsMindContainer.addEventListener("pointerdown", evt => hideContextMenuOnEvent(evt)); // FIX-ME:
     jsMindContainer.addEventListener("click", async evt => {
-        function log4bug(msg) { console.log(`%c${msg}`, "color:red;"); }
+        let to;
+        function log4bug(msg) {
+            // console.log(`%c${msg}`, "color:red;");
+            modTools.logToQueue(msg);
+            if (!to) {
+                to = setTimeout(show4bugLogs, 2000);
+            }
+        }
+        function show4bugLogs() {
+            // logtoscreen
+            // localStorage.setItem(keyLogToScreen, "may log to screen");
+            // if (mayLogToScreen && secDebug) { secDebug.style.display = "unset"; }
+            // const idDebugSection = "pwa-debug-output";
+            // const secDebug = document.getElementById(idDebugSection);
+            to = undefined;
+            const arr = modTools.getLogQueue();
+            const divDebug = mkElt("div");
+            arr.forEach(l => {
+                console.log(`%cLG: ${l}`, "color:red;");
+                const row = mkElt("div", undefined, l);
+                divDebug.appendChild(row);
+            });
+            const h2 = mkElt("h2", undefined, "logQueue debugging");
+            h2.style.color = "red";
+            const body = mkElt("div", undefined, [
+                h2,
+                divDebug
+            ]);
+            modMdc.mkMDCdialogAlert(body);
+        }
         // evt.stopPropagation();
         // evt.preventDefault();
         const target = evt.target;
@@ -1965,7 +1994,7 @@ export async function pageSetup() {
             if (eltExpander == null) throw Error("eltExpander == null");
 
             // alert("Bug hunting: before hasAttribute, click was on expander");
-            log4bug("Bug hunting: before hasAttribute, click was on expander");
+            log4bug("before hasAttribute, click was on expander");
 
             // modMdc.mkMDCdialogAlert("Bug hunting: click was on expander"); // 
             // await modTools.waitSeconds(1);
@@ -1978,12 +2007,12 @@ export async function pageSetup() {
             let strNodeId;
             const hasId = eltExpander.hasAttribute("nodeid");
             // alert(`Bug hunting error, id: ${hasId}`); // 
-            log4bug(`Bug hunting error, id: ${hasId}`); // 
+            log4bug(`error, id: ${hasId}`); // 
             try {
                 strNodeId = eltExpander.getAttribute("nodeid");
             } catch (err) {
                 alert(`Bug hunting error: ${hasId} "${err}"`); // 
-                log4bug(`Bug hunting error: ${hasId} "${err}"`); // 
+                log4bug(`error: ${hasId} "${err}"`); // 
             }
 
             // alert(`Bug hunting: click was on expander (strNodeId == "${strNodeId}")`); // 
@@ -1993,7 +2022,7 @@ export async function pageSetup() {
             if (str.length == 0) throw Error("jmexpander attribute nodeid.length == 0");
             const nodeId = str.match(/^\d+$/) ? parseInt(str) : str;
             // alert("Bug hunting: click was on expander (before toggle_node)"); // 
-            log4bug("Bug hunting: click was on expander (before toggle_node)"); // 
+            log4bug("click was on expander (before toggle_node)"); // 
             jmDisplayed.toggle_node(nodeId);
             // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, "Edit mindmap description");
             if (jmDisplayed.isSavedBookmark) {

@@ -2650,3 +2650,33 @@ export async function cssSpecificity(strCssSpecifier) {
     return qn.toString();
 }
 window["cssSpecificity"] = cssSpecificity;
+
+
+
+// export function logToArray(msg) {
+const logQueue = [];
+
+/**
+ * A function to "log" your messages to a queue array
+ *
+ * Example: 
+ *   logToQueue('Step 1 complete, value is:', myVariable);
+ *   ...your critical, fast-running code here...
+ *   logToQueue('Step 2 complete, value is:', myVariable);
+ * 
+ * @param  {...string} args 
+ */
+export function logToQueue(...args) {
+    logQueue.push(args);
+}
+
+/**
+ * Get and clear the logged items from logToQueue.
+ *  
+ * @returns {string[]}
+ */
+export function getLogQueue() {
+    const arr = [...logQueue];
+    logQueue.length = 0;
+    return arr;
+}
