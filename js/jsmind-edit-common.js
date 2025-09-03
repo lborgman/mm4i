@@ -1951,21 +1951,14 @@ export async function pageSetup() {
     jsMindContainer.addEventListener("click", async evt => {
         let to;
         function log4bug(msg) {
-            // console.log(`%c${msg}`, "color:red;");
             modTools.logToQueue(msg);
             // window["logToQueue"](msg);
-            if (!to) {
-                to = setTimeout(show4bugLogs, 2000);
-            }
+            if (!to) { to = setTimeout(show4bugLogs, 2000); }
         }
         function show4bugLogs() {
-            // logtoscreen
-            // localStorage.setItem(keyLogToScreen, "may log to screen");
-            // if (mayLogToScreen && secDebug) { secDebug.style.display = "unset"; }
-            // const idDebugSection = "pwa-debug-output";
-            // const secDebug = document.getElementById(idDebugSection);
             to = undefined;
             const arr = modTools.getLogQueue();
+            if (arr.length == 0) return;
             const divDebug = mkElt("div");
             arr.forEach(l => {
                 console.log(`%cLG: ${l}`, "color:red;");
