@@ -1949,6 +1949,7 @@ export async function pageSetup() {
     // window["logToQueue"] = modTools.logToQueue;
     // window["logToQueue"]("START");
     jsMindContainer.addEventListener("click", async evt => {
+        console.log("click jsMindContainer");
         let to;
         function log4bug(msg) {
             modTools.logToQueue(msg);
@@ -1981,43 +1982,28 @@ export async function pageSetup() {
         const eltExpander = target.closest("jmexpander");
         if (!eltExpander) return;
 
-        // alert("Bug hunting: click was on expander (before doExpanding)"); // expanding works with alert here
         log4bug("before doExpanding");
 
         doExpanding();
-        // setTimeout(doExpanding, 1000);
         async function doExpanding() {
             if (eltExpander == null) throw Error("eltExpander == null");
 
-            // alert("Bug hunting: before hasAttribute, click was on expander");
+            // FIX-ME: It never reach the next line for generated mindmaps????
             log4bug("before hasAttribute, click was on expander");
 
-            // modMdc.mkMDCdialogAlert("Bug hunting: click was on expander"); // 
-            // await modTools.waitSeconds(1);
-            // alert("Bug hunting: .waitSeconds(1)"); // expanding works with alert here
-            // const outerH = eltExpander.outerHTML;
-            // alert(`Bug hunting outerH: ${outerH}`); // 
-            // const expContent = eltExpander.textContent;
-            // alert(`Bug hunting cont: ${expContent}`); // 
-            // FIX-ME: It never reach the next line for generated mindmaps????
             let strNodeId;
             const hasId = eltExpander.hasAttribute("nodeid");
-            // alert(`Bug hunting error, id: ${hasId}`); // 
             log4bug(`error, id: ${hasId}`); // 
             try {
                 strNodeId = eltExpander.getAttribute("nodeid");
             } catch (err) {
-                alert(`Bug hunting error: ${hasId} "${err}"`); // 
                 log4bug(`error: ${hasId} "${err}"`); // 
             }
 
-            // alert(`Bug hunting: click was on expander (strNodeId == "${strNodeId}")`); // 
             if (null == strNodeId) throw Error("jmexpander attribute nodeid is null");
             const str = strNodeId.trim();
-            // alert("Bug hunting: click was on expander (after .trim)"); // 
             if (str.length == 0) throw Error("jmexpander attribute nodeid.length == 0");
             const nodeId = str.match(/^\d+$/) ? parseInt(str) : str;
-            // alert("Bug hunting: click was on expander (before toggle_node)"); // 
             log4bug("click was on expander (before toggle_node)"); // 
             jmDisplayed.toggle_node(nodeId);
             // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, "Edit mindmap description");
