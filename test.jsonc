@@ -7,38 +7,132 @@ const SW_VERSION = "0.2.105"; Has bug
 const SW_VERSION = "0.2.106"; Has bug
 */
 [
-    /* This fails on Windows 11 with version 0.2.106 */
+    /* SW_VERSION 106: Fails on Windows 11 */
     [
-        {
-            "id": 1,
-            "parent": 2,
-            "topic": "Test"
-        },
-        {
-            "id": 2,
-            "parent": "root",
-            "topic": "a"
-        },
-        {
-            "id": "root",
-            "topic": "Nrw"
-        }
+        [
+            {
+                "id": 1,
+                "parent": 2,
+                "topic": "Test"
+            },
+            {
+                "id": 2,
+                "parent": "root",
+                "topic": "a"
+            },
+            {
+                "id": "root",
+                "topic": "Nrw"
+            }
+        ],
+        [
+            {
+                "id": "root",
+                "topic": "Nrw"
+            },
+            {
+                "id": 1,
+                "parent": 2,
+                "topic": "Test"
+            },
+            {
+                "id": 2,
+                "parent": "root",
+                "topic": "a"
+            }
+        ]
     ],
-    /* This fails on Windows 11 with version 0.2.106 */
+    /* SW_VERSION < 106: Works Windows 11, but fails on Android */
     [
         {
-            "id": "root",
-            "topic": "Nrw"
+            "id": "1",
+            "name": "Thích Nhất Hạnh",
+            "parentid": null,
+            "notes": "Vietnamese Thiền Buddhist monk, peace activist, author, poet, and teacher (1926–2022), known as the 'father of mindfulness' and founder of the Plum Village Tradition."
         },
         {
-            "id": 1,
-            "parent": 2,
-            "topic": "Test"
+            "id": "2",
+            "name": "Early Life",
+            "parentid": "1",
+            "notes": "Born Nguyễn Xuân Bảo in Huế, Vietnam, 1926. Studied at Từ Hiếu Temple and Báo Quốc Buddhist Academy."
         },
         {
-            "id": 2,
-            "parent": "root",
-            "topic": "a"
+            "id": "3",
+            "name": "Education",
+            "parentid": "2",
+            "notes": "Received Fulbright scholarship to study comparative religion at Princeton (1961–1962) and researched at Columbia University (1962–1963)."
+        },
+        {
+            "id": "4",
+            "name": "Monastic Training",
+            "parentid": "2",
+            "notes": "Ordained as a monk in 1949, received Dharma name Nhất Hạnh, and 'lamp transmission' in 1966 from Master Thích Chân Thật."
+        },
+        {
+            "id": "5",
+            "name": "Key Contributions",
+            "parentid": "1",
+            "notes": "Founded Plum Village Tradition, Order of Interbeing, and coined 'Engaged Buddhism'."
+        },
+        {
+            "id": "6",
+            "name": "Plum Village Tradition",
+            "parentid": "5",
+            "notes": "Established Plum Village Monastery in France (1982), now includes 9 monasteries worldwide with over 750 monastics as of 2017."
+        },
+        {
+            "id": "7",
+            "name": "Order of Interbeing",
+            "parentid": "5",
+            "notes": "Created between 1964–1966, a monastic and lay group based on Bodhisattva precepts, emphasizing mindfulness and social action."
+        },
+        {
+            "id": "8",
+            "name": "Engaged Buddhism",
+            "parentid": "5",
+            "notes": "Promoted nonviolent solutions to conflict, vegetarianism, and social change, inspired by 13th-century Vietnamese king Trần Nhân Tông."
+        },
+        {
+            "id": "9",
+            "name": "Publications",
+            "parentid": "1",
+            "notes": "Authored over 130 books, including over 100 in English, selling over 5 million copies by 2019, translated into 40+ languages."
+        },
+        {
+            "id": "10",
+            "name": "Books",
+            "parentid": "9",
+            "notes": "Covers mindfulness, Zen practice, poetry, and Buddhist texts, published via Parallax Press, founded in 1986."
+        },
+        {
+            "id": "11",
+            "name": "Peace Activism",
+            "parentid": "1",
+            "notes": "Advocated for peace during Vietnam War, exiled from Vietnam in 1966 for opposing the war, nominated for Nobel Peace Prize by Martin Luther King Jr. in 1967."
+        },
+        {
+            "id": "12",
+            "name": "School of Youth for Social Services (SYSS)",
+            "parentid": "11",
+            "notes": "Co-founded in 1960s with 10,000 volunteers, rebuilt war-torn villages, and provided medical and educational aid."
+        },
+        {
+            "id": "13",
+            "name": "Vietnam Visits",
+            "parentid": "11",
+            "notes": "Returned to Vietnam in 2005 and 2007 after 39-year exile, faced criticism from Unified Buddhist Church of Vietnam (UBCV)."
+        },
+        {
+            "id": "14",
+            "name": "Later Life",
+            "parentid": "1",
+            "notes": "Suffered a brain hemorrhage in 2014, returned to Từ Hiếu Temple in 2018, and passed away in 2022 at age 95."
+        },
+        {
+            "id": "15",
+            "name": "Health Challenges",
+            "parentid": "14",
+            "notes": "Hospitalized for severe brain hemorrhage in 2014, underwent rehabilitation in France and U.S."
         }
     ]
 ]
