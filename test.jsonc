@@ -1,0 +1,44 @@
+/***************
+  Bug expanding
+  Paste answer from AI
+*****************/
+/*
+const SW_VERSION = "0.2.105"; Has bug 
+const SW_VERSION = "0.2.106"; Has bug
+*/
+[
+    /* This fails on Windows 11 with version 0.2.106 */
+    [
+        {
+            "id": 1,
+            "parent": 2,
+            "topic": "Test"
+        },
+        {
+            "id": 2,
+            "parent": "root",
+            "topic": "a"
+        },
+        {
+            "id": "root",
+            "topic": "Nrw"
+        }
+    ],
+    /* This fails on Windows 11 with version 0.2.106 */
+    [
+        {
+            "id": "root",
+            "topic": "Nrw"
+        },
+        {
+            "id": 1,
+            "parent": 2,
+            "topic": "Test"
+        },
+        {
+            "id": 2,
+            "parent": "root",
+            "topic": "a"
+        }
+    ]
+]
