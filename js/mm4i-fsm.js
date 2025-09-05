@@ -327,7 +327,8 @@ outline: 4px groove ${F};
         if (!res) {
             const msg = `State: ${state}, fsm.action(${action}) returned ${res}`
             console.error(msg);
-            // throw Error(msg);
+            window["log2Queue"](msg);
+            setTimeout(() => { window["getLog2Queue"] }, 2000);
         }
     }
 }

@@ -1949,7 +1949,7 @@ export async function pageSetup() {
     // window["logToQueue"] = modTools.logToQueue;
     // window["logToQueue"]("START");
     jsMindContainer.addEventListener("click", async evt => {
-        console.log("click jsMindContainer");
+        // console.log("click jsMindContainer");
         let to;
         function log4bug(msg) {
             modTools.logToQueue(msg);
@@ -2773,7 +2773,7 @@ function getBottomDebug() {
 
     eltBottomDebug.id = "div-bottom-debug";
     // eltBottomDebug.classList.add("div-bottom-debug");
-    eltBottomDebug.classList.add("fixed-at-bottom");
+    // eltBottomDebug.classList.add("fixed-at-bottom");
     document.body.appendChild(eltBottomDebug);
 
 }

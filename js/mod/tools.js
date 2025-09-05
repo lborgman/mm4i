@@ -2680,3 +2680,6 @@ export function getLogQueue() {
     logQueue.length = 0;
     return arr;
 }
+
+window["log2Queue"] = logToQueue;
+window["getLog2Queue"] = getLogQueue;
