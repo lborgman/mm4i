@@ -2773,8 +2773,7 @@ function getBottomDebug() {
             `;
 
     eltBottomDebug.id = "div-bottom-debug";
-    // eltBottomDebug.classList.add("div-bottom-debug");
-    // eltBottomDebug.classList.add("fixed-at-bottom");
+    eltBottomDebug.classList.add("fixed-at-bottom");
     document.body.appendChild(eltBottomDebug);
 
 }
