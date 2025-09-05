@@ -1959,6 +1959,7 @@ export async function pageSetup() {
         function show4bugLogs() {
             to = undefined;
             const arr = modTools.getLogQueue();
+            arr.length = 0; // FIX-ME: just skip it, expanding problem seems to be gone after Android update
             if (arr.length == 0) return;
             const divDebug = mkElt("div");
             arr.forEach(l => {
