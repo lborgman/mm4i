@@ -134,9 +134,11 @@
             // https://gomakethings.com/checking-for-focus-in-an-element-using-css-in-your-javascript/
             // mdc-dialog__content
             // mdc-text-field
-            navigator.virtualKeyboard.addEventListener('geometrychange', (event) => {
+            navigator.virtualKeyboard.addEventListener('geometrychange', async (event) => {
                 // const { height } = event.target.boundingRect;
                 const { height } = navigator.virtualKeyboard.boundingRect;
+                const modMdc = await importFc4i("util-mdc");
+                modMdc.mkMDCsnackbar(`vk height: ${height}`);
                 if (height > 0) {
                     // console.log('Virtual keyboard is visible with height:', height);
                     // You can now adjust your UI based on this height
