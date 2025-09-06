@@ -400,6 +400,8 @@ Important:
         return;
     }
     const strAIraw = eltAItextarea.value;
+
+
     const { strAIjson } = getJsonFromAIstr(strAIraw);
     jsonNodeArray = JSON.parse(strAIjson);
     console.log({ jsonNodeArray });
@@ -461,8 +463,20 @@ Important:
      * @returns {Object}
      */
     function getJsonFromAIstr(strAI) {
+        function cleanJsonString(jsonString) {
+            // Remove common problematic Unicode characters
+            return jsonString
+                .replace(/\u200B/g, '') // Zero-width space
+                .replace(/\u200C/g, '') // Zero-width non-joiner
+                .replace(/\u200D/g, '') // Zero-width joiner
+                .replace(/\uFEFF/g, '') // Byte order mark
+                .replace(/\u00A0/g, ' ') // Non-breaking space to regular space
+                .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Control characters
+                .trim(); // Remove leading/trailing whitespace
+        }
+
         // You may get more from the AI than the JSON:
-        let strOnlyJson = strAI;
+        let strOnlyJson = cleanJsonString(strAI);
         const cleaned = [];
 
         // Remove prompt if it is there:

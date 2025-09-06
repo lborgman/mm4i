@@ -1946,36 +1946,9 @@ export async function pageSetup() {
 
     //// These bubbles up:
     // jsMindContainer.addEventListener("pointerdown", evt => hideContextMenuOnEvent(evt)); // FIX-ME:
-    // window["logToQueue"] = modTools.logToQueue;
-    // window["logToQueue"]("START");
     jsMindContainer.addEventListener("click", async evt => {
         // console.log("click jsMindContainer");
-        let to;
-        function log4bug(msg) {
-            modTools.logToQueue(msg);
-            // window["logToQueue"](msg);
-            if (!to) { to = setTimeout(show4bugLogs, 2000); }
-        }
-        function show4bugLogs() {
-            to = undefined;
-            const arr = modTools.getLogQueue();
-            arr.length = 0; // FIX-ME: just skip it, expanding problem seems to be gone after Android update
-            if (arr.length == 0) return;
-            const divDebug = mkElt("div");
-            arr.forEach(l => {
-                console.log(`%cLG: ${l}`, "color:red;");
-                const row = mkElt("div", undefined, l);
-                divDebug.appendChild(row);
-            });
-            const h2 = mkElt("h2", undefined, "logQueue debugging");
-            h2.style.color = "red";
-            const body = mkElt("div", undefined, [
-                h2,
-                divDebug
-            ]);
-            modMdc.mkMDCdialogAlert(body);
-        }
-        // evt.stopPropagation();
+    // evt.stopPropagation();
         // evt.preventDefault();
         const target = evt.target;
         if (!(target instanceof HTMLElement)) throw Error("target is not HTMLElement");
@@ -1983,34 +1956,35 @@ export async function pageSetup() {
         const eltExpander = target.closest("jmexpander");
         if (!eltExpander) return;
 
-        log4bug("before doExpanding");
+        const fastLog4bug = window["fastLog4bug"];
+        fastLog4bug("before doExpanding");
 
         doExpanding();
         async function doExpanding() {
             if (eltExpander == null) throw Error("eltExpander == null");
 
             // FIX-ME: It never reach the next line for generated mindmaps????
-            log4bug("before hasAttribute, click was on expander");
+            fastLog4bug("before hasAttribute, click was on expander");
 
             let strNodeId;
             const hasId = eltExpander.hasAttribute("nodeid");
-            log4bug(`error, id: ${hasId}`); // 
+            fastLog4bug(`error, id: ${hasId}`); // 
             try {
                 strNodeId = eltExpander.getAttribute("nodeid");
             } catch (err) {
-                log4bug(`error: ${hasId} "${err}"`); // 
+                fastLog4bug(`error: ${hasId} "${err}"`); // 
             }
 
             if (null == strNodeId) throw Error("jmexpander attribute nodeid is null");
             const str = strNodeId.trim();
             if (str.length == 0) throw Error("jmexpander attribute nodeid.length == 0");
             const nodeId = str.match(/^\d+$/) ? parseInt(str) : str;
-            log4bug("click was on expander (before toggle_node)"); // 
+            fastLog4bug("click was on expander (before toggle_node)"); // 
             jmDisplayed.toggle_node(nodeId);
             // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, "Edit mindmap description");
             if (jmDisplayed.isSavedBookmark) {
                 if (!toldChangesNotSaved) {
-                    log4bug("Changes to named/shared bookmarks are not stored");
+                    fastLog4bug("Changes to named/shared bookmarks are not stored");
                     modMdc.mkMDCsnackbar("Changes to named/shared bookmarks are not stored");
                 }
                 toldChangesNotSaved = true;
@@ -2019,7 +1993,7 @@ export async function pageSetup() {
             const node = jmDisplayed.mind.nodes[nodeId];
             const topic = node.topic;
             const theChange = !node.expanded ? "Collapse" : "Expand";
-            log4bug(`theChange: ${theChange}`);
+            fastLog4bug(`theChange: ${theChange}`);
             modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, `${theChange} ${topic}`);
         }
     });

@@ -2681,5 +2681,33 @@ export function getLogQueue() {
     return arr;
 }
 
-window["log2Queue"] = logToQueue;
-window["getLog2Queue"] = getLogQueue;
+let toShow4bugLogs;
+function log4bug(msg, msDelay = 2000) {
+    logToQueue(msg);
+    if (!toShow4bugLogs) { toShow4bugLogs = setTimeout(show4bugLogs, msDelay); }
+}
+async function show4bugLogs() {
+    toShow4bugLogs = undefined;
+    const arr = getLogQueue();
+    // arr.length = 0; // FIX-ME: just skip it, expanding problem seems to be gone after Android update
+    if (arr.length == 0) return;
+    const divDebug = mkElt("div");
+    arr.forEach(l => {
+        console.log(`%cLG: ${l}`, "color:red;");
+        const row = mkElt("div", undefined, l);
+        divDebug.appendChild(row);
+    });
+    const h2 = mkElt("h2", undefined, "logQueue debugging");
+    h2.style.color = "red";
+    const body = mkElt("div", undefined, [
+        h2,
+        divDebug
+    ]);
+    const modMdc = await importFc4i("util-mdc");
+    modMdc.mkMDCdialogAlert(body);
+}
+
+// window["log2Queue"] = logToQueue;
+// window["getLog2Queue"] = getLogQueue;
+window["fastLog4bug"] = log4bug;
+window["showFastLog4bug"] = show4bugLogs;
