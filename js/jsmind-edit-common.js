@@ -1948,7 +1948,7 @@ export async function pageSetup() {
     // jsMindContainer.addEventListener("pointerdown", evt => hideContextMenuOnEvent(evt)); // FIX-ME:
     jsMindContainer.addEventListener("click", async evt => {
         // console.log("click jsMindContainer");
-    // evt.stopPropagation();
+        // evt.stopPropagation();
         // evt.preventDefault();
         const target = evt.target;
         if (!(target instanceof HTMLElement)) throw Error("target is not HTMLElement");
@@ -2951,12 +2951,14 @@ async function showDebugJssmState(currState) {
         if (eltSmallGraph.parentElement) {
             if (!isSmallGraph) {
                 eltSmallGraph.remove();
+                window["fastLog4bugTurnOn"](false);
             } else {
                 setBigGraph();
             }
         } else {
             document.body.appendChild(eltSmallGraph);
             setSmallGraph();
+            window["fastLog4bugTurnOn"](true);
         }
         return;
 

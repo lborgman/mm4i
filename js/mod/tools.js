@@ -2666,7 +2666,7 @@ const logQueue = [];
  * 
  * @param  {...string} args 
  */
-export function logToQueue(...args) {
+function logToQueue(...args) {
     logQueue.push(args);
 }
 
@@ -2675,7 +2675,7 @@ export function logToQueue(...args) {
  *  
  * @returns {string[]}
  */
-export function getLogQueue() {
+function getLogQueue() {
     const arr = [...logQueue];
     logQueue.length = 0;
     return arr;
@@ -2683,6 +2683,12 @@ export function getLogQueue() {
 
 let toShow4bugLogs;
 let skipLog4bug = true;
+function turnLog4Bug(on) {
+    const tofOn = typeof on;
+    if (tofOn != "boolean") throw Error(`on is not boolean: ${on}`);
+    logQueue.length = 0;
+    skipLog4bug = !on; 
+}
 function log4bug(msg, msDelay = 2000) {
     if (skipLog4bug) return;
     logToQueue(msg);
@@ -2695,7 +2701,7 @@ async function show4bugLogs() {
     if (arr.length == 0) return;
     const divDebug = mkElt("div");
     arr.forEach(l => {
-        console.log(`%cLG: ${l}`, "color:red;");
+        // console.log(`%cLQ: ${l}`, "color:red;");
         const row = mkElt("div", undefined, l);
         divDebug.appendChild(row);
     });
@@ -2710,4 +2716,5 @@ async function show4bugLogs() {
 }
 
 window["fastLog4bug"] = log4bug;
-window["showFastLog4bug"] = show4bugLogs;
+// window["showFastLog4bug"] = show4bugLogs;
+window["fastLog4bugTurnOn"] = turnLog4Bug;
