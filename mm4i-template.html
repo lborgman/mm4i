@@ -135,7 +135,8 @@
             // mdc-dialog__content
             // mdc-text-field
             navigator.virtualKeyboard.addEventListener('geometrychange', (event) => {
-                const { height } = event.target.boundingRect;
+                // const { height } = event.target.boundingRect;
+                const { height } = navigator.virtualKeyboard.boundingRect;
                 if (height > 0) {
                     // console.log('Virtual keyboard is visible with height:', height);
                     // You can now adjust your UI based on this height

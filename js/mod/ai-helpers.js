@@ -75,6 +75,7 @@ export async function checkGeminiOk() {
     return promGeminiOk;
 }
 
+// https://x.com/lborgman/status/1964425427339923809
 export async function generateMindMap() {
     const modMdc = await importFc4i("util-mdc");
     const modMMhelpers = await importFc4i("mindmap-helpers");
@@ -83,10 +84,6 @@ export async function generateMindMap() {
     const eltNotReady = mkElt("p", undefined, "Not ready!");
     eltNotReady.style = `color:red; font-size:1.2rem`;
 
-    // const modAiHelpers = await importFc4i("ai-helpers");
-    // const apiGeminiError = apiGeminiError();
-    // const apiGeminiOk = !apiGeminiError;
-    // const eltNoAPI = mkElt("p", undefined, `Gemini API Error: ${apiError}`);
     let eltOk = "";
     try {
         await checkGeminiOk();

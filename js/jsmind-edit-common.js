@@ -2077,7 +2077,6 @@ export async function pageSetup() {
         // https://html2canvas.hertzen.com/getting-started.html
 
         const createMindMap = () => {
-            // modMMhelpers.createAndShowNewMindmap("./mm4i.html");
             modMMhelpers.createAndShowNewMindmap();
         }
         const liCreateMindmap = mkMenuItem("Create Mindmap", createMindMap);
@@ -2086,7 +2085,6 @@ export async function pageSetup() {
             const modAIhelpers = await importFc4i("ai-helpers");
             modAIhelpers.generateMindMap();
         }
-        // const liGenerateMindmap = mkMenuItem("Generate Mindmap", generateMindMap);
         const liMakeMindmapFromLink = mkMenuItem("Make Mindmap from Link", makeMindMapFromLink);
 
 
@@ -2654,12 +2652,8 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
     if (showNew) {
         const liNew = modMdc.mkMDCmenuItem("New mindmap");
         liNew.addEventListener("click", errorHandlerAsyncEvent(async () => {
-            // await modMMhelpers.createAndShowNewMindmap(linkMindmapsPage);
             await modMMhelpers.createAndShowNewMindmap();
         }));
-        // arrLiMenu.push(liNew);
-
-        // function mkMDCfab(eltIcon, title, mini, extendTitle)
 
         const eltIconNew = modMdc.mkMDCicon("add");
         const btnFabNew = modMdc.mkMDCfab(eltIconNew, "Create new mindmap", true);
@@ -2674,6 +2668,9 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
         btnFabGenAI.addEventListener("click", async () => {
             // generate mindmap
             const modAIhelpers = await importFc4i("ai-helpers");
+            const eltDialogOpen = btnFabGenAI.closest(".mdc-dialog");
+            if (!eltDialogOpen) throw Error(`Could not find .closest(".mdc-dialog")`);
+            eltDialogOpen.remove();
             modAIhelpers.generateMindMap();
         });
         btnFabGenAI.style.marginLeft = "20px";
