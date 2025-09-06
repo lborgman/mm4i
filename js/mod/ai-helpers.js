@@ -179,8 +179,10 @@ export async function generateMindMap() {
    output a strict, parse-ready JSON node array
    (flat; fields: id, name, parentid, and notes).
 2. Optional field "notes": Details. Markdown format.
-3. Limit the hiearchy to max depth ${maxDepth} levels.
-4. Return only valid JSON (no extra text).
+3. Give as much details as in a text summary.
+4. Limit the hiearchy to max depth ${maxDepth} levels.
+5. Return only valid JSON (no extra text).
+6. Check that the JSON is parseable in Chromium browsers.
                 `
         /*
         return `
@@ -266,6 +268,16 @@ Important:
         }
         const { strAIjson, cleaned } = getJsonFromAIstr(strAIraw);
 
+        const tellError = (txt) => {
+            const divError = mkElt("div", undefined, txt);
+            divError.style.userSelect = "all";
+            divError.style.color = "darkred";
+            divError.style.userSelect = "all";
+            divError.style.marginTop = "10px";
+            eltAItextareaStatus.textContent = "";
+            eltAItextareaStatus.appendChild(mkElt("div", undefined, `Tell your AI that the JSON had this error:`));
+            eltAItextareaStatus.appendChild(divError);
+        }
         try {
             const j = JSON.parse(strAIjson);
             const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(j);
@@ -274,12 +286,10 @@ Important:
                 const msgStatus = strAIjson == strAIraw ? "OK" : `OK (cleaned: ${cleaned.join(", ")})`;
                 eltAItextareaStatus.textContent = msgStatus;
             } else {
-                eltAItextareaStatus.textContent = res.error;
-                eltAItextareaStatus.style.color = "darkred";
+                tellError(res.error);
             }
         } catch (err) {
-            eltAItextareaStatus.textContent = err;
-            eltAItextareaStatus.style.color = "darkred";
+            tellError(err);
         }
     });
     const eltDl = mkElt("dl");
@@ -353,7 +363,7 @@ Important:
             `;
 
     const eltDivAI = mkElt("p", undefined, [
-        mkElt("div", undefined, "Paste answer from your AI:"),
+        mkElt("div", undefined, "Paste the JSON-formatted answer you got from AI:"),
         eltAItextarea,
         eltAItextareaStatus,
     ]);

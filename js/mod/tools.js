@@ -2682,14 +2682,16 @@ export function getLogQueue() {
 }
 
 let toShow4bugLogs;
+let skipLog4bug = true;
 function log4bug(msg, msDelay = 2000) {
+    if (skipLog4bug) return;
     logToQueue(msg);
-    if (!toShow4bugLogs) { toShow4bugLogs = setTimeout(show4bugLogs, msDelay); }
+    clearTimeout(toShow4bugLogs);
+    toShow4bugLogs = setTimeout(show4bugLogs, msDelay);
 }
 async function show4bugLogs() {
     toShow4bugLogs = undefined;
     const arr = getLogQueue();
-    // arr.length = 0; // FIX-ME: just skip it, expanding problem seems to be gone after Android update
     if (arr.length == 0) return;
     const divDebug = mkElt("div");
     arr.forEach(l => {
@@ -2707,7 +2709,5 @@ async function show4bugLogs() {
     modMdc.mkMDCdialogAlert(body);
 }
 
-// window["log2Queue"] = logToQueue;
-// window["getLog2Queue"] = getLogQueue;
 window["fastLog4bug"] = log4bug;
 window["showFastLog4bug"] = show4bugLogs;

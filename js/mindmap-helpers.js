@@ -1008,6 +1008,7 @@ export function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
 
     ////// .parentId, .parent => .parentid, .text, .name => .topic
     ////// .notes
+    if (!Array.isArray(aiNodeArray)) throw Error("Expected JSON to be an array");
     const nodeArray = aiNodeArray.map(n => {
         n.expanded = false;
         if (!n.topic) {
