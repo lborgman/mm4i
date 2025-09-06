@@ -125,38 +125,37 @@
             setTimeout(() => {
                 window["importFc4i"]("util-mdc").then(m => {
                     m.mkMDCsnackbar("has virtualKeyboard API");
+                    // Listen for geometry changes
+                    // https://gomakethings.com/checking-for-focus-in-an-element-using-css-in-your-javascript/
+                    // navigator.virtualKeyboard.ongeometrychange = 
+                    navigator.virtualKeyboard.ongeometrychange = async (event) => {
+                        const keyboardRect = navigator.virtualKeyboard.boundingRect;
+                        const height = keyboardRect.height;
+                        // const modMdc = await importFc4i("util-mdc");
+                        m.mkMDCsnackbar(`vk height: ${height}`);
+                        if (height > 0) {
+                            // You can now adjust your UI based on this height
+                            vkActiveLocal(true);
+                        } else {
+                            vkActiveLocal(false);
+                        }
+                    };
+                    m.mkMDCsnackbar("Added geometrychange listener");
                 });
-                // Opt-in to handle layout yourself
-                // navigator.virtualKeyboard.overlaysContent = true;
-
-                // Listen for geometry changes
-                // https://gomakethings.com/checking-for-focus-in-an-element-using-css-in-your-javascript/
-                navigator.virtualKeyboard.ongeometrychange = async (event) => {
-                    const keyboardRect = navigator.virtualKeyboard.boundingRect;
-                    const height = keyboardRect.height;
-                    const modMdc = await importFc4i("util-mdc");
-                    modMdc.mkMDCsnackbar(`vk height: ${height}`);
-                    if (height > 0) {
-                        // You can now adjust your UI based on this height
-                        vkActiveLocal(true);
-                    } else {
-                        vkActiveLocal(false);
-                    }
-                };
-        }, 2000);
-        window["vkActive"] = vkActiveLocal;
-        async function vkActiveLocal(active) {
-            const tofActive = typeof active;
-            if ("boolean" != tofActive) throw Error(`vkActive: typeof active == "${tofActive}"`);
-            const modMdc = await importFc4i("util-mdc");
-            if (active) {
-                document.documentElement.classList.add("VK_ACTIVE");
-                modMdc.mkMDCsnackbar("Virtual keyboard ON");
-            } else {
-                document.documentElement.classList.remove("VK_ACTIVE");
-                modMdc.mkMDCsnackbar("Virtual keyboard OFF");
+            }, 2000);
+            window["vkActive"] = vkActiveLocal;
+            async function vkActiveLocal(active) {
+                const tofActive = typeof active;
+                if ("boolean" != tofActive) throw Error(`vkActive: typeof active == "${tofActive}"`);
+                const modMdc = await importFc4i("util-mdc");
+                if (active) {
+                    document.documentElement.classList.add("VK_ACTIVE");
+                    modMdc.mkMDCsnackbar("Virtual keyboard ON");
+                } else {
+                    document.documentElement.classList.remove("VK_ACTIVE");
+                    modMdc.mkMDCsnackbar("Virtual keyboard OFF");
+                }
             }
-        }
         }
     </script>
     <!-- https://blog.pixelfreestudio.com/how-to-implement-lazy-loading-in-pwas/ -->
