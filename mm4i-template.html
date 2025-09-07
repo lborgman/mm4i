@@ -249,6 +249,22 @@
     <script type="module" src="./anchors-with-base.js"></script>
     <script src="./mm4i-importmaps.js"></script>
 
+
+    <script id="share-target">
+        window.addEventListener('DOMContentLoaded', async () => {
+            const modMdc = await importFc4i("util-mdc");
+            const parsedUrl = new URL(window.location);
+            // searchParams.get() will properly handle decoding the values.
+            const logStr = `
+            Title shared: "${parsedUrl.searchParams.get('title')}",
+            Text shared: "${parsedUrl.searchParams.get('text')}",
+            URL shared: "${parsedUrl.searchParams.get('url')}"
+            `;
+            modMdc.mkMDCdialogAlert(logStr);
+        });
+    </script>
+
+
     <script id="setup-virtual-keyboard" type="module">
         const modTools = await importFc4i("toolsJs");
         modTools.setupVirtualKeyboardDetection();
