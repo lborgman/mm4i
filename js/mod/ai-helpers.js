@@ -377,41 +377,6 @@ Important:
                 padding: 20px;
             `;
 
-    /*
-    const tabRecs = ["Description", "Themes", "Background", "Lines"];
-    const contentElts = mkElt("div", undefined,
-        [divDesc, divThemeChoices, divBackground, divLines]);
-    if (tabRecs.length != contentElts.childElementCount) throw Error("Tab bar setup number mismatch");
-    const onActivateMore = (idx) => {
-        // console.log("onActivateMore", idx);
-        if (idx > tabRecs.length - 1) { throw Error(`There is no tab at idx=${idx} `); }
-        switch (idx) {
-            case 0:
-                break;
-            case 1:
-                activateThemesTab();
-                break;
-            case 2:
-                initBgMmTab();
-                break;
-            case 3:
-                activateLineTab();
-                break;
-            default:
-                throw Error(`Activation code missing for tab, idx=${idx} `);
-        }
-    }
-    const eltTabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, onActivateMore);
-
-    const body = mkElt("div", undefined, [
-        mkElt("h2", undefined, [
-            mkElt("span", { style: "font-style:italic;opacity: 0.5;margin-right:10px;" }, "Mindmap:"),
-            mindmapName
-        ]),
-        eltTabs,
-        contentElts,
-    ]);
-    */
 
     const btnEasyWay = modMdc.mkMDCbutton("Make mindmap", "raised");
 
@@ -420,11 +385,18 @@ Important:
         mkElt("summary", undefined, "This should have been more easy!"),
         mkElt("div", undefined, [
             mkElt("p", undefined, `
-                        Yes, it should be more easy.
-                        As you can see above I have asked xAI to fix this for their Grok.
-                        The tweet is short and not so easy to understand, perhaps.
-                        Here are some more easy to understand details about the trouble:
-                        `),
+                    Yes, it should be more easy.
+                    I have asked xAI to fix this for Grok:
+                `),
+            mkElt("p", { style: "margin-left: 20px;" },
+                mkElt("a", { href: "https://x.com/lborgman/status/1964425427339923809" },
+                    "Can xAI fix it for their AI (Grok)?")
+            ),
+            mkElt("p", undefined, `
+                    The tweet is short and not so easy to understand, perhaps.
+                    Here are some a little bit more easy to understand
+                    details about the two problems I see:
+                `),
             eltContentProviderTrouble,
             eltAIprovidersTrouble,
         ])
@@ -440,13 +412,9 @@ Important:
     const divWhyNotEasy = mkElt("div", undefined, [
         mkElt("p", undefined, [
             `Unfortunately this can't be done this easy yet.
-            For an explanation (technical/economical) please see here: `,
+            So for now please click on the HARD WAY tab above.
+            `,
         ]),
-        mkElt("p", undefined,
-            mkElt("a", { href: "https://x.com/lborgman/status/1964425427339923809" },
-                "Can xAI fix it for their AI (Grok)?")
-        ),
-        mkElt("p", undefined, "So for now please click on the HARD WAY tab above."),
 
         eltWhyThisTrouble
     ]);
@@ -456,7 +424,47 @@ Important:
         btnEasyWay.style.display = "none";
         divWhyNotEasy.style.display = "unset";
     });
-    const divEasyWay = mkElt("p", undefined, [mkElt("div", undefined, btnEasyWay), divWhyNotEasy]);
+    const divListAI = mkElt("div");
+    divListAI.style = `
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+    `;
+    const selectHeader = mkElt("div", undefined, "Select AI to use:");
+    selectHeader.style = `
+        font-weight: bold;
+        margin-bottom: 20px;
+    `
+    const divSelectAI = mkElt("div", { class: "mdc-card" }, [
+        selectHeader,
+        divListAI
+    ]);
+    divSelectAI.style = `
+        padding: 15px;
+    `;
+    const AIthatMayWork = {
+        "Gemini": "Can not work now AFAICS",
+        "Grok": "I have asked xAI",
+    }
+    Object.entries(AIthatMayWork).forEach(e => {
+        const [k, _v] = e;
+        const radAI = mkElt("input", { type: "radio", name: "ai" });
+        const eltAI = mkElt("label", undefined, [radAI, k]);
+        eltAI.style = `
+            display: flex;
+            flex-direction: row;
+            gap: 5px;
+            background-color: #fffc;
+            padding: 6px;
+            border-radius: 2px;
+        `;
+        divListAI.appendChild(eltAI);
+    });
+    const divEasyWay = mkElt("p", undefined, [
+        divSelectAI,
+        mkElt("p", undefined, btnEasyWay),
+        divWhyNotEasy
+    ]);
     divEasyWay.id = "easy-way";
 
     const divHardWay = mkElt("p", undefined, [
