@@ -141,43 +141,43 @@
                         }
                     };
                     m.mkMDCsnackbar("Added geometrychange listener");
-                });
 
 
 
 
-                //// According to Google Gemini the Virtual Keyboard API is buggy in a PWA on Android.
-                //// Here is a workaround.
-                let initialViewportHeight = window.visualViewport.height;
+                    //// According to Google Gemini the Virtual Keyboard API is buggy in a PWA on Android.
+                    //// Here is a workaround.
+                    let initialViewportHeight = window.visualViewport.height;
 
-                // Function to handle layout adjustments based on keyboard visibility
-                const handleResize = () => {
-                    const currentViewportHeight = window.visualViewport.height;
+                    // Function to handle layout adjustments based on keyboard visibility
+                    const handleResize = () => {
+                        const currentViewportHeight = window.visualViewport.height;
 
-                    // Use a small tolerance to avoid false positives from minor UI changes
-                    if (Math.abs(currentViewportHeight - initialViewportHeight) > 100) {
-                        m.mkMDCsnackbar("Virtual keyboard is likely active.");
-                        vkActiveLocal(true);
-                        // Adjust your PWA's layout here.
-                        // For example, scroll an element into view or reposition it.
-                    } else {
-                        m.mkMDCsnackbar("Virtual keyboard is likely hidden.");
-                        vkActiveLocal(false);
-                        // Reset your layout adjustments.
-                    }
-                };
+                        // Use a small tolerance to avoid false positives from minor UI changes
+                        if (Math.abs(currentViewportHeight - initialViewportHeight) > 100) {
+                            m.mkMDCsnackbar("Virtual keyboard is likely active.");
+                            vkActiveLocal(true);
+                            // Adjust your PWA's layout here.
+                            // For example, scroll an element into view or reposition it.
+                        } else {
+                            m.mkMDCsnackbar("Virtual keyboard is likely hidden.");
+                            vkActiveLocal(false);
+                            // Reset your layout adjustments.
+                        }
+                    };
 
-                // Listen for viewport size changes
-                window.visualViewport.addEventListener('resize', handleResize);
+                    // Listen for viewport size changes
+                    window.visualViewport.addEventListener('resize', handleResize);
 
-                // Listen for orientation changes to reset the baseline
-                window.addEventListener('orientationchange', () => {
-                    // Reset the initial height after the rotation is complete
-                    // Use a timeout to ensure the browser has finished resizing the viewport
-                    setTimeout(() => {
-                        initialViewportHeight = window.visualViewport.height;
-                        console.log("Orientation changed. New initial height:", initialViewportHeight);
-                    }, 500);
+                    // Listen for orientation changes to reset the baseline
+                    window.addEventListener('orientationchange', () => {
+                        // Reset the initial height after the rotation is complete
+                        // Use a timeout to ensure the browser has finished resizing the viewport
+                        setTimeout(() => {
+                            initialViewportHeight = window.visualViewport.height;
+                            console.log("Orientation changed. New initial height:", initialViewportHeight);
+                        }, 500);
+                    });
                 });
             }, 2000);
 
