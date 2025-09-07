@@ -75,7 +75,6 @@ export async function checkGeminiOk() {
     return promGeminiOk;
 }
 
-// https://x.com/lborgman/status/1964425427339923809
 export async function generateMindMap() {
     const modMdc = await importFc4i("util-mdc");
     const modMMhelpers = await importFc4i("mindmap-helpers");
@@ -125,6 +124,9 @@ export async function generateMindMap() {
             eltStatus.textContent = "Link seems ok";
         }
         updatePromptAi();
+        const divWays = document.getElementById("div-ways");
+        if (!divWays) throw Error(`Could not find element "div-ways"`);
+        divWays.style.display = "block";
     });
     async function isReachableUrl(url) {
         let reachable = false;
@@ -341,23 +343,6 @@ Important:
         ]),
         eltWhichAI,
     ]);
-    const eltWhyThisTrouble = mkElt("details", { class: "mdc-card" }, [
-        mkElt("summary", { style: "color:darkred" }, "This should have been more easy!"),
-        mkElt("div", undefined, [
-            mkElt("p", undefined, `
-                        Yes, it should be more easy.
-                        After you have given me a link to an article or video
-                        ideally I should just show you the mindmap.
-                        Unfortunately there are currently two obstacles:
-                        `),
-            eltContentProviderTrouble,
-            eltAIprovidersTrouble,
-        ])
-    ]);
-    eltWhyThisTrouble.style = `
-                padding: 10px;
-                background-color: #fff6;
-            `;
 
     const eltDivAI = mkElt("p", undefined, [
         mkElt("div", undefined, "Paste the JSON-formatted answer you got from AI:"),
@@ -383,7 +368,7 @@ Important:
         `In the AI of your choice use this prompt:`,
         divPrompt,
         // eltWhichAI,
-        eltWhyThisTrouble,
+        // eltwhythistrouble,
     ]);
     cardPrompt.style = `
                 NOdisplay: flex;
@@ -391,6 +376,111 @@ Important:
                 flex-direction: column;
                 padding: 20px;
             `;
+
+    /*
+    const tabRecs = ["Description", "Themes", "Background", "Lines"];
+    const contentElts = mkElt("div", undefined,
+        [divDesc, divThemeChoices, divBackground, divLines]);
+    if (tabRecs.length != contentElts.childElementCount) throw Error("Tab bar setup number mismatch");
+    const onActivateMore = (idx) => {
+        // console.log("onActivateMore", idx);
+        if (idx > tabRecs.length - 1) { throw Error(`There is no tab at idx=${idx} `); }
+        switch (idx) {
+            case 0:
+                break;
+            case 1:
+                activateThemesTab();
+                break;
+            case 2:
+                initBgMmTab();
+                break;
+            case 3:
+                activateLineTab();
+                break;
+            default:
+                throw Error(`Activation code missing for tab, idx=${idx} `);
+        }
+    }
+    const eltTabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, onActivateMore);
+
+    const body = mkElt("div", undefined, [
+        mkElt("h2", undefined, [
+            mkElt("span", { style: "font-style:italic;opacity: 0.5;margin-right:10px;" }, "Mindmap:"),
+            mindmapName
+        ]),
+        eltTabs,
+        contentElts,
+    ]);
+    */
+
+    const btnEasyWay = modMdc.mkMDCbutton("Make mindmap", "raised");
+
+
+    const eltWhyThisTrouble = mkElt("details", { class: "mdc-card" }, [
+        mkElt("summary", undefined, "This should have been more easy!"),
+        mkElt("div", undefined, [
+            mkElt("p", undefined, `
+                        Yes, it should be more easy.
+                        As you can see above I have asked xAI to fix this for their Grok.
+                        The tweet is short and not so easy to understand, perhaps.
+                        Here are some more easy to understand details about the trouble:
+                        `),
+            eltContentProviderTrouble,
+            eltAIprovidersTrouble,
+        ])
+    ]);
+    eltWhyThisTrouble.style = `
+                padding: 10px;
+                background-color: #fff6;
+                color: black;
+            `;
+
+
+
+    const divWhyNotEasy = mkElt("div", undefined, [
+        mkElt("p", undefined, [
+            `Unfortunately this can't be done this easy yet.
+            For an explanation (technical/economical) please see here: `,
+        ]),
+        mkElt("p", undefined,
+            mkElt("a", { href: "https://x.com/lborgman/status/1964425427339923809" },
+                "Can xAI fix it for their AI (Grok)?")
+        ),
+        mkElt("p", undefined, "So for now please click on the HARD WAY tab above."),
+
+        eltWhyThisTrouble
+    ]);
+    divWhyNotEasy.style.display = "none";
+    divWhyNotEasy.style.color = "red";
+    btnEasyWay.addEventListener("click", _evt => {
+        btnEasyWay.style.display = "none";
+        divWhyNotEasy.style.display = "unset";
+    });
+    const divEasyWay = mkElt("p", undefined, [mkElt("div", undefined, btnEasyWay), divWhyNotEasy]);
+    divEasyWay.id = "easy-way";
+
+    const divHardWay = mkElt("p", undefined, [
+        mkElt("div", undefined, cardPrompt),
+        mkElt("div", undefined, eltDivAI),
+    ]);
+    divHardWay.id = "hard-way";
+
+    const tabRecs = ["Easy way", "Hard way"];
+    const contentElts = mkElt("div", undefined, [divEasyWay, divHardWay]);
+    if (tabRecs.length != contentElts.childElementCount) throw Error("Tab bar setup number mismatch");
+    const eltTabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, undefined);
+
+    const divTabs = mkElt("p", undefined, [eltTabs, contentElts]);
+    const divWays = mkElt("div", undefined, [
+        mkElt("p", undefined, "Choose how to proceed:"),
+        divTabs
+    ]);
+    divWays.id = "div-ways";
+    divWays.style.display = "none";
+    // ebbrowserInfoKeys
+
+
+
     const body = mkElt("div", undefined, [
         eltNotReady,
         eltOk,
@@ -398,8 +488,9 @@ Important:
         // mkElt("h2", undefined, "generate mindmap"),
         mkElt("h2", undefined, "Make mindmap from link"),
         mkElt("div", undefined, cardInput),
-        mkElt("div", undefined, cardPrompt),
-        mkElt("div", undefined, eltDivAI),
+        // mkElt("div", undefined, cardPrompt),
+        // mkElt("div", undefined, eltDivAI),
+        divWays,
     ]);
     const ans = await modMdc.mkMDCdialogConfirm(body, "Make mindmap", "Cancel");
     if (!ans) {
