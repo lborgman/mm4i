@@ -14,12 +14,12 @@
             "type": "image/svg+xml",
             "sizes": "512x512",
             "purpose": "any"
-        }, 
-                {
+        },
+        {
             "src": "./img/mm4i-from-svg.png",
             "type": "image/png",
             "sizes": "512x512"
-        } 
+        }
     ],
     "id": "https://mm4i.vercel.app/mm4i.html",
     "start_url": "./mm4i.html",
@@ -34,5 +34,14 @@
     ],
     "dir": "ltr",
     "lang": "en",
-    "orientation": "portrait"
+    "orientation": "portrait",
+    "share_target": {
+        "action": "./mm4i.html",
+        "method": "GET",
+        "params": {
+            "title": "title",
+            "text": "text",
+            "url": "url"
+        }
+    }
 }
