@@ -104,7 +104,7 @@
 
 
 
-    <script>
+    <script id="domain-active">
         // Check if domain is active through https
         // FIX-ME:
         window.isSecure = window.location.hostname == "localhost" || window.location.protocol == "https:"
@@ -118,83 +118,6 @@
                 `;
                 document.close();
             }, 1000);
-        }
-
-        // https://issues.chromium.org/issues/41172633
-        if ('virtualKeyboard' in navigator) {
-            setTimeout(() => {
-                window["importFc4i"]("util-mdc").then(m => {
-                    m.mkMDCsnackbar("has virtualKeyboard API");
-                    // Listen for geometry changes
-                    // https://gomakethings.com/checking-for-focus-in-an-element-using-css-in-your-javascript/
-                    // navigator.virtualKeyboard.ongeometrychange = 
-                    navigator.virtualKeyboard.ongeometrychange = async (event) => {
-                        const keyboardRect = navigator.virtualKeyboard.boundingRect;
-                        const height = keyboardRect.height;
-                        // const modMdc = await importFc4i("util-mdc");
-                        m.mkMDCsnackbar(`vk height: ${height}`);
-                        if (height > 0) {
-                            // You can now adjust your UI based on this height
-                            vkActiveLocal(true);
-                        } else {
-                            vkActiveLocal(false);
-                        }
-                    };
-                    m.mkMDCsnackbar("Added geometrychange listener");
-
-
-
-
-                    //// According to Google Gemini the Virtual Keyboard API is buggy in a PWA on Android.
-                    //// Here is a workaround.
-                    let initialViewportHeight = window.visualViewport.height;
-
-                    // Function to handle layout adjustments based on keyboard visibility
-                    const handleResize = () => {
-                        const currentViewportHeight = window.visualViewport.height;
-
-                        // Use a small tolerance to avoid false positives from minor UI changes
-                        if (Math.abs(currentViewportHeight - initialViewportHeight) > 100) {
-                            m.mkMDCsnackbar("Virtual keyboard is likely active.");
-                            vkActiveLocal(true);
-                            // Adjust your PWA's layout here.
-                            // For example, scroll an element into view or reposition it.
-                        } else {
-                            m.mkMDCsnackbar("Virtual keyboard is likely hidden.");
-                            vkActiveLocal(false);
-                            // Reset your layout adjustments.
-                        }
-                    };
-
-                    // Listen for viewport size changes
-                    window.visualViewport.addEventListener('resize', handleResize);
-
-                    // Listen for orientation changes to reset the baseline
-                    window.addEventListener('orientationchange', () => {
-                        // Reset the initial height after the rotation is complete
-                        // Use a timeout to ensure the browser has finished resizing the viewport
-                        setTimeout(() => {
-                            initialViewportHeight = window.visualViewport.height;
-                            console.log("Orientation changed. New initial height:", initialViewportHeight);
-                        }, 500);
-                    });
-                });
-            }, 2000);
-
-
-            window["vkActive"] = vkActiveLocal;
-            async function vkActiveLocal(active) {
-                const tofActive = typeof active;
-                if ("boolean" != tofActive) throw Error(`vkActive: typeof active == "${tofActive}"`);
-                const modMdc = await importFc4i("util-mdc");
-                if (active) {
-                    document.documentElement.classList.add("VK_ACTIVE");
-                    modMdc.mkMDCsnackbar("Virtual keyboard ON");
-                } else {
-                    document.documentElement.classList.remove("VK_ACTIVE");
-                    modMdc.mkMDCsnackbar("Virtual keyboard OFF");
-                }
-            }
         }
     </script>
     <!-- https://blog.pixelfreestudio.com/how-to-implement-lazy-loading-in-pwas/ -->
@@ -226,7 +149,7 @@
 
     <script src="./init-error.js"></script>
 
-    <script>
+    <script id="add-og">
         /* Add OG: */
 
         const searchParams = new URLSearchParams(location.search);
@@ -266,7 +189,7 @@
     </script>
     <!-- OG -->
 
-    <script>
+    <script id="load-script-style">
         /**
         * Dynamically loads a JavaScript file and waits for it to be executed.
         *
@@ -325,6 +248,11 @@
     <script type="module" src="./pwa.js"></script>
     <script type="module" src="./anchors-with-base.js"></script>
     <script src="./mm4i-importmaps.js"></script>
+
+    <script id="setup-virtual-keyboard" type="module">
+        const modTools = await importFc4i("toolsJs");
+        modTools.setupVirtualKeyboardDetection();
+    </script>
 
 
     <link rel="manifest" href="./manifest-mm4i.json">

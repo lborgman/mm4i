@@ -2687,7 +2687,7 @@ function turnLog4Bug(on) {
     const tofOn = typeof on;
     if (tofOn != "boolean") throw Error(`on is not boolean: ${on}`);
     logQueue.length = 0;
-    skipLog4bug = !on; 
+    skipLog4bug = !on;
 }
 function log4bug(msg, msDelay = 2000) {
     if (skipLog4bug) return;
@@ -2718,3 +2718,91 @@ async function show4bugLogs() {
 window["fastLog4bug"] = log4bug;
 // window["showFastLog4bug"] = show4bugLogs;
 window["fastLog4bugTurnOn"] = turnLog4Bug;
+
+
+export async function setupVirtualKeyboardDetection() {
+    await promiseDOMready();
+    const modMdc = await importFc4i("util-mdc");
+
+    if ('virtualKeyboard' in navigator) {
+        setTimeout(() => {
+            modMdc.mkMDCsnackbar("has virtualKeyboard API");
+            // Listen for geometry changes
+            // https://gomakethings.com/checking-for-focus-in-an-element-using-css-in-your-javascript/
+            // @ts-ignore
+            navigator.virtualKeyboard.ongeometrychange = async (event) => {
+                // @ts-ignore
+                const keyboardRect = navigator.virtualKeyboard.boundingRect;
+                const height = keyboardRect.height;
+                // const modMdc = await importFc4i("util-mdc");
+                modMdc.mkMDCsnackbar(`vk height: ${height}`);
+                if (height > 0) {
+                    // You can now adjust your UI based on this height
+                    vkActiveLocal(true);
+                } else {
+                    vkActiveLocal(false);
+                }
+            };
+            modMdc.mkMDCsnackbar("Added geometrychange listener");
+
+
+
+
+            //// According to Google Gemini the Virtual Keyboard API is buggy in a PWA on Android.
+            //// Here is a workaround.
+
+            // FIX-ME: MDN says "the visual viewport for a given window, or null if current document is not fully active"
+            //   Do they mean "loaded"????
+            const vvp = window.visualViewport;
+            if (!window.visualViewport) throw Error(`window.visualViewport is "${vvp}"`)
+            let initialViewportHeight = window.visualViewport.height;
+
+            // Function to handle layout adjustments based on keyboard visibility
+            const handleResize = () => {
+                // @ts-ignore
+                const currentViewportHeight = window.visualViewport.height;
+
+                // Use a small tolerance to avoid false positives from minor UI changes
+                if (Math.abs(currentViewportHeight - initialViewportHeight) > 100) {
+                    modMdc.mkMDCsnackbar("Virtual keyboard is likely active.");
+                    // Adjust your PWA's layout here.
+                    // For example, scroll an element into view or reposition it.
+                    vkActiveLocal(true);
+                } else {
+                    modMdc.mkMDCsnackbar("Virtual keyboard is likely hidden.");
+                    // Reset your layout adjustments.
+                    vkActiveLocal(false);
+                }
+            };
+
+            // Listen for viewport size changes
+            window.visualViewport.addEventListener('resize', handleResize);
+
+            // Listen for orientation changes to reset the baseline
+            window.addEventListener('orientationchange', () => {
+                // Reset the initial height after the rotation is complete
+                // Use a timeout to ensure the browser has finished resizing the viewport
+                setTimeout(() => {
+                    // @ts-ignore
+                    initialViewportHeight = window.visualViewport.height;
+                    console.log("Orientation changed. New initial height:", initialViewportHeight);
+                }, 500);
+            });
+        });
+
+    }
+}
+
+window["vkActive"] = vkActiveLocal;
+async function vkActiveLocal(active) {
+    const tofActive = typeof active;
+    if ("boolean" != tofActive) throw Error(`vkActive: typeof active == "${tofActive}"`);
+    const modMdc = await importFc4i("util-mdc");
+    if (active) {
+        document.documentElement.classList.add("VK_ACTIVE");
+        modMdc.mkMDCsnackbar("Virtual keyboard ON");
+    } else {
+        document.documentElement.classList.remove("VK_ACTIVE");
+        modMdc.mkMDCsnackbar("Virtual keyboard OFF");
+    }
+}
