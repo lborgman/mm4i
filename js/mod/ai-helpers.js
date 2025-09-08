@@ -291,6 +291,14 @@ Important:
             if (res.isValid) {
                 const msgStatus = strAIjson == strAIraw ? "OK" : `OK (cleaned: ${cleaned.join(", ")})`;
                 eltAItextareaStatus.textContent = msgStatus;
+                eltAItextareaStatus.style.backgroundColor = "greenyellow";
+                setTimeout(() => {
+                    // "make mindmap"
+                    const eltDialog = eltAItextareaStatus.closest("div.mdc-dialog");
+                    if (!eltDialog) throw Error('Could not find .closest("div.mdc-dialg")');
+                    eltDialog.remove();
+                    doMakeGeneratedMindmap();
+                }, 2000);
             } else {
                 tellError(res.error);
             }
@@ -512,46 +520,48 @@ Important:
         modMdc.mkMDCsnackbar("Canceled");
         return;
     }
-    const strAIraw = eltAItextarea.value;
+    doMakeGeneratedMindmap();
+    async function doMakeGeneratedMindmap() {
+        const strAIraw = eltAItextarea.value;
 
 
-    const { strAIjson } = getJsonFromAIstr(strAIraw);
-    jsonNodeArray = JSON.parse(strAIjson);
-    console.log({ jsonNodeArray });
+        const { strAIjson } = getJsonFromAIstr(strAIraw);
+        jsonNodeArray = JSON.parse(strAIjson);
+        console.log({ jsonNodeArray });
 
-    const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(jsonNodeArray);
+        const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(jsonNodeArray);
 
 
-    // debugger;
-    const mindStored = {
-        data: nodeArray,
-        format: "node_array",
-        key: "key-generate",
-        meta: { name: "key-generate" }
-    }
-    const modJsEditCommon = await importFc4i("jsmind-edit-common");
-    const jm = await modJsEditCommon.displayOurMindmap(mindStored);
-    jm.select_node(jm.get_root());
-    jm.NOT_SAVEABLE = "This mindmap is made from a link";
-    document.getElementById("mm4i-btn-history")?.remove();
-    // addShareMarker
-    const addAIgeneratedMarker = () => {
-        // if (spTitle == null) throw Error("spTitle == null");
-        const divInfo = mkElt("div", undefined,
-            mkElt("b", undefined, "AI generated mindmap"),
-        );
-        // divInfo.classList.add("fixed-at-bottom");
-        divInfo.style = `
+        // debugger;
+        const mindStored = {
+            data: nodeArray,
+            format: "node_array",
+            key: "key-generate",
+            meta: { name: "key-generate" }
+        }
+        const modJsEditCommon = await importFc4i("jsmind-edit-common");
+        const jm = await modJsEditCommon.displayOurMindmap(mindStored);
+        jm.select_node(jm.get_root());
+        jm.NOT_SAVEABLE = "This mindmap is made from a link";
+        document.getElementById("mm4i-btn-history")?.remove();
+        // addShareMarker
+        const addAIgeneratedMarker = () => {
+            // if (spTitle == null) throw Error("spTitle == null");
+            const divInfo = mkElt("div", undefined,
+                mkElt("b", undefined, "AI generated mindmap"),
+            );
+            // divInfo.classList.add("fixed-at-bottom");
+            divInfo.style = `
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
             `;
-        const eltTellGenerated = mkElt("div", undefined, [
-            divInfo,
-            // btnInfoLinked
-        ]);
-        eltTellGenerated.style = `
+            const eltTellGenerated = mkElt("div", undefined, [
+                divInfo,
+                // btnInfoLinked
+            ]);
+            eltTellGenerated.style = `
                     position: fixed; bottom: 0; left: 0;
                     min-height: 50px; min-width: 100px;
                     max-width: 270px;
@@ -563,13 +573,13 @@ Important:
                     background-color: magenta;
                     background-color: #f068f0;
                 `;
-        eltTellGenerated.id = "generated-marker";
-        eltTellGenerated.classList.add("generated-marker");
-        eltTellGenerated.classList.add("fixed-at-bottom");
-        document.body.appendChild(eltTellGenerated);
+            eltTellGenerated.id = "generated-marker";
+            eltTellGenerated.classList.add("generated-marker");
+            eltTellGenerated.classList.add("fixed-at-bottom");
+            document.body.appendChild(eltTellGenerated);
+        }
+        addAIgeneratedMarker();
     }
-    addAIgeneratedMarker();
-
     /**
      * 
      * @param {string} strAI 
