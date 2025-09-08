@@ -75,7 +75,7 @@ export async function checkGeminiOk() {
     return promGeminiOk;
 }
 
-export async function generateMindMap() {
+export async function generateMindMap(fromLink) {
     const modMdc = await importFc4i("util-mdc");
     const modMMhelpers = await importFc4i("mindmap-helpers");
     const inpLink = modMdc.mkMDCtextFieldInput(undefined, "text");
@@ -96,7 +96,14 @@ export async function generateMindMap() {
     }
 
     const eltStatus = mkElt("div", undefined, "(empty)");
+    if (fromLink) {
+        inpLink.value = fromLink;
+        checkInpLink();
+    }
     inpLink.addEventListener("input", async _evt => {
+        checkInpLink();
+    });
+    async function checkInpLink() {
         const i = await window["PWAhasInternet"]();
         if (!i) {
             eltStatus.textContent = "No internet connection";
@@ -127,7 +134,7 @@ export async function generateMindMap() {
         const divWays = document.getElementById("div-ways");
         if (!divWays) throw Error(`Could not find element "div-ways"`);
         divWays.style.display = "block";
-    });
+    }
     async function isReachableUrl(url) {
         let reachable = false;
         let resp;
@@ -440,7 +447,7 @@ Important:
         divListAI
     ]);
     divSelectAI.style = `
-        padding: 15px;
+        padding: 10px;
     `;
     const AIthatMayWork = {
         "Gemini": "Can not work now AFAICS",

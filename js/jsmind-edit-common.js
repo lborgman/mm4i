@@ -1755,6 +1755,20 @@ export async function pageSetup() {
         // FIX-ME: text and title should only be allowed if share.
         const allowed = ["debug", "inapp", "mindmap", "nodehits", "sharepost", "token", "text", "title"];
         allowed.push("fbclid"); // FIX-ME: why???
+        // @ts-ignore
+        const sharedTo = window.sharedTo;
+        if (sharedTo) {
+            allowed.length = 0;
+            const len = arrParNames.length;
+            // if (len != 3) { throw Error(`sharedTo but number of params == ${len}`); }
+            const arrSharedTo = Object.keys(sharedTo).sort();
+            for (const p of arrParNames) {
+                if (!arrSharedTo.includes(p)) {
+                    throw Error(`Checking sharedTo, invaled parameter: ${p}`);
+                }
+            }
+        }
+        if (allowed.length == 0) return;
         for (const p of arrParNames) {
             if (!allowed.includes(p)) {
                 debugger; // eslint-disable-line no-debugger
@@ -1791,6 +1805,18 @@ export async function pageSetup() {
         if (funMindmapsDialog) {
             funMindmapsDialog();
         } else {
+            // @ts-ignore
+            if (window.sharedTo) {
+                const sharedTo = window.sharedTo;
+                const modAIhelpers = await importFc4i("ai-helpers");
+                const url = sharedTo.url;
+                if (!url) {
+                    debugger;
+                    throw Error("No url could be found in sharedTo");
+                }
+                modAIhelpers.generateMindMap(url);
+                return;
+            }
             const dbMindmaps = await importFc4i("db-mindmaps");
             const arrMaps = await dbMindmaps.DBgetAllMindmaps()
             if (arrMaps.length == 0) {
