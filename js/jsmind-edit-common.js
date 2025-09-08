@@ -1805,9 +1805,9 @@ export async function pageSetup() {
         if (funMindmapsDialog) {
             funMindmapsDialog();
         } else {
-            // @ts-ignore
-            if (window.sharedTo) {
-                const sharedTo = window.sharedTo;
+            const sharedTo = modTools.getSharedToParams();
+            if (sharedTo) {
+                // const sharedTo = window.sharedTo;
                 const modAIhelpers = await importFc4i("ai-helpers");
                 const url = sharedTo.url;
                 if (!url) {
