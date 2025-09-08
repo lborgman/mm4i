@@ -193,6 +193,9 @@ export function computeStyleColorToRGBA(strColor) {
 }
 export function getBackgroundColorAtPoint(x, y, eltTop = undefined) {
     const arrElts = document.elementsFromPoint(x, y);
+    if (!arrElts) {
+        throw Error(`!arrElts: x==${x}, y==${y}`);
+    }
     // console.log({ arrElts });
     // Look for eltTop
     let arrOurElts = [...arrElts];
