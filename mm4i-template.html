@@ -251,6 +251,7 @@
 
 
     <script id="share-target">
+        /*
         const parsedUrl = new URL(window.location);
         let title = parsedUrl.searchParams.get('title');
         let text = parsedUrl.searchParams.get('text');
@@ -294,12 +295,14 @@
             if (title || text || url) {
                 window.sharedTo = { title, text, url };
             }
-            window.addEventListener('DOMContentLoaded', async () => {
-                const modMdc = await importFc4i("util-mdc");
-                const logStr = window.sharedTo ? JSON.stringify(window.sharedTo) : "NO SHARED PARAMS";
-                modMdc.mkMDCdialogAlert(logStr);
-            });
-        }
+        */
+        window.addEventListener('DOMContentLoaded', async () => {
+            const modMdc = await importFc4i("util-mdc");
+            const modTools = await importFc4i("toolsJs");
+            const sharedTo = modTools.getSharedToParams();
+            const logStr = sharedTo ? JSON.stringify(sharedTo) : "NO SHARED PARAMS";
+            modMdc.mkMDCdialogAlert(logStr);
+        });
     </script>
 
 

@@ -1296,7 +1296,7 @@ export function setTopic4undoRedo(topic) {
 }
 let mindmapKeyNotFound;
 export async function pageSetup() {
-    checkParamNames();
+    await checkParamNames();
 
     // const sharedParam = new URLSearchParams(location.search).get("share");
     // const searchParams = new URLSearchParams(location.search);
@@ -1748,18 +1748,18 @@ export async function pageSetup() {
     }
 
     // https://github.com/hizzgdev/jsmind/blob/master/docs/en/1.usage.md#12-data-format
-    function checkParamNames() {
+    async function checkParamNames() {
         const sp = new URLSearchParams(location.search);
         if (sp.size == 0) return true;
         const arrParNames = [...sp.keys()].sort();
         // FIX-ME: text and title should only be allowed if share.
         const allowed = ["debug", "inapp", "mindmap", "nodehits", "sharepost", "token", "text", "title"];
         allowed.push("fbclid"); // FIX-ME: why???
-        // @ts-ignore
-        const sharedTo = window.sharedTo;
+        const modTools = await importFc4i("toolsJs");
+        const sharedTo = modTools.getSharedToParams();
         if (sharedTo) {
             allowed.length = 0;
-            const len = arrParNames.length;
+            // const len = arrParNames.length;
             // if (len != 3) { throw Error(`sharedTo but number of params == ${len}`); }
             const arrSharedTo = Object.keys(sharedTo).sort();
             for (const p of arrParNames) {

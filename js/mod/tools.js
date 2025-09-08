@@ -2806,3 +2806,54 @@ async function vkActiveLocal(active) {
         modMdc.mkMDCsnackbar("Virtual keyboard OFF");
     }
 }
+
+
+
+export function getSharedToParams() {
+    const parsedUrl = new URL(window.location);
+    let title = parsedUrl.searchParams.get('title');
+    let text = parsedUrl.searchParams.get('text');
+    let url = parsedUrl.searchParams.get('url');
+    if (!(title || text || url)) {
+        console.log("getSharedToParams: not found");
+        return;
+    }
+
+
+
+    //// Suggested workaround for the Chrome intent issue:
+    // A simple regex to find URLs in a string
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    // If the `url` parameter is null or doesn't look like a URL...
+    let extractedUrl;
+    if (!url || !url.startsWith('http')) {
+        // Check the `text` parameter for a URL
+        const matches = text ? text.match(urlRegex) : null;
+        if (matches && matches.length > 0) {
+            extractedUrl = matches[0]; // Use the first URL found
+            url = extractedUrl;
+            text = text.replace(url, "").trim();
+        }
+    }
+
+    // Fallback logic for missing title.
+    if (!title) {
+        if (text.length > 0) {
+            const words = text.split(' ');
+            title = words.slice(0, 5).join(' ') + (words.length > 5 ? '...' : '');
+        }
+        if (!title) {
+            if (url) {
+                title = url.split('/')[2] || receivedUrl; // Use the domain or full URL
+            }
+        }
+        title = title || 'New Share (unkown title)';
+    }
+
+
+
+
+    // if (title || text || url) { window.sharedTo = { title, text, url }; }
+    return { title, text, url };
+
+}
