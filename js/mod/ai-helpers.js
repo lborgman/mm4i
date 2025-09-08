@@ -264,7 +264,9 @@ Important:
 
     const eltAItextareaStatus = mkElt("div");
     eltAItextareaStatus.style.lineHeight = "1";
+    let toDoIt;
     eltAItextarea.addEventListener("input", _evt => {
+        clearTimeout(toDoIt);
         eltAItextareaStatus.style.color = "unset";
         // valid
         const strAIraw = eltAItextarea.value.trim();
@@ -292,13 +294,13 @@ Important:
                 const msgStatus = strAIjson == strAIraw ? "OK" : `OK (cleaned: ${cleaned.join(", ")})`;
                 eltAItextareaStatus.textContent = msgStatus;
                 eltAItextareaStatus.style.backgroundColor = "greenyellow";
-                setTimeout(() => {
+                toDoIt = setTimeout(() => {
                     // "make mindmap"
                     const eltDialog = eltAItextareaStatus.closest("div.mdc-dialog");
                     if (!eltDialog) throw Error('Could not find .closest("div.mdc-dialg")');
                     eltDialog.remove();
                     doMakeGeneratedMindmap();
-                }, 2000);
+                }, 3000);
             } else {
                 tellError(res.error);
             }
@@ -515,12 +517,15 @@ Important:
         // mkElt("div", undefined, eltDivAI),
         divWays,
     ]);
+    /*
     const ans = await modMdc.mkMDCdialogConfirm(body, "Make mindmap", "Cancel");
     if (!ans) {
         modMdc.mkMDCsnackbar("Canceled");
         return;
     }
     doMakeGeneratedMindmap();
+    */
+    modMdc.mkMDCdialogAlert(body, "Cancel");
     async function doMakeGeneratedMindmap() {
         const strAIraw = eltAItextarea.value;
 
