@@ -422,7 +422,7 @@ Important:
             gap: 5px;
             background-color: #0080008c;
             padding: 6px;
-            border-radius: 2px;
+            border-radius: 4px;
         `;
     {
         const radAI = mkElt("input", { type: "radio", name: "ai", value: "none", checked: true });
@@ -440,12 +440,13 @@ Important:
         const eltAI = mkElt("label", undefined, [radAI, k]);
         eltAI.style = eltAIstyle;
         if (!testedChat) { eltAI.style.backgroundColor = "yellow"; }
-        if (q) { eltAI.style.border = "solid 2px green"; }
+        if (q) { eltAI.style.border = "solid 4px greenyellow"; }
         divAIhardWay.appendChild(eltAI);
     });
     divAIhardWay.style = `
         display: flex;
         flex-direction: row;
+        flex-wrap: wrap;
         gap: 10px;
         `;
     const btnCopyAndOpenAI = modMdc.mkMDCbutton("Copy prompt and open AI", "raised");
@@ -476,8 +477,8 @@ Important:
         modMdc.mkMDCsnackbar(`Copied prompt, opening AI "${nameAI}"`);
         let url = urlAI;
         if (info.q) {
-            debugger;
             const objUrl = new URL(url);
+            objUrl.searchParams.append("q", promptAi);
             url = objUrl.href;
         }
         setTimeout(() => {
@@ -545,7 +546,7 @@ Important:
         divWhyNotEasy.style.display = "unset";
     });
     const divListAIeasyWay = mkElt("div");
-    divListAIeasyWay.style = ` display: flex; flex-direction: row; gap: 10px; `;
+    divListAIeasyWay.style = ` display: flex; flex-direction: row; gap: 10px; flex-wrap: wrap; `;
 
     const selectHeader = mkElt("div", undefined, "Select AI to use:");
     selectHeader.style = `
@@ -584,7 +585,7 @@ Important:
     divEasyWay.style = styleWays;
 
     const divListAIhardWay = mkElt("div");
-    divListAIhardWay.style = ` display: flex; flex-direction: row; gap: 10px; `;
+    divListAIhardWay.style = ` display: flex; flex-direction: row; gap: 10px; flex-wrap: wrap; `;
     const divHardWay = mkElt("div", undefined, [
         mkElt("div", undefined, cardPrompt),
         // divListAIhardWay,
