@@ -1436,7 +1436,31 @@ function setupWait4Saved() {
     });
 }
 
-
+/**
+ * Flash pos
+ * 
+ * @param {number} clientX 
+ * @param {number} clientY 
+ */
+export function flashPos(clientX, clientY) {
+    console.log("flashPos", { clientX, clientY });
+    const eltPoint = mkElt("div");
+    const sizePx = "10";
+    eltPoint.style = `
+        z-index: 2147483647;
+        position: fixed;
+        left: ${clientX}px;
+        top: ${clientY}px;
+        width: ${sizePx}px;
+        height: ${sizePx}px;
+        background-color: red;
+        border-radius: 50%;
+        border: 1px solid white;
+        outline: solid black 1px;
+    `;
+    document.body.appendChild(eltPoint);
+    setTimeout(() => { eltPoint.remove(); }, 2 * 1000);
+}
 /**
  * 
  * @param {PointerEvent} evt
@@ -1447,6 +1471,7 @@ export function savePointerdownPos(evt) {
         throw Error(`Expected event type "pointerdown", got "${evt.type}`);
     }
     savePointerPos(evt);
+    flashPos(evt.clientX, evt.clientY);
 }
 /**
  * 
