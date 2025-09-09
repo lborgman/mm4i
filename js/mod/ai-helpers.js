@@ -76,18 +76,43 @@ export async function checkGeminiOk() {
 }
 
 
-
-const mkAIinfo = (url, testedChat, OAuth, comment = undefined) => {
+/**
+ * 
+ * @param {boolean} testedChat 
+ * @param {boolean} q
+ * @param {string | undefined} comment 
+ * @param {string} url 
+ * @param {string | undefined} androidIntent -- empty means use url, undefined means no intent
+ * @param {boolean} OAuth 
+ * @returns 
+ */
+const mkAIinfo = (
+    testedChat,
+    q,
+    comment,
+    url,
+    androidIntent = undefined,
+    OAuth = false
+) => {
     return {
         testedChat,
-        OAuth,
+        q,
+        comment,
         url,
-        comment
+        androidIntent,
+        OAuth
     }
 }
+
+// https://chatgpt.com/share/68c0514e-c81c-8004-a196-d4f7f60c3930
 const infoAI = {
-    "Gemini": mkAIinfo("https://gemini.google.com", true, false),
-    "Grok": mkAIinfo("https://grok.com", true, false, "I have asked xAI about OAuth"),
+    "Claude": mkAIinfo(true, false, undefined, "https://claude.ai"),
+    "ChatGPT": mkAIinfo(true, false, undefined, "https://chatgpt.openai.com",
+        "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;end"
+    ),
+    "Gemini": mkAIinfo(true, true, undefined, "https://gemini.google.com"),
+    "Grok": mkAIinfo(true, false, "I have asked xAI about OAuth", "https://grok.com"),
+    "Perplexity": mkAIinfo(true, true, undefined, "https://www.perplexity.ai/search",)
 }
 
 
@@ -410,11 +435,12 @@ Important:
     }
     Object.entries(infoAI).forEach(e => {
         const [k, v] = e;
-        const { testedChat } = v;
+        const { testedChat, q } = v;
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
         const eltAI = mkElt("label", undefined, [radAI, k]);
         eltAI.style = eltAIstyle;
         if (!testedChat) { eltAI.style.backgroundColor = "yellow"; }
+        if (q) { eltAI.style.border = "solid 2px green"; }
         divAIhardWay.appendChild(eltAI);
     });
     divAIhardWay.style = `
@@ -448,7 +474,16 @@ Important:
             return;
         }
         modMdc.mkMDCsnackbar(`Copied prompt, opening AI "${nameAI}"`);
-        setTimeout(() => { window.open(urlAI); }, 2000);
+        let url = urlAI;
+        if (info.q) {
+            debugger;
+            const objUrl = new URL(url);
+            url = objUrl.href;
+        }
+        setTimeout(() => {
+            const ret = window.open(url, "_blank");
+            console.log("open ai url", {ret});
+        }, 2000);
     });
 
     const cardPrompt = mkElt("p", { class: "mdc-card display-flex" }, [
