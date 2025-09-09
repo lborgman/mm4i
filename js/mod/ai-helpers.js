@@ -75,6 +75,23 @@ export async function checkGeminiOk() {
     return promGeminiOk;
 }
 
+
+
+const mkAIinfo = (url, testedChat, OAuth, comment = undefined) => {
+    return {
+        testedChat,
+        OAuth,
+        url,
+        comment
+    }
+}
+const infoAI = {
+    "Gemini": mkAIinfo("https://gemini.google.com", true, false),
+    "Grok": mkAIinfo("https://grok.com", true, false, "I have asked xAI about OAuth"),
+}
+
+
+
 export async function generateMindMap(fromLink) {
     const modMdc = await importFc4i("util-mdc");
     const modMMhelpers = await importFc4i("mindmap-helpers");
@@ -230,18 +247,10 @@ Important:
     const divPrompt = mkDivPrompt();
     divPrompt.inert = true;
     function mkDivPrompt() {
-        const btnCopy = modMdc.mkMDCbutton("Copy AI prompt", "raised");
-        btnCopy.style.textTransform = "none";
-        btnCopy.addEventListener("click", async evt => {
-            evt.stopPropagation();
-            const modTools = await importFc4i("toolsJs");
-            modTools.copyTextToClipboard(promptAi);
-        });
         const bPrompt = mkElt("b", undefined, promptAi);
         bPrompt.id = "prompt-ai";
         bPrompt.style.whiteSpace = "pre-wrap";
         const divNewPrompt = mkElt("div", undefined, [
-            mkElt("div", undefined, btnCopy),
             mkElt("details", undefined, [
                 mkElt("summary", undefined, "Show AI prompt"),
                 mkElt("blockquote", undefined, bPrompt)
@@ -381,11 +390,70 @@ Important:
             `;
     // cardInput.classList.add("VK_FOCUS");
 
+    const divAIhardWay = mkElt("div");
+    const eltAIstyle = `
+            display: flex;
+            flex-direction: row;
+            gap: 5px;
+            background-color: #0080008c;
+            padding: 6px;
+            border-radius: 2px;
+        `;
+    {
+        const radAI = mkElt("input", { type: "radio", name: "ai", value: "none", checked: true });
+        const eltAI = mkElt("label", undefined, [radAI, "none"]);
+        eltAI.style = eltAIstyle;
+        eltAI.style.background = "lightgray";
+        divAIhardWay.appendChild(eltAI);
+        // @ts-ignore
+        // radAI.checked = true;
+    }
+    Object.entries(infoAI).forEach(e => {
+        const [k, v] = e;
+        const { testedChat } = v;
+        const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
+        const eltAI = mkElt("label", undefined, [radAI, k]);
+        eltAI.style = eltAIstyle;
+        if (!testedChat) { eltAI.style.backgroundColor = "yellow"; }
+        divAIhardWay.appendChild(eltAI);
+    });
+    divAIhardWay.style = `
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        `;
+    const btnCopyAndOpenAI = modMdc.mkMDCbutton("Copy prompt and open AI", "raised");
+    btnCopyAndOpenAI.style.textTransform = "none";
+    btnCopyAndOpenAI.addEventListener("click", async evt => {
+        evt.stopPropagation();
+        const modTools = await importFc4i("toolsJs");
+        await modTools.copyTextToClipboard(promptAi);
+
+        const divHardWay = document.getElementById("hard-way");
+        if (!divHardWay) throw Error('Could not find "#hard-way"');
+        divHardWay.querySelector("input[type=radio][name=ai]:checked");
+        const inpAI = divHardWay.querySelector("input[type=radio][name=ai]:checked");
+        if (!inpAI) { throw Error("no selection of AI") }
+        // @ts-ignore
+        const nameAI = inpAI.value;
+        if (nameAI == "none") {
+            modMdc.mkMDCsnackbar("Copied prompt for AI");
+            return;
+        }
+        const info = infoAI[nameAI];
+        if (!info) { throw Error(`Did not find info for AI "${nameAI}"`); }
+        const urlAI = info.url;
+        if (!urlAI) {
+            modMdc.mkMDCsnackbar(`Copied prompt, do not know how to open AI "${nameAI}"`);
+            return;
+        }
+        modMdc.mkMDCsnackbar(`Copied prompt, opening AI "${nameAI}"`);
+        setTimeout(() => { window.open(urlAI); }, 2000);
+    });
+
     const cardPrompt = mkElt("p", { class: "mdc-card display-flex" }, [
-        `In the AI of your choice use this prompt:`,
+        `I have created an AI prompt that you should use.`,
         divPrompt,
-        // eltWhichAI,
-        // eltwhythistrouble,
     ]);
     cardPrompt.style = `
                 NOdisplay: flex;
@@ -441,54 +509,56 @@ Important:
         btnEasyWay.style.display = "none";
         divWhyNotEasy.style.display = "unset";
     });
-    const divListAI = mkElt("div");
-    divListAI.style = `
-        display: flex;
-        flex-direction: row;
-        gap: 10px;
-    `;
+    const divListAIeasyWay = mkElt("div");
+    divListAIeasyWay.style = ` display: flex; flex-direction: row; gap: 10px; `;
+
     const selectHeader = mkElt("div", undefined, "Select AI to use:");
     selectHeader.style = `
         font-weight: bold;
         margin-bottom: 20px;
     `
-    const divSelectAI = mkElt("div", { class: "mdc-card" }, [
+
+    const divSelectAIeasyWay = mkElt("div", { class: "NOmdc-card" }, [
         selectHeader,
-        divListAI
+        divListAIeasyWay
     ]);
-    divSelectAI.style = `
-        padding: 10px;
-    `;
-    const AIthatMayWork = {
-        "Gemini": "Can not work now AFAICS",
-        "Grok": "I have asked xAI",
-    }
-    Object.entries(AIthatMayWork).forEach(e => {
-        const [k, _v] = e;
+    Object.entries(infoAI).forEach(e => {
+        const [k, v] = e;
+        const { tested: testedChat } = v;
         const radAI = mkElt("input", { type: "radio", name: "ai" });
         const eltAI = mkElt("label", undefined, [radAI, k]);
         eltAI.style = `
             display: flex;
             flex-direction: row;
             gap: 5px;
-            background-color: #fffc;
+            background-color: green;
             padding: 6px;
             border-radius: 2px;
         `;
-        divListAI.appendChild(eltAI);
+        if (!testedChat) { eltAI.style.backgroundColor = "yellow"; }
+        divListAIeasyWay.appendChild(eltAI);
     });
-    const divEasyWay = mkElt("p", undefined, [
-        divSelectAI,
+
+    const styleWays = " background-color: #80800036; padding: 10px; ";
+    const divEasyWay = mkElt("div", undefined, [
+        divSelectAIeasyWay,
         mkElt("p", undefined, btnEasyWay),
         divWhyNotEasy
     ]);
     divEasyWay.id = "easy-way";
+    divEasyWay.style = styleWays;
 
-    const divHardWay = mkElt("p", undefined, [
+    const divListAIhardWay = mkElt("div");
+    divListAIhardWay.style = ` display: flex; flex-direction: row; gap: 10px; `;
+    const divHardWay = mkElt("div", undefined, [
         mkElt("div", undefined, cardPrompt),
+        // divListAIhardWay,
+        divAIhardWay,
+        mkElt("div", undefined, btnCopyAndOpenAI),
         mkElt("div", undefined, eltDivAI),
     ]);
     divHardWay.id = "hard-way";
+    divHardWay.style = styleWays;
 
     const tabRecs = ["Easy way", "Hard way"];
     const contentElts = mkElt("div", undefined, [divEasyWay, divHardWay]);
@@ -501,6 +571,7 @@ Important:
         divTabs
     ]);
     divWays.id = "div-ways";
+    // divWays.style = styleWays;
     divWays.style.display = "none";
     // ebbrowserInfoKeys
 
@@ -509,23 +580,11 @@ Important:
     const body = mkElt("div", undefined, [
         eltNotReady,
         eltOk,
-        // mkElt("h2", undefined, "You must ask your AI yourself"),
-        // mkElt("h2", undefined, "generate mindmap"),
         mkElt("h2", undefined, "Make mindmap from link"),
         mkElt("div", undefined, cardInput),
-        // mkElt("div", undefined, cardPrompt),
-        // mkElt("div", undefined, eltDivAI),
         divWays,
     ]);
-    /*
-    const ans = await modMdc.mkMDCdialogConfirm(body, "Make mindmap", "Cancel");
-    if (!ans) {
-        modMdc.mkMDCsnackbar("Canceled");
-        return;
-    }
-    doMakeGeneratedMindmap();
-    */
-    modMdc.mkMDCdialogAlert(body, "Cancel");
+    modMdc.mkMDCdialogAlert(body, "Close");
     async function doMakeGeneratedMindmap() {
         const strAIraw = eltAItextarea.value;
 
