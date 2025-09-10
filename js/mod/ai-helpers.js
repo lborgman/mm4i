@@ -110,7 +110,7 @@ const infoAI = {
     "ChatGPT": mkAIinfo(true, false, undefined, "https://chatgpt.openai.com",
         "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;end"
     ),
-    "Gemini": mkAIinfo(true, true, undefined, "https://gemini.google.com"),
+    "Gemini": mkAIinfo(true, false, undefined, "https://gemini.google.com/app"),
     "Grok": mkAIinfo(true, false, "I have asked xAI about OAuth", "https://grok.com"),
     "Perplexity": mkAIinfo(true, true, undefined, "https://www.perplexity.ai/search",)
 }
@@ -416,38 +416,41 @@ Important:
     // cardInput.classList.add("VK_FOCUS");
 
     const divAIhardWay = mkElt("div");
-    const eltAIstyle = `
-            display: flex;
-            flex-direction: row;
-            gap: 5px;
-            background-color: #0080008c;
-            padding: 6px;
-            border-radius: 4px;
-        `;
+    /*
+const eltAIstyle = `
+        display: flex;
+        flex-direction: row;
+        gap: 5px;
+        background-color: #0080008c;
+        padding: 6px;
+        border-radius: 4px;
+    `;
+    */
     {
         const radAI = mkElt("input", { type: "radio", name: "ai", value: "none", checked: true });
         const eltAI = mkElt("label", undefined, [radAI, "none"]);
-        eltAI.style = eltAIstyle;
+        eltAI.classList.add("elt-ai");
         eltAI.style.background = "lightgray";
         divAIhardWay.appendChild(eltAI);
         // @ts-ignore
-        // radAI.checked = true;
+        radAI.checked = true;
     }
     Object.entries(infoAI).forEach(e => {
         const [k, v] = e;
         const { testedChat, q } = v;
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
         const eltAI = mkElt("label", undefined, [radAI, k]);
-        eltAI.style = eltAIstyle;
-        if (!testedChat) { eltAI.style.backgroundColor = "yellow"; }
-        if (q) { eltAI.style.border = "solid 4px greenyellow"; }
+        eltAI.classList.add("elt-ai");
+        if (testedChat) { eltAI.style.backgroundColor = "yellowgreen"; }
+        if (q) { eltAI.style.borderColor = "greenyellow"; }
         divAIhardWay.appendChild(eltAI);
     });
     divAIhardWay.style = `
         display: flex;
         flex-direction: row;
-        flex-wrap: wrap;
+        flex-flow: wrap;
         gap: 10px;
+        margin-bottom: 10px;
         `;
     const btnCopyAndOpenAI = modMdc.mkMDCbutton("Copy prompt and open AI", "raised");
     btnCopyAndOpenAI.style.textTransform = "none";
@@ -483,7 +486,7 @@ Important:
         }
         setTimeout(() => {
             const ret = window.open(url, "_blank");
-            console.log("open ai url", {ret});
+            console.log("open ai url", { ret });
         }, 2000);
     });
 
@@ -507,7 +510,7 @@ Important:
         mkElt("div", undefined, [
             mkElt("p", undefined, `
                     Yes, it should be more easy.
-                    I have asked xAI to fix this for Grok:
+                    I have asked xAI to fix a little part of this for Grok:
                 `),
             mkElt("p", { style: "margin-left: 20px;" },
                 mkElt("a", { href: "https://x.com/lborgman/status/1964425427339923809" },
@@ -515,8 +518,9 @@ Important:
             ),
             mkElt("p", undefined, `
                     The tweet is short and not so easy to understand, perhaps.
-                    Here are some a little bit more easy to understand
-                    details about the two problems I see:
+                    Below are some a little bit more easy to understand
+                    details about two problems I see.
+                    (There are more problems, though.)
                 `),
             eltContentProviderTrouble,
             eltAIprovidersTrouble,
@@ -532,7 +536,13 @@ Important:
 
     const divWhyNotEasy = mkElt("div", undefined, [
         mkElt("p", undefined, [
-            `Unfortunately this can't be done this easy yet.
+            `The intention here is to send the prompt 
+            to the AI of your choice and then show the mindmap
+            that the AI made.
+            `,
+        ]),
+        mkElt("p", undefined, [
+            `Unfortunately it can't be done this easy yet.
             So for now please click on the HARD WAY tab above.
             `,
         ]),
@@ -560,18 +570,12 @@ Important:
     ]);
     Object.entries(infoAI).forEach(e => {
         const [k, v] = e;
-        const { tested: testedChat } = v;
+        const { testedChat, q } = v;
         const radAI = mkElt("input", { type: "radio", name: "ai" });
         const eltAI = mkElt("label", undefined, [radAI, k]);
-        eltAI.style = `
-            display: flex;
-            flex-direction: row;
-            gap: 5px;
-            background-color: green;
-            padding: 6px;
-            border-radius: 2px;
-        `;
-        if (!testedChat) { eltAI.style.backgroundColor = "yellow"; }
+        eltAI.classList.add("elt-ai");
+        if (testedChat) { eltAI.style.backgroundColor = "yellow"; }
+        if (q) { eltAI.style.borderColor = "greenyellow"; }
         divListAIeasyWay.appendChild(eltAI);
     });
 
@@ -585,7 +589,12 @@ Important:
     divEasyWay.style = styleWays;
 
     const divListAIhardWay = mkElt("div");
-    divListAIhardWay.style = ` display: flex; flex-direction: row; gap: 10px; flex-wrap: wrap; `;
+    divListAIhardWay.style = `
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        flex-wrap: wrap;
+        `;
     const divHardWay = mkElt("div", undefined, [
         mkElt("div", undefined, cardPrompt),
         // divListAIhardWay,
