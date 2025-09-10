@@ -419,16 +419,16 @@ Important:
     // cardInput.classList.add("VK_FOCUS");
 
     const divAIhardWay = mkElt("div");
-    /*
-const eltAIstyle = `
+    divAIhardWay.style = `
         display: flex;
         flex-direction: row;
-        gap: 5px;
-        background-color: #0080008c;
-        padding: 6px;
-        border-radius: 4px;
-    `;
-    */
+        flex-flow: wrap;
+        gap: 10px;
+        margin-bottom: 10px;
+        `;
+
+    const keyLsAIhard = "mm4i-ai-hardway";
+    let valLsAIhard = localStorage.getItem(keyLsAIhard) || "none";
     {
         const radAI = mkElt("input", { type: "radio", name: "ai", value: "none", checked: true });
         const eltAI = mkElt("label", undefined, [radAI, "none"]);
@@ -436,7 +436,7 @@ const eltAIstyle = `
         eltAI.style.background = "lightgray";
         divAIhardWay.appendChild(eltAI);
         // @ts-ignore
-        radAI.checked = true;
+        // radAI.checked = true;
     }
     Object.entries(infoAI).forEach(e => {
         const [k, v] = e;
@@ -448,13 +448,18 @@ const eltAIstyle = `
         if (q) { eltAI.style.borderColor = "greenyellow"; }
         divAIhardWay.appendChild(eltAI);
     });
-    divAIhardWay.style = `
-        display: flex;
-        flex-direction: row;
-        flex-flow: wrap;
-        gap: 10px;
-        margin-bottom: 10px;
-        `;
+    divAIhardWay.addEventListener("change", evt => {
+        const t = evt.target;
+        if (!t) return;
+        // @ts-ignore
+        const nameAI = t.value;
+        // const nameAI = t.getAttribute("value");
+        localStorage.setItem(keyLsAIhard, nameAI);
+    });
+    const radCurrentAI = divAIhardWay.querySelector(`input[type=radio][value=${valLsAIhard}`);
+    console.log({ eltCurrentAI: radCurrentAI });
+    // @ts-ignore
+    radCurrentAI.checked = true;
     const btnCopyAndOpenAI = modMdc.mkMDCbutton("Copy prompt and open AI", "raised");
     btnCopyAndOpenAI.style.textTransform = "none";
     btnCopyAndOpenAI.addEventListener("click", async evt => {
