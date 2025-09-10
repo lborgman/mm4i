@@ -59,6 +59,7 @@ export async function askGemini(prompt) {
     return result;
 }
 // promiseDOMready
+/*
 const promGeminiOk = new Promise(function (resolve, reject) {
     const prompt = "Are you ok?"
     askGemini(prompt).then(answer => {
@@ -74,6 +75,7 @@ const promGeminiOk = new Promise(function (resolve, reject) {
 export async function checkGeminiOk() {
     return promGeminiOk;
 }
+*/
 
 
 /**
@@ -122,9 +124,10 @@ export async function generateMindMap(fromLink) {
     const modMMhelpers = await importFc4i("mindmap-helpers");
     const inpLink = modMdc.mkMDCtextFieldInput(undefined, "text");
     const tfLink = modMdc.mkMDCtextField("Link to article/video", inpLink);
-    const eltNotReady = mkElt("p", undefined, "Not ready!");
+    const eltNotReady = mkElt("p", undefined, "Please try, but it is no ready!");
     eltNotReady.style = `color:red; font-size:1.2rem`;
 
+    /*
     let eltOk = "";
     try {
         await checkGeminiOk();
@@ -136,6 +139,7 @@ export async function generateMindMap(fromLink) {
         eltNoAPI.style.color = "red";
         eltOk = eltNoAPI;
     }
+    */
 
     const eltStatus = mkElt("div", undefined, "(empty)");
     if (fromLink) {
@@ -631,7 +635,7 @@ Important:
 
     const body = mkElt("div", undefined, [
         eltNotReady,
-        eltOk,
+        // eltOk,
         mkElt("h2", undefined, "Make mindmap from link"),
         mkElt("div", undefined, cardInput),
         divWays,
