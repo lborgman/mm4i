@@ -146,10 +146,13 @@ export async function generateMindMap(fromLink) {
         checkInpLink();
     });
     async function checkInpLink() {
-        const i = await window["PWAhasInternet"]();
-        if (!i) {
-            eltStatus.textContent = "No internet connection";
-            return;
+        const funHasInternet = window["PWAhasInternet"]();
+        if (funHasInternet) {
+            const i = await window["PWAhasInternet"]();
+            if (!i) {
+                eltStatus.textContent = "No internet connection";
+                return;
+            }
         }
         const b = divPrompt;
         const u = inpLink.value.trim();
