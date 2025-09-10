@@ -222,7 +222,7 @@ export async function generateMindMap(fromLink) {
         if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
         bPrompt.textContent = promptAi;
     }
-    function makeAIprompt(link, maxDepth = 3) {
+    function makeAIprompt(link, maxDepth = 4) {
         return `
 1. Summarize the article (or video)
    "${link}"
@@ -232,7 +232,7 @@ export async function generateMindMap(fromLink) {
 2. Optional field "notes": Details. Markdown format.
 3. Give as much details as in a text summary.
 4. Limit the hiearchy to max depth ${maxDepth} levels.
-5. Return only valid JSON (no extra text).
+5. Return only valid JSON (no text before or after).
 6. Check that the JSON is parseable in Chromium browsers.
                 `
         /*
@@ -457,7 +457,6 @@ Important:
         localStorage.setItem(keyLsAIhard, nameAI);
     });
     const radCurrentAI = divAIhardWay.querySelector(`input[type=radio][value=${valLsAIhard}`);
-    console.log({ eltCurrentAI: radCurrentAI });
     // @ts-ignore
     radCurrentAI.checked = true;
     const btnCopyAndOpenAI = modMdc.mkMDCbutton("Copy prompt and open AI", "raised");
