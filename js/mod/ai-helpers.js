@@ -41,6 +41,7 @@ const aiGeminiThroughFirebase = modAiFirebase.getAI(firebaseApp, { backend: new 
 // Create a `GenerativeModel` instance with a model that supports your use case
 export const modelAiGeminiThroughFirebase = modAiFirebase.getGenerativeModel(aiGeminiThroughFirebase, { model: "gemini-2.5-flash" });
 
+/*
 export async function askGemini(prompt) {
     // Provide a prompt that contains text
     // const prompt = "Write a story about a magic backpack."
@@ -59,7 +60,6 @@ export async function askGemini(prompt) {
     return result;
 }
 // promiseDOMready
-/*
 const promGeminiOk = new Promise(function (resolve, reject) {
     const prompt = "Are you ok?"
     askGemini(prompt).then(answer => {
@@ -483,23 +483,76 @@ Important:
         }
         const info = infoAI[nameAI];
         if (!info) { throw Error(`Did not find info for AI "${nameAI}"`); }
-        const urlAI = info.url;
-        if (!urlAI) {
+        const urlAIweb = info.url;
+        const urlAIintent = info.androidIntent;
+        if (!urlAIweb) {
             modMdc.mkMDCsnackbar(`Copied prompt, do not know how to open AI "${nameAI}"`);
             return;
         }
         modMdc.mkMDCsnackbar(`Copied prompt, opening AI "${nameAI}"`);
-        let url = urlAI;
+        let urlWeb = urlAIweb;
         if (info.q) {
-            const objUrl = new URL(url);
+            const objUrl = new URL(urlWeb);
             objUrl.searchParams.append("q", promptAi);
-            url = objUrl.href;
+            urlWeb = objUrl.href;
+        }
+        let urlIntent = info.androdIntent;
+        if (urlIntent) {
+            if (info.q) {
+                const objUrl = new URL(urlIntent);
+                objUrl.searchParams.append("q", promptAi);
+                urlIntent = objUrl.href;
+            }
         }
         setTimeout(() => {
-            const ret = window.open(url, "_blank");
-            console.log("open ai url", { ret });
+            // const ret = window.open(url, "_blank");
+            const handle = openWithFallback(urlIntent, urlWeb);
+            console.log("open ai url", { handle });
         }, 2000);
     });
+
+    /**
+     * https://chatgpt.com/share/68c20d3b-e168-8004-8cea-c80d30949054
+     * 
+     * @param {string} intentUrl 
+     * @param {string} webUrl 
+     * @returns {Window|null}
+     */
+    function openWithFallback(intentUrl, webUrl) {
+        if (!intentUrl) {
+            return window.open(webUrl, "_blank");
+        }
+        let win = null;
+        try {
+            win = window.open(intentUrl, "_blank");
+        } catch (e) {
+            // Some browsers throw synchronously if scheme is unsupported
+            win = window.open(webUrl, "_blank");
+            return win;
+        }
+
+        if (!win) {
+            // Popup was blocked, or intent scheme unsupported
+            win = window.open(webUrl, "_blank");
+            return win;
+        }
+
+        // In case a useless about:blank tab was opened (desktop case)
+        // FIX-ME: this must be called earlier!
+        const _check = setTimeout(() => {
+            try {
+                // If location is still about:blank after ~1s → fallback
+                if (win.location.href === "about:blank" || win.location.href === "about:blank#blocked") {
+                    win.close();
+                    window.open(webUrl, "_blank");
+                }
+            } catch (e) {
+                // Cross-origin error usually means the OS intercepted successfully (Android) → do nothing
+            }
+        }, 1000);
+        return null;
+    }
+
 
     const cardPrompt = mkElt("p", { class: "mdc-card display-flex" }, [
         `I have created an AI prompt that you should use.`,
