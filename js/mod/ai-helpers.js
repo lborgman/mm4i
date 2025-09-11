@@ -714,8 +714,10 @@ Important:
     divHardWay.id = "hard-way";
     divHardWay.style = styleWays;
 
-    const tabRecs = ["Easy way", "Hard way"];
-    const contentElts = mkElt("div", undefined, [divEasyWay, divHardWay]);
+    // const tabRecs = ["Easy way", "Hard way"];
+    // const contentElts = mkElt("div", undefined, [divEasyWay, divHardWay]);
+    const tabRecs = ["Hard way", "Easy way"];
+    const contentElts = mkElt("div", undefined, [divHardWay, divEasyWay]);
     if (tabRecs.length != contentElts.childElementCount) throw Error("Tab bar setup number mismatch");
     const eltTabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, undefined);
 
