@@ -2835,7 +2835,7 @@ async function vkActiveLocal(active) {
 
 
 export function getSharedToParams() {
-    const parsedUrl = new URL(window.location);
+    const parsedUrl = new URL(window.location.href);
     let title = parsedUrl.searchParams.get('title');
     let text = parsedUrl.searchParams.get('text');
     let url = parsedUrl.searchParams.get('url');
@@ -2881,4 +2881,40 @@ export function getSharedToParams() {
     // if (title || text || url) { window.sharedTo = { title, text, url }; }
     return { title, text, url };
 
+}
+
+/**
+ * https://copilot.microsoft.com/shares/EFYNwKi2iEJTtMx6SzSXH
+ *  
+ * @param {string} errorMessage 
+ * @param {string} strJson 
+ * @returns {Object}
+ */
+export function extractJSONparseError(errorMessage, strJson) {
+    const match = errorMessage.match(/position (\d+)/);
+    if (!match) return { success: false, message: "Could not extract error position." };
+
+    const pos = parseInt(match[1], 10);
+
+    // Extract context
+    const before = strJson.slice(Math.max(0, pos - 49), pos);
+    const errorChar = strJson[pos] || '';
+    const after = strJson.slice(pos + 1, pos + 50);
+
+    // Line and column
+    const lines = strJson.slice(0, pos).split('\n');
+    const line = lines.length;
+    const column = lines[lines.length - 1].length + 1;
+
+    return {
+        success: false,
+        errorPosition: pos,
+        line,
+        column,
+        context: {
+            before,
+            errorChar,
+            after
+        }
+    };
 }

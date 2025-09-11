@@ -121,6 +121,7 @@ const infoAI = {
 
 export async function generateMindMap(fromLink) {
     const modMdc = await importFc4i("util-mdc");
+    const modTools = await importFc4i("toolsJs");
     const modMMhelpers = await importFc4i("mindmap-helpers");
     const inpLink = modMdc.mkMDCtextFieldInput(undefined, "text");
     const tfLink = modMdc.mkMDCtextField("Link to article/video", inpLink);
@@ -344,9 +345,35 @@ Important:
                 }, 3000);
             } else {
                 tellError(res.error);
+                // tellError(res.message);
+                // const objJsonErrorDetails = modTools.extractJSONparseError(res.message, strAIjson);
+                // console.log({objJsonErrorDetails});
             }
         } catch (err) {
-            tellError(err);
+            tellError(err.message);
+            const objJsonErrorDetails = modTools.extractJSONparseError(err.message, strAIjson);
+            console.log({ objJsonErrorDetails });
+            const eltBefore = mkElt("span", undefined,
+                objJsonErrorDetails.context.before
+            );
+            const eltAfter = mkElt("span", undefined,
+                objJsonErrorDetails.context.after
+            );
+            const eltErrorChar = mkElt("span", undefined,
+                objJsonErrorDetails.context.errorChar
+            );
+            eltErrorChar.style.color = "red";
+            const divErrorPos = mkElt("div", undefined, [
+                eltBefore,
+                eltErrorChar,
+                eltAfter
+            ]);
+            divErrorPos.style = `
+                padding: 10px;
+                margin-top: 10px;
+                background-color: yellow;
+            `;
+            eltAItextareaStatus.append(divErrorPos)
         }
     });
     const eltDl = mkElt("dl");
