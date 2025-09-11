@@ -1442,7 +1442,7 @@ function setupWait4Saved() {
  * @param {number} clientX 
  * @param {number} clientY 
  */
-export function flashPos(clientX, clientY) {
+export function flashPos(clientX, clientY, color) {
     console.log("flashPos", { clientX, clientY });
     const eltPoint = mkElt("div");
     const sizePx = "10";
@@ -1453,13 +1453,13 @@ export function flashPos(clientX, clientY) {
         top: ${clientY}px;
         width: ${sizePx}px;
         height: ${sizePx}px;
-        background-color: red;
+        background-color: ${color};
         border-radius: 50%;
         border: 1px solid white;
         outline: solid black 1px;
     `;
     document.body.appendChild(eltPoint);
-    setTimeout(() => { eltPoint.remove(); }, 2 * 1000);
+    setTimeout(() => { eltPoint.remove(); }, 1 * 1000);
 }
 /**
  * 
@@ -1471,7 +1471,7 @@ export function savePointerdownPos(evt) {
         throw Error(`Expected event type "pointerdown", got "${evt.type}`);
     }
     savePointerPos(evt);
-    flashPos(evt.clientX, evt.clientY);
+    flashPos(evt.clientX, evt.clientY, "green");
 }
 /**
  * 

@@ -516,41 +516,59 @@ Important:
      * 
      * @param {string} intentUrl 
      * @param {string} webUrl 
-     * @returns {Window|null}
+     * @returns {Promise<Window|null>}
      */
-    function openWithFallback(intentUrl, webUrl) {
-        if (!intentUrl) {
-            return window.open(webUrl, "_blank");
-        }
+    async function openWithFallback(intentUrl, webUrl) {
+        const modTools = await importFc4i("toolsJs");
+        setTimeout(() => { check(); }, 2000);
         let win = null;
-        try {
-            win = window.open(intentUrl, "_blank");
-        } catch (e) {
-            // Some browsers throw synchronously if scheme is unsupported
-            win = window.open(webUrl, "_blank");
-            return win;
+        if (intentUrl) {
+            try {
+                win = window.open(intentUrl, "_blank");
+                // win == null always means popups are blocked
+                if (win == null) {
+                    modTools.mkMDCsnackbar("Popups are blocked, can't open intent");
+                    return null;
+                }
+                return win;
+            } catch (e) {
+                // Firefox throw synchronously if scheme is unsupported
+                const msg = `Opening intent ${intentUrl} failed: ${e.message}`;
+                console.error(msg);
+                modTools.mkMDCsnackbar(msg);
+            }
         }
-
         if (!win) {
-            // Popup was blocked, or intent scheme unsupported
-            win = window.open(webUrl, "_blank");
-            return win;
+            try {
+                win = window.open(webUrl, "_blank");
+                // win == null always means popups are blocked
+                if (win == null) {
+                    modTools.mkMDCsnackbar("Popups are blocked, can't open url");
+                    return null;
+                }
+                return win;
+            } catch (e) {
+                // blocked
+                const msg = `Opening ${webUrl} failed: ${e.message}`;
+                console.error(msg);
+                modTools.mkMDCsnackbar(msg);
+            }
         }
+        return null;
 
         // In case a useless about:blank tab was opened (desktop case)
-        // FIX-ME: this must be called earlier!
-        const _check = setTimeout(() => {
+        function check() {
+            if (!win) return;
             try {
                 // If location is still about:blank after ~1s → fallback
                 if (win.location.href === "about:blank" || win.location.href === "about:blank#blocked") {
                     win.close();
-                    window.open(webUrl, "_blank");
+                    modTools.mkMDCsnackbar(`The url does not seem to have been opened`);
                 }
             } catch (e) {
                 // Cross-origin error usually means the OS intercepted successfully (Android) → do nothing
             }
-        }, 1000);
-        return null;
+        }
     }
 
 
