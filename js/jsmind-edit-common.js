@@ -1515,6 +1515,7 @@ export async function pageSetup() {
 
     const jsMindContainer = document.getElementById(idDivJsmindContainer);
     if (!jsMindContainer) throw Error(`Could not find ${idDivJsmindContainer}`);
+    jsMindContainer.addEventListener("click", async evt => { handleClickJsMindContainer(evt); });
 
     function clearSearchHits() {
         if (!jsMindContainer) throw Error(`Could not find ${idDivJsmindContainer}`);
@@ -1972,8 +1973,8 @@ export async function pageSetup() {
 
     //// These bubbles up:
     // jsMindContainer.addEventListener("pointerdown", evt => hideContextMenuOnEvent(evt)); // FIX-ME:
-    jsMindContainer.addEventListener("click", async evt => {
-        // console.log("click jsMindContainer");
+    // jsMindContainer.addEventListener("click", async evt => { handleClickJsMindContainer(evt); });
+    function handleClickJsMindContainer(evt) {
         // evt.stopPropagation();
         // evt.preventDefault();
         setTimeout(() => { modTools.flashPos(evt.clientX, evt.clientY, "red"); }, 1 * 1000);
@@ -2025,7 +2026,8 @@ export async function pageSetup() {
             fastLog4bug(`theChange: ${theChange}`);
             modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, `${theChange} ${topic}`);
         }
-    });
+    }
+
 
     function _targetIsJmnode(evt) {
         const targ = evt.target;
