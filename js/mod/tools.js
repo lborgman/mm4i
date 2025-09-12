@@ -1437,13 +1437,13 @@ function setupWait4Saved() {
 }
 
 /**
- * Flash pos
  * 
  * @param {number} clientX 
  * @param {number} clientY 
+ * @param {string} color 
+ * @param {number} sec 
  */
-export function flashPos(clientX, clientY, color) {
-    console.log("flashPos", { clientX, clientY });
+export function flashPos(clientX, clientY, color, sec) {
     const eltPoint = mkElt("div");
     const sizePx = "10";
     eltPoint.style = `
@@ -1459,7 +1459,7 @@ export function flashPos(clientX, clientY, color) {
         outline: solid black 1px;
     `;
     document.body.appendChild(eltPoint);
-    setTimeout(() => { eltPoint.remove(); }, 1 * 1000);
+    setTimeout(() => { eltPoint.remove(); }, sec * 1000);
 }
 /**
  * 
@@ -1471,7 +1471,7 @@ export function savePointerdownPos(evt) {
         throw Error(`Expected event type "pointerdown", got "${evt.type}`);
     }
     savePointerPos(evt);
-    flashPos(evt.clientX, evt.clientY, "green");
+    flashPos(evt.clientX, evt.clientY, "green", 0.7);
 }
 /**
  * 
@@ -2917,4 +2917,17 @@ export function extractJSONparseError(errorMessage, strJson) {
             after
         }
     };
+}
+
+
+/**
+ * Change line endings to line feed char.
+ * 
+ * @param {string} str 
+ * @returns {string}
+ */
+export function normalizeLineEndings(str) {
+    const lf = '\n';
+    let strWithLf = str.replaceAll(/\r?\n/g, lf);
+    return strWithLf.replaceAll(/\r/g, lf);
 }

@@ -1977,7 +1977,6 @@ export async function pageSetup() {
     function handleClickJsMindContainer(evt) {
         // evt.stopPropagation();
         // evt.preventDefault();
-        setTimeout(() => { modTools.flashPos(evt.clientX, evt.clientY, "red"); }, 1 * 1000);
 
         const target = evt.target;
         if (!(target instanceof HTMLElement)) throw Error("target is not HTMLElement");

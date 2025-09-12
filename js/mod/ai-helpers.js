@@ -223,12 +223,38 @@ export async function generateMindMap(fromLink) {
 
     let promptAi;
     function updatePromptAi() {
-        promptAi = makeAIprompt(inpLink.value.trim(), 3);
+        promptAi = makeAIprompt(inpLink.value.trim(), 4);
         const bPrompt = document.getElementById("prompt-ai");
         if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
         bPrompt.textContent = promptAi;
     }
     function makeAIprompt(link, maxDepth = 4) {
+        const rules = [
+            `*Summarize the article (or video)
+                "${link}"
+              into a mind map and
+              output a strict, parse-ready JSON node array
+              (flat; fields: id, name, parentid, and notes).`,
+            `*Optional field "notes": For details, markdown format.`,
+            `*Give as much details as in a text summary.`,
+            `*Limit the hiearchy to max depth ${maxDepth} levels.`,
+            `*Return only valid JSON (no text before or after).`,
+            `*Check that the JSON is parseable in Chromium browsers.`
+        ];
+        let n = 0;
+        const arr = rules
+            .map(m => { return m.trim(); })
+            .map(m => { return m.replaceAll(/ +/g, " "); })
+            .map(m => { return modTools.normalizeLineEndings(m); })
+            .map(m => {
+                if (m.startsWith("*")) {
+                    return `${++n}. ` + m.slice(1);
+                }
+            })
+            ;
+        return arr.join("\n\n");
+        console.log({ arr });
+        debugger;
         return `
 1. Summarize the article (or video)
    "${link}"
@@ -281,13 +307,20 @@ Important:
     const divPrompt = mkDivPrompt();
     divPrompt.inert = true;
     function mkDivPrompt() {
-        const bPrompt = mkElt("b", undefined, promptAi);
+        const bPrompt = mkElt("div", undefined, promptAi);
         bPrompt.id = "prompt-ai";
-        bPrompt.style.whiteSpace = "pre-wrap";
+        bPrompt.style = `
+            white-space: pre-wrap;
+            background-color: white;
+            color: darkgreen;
+            padding: 5px;
+            padding-right: 0px;
+        `;
         const divNewPrompt = mkElt("div", undefined, [
             mkElt("details", undefined, [
                 mkElt("summary", undefined, "Show AI prompt"),
-                mkElt("blockquote", undefined, bPrompt)
+                // mkElt("div", undefined, bPrompt)
+                bPrompt
             ])
         ]);
         divNewPrompt.style = `
