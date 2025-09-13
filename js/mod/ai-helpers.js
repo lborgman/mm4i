@@ -77,44 +77,65 @@ export async function checkGeminiOk() {
 }
 */
 
-
+/**
+ * @typedef {Object} aiInfo
+ * @property {boolean} testedChat
+ * @property {boolean} q
+ * @property {string|undefined} comment
+ * @property {string} url
+ * @property {string|undefined} androidIntent
+ * @property {string} urlImg
+ */
 /**
  * 
- * @param {boolean} testedChat 
- * @param {boolean} q
- * @param {string | undefined} comment 
- * @param {string} url 
- * @param {string | undefined} androidIntent -- empty means use url, undefined means no intent
- * @param {boolean} OAuth 
- * @returns 
+ * @param {aiInfo} aiInfo
+ * @returns {aiInfo}
  */
-const mkAIinfo = (
-    testedChat,
-    q,
-    comment,
-    url,
-    androidIntent = undefined,
-    OAuth = false
-) => {
-    return {
-        testedChat,
-        q,
-        comment,
-        url,
-        androidIntent,
-        OAuth
-    }
-}
+const mkAIinfo = ( aiInfo) => { return aiInfo }
 
 // https://chatgpt.com/share/68c0514e-c81c-8004-a196-d4f7f60c3930
 const infoAI = {
-    "Claude": mkAIinfo(true, false, undefined, "https://claude.ai"),
-    "ChatGPT": mkAIinfo(true, false, undefined, "https://chatgpt.openai.com",
-        "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;end"
-    ),
-    "Gemini": mkAIinfo(true, false, undefined, "https://gemini.google.com/app"),
-    "Grok": mkAIinfo(true, false, "I have asked xAI about OAuth", "https://grok.com"),
-    "Perplexity": mkAIinfo(true, true, undefined, "https://www.perplexity.ai/search",)
+    "Claude": mkAIinfo({
+        testedChat: true,
+        q: false,
+        comment: undefined,
+        url: "https://claude.ai",
+        androidIntent: undefined,
+        urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Claude_AI_symbol.svg"
+    }),
+    "ChatGPT": mkAIinfo({
+        testedChat: true,
+        q: false,
+        comment: undefined,
+        // url: "https://chatgpt.openai.com",
+        url: "https://chatgpt.com/",
+        androidIntent: "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;end",
+        urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b5/ChatGPT_logo_Square.svg"
+
+    }),
+    "Gemini": mkAIinfo({
+        testedChat: true,
+        q: false,
+        comment: undefined,
+        url: "https://gemini.google.com/app", undefined,
+        urlImg: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg"
+    }),
+    "Grok": mkAIinfo({
+        testedChat: true,
+        q: false,
+        comment: "I have asked xAI about OAuth",
+        url: "https://grok.com",
+        androidIntent: undefined,
+        urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg"
+    }),
+    "Perplexity": mkAIinfo({
+        testedChat: true,
+        q: true,
+        comment: undefined,
+        url: "https://www.perplexity.ai/search",
+        androidIntent: undefined,
+        urlImg: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Perplexity_AI_logo.svg"
+    }),
 }
 
 
@@ -410,35 +431,6 @@ Important:
             eltAItextareaStatus.append(divErrorPos)
         }
     });
-    const eltDl = mkElt("dl");
-
-    const addAiAlt = (nameAi, link, ok, notes) => {
-        const eltA = mkElt("a", {
-            href: link,
-            target: "_blank"
-        }, `Open ${nameAi}`);
-        const eltNotes = mkElt("div", undefined, notes);
-        eltNotes.style.color = ok ? "green" : "red";
-        const eltDt = mkElt("dt", undefined, [
-            nameAi,
-            mkElt("dd", undefined, [
-                eltA,
-                eltNotes
-            ])
-        ]);
-        eltDl.appendChild(eltDt)
-    }
-    addAiAlt("Gemini (Google)", "https://gemini.google.com", false, "Can't always access the web site (even if it is public)");
-    addAiAlt("Claude (Anthropic)", "https://claude.ai", true, "Seems to work ok");
-    addAiAlt("Grok (xAI)", "https://grok.com", true, "Seems to work ok");
-    addAiAlt("ChatGPT (OpenAI)", "https://chatgpt.com", false, "Not tested yet");
-    addAiAlt("Perplexity", "https://perplexity.ai", false, "Not tested yet (what is it?)");
-    const eltWhichAI = mkElt("details", undefined, [
-        mkElt("summary", undefined, "Which AI can I use?"),
-        mkElt("div", undefined,
-            eltDl
-        )
-    ]);
 
     const eltAIprovidersTrouble = mkElt("details", undefined, [
         mkElt("summary", undefined, "AI providers do not let me ask for you"),
@@ -460,7 +452,6 @@ Important:
                 }, "Why AI cant summarize a link when you ask it")
             ),
         ]),
-        eltWhichAI,
     ]);
 
     const eltDivAI = mkElt("p", undefined, [
@@ -505,9 +496,17 @@ Important:
     }
     Object.entries(infoAI).forEach(e => {
         const [k, v] = e;
-        const { testedChat, q } = v;
+        const { testedChat, q, urlImg } = v;
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
-        const eltAI = mkElt("label", undefined, [radAI, k]);
+        const imgAI = mkElt("span");
+        imgAI.style = `
+            height: 20px;
+            width: 20px;
+            background-image: url(${urlImg});
+            background-size: cover;
+            background-position: top left;
+        `;
+        const eltAI = mkElt("label", undefined, [radAI, imgAI, k]);
         eltAI.classList.add("elt-ai");
         if (testedChat) { eltAI.style.backgroundColor = "yellowgreen"; }
         if (q) { eltAI.style.borderColor = "greenyellow"; }
