@@ -91,7 +91,7 @@ export async function checkGeminiOk() {
  * @param {aiInfo} aiInfo
  * @returns {aiInfo}
  */
-const mkAIinfo = ( aiInfo) => { return aiInfo }
+const mkAIinfo = (aiInfo) => { return aiInfo }
 
 // https://chatgpt.com/share/68c0514e-c81c-8004-a196-d4f7f60c3930
 const infoAI = {
@@ -566,11 +566,63 @@ Important:
         }
         setTimeout(() => {
             // const ret = window.open(url, "_blank");
-            const handle = openWithFallback(urlIntent, urlWeb);
-            console.log("open ai url", { handle });
+            // const handle = _openWithFallback(urlIntent, urlWeb);
+            // console.log("open ai url", { handle });
+            openIntentFallbackUrl(urlIntent, urlWeb)
         }, 2000);
     });
 
+    /**
+     * Open app, fallback to web page.
+     * This version is Chrome specific.
+     * https://grok.com/share/bGVnYWN5LWNvcHk%3D_0aeb999f-448c-473c-89c4-ad3713907f09
+     * 
+     * @param {string} intentUrl 
+     * @param {string} webUrl 
+     */
+    async function openIntentFallbackUrl(intentUrl, webUrl) {
+
+        let userAgent = navigator.userAgent.toLowerCase();
+        let isAndroid = userAgent.indexOf("android") > -1;
+
+        /** @type {Window|null} */
+        let appWindow;
+
+        if (!isAndroid) {
+            appWindow = window.open(webUrl, "_blank");
+            if (appWindow == null) {
+                modMdc.mkMDCsnackbar("Popups are blocked, can't open url");
+                return null;
+            }
+            return appWindow;
+        }
+
+        if (intentUrl) {
+            console.log('Attempting to open app...');
+            appWindow = window.open(intentUrl, '_blank');
+            if (appWindow == null) {
+                modMdc.mkMDCsnackbar("Popups are blocked, can't open app");
+                return null;
+            }
+            return appWindow;
+        }
+
+        // Chrome-specific: Use a single timeout to check if the app opened
+        setTimeout(() => {
+            if (appWindow && !appWindow.closed) {
+                // Window still open, app likely didn't launch
+                // FIX-ME: Will chrome try to close it???
+                console.log('App not found, redirecting to web page...');
+                // appWindow.location.href = webUrl;
+                appWindow.close();
+                appWindow = window.open(webUrl, "_blank");
+            } else {
+                // Window closed or null, assume app opened
+                console.log('App opened successfully!');
+            }
+        }, 1000);
+
+    }
     /**
      * https://chatgpt.com/share/68c20d3b-e168-8004-8cea-c80d30949054
      * 
@@ -578,7 +630,7 @@ Important:
      * @param {string} webUrl 
      * @returns {Promise<Window|null>}
      */
-    async function openWithFallback(intentUrl, webUrl) {
+    async function _openWithFallback(intentUrl, webUrl) {
         const modTools = await importFc4i("toolsJs");
         setTimeout(() => { check(); }, 2000);
         let win = null;
