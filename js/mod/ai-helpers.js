@@ -582,13 +582,18 @@ Important:
      */
     async function openIntentFallbackUrl(intentUrl, webUrl) {
 
-        let userAgent = navigator.userAgent.toLowerCase();
-        let isAndroid = userAgent.indexOf("android") > -1;
-
         /** @type {Window|null} */
         let appWindow;
 
-        if (!isAndroid) {
+        let canOnlyUrl = !intentUrl;
+        if (!canOnlyUrl) {
+            const userAgent = navigator.userAgent.toLowerCase();
+            const isAndroid = userAgent.indexOf("android") > -1;
+            canOnlyUrl = !isAndroid;
+        }
+
+
+        if (canOnlyUrl) {
             appWindow = window.open(webUrl, "_blank");
             if (appWindow == null) {
                 modMdc.mkMDCdialogConfirm("Popups are blocked, can't open url", "Close");
