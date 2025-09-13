@@ -591,7 +591,7 @@ Important:
         if (!isAndroid) {
             appWindow = window.open(webUrl, "_blank");
             if (appWindow == null) {
-                modMdc.mkMDCsnackbar("Popups are blocked, can't open url");
+                modMdc.mkMDCdialogConfirm("Popups are blocked, can't open url", "Close");
                 return null;
             }
             return appWindow;
@@ -601,7 +601,7 @@ Important:
             console.log('Attempting to open app...');
             appWindow = window.open(intentUrl, '_blank');
             if (appWindow == null) {
-                modMdc.mkMDCsnackbar("Popups are blocked, can't open app");
+                modMdc.mkMDCdialogConfirm("Popups are blocked, can't open app", "Close");
                 return null;
             }
             return appWindow;
