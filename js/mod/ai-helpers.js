@@ -547,17 +547,20 @@ Important:
         }
         const info = infoAI[nameAI];
         if (!info) { throw Error(`Did not find info for AI "${nameAI}"`); }
+
         const urlAIweb = info.url;
-        const urlAIapp = !info.urlAndroidApp ?
-            undefined :
-            ("boolean" == typeof info.urlAndroidApp ?
-                urlAIweb : info.urlAndroidApp
-            )
-            ;
         if (!urlAIweb) {
             modMdc.mkMDCsnackbar(`Copied prompt, do not know how to open AI "${nameAI}"`);
             return;
         }
+
+        const tofAndroidApp = typeof info.urlAndroidApp;
+        if (tofAndroidApp != "boolean" && tofAndroidApp != "string") {
+            throw Error(`tofAndroidApp=="${tofAndroidApp}A"`);
+        }
+
+        const urlAIapp = info.urlAndroidApp;
+
         modMdc.mkMDCsnackbar(`Copied prompt, opening AI "${nameAI}"`);
         let urlWeb = urlAIweb;
         if (info.q) {
@@ -566,19 +569,19 @@ Important:
             urlWeb = objUrl.href;
         }
         // let urlIntent = info.androdIntent;
-        let urlIntent = urlAIapp;
-        if (urlIntent) {
+        let urlApp = urlAIapp;
+        if (typeof urlApp == "string") {
             if (info.q) {
-                const objUrl = new URL(urlIntent);
+                const objUrl = new URL(urlApp);
                 objUrl.searchParams.append("q", promptAi);
-                urlIntent = objUrl.href;
+                urlApp = objUrl.href;
             }
         }
         setTimeout(() => {
             // const ret = window.open(url, "_blank");
             // const handle = _openWithFallback(urlIntent, urlWeb);
             // console.log("open ai url", { handle });
-            openIntentFallbackUrl(urlIntent, urlWeb)
+            openIntentFallbackUrl(urlWeb, urlApp);
         }, 2000);
     });
 
@@ -590,67 +593,73 @@ Important:
      * @param {string} appUrl 
      * @param {string} webUrl 
      */
-    async function openIntentFallbackUrl(appUrl, webUrl) {
+    async function openIntentFallbackUrl(webUrl, appUrl) {
         // _openWithFallback
 
         /** @type {Window|null} */
-        let AIwindow;
-        let urlUsed;
+        let windowAI;
+        // let urlUsed;
 
         let canOnlyWebUrl = typeof appUrl != "string";
-        if (!canOnlyWebUrl) {
-            const userAgent = navigator.userAgent.toLowerCase();
-            const isAndroid = userAgent.indexOf("android") > -1;
-            canOnlyWebUrl = !isAndroid;
+
+        const userAgent = navigator.userAgent.toLowerCase();
+        const isAndroid = userAgent.indexOf("android") > -1;
+        if (!canOnlyWebUrl) { canOnlyWebUrl = !isAndroid; }
+        alert(
+            `canOnlUrl==${canOnlyWebUrl}
+
+isAndroid==${isAndroid}
+webUrl==${webUrl}
+appUrl==${appUrl}`);
+
+
+        // urlUsed = webUrl;
+        windowAI = window.open(webUrl, "_blank");
+        if (windowAI == null) {
+            modMdc.mkMDCdialogConfirm("Popups are blocked, can't open url", "Close");
+            return null;
         }
-        alert(`canOnlUrl==${canOnlyWebUrl}`)
-
-
         if (canOnlyWebUrl) {
-            urlUsed = webUrl;
-            AIwindow = window.open(urlUsed, "_blank");
-            if (AIwindow == null) {
-                modMdc.mkMDCdialogConfirm("Popups are blocked, can't open url", "Close");
-                return null;
-            }
-            return AIwindow;
+            return windowAI;
         }
 
-        if (!appUrl) throw Error(`No intentUrl, webUrl=="${webUrl}"`);
-        if (appUrl) {
-            const msCheck = getCheckDelay("2000");
-            function getCheckDelay(msDefault = "2000") {
-                return msDefault;
-                const ans = prompt("intent check delay, ms", msDefault).trim();
-                console.log({ ans });
-                const ms = parseInt(ans);
-                return ms;
-            }
-            console.log('Attempting to open app...');
-            urlUsed = appUrl;
-            AIwindow = window.open(appUrl, '_blank');
-            if (AIwindow == null) {
-                modMdc.mkMDCdialogConfirm("Popups are blocked, can't open app", "Close");
-                return null;
-            }
-            // return appWindow;
+        if (typeof appUrl != "string") throw Error(`No intentUrl, webUrl=="${webUrl}"`);
 
-            // Chrome-specific: Use a single timeout to check if the app opened
-            if (urlUsed == webUrl) return;
-            setTimeout(() => {
-                if (AIwindow && !AIwindow.closed) {
-                    // Window still open, app likely didn't launch
-                    // FIX-ME: Will chrome try to close it???
-                    modMdc.mkMDCsnackbar('App not found, redirecting to web page...');
-                    AIwindow.location.href = webUrl;
-                    // appWindow.close();
-                    // appWindow = window.open(webUrl, "_blank");
-                } else {
-                    // Window closed or null, assume app opened
-                    modMdc.mkMDCsnackbar('App opened successfully!');
-                }
-            }, msCheck);
+        const msCheck = getCheckDelay("2000");
+        /**
+         * @param {number} msDefault 
+         * @returns {number}
+         */
+        function getCheckDelay(msDefault = "2000") {
+            return msDefault;
+            const ans = prompt("intent check delay, ms", msDefault).trim();
+            console.log({ ans });
+            const ms = parseInt(ans);
+            return ms;
         }
+        console.log('Attempting to open app...');
+        // urlUsed = appUrl;
+        windowAI = window.open(appUrl, '_blank');
+        if (windowAI == null) {
+            modMdc.mkMDCdialogConfirm("Popups are blocked, can't open app", "Close");
+            return null;
+        }
+
+        // Chrome-specific: Use a single timeout to check if the app opened
+        setTimeout(() => {
+            alert(`windowAI.closed==${windowAI.closed}`);
+            if (windowAI && !windowAI.closed) {
+                // Window still open, app likely didn't launch
+                // FIX-ME: Will chrome try to close it???
+                modMdc.mkMDCsnackbar('App not found, redirecting to web page...');
+                windowAI.location.href = webUrl;
+                // appWindow.close();
+                // appWindow = window.open(webUrl, "_blank");
+            } else {
+                // Window closed or null, assume app opened
+                modMdc.mkMDCsnackbar('App opened successfully!');
+            }
+        }, msCheck);
 
     }
     /**
