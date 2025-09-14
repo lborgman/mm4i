@@ -594,24 +594,26 @@ Important:
         // _openWithFallback
 
         /** @type {Window|null} */
-        let appWindow, urlUsed;
+        let AIwindow;
+        let urlUsed;
 
-        let canOnlyUrl = !appUrl;
-        if (!canOnlyUrl) {
+        let canOnlyWebUrl = typeof appUrl != "string";
+        if (!canOnlyWebUrl) {
             const userAgent = navigator.userAgent.toLowerCase();
             const isAndroid = userAgent.indexOf("android") > -1;
-            canOnlyUrl = !isAndroid;
+            canOnlyWebUrl = !isAndroid;
         }
+        alert(`canOnlUrl==${canOnlyWebUrl}`)
 
 
-        if (canOnlyUrl) {
+        if (canOnlyWebUrl) {
             urlUsed = webUrl;
-            appWindow = window.open(urlUsed, "_blank");
-            if (appWindow == null) {
+            AIwindow = window.open(urlUsed, "_blank");
+            if (AIwindow == null) {
                 modMdc.mkMDCdialogConfirm("Popups are blocked, can't open url", "Close");
                 return null;
             }
-            return appWindow;
+            return AIwindow;
         }
 
         if (!appUrl) throw Error(`No intentUrl, webUrl=="${webUrl}"`);
@@ -626,8 +628,8 @@ Important:
             }
             console.log('Attempting to open app...');
             urlUsed = appUrl;
-            appWindow = window.open(appUrl, '_blank');
-            if (appWindow == null) {
+            AIwindow = window.open(appUrl, '_blank');
+            if (AIwindow == null) {
                 modMdc.mkMDCdialogConfirm("Popups are blocked, can't open app", "Close");
                 return null;
             }
@@ -636,11 +638,11 @@ Important:
             // Chrome-specific: Use a single timeout to check if the app opened
             if (urlUsed == webUrl) return;
             setTimeout(() => {
-                if (appWindow && !appWindow.closed) {
+                if (AIwindow && !AIwindow.closed) {
                     // Window still open, app likely didn't launch
                     // FIX-ME: Will chrome try to close it???
                     modMdc.mkMDCsnackbar('App not found, redirecting to web page...');
-                    appWindow.location.href = webUrl;
+                    AIwindow.location.href = webUrl;
                     // appWindow.close();
                     // appWindow = window.open(webUrl, "_blank");
                 } else {
