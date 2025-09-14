@@ -581,6 +581,7 @@ Important:
      * @param {string} webUrl 
      */
     async function openIntentFallbackUrl(intentUrl, webUrl) {
+        // _openWithFallback
 
         /** @type {Window|null} */
         let appWindow;
@@ -609,7 +610,7 @@ Important:
                 modMdc.mkMDCdialogConfirm("Popups are blocked, can't open app", "Close");
                 return null;
             }
-            return appWindow;
+            // return appWindow;
         }
 
         // Chrome-specific: Use a single timeout to check if the app opened
@@ -618,12 +619,12 @@ Important:
                 // Window still open, app likely didn't launch
                 // FIX-ME: Will chrome try to close it???
                 console.log('App not found, redirecting to web page...');
-                // appWindow.location.href = webUrl;
-                appWindow.close();
-                appWindow = window.open(webUrl, "_blank");
+                appWindow.location.href = webUrl;
+                // appWindow.close();
+                // appWindow = window.open(webUrl, "_blank");
             } else {
                 // Window closed or null, assume app opened
-                console.log('App opened successfully!');
+                modMdc.mkMDCsnackbar('App opened successfully!');
             }
         }, 1000);
 
