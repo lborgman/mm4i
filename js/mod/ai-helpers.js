@@ -83,7 +83,7 @@ export async function checkGeminiOk() {
  * @property {boolean} q
  * @property {string|undefined} comment
  * @property {string} url
- * @property {string|undefined} androidIntent
+ * @property {string|boolean} urlAndroidApp
  * @property {string} urlImg
  */
 /**
@@ -95,13 +95,13 @@ const mkAIinfo = (aiInfo) => { return aiInfo }
 
 // https://chatgpt.com/share/68c0514e-c81c-8004-a196-d4f7f60c3930
 const infoAI = {
-    "Claude": mkAIinfo({
+    "Gemini": mkAIinfo({
         testedChat: true,
         q: false,
         comment: undefined,
-        url: "https://claude.ai",
-        androidIntent: undefined,
-        urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Claude_AI_symbol.svg"
+        url: "https://gemini.google.com/app",
+        urlAndroidApp: true,
+        urlImg: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg"
     }),
     "ChatGPT": mkAIinfo({
         testedChat: true,
@@ -109,23 +109,24 @@ const infoAI = {
         comment: undefined,
         // url: "https://chatgpt.openai.com",
         url: "https://chatgpt.com/",
-        androidIntent: "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;end",
+        urlAndroidApp: "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;end",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b5/ChatGPT_logo_Square.svg"
 
     }),
-    "Gemini": mkAIinfo({
+    "Claude": mkAIinfo({
         testedChat: true,
         q: false,
         comment: undefined,
-        url: "https://gemini.google.com/app", undefined,
-        urlImg: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg"
+        url: "https://claude.ai",
+        urlAndroidApp: true,
+        urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Claude_AI_symbol.svg"
     }),
     "Grok": mkAIinfo({
         testedChat: true,
         q: false,
         comment: "I have asked xAI about OAuth",
         url: "https://grok.com",
-        androidIntent: undefined,
+        urlAndroidApp: true,
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg"
     }),
     "Perplexity": mkAIinfo({
@@ -133,7 +134,7 @@ const infoAI = {
         q: true,
         comment: undefined,
         url: "https://www.perplexity.ai/search",
-        androidIntent: undefined,
+        urlAndroidApp: true,
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Perplexity_AI_logo.svg"
     }),
 }
@@ -496,7 +497,7 @@ Important:
     }
     Object.entries(infoAI).forEach(e => {
         const [k, v] = e;
-        const { testedChat, q, urlImg } = v;
+        const { testedChat, q, urlImg, urlAndroidApp } = v;
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
         const imgAI = mkElt("span");
         imgAI.style = `
@@ -506,6 +507,9 @@ Important:
             background-size: cover;
             background-position: top left;
         `;
+        if (urlAndroidApp) {
+            imgAI.style.outline = "1px dotted red";
+        }
         const eltAI = mkElt("label", undefined, [radAI, imgAI, k]);
         eltAI.classList.add("elt-ai");
         if (testedChat) { eltAI.style.backgroundColor = "yellowgreen"; }
@@ -544,7 +548,12 @@ Important:
         const info = infoAI[nameAI];
         if (!info) { throw Error(`Did not find info for AI "${nameAI}"`); }
         const urlAIweb = info.url;
-        const urlAIintent = info.androidIntent;
+        const urlAIapp = !info.urlAndroidApp ?
+            undefined :
+            ("boolean" == typeof info.urlAndroidApp ?
+                urlAIweb : info.urlAndroidApp
+            )
+            ;
         if (!urlAIweb) {
             modMdc.mkMDCsnackbar(`Copied prompt, do not know how to open AI "${nameAI}"`);
             return;
@@ -556,7 +565,8 @@ Important:
             objUrl.searchParams.append("q", promptAi);
             urlWeb = objUrl.href;
         }
-        let urlIntent = info.androdIntent;
+        // let urlIntent = info.androdIntent;
+        let urlIntent = urlAIapp;
         if (urlIntent) {
             if (info.q) {
                 const objUrl = new URL(urlIntent);
@@ -577,16 +587,16 @@ Important:
      * This version is Chrome specific.
      * https://grok.com/share/bGVnYWN5LWNvcHk%3D_0aeb999f-448c-473c-89c4-ad3713907f09
      * 
-     * @param {string} intentUrl 
+     * @param {string} appUrl 
      * @param {string} webUrl 
      */
-    async function openIntentFallbackUrl(intentUrl, webUrl) {
+    async function openIntentFallbackUrl(appUrl, webUrl) {
         // _openWithFallback
 
         /** @type {Window|null} */
-        let appWindow;
+        let appWindow, urlUsed;
 
-        let canOnlyUrl = !intentUrl;
+        let canOnlyUrl = !appUrl;
         if (!canOnlyUrl) {
             const userAgent = navigator.userAgent.toLowerCase();
             const isAndroid = userAgent.indexOf("android") > -1;
@@ -595,7 +605,8 @@ Important:
 
 
         if (canOnlyUrl) {
-            appWindow = window.open(webUrl, "_blank");
+            urlUsed = webUrl;
+            appWindow = window.open(urlUsed, "_blank");
             if (appWindow == null) {
                 modMdc.mkMDCdialogConfirm("Popups are blocked, can't open url", "Close");
                 return null;
@@ -603,30 +614,40 @@ Important:
             return appWindow;
         }
 
-        if (intentUrl) {
+        if (!appUrl) throw Error(`No intentUrl, webUrl=="${webUrl}"`);
+        if (appUrl) {
+            const msCheck = getCheckDelay("2000");
+            function getCheckDelay(msDefault = "2000") {
+                const ans = prompt("intent check delay, ms", msDefault).trim();
+                console.log({ ans });
+                const ms = parseInt(ans);
+                return ms;
+            }
             console.log('Attempting to open app...');
-            appWindow = window.open(intentUrl, '_blank');
+            urlUsed = appUrl;
+            appWindow = window.open(appUrl, '_blank');
             if (appWindow == null) {
                 modMdc.mkMDCdialogConfirm("Popups are blocked, can't open app", "Close");
                 return null;
             }
             // return appWindow;
-        }
 
-        // Chrome-specific: Use a single timeout to check if the app opened
-        setTimeout(() => {
-            if (appWindow && !appWindow.closed) {
-                // Window still open, app likely didn't launch
-                // FIX-ME: Will chrome try to close it???
-                modMdc.mkMDCsnackbar('App not found, redirecting to web page...');
-                appWindow.location.href = webUrl;
-                // appWindow.close();
-                // appWindow = window.open(webUrl, "_blank");
-            } else {
-                // Window closed or null, assume app opened
-                modMdc.mkMDCsnackbar('App opened successfully!');
-            }
-        }, 1.5 * 1000);
+            // Chrome-specific: Use a single timeout to check if the app opened
+            if (urlUsed == webUrl) return;
+            setTimeout(() => {
+                if (appWindow && !appWindow.closed) {
+                    // Window still open, app likely didn't launch
+                    // FIX-ME: Will chrome try to close it???
+                    modMdc.mkMDCsnackbar('App not found, redirecting to web page...');
+                    appWindow.location.href = webUrl;
+                    // appWindow.close();
+                    // appWindow = window.open(webUrl, "_blank");
+                } else {
+                    // Window closed or null, assume app opened
+                    modMdc.mkMDCsnackbar('App opened successfully!');
+                }
+            }, msCheck);
+        }
 
     }
     /**
