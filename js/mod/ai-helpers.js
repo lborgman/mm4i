@@ -618,6 +618,7 @@ Important:
         if (appUrl) {
             const msCheck = getCheckDelay("2000");
             function getCheckDelay(msDefault = "2000") {
+                return msDefault;
                 const ans = prompt("intent check delay, ms", msDefault).trim();
                 console.log({ ans });
                 const ms = parseInt(ans);
