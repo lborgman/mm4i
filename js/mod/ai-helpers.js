@@ -618,7 +618,7 @@ Important:
             if (appWindow && !appWindow.closed) {
                 // Window still open, app likely didn't launch
                 // FIX-ME: Will chrome try to close it???
-                console.log('App not found, redirecting to web page...');
+                modMdc.mkMDCsnackbar('App not found, redirecting to web page...');
                 appWindow.location.href = webUrl;
                 // appWindow.close();
                 // appWindow = window.open(webUrl, "_blank");
@@ -626,7 +626,7 @@ Important:
                 // Window closed or null, assume app opened
                 modMdc.mkMDCsnackbar('App opened successfully!');
             }
-        }, 1000);
+        }, 1.5 * 1000);
 
     }
     /**
