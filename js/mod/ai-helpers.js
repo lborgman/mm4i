@@ -99,7 +99,8 @@ const infoAI = {
         testedChat: true,
         q: false,
         comment: undefined,
-        url: "gemini.google.com/app",
+        // url: "gemini.google.com/app",
+        url: "gemini.google.com",
         // urlAndroidApp: true,
         pkg: "com.google.android.apps.bard",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg"
