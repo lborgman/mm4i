@@ -523,7 +523,8 @@ Important:
         if (pkg) {
             imgAI.style.outline = "1px dotted red";
         }
-        const eltAI = mkElt("label", undefined, [radAI, imgAI, k]);
+        const eltAIname = mkElt("span", {class:"elt-ai-name"}, k);
+        const eltAI = mkElt("label", undefined, [radAI, imgAI, eltAIname]);
         eltAI.classList.add("elt-ai");
         if (testedChat) { eltAI.style.backgroundColor = "yellowgreen"; }
         if (q) { eltAI.style.borderColor = "greenyellow"; }
