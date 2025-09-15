@@ -560,41 +560,13 @@ Important:
         const infoThisAI = infoAI[nameAI];
         if (!infoThisAI) { throw Error(`Did not find info for AI "${nameAI}"`); }
 
-        const urlAIweb = infoThisAI.url;
-        if (!urlAIweb) {
+        if (nameAI == "none") {
             modMdc.mkMDCsnackbar(`Copied prompt, do not know how to open AI "${nameAI}"`);
             return;
         }
 
-        /*
-        const tofAndroidApp = typeof info.urlAndroidApp;
-        if (tofAndroidApp != "boolean" && tofAndroidApp != "string") {
-            throw Error(`tofAndroidApp=="${tofAndroidApp}A"`);
-        }
-        */
-
-        // const urlAIapp = info.urlAndroidApp;
 
         modMdc.mkMDCsnackbar(`Copied prompt, opening AI "${nameAI}"`);
-        // let urlWeb = urlAIweb;
-        /*
-        if (info.q) {
-            const objUrl = new URL(urlWeb);
-            objUrl.searchParams.append("q", promptAI);
-            urlWeb = objUrl.href;
-        }
-        */
-        // let urlIntent = info.androdIntent;
-        // let urlApp = urlAIapp;
-        /*
-        if (typeof urlApp == "string") {
-            if (info.q) {
-                const objUrl = new URL(urlApp);
-                objUrl.searchParams.append("q", promptAI);
-                urlApp = objUrl.href;
-            }
-        }
-        */
         setTimeout(() => {
             openIntentFallbackUrl(infoThisAI, promptAI);
         }, 2000);
@@ -609,16 +581,18 @@ Important:
      */
     async function openIntentFallbackUrl(infoThisAI, prompt) {
         // _openWithFallback
+        const pkg = infoThisAI.pkg;
+        const url = infoThisAI.url;
+        const msCheck = 2000;
 
-        const objUrl = new URL(`https://${infoThisAI.url}`);
+        const objUrl = new URL(`https://${url}`);
         objUrl.searchParams.append("q", prompt);
         const webUrlQ = objUrl.href;
 
         /** @type {Window|null} */
         let windowAI;
-        // let urlUsed;
 
-        let canOnlyWebUrl = typeof infoThisAI.pkg != "string";
+        let canOnlyWebUrl = typeof pkg != "string";
 
         const userAgent = navigator.userAgent.toLowerCase();
         const isAndroid = userAgent.indexOf("android") > -1;
@@ -627,24 +601,52 @@ Important:
             `canOnlyWebUrl==${canOnlyWebUrl}
 
 isAndroid==${isAndroid}
-url==${infoThisAI.url}
-pkg==${infoThisAI.pkg}`);
+url==${url}
+pkg==${pkg}`);
+
+        if ((!canOnlyWebUrl) && pkg) {
+            alert('Attempting to open app...');
+            // const promptEncoded = encodeURIComponent(prompt);
+            const intentUrl =
+                "intent://" + webUrlQ +
+                "#Intent;scheme=https;package=" + pkg + ";end";
+            windowAI = window.open(intentUrl, '_blank');
+            if (windowAI == null) {
+                modMdc.mkMDCdialogConfirm("Popups are blocked, can't open app", "Close");
+                return null;
+            }
+
+            // Use a timeout to check if the app opened
+            setTimeout(() => {
+                alert(`windowAI.closed==${windowAI?.closed}`);
+                if (windowAI && !windowAI.closed) {
+                    // Window still open, app likely didn't launch
+                    // FIX-ME: Will chrome try to close it???
+                    modMdc.mkMDCsnackbar('App not found, redirecting to web page...');
+                    windowAI.location.href = webUrlQ;
+                    // appWindow.close();
+                    // appWindow = window.open(webUrl, "_blank");
+                } else {
+                    // Window closed or null, assume app opened
+                    modMdc.mkMDCsnackbar('App opened successfully!');
+                }
+            }, msCheck);
+
+            return;
+        }
 
 
-        // urlUsed = webUrl;
+
         alert('Attempting to open web...');
         windowAI = window.open(webUrlQ, "_blank");
         if (windowAI == null) {
             modMdc.mkMDCdialogConfirm("Popups are blocked, can't open url", "Close");
             return null;
         }
-        if (canOnlyWebUrl) {
-            return windowAI;
-        }
+        return windowAI;
 
-        if (typeof infoThisAI.pkg != "string") throw Error(`No appPkg, webUrl=="${webUrl}"`);
+        // if (typeof pkg != "string") throw Error(`No appPkg, webUrl=="${webUrl}"`);
 
-        const msCheck = 2000;
         /*
         const msCheck = _getCheckDelay(2000);
         function _getCheckDelay(msDefault = 2000) {
@@ -655,34 +657,6 @@ pkg==${infoThisAI.pkg}`);
             return ms;
         }
         */
-        alert('Attempting to open app...');
-        const promptEncoded = encodeURIComponent(prompt);
-        // const appUrlQ = appUrl.replaceAll(/PROMPT-ENCODED/g, promptEncoded);
-        const intentUrl =
-            "intent://" + webUrlQ +
-            "#Intent;scheme=https;package=" + infoThisAI.pkg + ";end";
-        windowAI = window.open(intentUrl, '_blank');
-        if (windowAI == null) {
-            modMdc.mkMDCdialogConfirm("Popups are blocked, can't open app", "Close");
-            return null;
-        }
-
-        // Chrome-specific: Use a single timeout to check if the app opened
-        setTimeout(() => {
-            alert(`windowAI.closed==${windowAI.closed}`);
-            if (windowAI && !windowAI.closed) {
-                // Window still open, app likely didn't launch
-                // FIX-ME: Will chrome try to close it???
-                modMdc.mkMDCsnackbar('App not found, redirecting to web page...');
-                windowAI.location.href = infoThisAI.url;
-                // appWindow.close();
-                // appWindow = window.open(webUrl, "_blank");
-            } else {
-                // Window closed or null, assume app opened
-                modMdc.mkMDCsnackbar('App opened successfully!');
-            }
-        }, msCheck);
-
     }
     /**
      * https://chatgpt.com/share/68c20d3b-e168-8004-8cea-c80d30949054
