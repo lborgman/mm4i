@@ -614,6 +614,7 @@ appUrl==${appUrl}`);
 
 
         // urlUsed = webUrl;
+        alert('Attempting to open web...');
         windowAI = window.open(webUrl, "_blank");
         if (windowAI == null) {
             modMdc.mkMDCdialogConfirm("Popups are blocked, can't open url", "Close");
@@ -623,21 +624,22 @@ appUrl==${appUrl}`);
             return windowAI;
         }
 
-        if (typeof appUrl != "string") throw Error(`No intentUrl, webUrl=="${webUrl}"`);
+        if (typeof appUrl != "string") throw Error(`No appUrl, webUrl=="${webUrl}"`);
 
-        const msCheck = getCheckDelay("2000");
+        // const msCheck = _getCheckDelay(2000);
+        const msCheck = 2000;
         /**
          * @param {number} msDefault 
          * @returns {number}
          */
-        function getCheckDelay(msDefault = "2000") {
+        function _getCheckDelay(msDefault = 2000) {
             return msDefault;
             const ans = prompt("intent check delay, ms", msDefault).trim();
             console.log({ ans });
             const ms = parseInt(ans);
             return ms;
         }
-        console.log('Attempting to open app...');
+        alert('Attempting to open app...');
         // urlUsed = appUrl;
         windowAI = window.open(appUrl, '_blank');
         if (windowAI == null) {
