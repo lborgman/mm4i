@@ -605,10 +605,11 @@ url==${url}
 pkg==${pkg}`);
 
         if ((!canOnlyWebUrl) && pkg) {
-            alert('Attempting to open app...');
+            alert('Attempting to open app... (without Q)');
             // const promptEncoded = encodeURIComponent(prompt);
             const intentUrl =
-                "intent://" + webUrlQ +
+                // "intent://" + webUrlQ +
+                "intent://" + infoThisAI.url +
                 "#Intent;scheme=https;package=" + pkg + ";end";
             windowAI = window.open(intentUrl, '_blank');
             if (windowAI == null) {
@@ -622,12 +623,14 @@ pkg==${pkg}`);
                 if (windowAI && !windowAI.closed) {
                     // Window still open, app likely didn't launch
                     // FIX-ME: Will chrome try to close it???
+                    alert('App not found, redirecting to web page...');
                     modMdc.mkMDCsnackbar('App not found, redirecting to web page...');
                     windowAI.location.href = webUrlQ;
                     // appWindow.close();
                     // appWindow = window.open(webUrl, "_blank");
                 } else {
                     // Window closed or null, assume app opened
+                    alert('App opened successfully!');
                     modMdc.mkMDCsnackbar('App opened successfully!');
                 }
             }, msCheck);
