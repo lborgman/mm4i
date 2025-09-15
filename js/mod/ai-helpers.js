@@ -606,7 +606,7 @@ Important:
         const isAndroid = userAgent.indexOf("android") > -1;
         if (!canOnlyWebUrl) { canOnlyWebUrl = !isAndroid; }
         alert(
-            `canOnlUrl==${canOnlyWebUrl}
+            `canOnlyWebUrl==${canOnlyWebUrl}
 
 isAndroid==${isAndroid}
 webUrl==${webUrl}

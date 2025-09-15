@@ -3,7 +3,10 @@
   "host": "mm4i.vercel.app",
   "name": "Mindmaps 4 Internet (MM4I)",
   "launcherName": "MM4I",
+
   "display": "standalone",
+  "display_override": ["tabbed", "standalone"],
+
   "themeColor": "#808000",
   "themeColorDark": "#000000",
   "navigationColor": "#000000",
