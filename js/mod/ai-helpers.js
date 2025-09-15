@@ -520,9 +520,7 @@ Important:
             background-size: cover;
             background-position: top left;
         `;
-        if (pkg) {
-            imgAI.style.outline = "1px dotted red";
-        }
+        // if (pkg) { imgAI.style.outline = "1px dotted red"; }
         const eltAIname = mkElt("span", {class:"elt-ai-name"}, k);
         const eltAI = mkElt("label", undefined, [radAI, imgAI, eltAIname]);
         eltAI.classList.add("elt-ai");
@@ -612,7 +610,10 @@ pkg==${pkg}`);
             const intentUrl =
                 // "intent://" + webUrlQ +
                 "intent://" + infoThisAI.url +
+                // Including pkg will fallback to Google Play
                 "#Intent;scheme=https;package=" + pkg + ";end";
+                // Without pkd fall back is web
+                "#Intent;scheme=https;package=" + ";end";
             windowAI = window.open(intentUrl, '_blank');
             if (windowAI == null) {
                 modMdc.mkMDCdialogConfirm("Popups are blocked, can't open app", "Close");
