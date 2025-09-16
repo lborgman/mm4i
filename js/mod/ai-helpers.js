@@ -610,13 +610,13 @@ pkg==${pkg}`);
             // const promptEncoded = encodeURIComponent(prompt);
             const target = infoThisAI.url;
             // const target = webUrlQ ;
-            alert(`Attempting to open app... (without Q)\n${target}`);
             const intentUrl =
                 //// No pkg will fallback to web page (target)
                 `intent://${target}#Intent;scheme=https;end;`
                 //// Including pkg will fallback to Google Play
                 // `intent://${target}#Intent;scheme=https;package=${pkg};end;`;
                 ;
+            alert(`Attempting to open app... (without Q)\n${target}\n${intentUrl}`);
             try {
                 windowAI = window.open(intentUrl, 'AIWINDOW');
                 if (windowAI == null) {
@@ -652,7 +652,7 @@ pkg==${pkg}`);
 
 
 
-        alert('Attempting to open web...');
+        alert(`Attempting to open web...\n${webUrlQ}`);
         windowAI = window.open(webUrlQ, "AIWINDOW");
         if (windowAI == null) {
             modMdc.mkMDCdialogConfirm("Popups are blocked, can't open url", "Close");
