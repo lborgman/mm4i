@@ -99,8 +99,8 @@ const infoAI = {
         testedChat: true,
         q: false,
         comment: undefined,
-        // url: "gemini.google.com/app",
-        url: "gemini.google.com",
+        // url: "gemini.google.com",
+        url: "gemini.google.com/app",
         // urlAndroidApp: true,
         pkg: "com.google.android.apps.bard",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg"
@@ -110,7 +110,8 @@ const infoAI = {
         q: false,
         comment: undefined,
         // url: "https://chatgpt.openai.com",
-        url: "chatgpt.com/",
+        // url: "chatgpt.com/",
+        url: "chatgpt.openai.com/",
         // urlAndroidApp: "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;end",
         pkg: "com.openai.chatgpt",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b5/ChatGPT_logo_Square.svg"
@@ -120,7 +121,7 @@ const infoAI = {
         testedChat: true,
         q: false,
         comment: undefined,
-        url: "claude.ai",
+        url: "claude.ai/",
         // urlAndroidApp: true,
         pkg: "com.anthropic.claude",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Claude_AI_symbol.svg"
@@ -129,7 +130,8 @@ const infoAI = {
         testedChat: true,
         q: false,
         comment: "I have asked xAI about OAuth",
-        url: "grok.com",
+        // url: "grok.com",
+        url: "grok.com/chat",
 
         // urlAndroidApp: true,
         // window.location.href = "intent://grok.com/chat?q=" + promptEncoded + "#Intent;scheme=https;package=ai.x.grok;end
@@ -607,13 +609,14 @@ pkg==${pkg}`);
         if ((!canOnlyWebUrl) && pkg) {
             alert('Attempting to open app... (without Q)');
             // const promptEncoded = encodeURIComponent(prompt);
+            const target = infoThisAI.url;
+            // const target = webUrlQ ;
             const intentUrl =
-                // "intent://" + webUrlQ +
-                "intent://" + infoThisAI.url +
-                // Including pkg will fallback to Google Play
-                "#Intent;scheme=https;package=" + pkg + ";end";
-            // Without pkd fall back is web
-            "#Intent;scheme=https;package=" + ";end";
+                //// No pkg will fallback to web page (target)
+                `intent://${target}#Intent;scheme=https;end;`
+                //// Including pkg will fallback to Google Play
+                // `intent://${target}#Intent;scheme=https;package=${pkg};end;`;
+                ;
             try {
                 windowAI = window.open(intentUrl, 'AIWINDOW');
                 if (windowAI == null) {
