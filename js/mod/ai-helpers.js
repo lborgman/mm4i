@@ -618,7 +618,7 @@ pkg==${pkg}`);
                 //// Including pkg will fallback to Google Play
                 // `intent://${target}#Intent;scheme=https;package=${pkg};end;`;
                 ;
-            alert(`Attempting to open app... (without Q)\n${target}\n${intentUrl}`);
+            // alert(`Attempting to open app... (without Q)\n${target}\n${intentUrl}`);
             try {
                 /*
                 windowAI = window.open(intentUrl, 'AIWINDOW');
