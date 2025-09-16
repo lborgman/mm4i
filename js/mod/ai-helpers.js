@@ -635,6 +635,7 @@ pkg==${pkg}`);
             }
 
             // Use a timeout to check if the app opened
+            alert("starting hidden check timer");
             setTimeout(() => {
                 // alert(`windowAI.closed==${windowAI?.closed}`);
                 alert(`document.hidden==${document.hidden}`);
