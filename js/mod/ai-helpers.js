@@ -610,6 +610,8 @@ pkg==${pkg}`);
             // const promptEncoded = encodeURIComponent(prompt);
             const target = infoThisAI.url;
             // const target = webUrlQ ;
+
+            //// https://g.co/gemini/share/5b9e707f9dee
             const intentUrl =
                 //// No pkg will fallback to web page (target)
                 `intent://${target}#Intent;scheme=https;end;`
@@ -618,27 +620,34 @@ pkg==${pkg}`);
                 ;
             alert(`Attempting to open app... (without Q)\n${target}\n${intentUrl}`);
             try {
+                /*
                 windowAI = window.open(intentUrl, 'AIWINDOW');
                 if (windowAI == null) {
                     modMdc.mkMDCdialogConfirm("Popups are blocked, can't open app", "Close");
                     return null;
                 }
+                */
+               window.location.href = intentUrl;
             } catch (err) {
                 debugger;
-                alert(`error from window.open`);
+                // alert(`error from window.open`);
+                alert(`error from window.location.href = intentUrl`);
             }
 
             // Use a timeout to check if the app opened
             setTimeout(() => {
-                alert(`windowAI.closed==${windowAI?.closed}`);
-                if (windowAI && !windowAI.closed) {
+                // alert(`windowAI.closed==${windowAI?.closed}`);
+                alert(`document.hidden==${document.hidden}`);
+                // if (windowAI && !windowAI.closed) {
+                if (!document.hidden) {
                     // Window still open, app likely didn't launch
+                    // Window still in front, app likely didn't launch
                     // FIX-ME: Will chrome try to close it???
                     const url = `https://${target}`
                     alert(`App not found, redirecting to web page...\n${url}`);
                     modMdc.mkMDCsnackbar('App not found, redirecting to web page...');
-                    windowAI.location.href = url;
-                    // appWindow.close();
+                    // windowAI.location.href = url;
+                    window.open(url, "AIWINDOW");
                     // appWindow = window.open(webUrl, "AIWINDOW");
                 } else {
                     // Window closed or null, assume app opened
