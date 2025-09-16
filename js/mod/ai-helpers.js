@@ -615,7 +615,7 @@ pkg==${pkg}`);
             // Without pkd fall back is web
             "#Intent;scheme=https;package=" + ";end";
             try {
-                windowAI = window.open(intentUrl, '_blank');
+                windowAI = window.open(intentUrl, 'AIWINDOW');
                 if (windowAI == null) {
                     modMdc.mkMDCdialogConfirm("Popups are blocked, can't open app", "Close");
                     return null;
@@ -635,7 +635,7 @@ pkg==${pkg}`);
                     modMdc.mkMDCsnackbar('App not found, redirecting to web page...');
                     windowAI.location.href = webUrlQ;
                     // appWindow.close();
-                    // appWindow = window.open(webUrl, "_blank");
+                    // appWindow = window.open(webUrl, "AIWINDOW");
                 } else {
                     // Window closed or null, assume app opened
                     alert('App opened successfully!');
@@ -649,7 +649,7 @@ pkg==${pkg}`);
 
 
         alert('Attempting to open web...');
-        windowAI = window.open(webUrlQ, "_blank");
+        windowAI = window.open(webUrlQ, "AIWINDOW");
         if (windowAI == null) {
             modMdc.mkMDCdialogConfirm("Popups are blocked, can't open url", "Close");
             return null;
@@ -676,6 +676,7 @@ pkg==${pkg}`);
      * @param {string} webUrl 
      * @returns {Promise<Window|null>}
      */
+    /*
     async function _openWithFallback(intentUrl, webUrl) {
         const modTools = await importFc4i("toolsJs");
         setTimeout(() => { check(); }, 2000);
@@ -728,6 +729,8 @@ pkg==${pkg}`);
             }
         }
     }
+    */
+
 
 
     const cardPrompt = mkElt("p", { class: "mdc-card display-flex" }, [
