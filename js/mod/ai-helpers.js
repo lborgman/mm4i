@@ -635,24 +635,24 @@ pkg==${pkg}`);
             }
 
             // Use a timeout to check if the app opened
-            alert("starting hidden check timer");
+            // alert("starting hidden check timer");
             setTimeout(() => {
                 // alert(`windowAI.closed==${windowAI?.closed}`);
-                alert(`document.hidden==${document.hidden}`);
+                // alert(`document.hidden==${document.hidden}`);
                 // if (windowAI && !windowAI.closed) {
                 if (!document.hidden) {
                     // Window still open, app likely didn't launch
                     // Window still in front, app likely didn't launch
                     // FIX-ME: Will chrome try to close it???
                     const url = `https://${target}`
-                    alert(`App not found, redirecting to web page...\n${url}`);
+                    // alert(`App not found, redirecting to web page...\n${url}`);
                     modMdc.mkMDCsnackbar('App not found, redirecting to web page...');
                     // windowAI.location.href = url;
                     window.open(url, "AIWINDOW");
                     // appWindow = window.open(webUrl, "AIWINDOW");
                 } else {
                     // Window closed or null, assume app opened
-                    alert('App opened successfully!');
+                    // alert('App opened successfully!');
                     modMdc.mkMDCsnackbar('App opened successfully!');
                 }
             }, msCheck);
@@ -662,7 +662,7 @@ pkg==${pkg}`);
 
 
 
-        alert(`Attempting to open web...\n${webUrlQ}`);
+        // alert(`Attempting to open web...\n${webUrlQ}`);
         windowAI = window.open(webUrlQ, "AIWINDOW");
         if (windowAI == null) {
             modMdc.mkMDCdialogConfirm("Popups are blocked, can't open url", "Close");
