@@ -607,10 +607,10 @@ url==${url}
 pkg==${pkg}`);
 
         if ((!canOnlyWebUrl) && pkg) {
-            alert('Attempting to open app... (without Q)');
             // const promptEncoded = encodeURIComponent(prompt);
             const target = infoThisAI.url;
             // const target = webUrlQ ;
+            alert(`Attempting to open app... (without Q)\n${target}`);
             const intentUrl =
                 //// No pkg will fallback to web page (target)
                 `intent://${target}#Intent;scheme=https;end;`
@@ -634,9 +634,10 @@ pkg==${pkg}`);
                 if (windowAI && !windowAI.closed) {
                     // Window still open, app likely didn't launch
                     // FIX-ME: Will chrome try to close it???
-                    alert('App not found, redirecting to web page...');
+                    const url = `https://${target}`
+                    alert(`App not found, redirecting to web page...\n${url}`);
                     modMdc.mkMDCsnackbar('App not found, redirecting to web page...');
-                    windowAI.location.href = webUrlQ;
+                    windowAI.location.href = url;
                     // appWindow.close();
                     // appWindow = window.open(webUrl, "AIWINDOW");
                 } else {
