@@ -852,21 +852,55 @@ pkg==${pkg}`);
         gap: 10px;
         flex-wrap: wrap;
         `;
-    const intentGeminiUrl = 'intent://chat?source=button_click#Intent;scheme=gemini;package=com.google.android.apps.bard;end;';
-    const aTestG = mkElt("a", {
-        href: intentGeminiUrl,
-        style: "font-size:2rem;"
-    }, "test Gemini");
+    const divBtnCopy = mkElt("div", undefined, btnCopyAndOpenAI);
     const divHardWay = mkElt("div", undefined, [
         mkElt("div", undefined, cardPrompt),
         // divListAIhardWay,
         divAIhardWay,
-        mkElt("div", undefined, btnCopyAndOpenAI),
-        mkElt("div", { style: "margin:30px;" }, aTestG),
+        // mkElt("div", undefined, btnCopyAndOpenAI),
+        divBtnCopy,
+        // mkElt("div", { style: "margin:30px;" }, aTestG),
         mkElt("div", undefined, eltDivAI),
     ]);
     divHardWay.id = "hard-way";
     divHardWay.style = styleWays;
+
+    {
+        /** @typedef {Object} objIntent
+         * @property {boolean} noPackage
+        */
+
+        /**
+         * @param {objIntent} opt 
+         * @returns {string}
+         */
+        const mkIntent = (opt) => {
+            // const intentGeminiUrl = 'intent://chat?source=button_click#Intent;scheme=gemini;package=com.google.android.apps.bard;end;';
+            let u = "intent://";
+            u = u.concat("chat?source=button_click");
+            u = u.concat("#Intent;");
+            u = u.concat("scheme=gemini;");
+            if (!opt.noPackage) u = u.concat("package=com.google.android.apps.bard;");
+            u = u.concat("end;");
+            return u;
+        }
+        /**
+         * @param {objIntent} opt 
+         * @returns 
+         */
+        const addIntent = (opt) => {
+            const intentGeminiUrl = mkIntent(opt);
+            const aTestG = mkElt("a", {
+                href: intentGeminiUrl,
+                style: "overflow-wrap:anywhere;"
+            }, intentGeminiUrl);
+            const divTestG = mkElt("div", { style: "margin:30px;" }, aTestG);
+            divBtnCopy.insertAdjacentElement("afterend", divTestG);
+        }
+        addIntent({});
+        addIntent({ noPackage: true });
+    }
+
 
     // const tabRecs = ["Easy way", "Hard way"];
     // const contentElts = mkElt("div", undefined, [divEasyWay, divHardWay]);
