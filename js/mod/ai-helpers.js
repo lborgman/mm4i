@@ -877,7 +877,8 @@ pkg==${pkg}`);
         const mkIntent = (opt) => {
             // const intentGeminiUrl = 'intent://chat?source=button_click#Intent;scheme=gemini;package=com.google.android.apps.bard;end;';
             let u = "intent://";
-            u = u.concat("chat?source=button_click");
+            u = u.concat("chat");
+            // u = u.concat("?source=button_click"); // Optional
             u = u.concat("#Intent;");
             u = u.concat("scheme=gemini;");
             if (!opt.noPackage) u = u.concat("package=com.google.android.apps.bard;");
@@ -894,11 +895,19 @@ pkg==${pkg}`);
                 href: intentGeminiUrl,
                 style: "overflow-wrap:anywhere;"
             }, intentGeminiUrl);
-            const divTestG = mkElt("div", { style: "margin:30px;" }, aTestG);
+            const divTestG = mkElt("div", { style: "margin:20px;" }, aTestG);
             divBtnCopy.insertAdjacentElement("afterend", divTestG);
         }
         addIntent({});
         addIntent({ noPackage: true });
+
+        const urlGemini = "https://gemini.google.com/app";
+        const btnGemini = mkElt("button", undefined, urlGemini);
+        btnGemini.addEventListener("click", () => {
+            window.open(urlGemini, "AIWINDOW");
+        });
+        const divBtnGemini = mkElt("div", { style: "margin:20px;" }, btnGemini);
+        divBtnCopy.insertAdjacentElement("afterend", divBtnGemini);
     }
 
 
