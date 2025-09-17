@@ -867,7 +867,7 @@ pkg==${pkg}`);
 
     {
         /** @typedef {Object} objIntent
-         * @property {boolean} noPackage
+         * @property {boolean} [noPackage]
         */
 
         /**
@@ -886,11 +886,11 @@ pkg==${pkg}`);
             return u;
         }
         /**
-         * @param {objIntent} opt 
+         * @param {string} intentGeminiUrl 
          * @returns 
          */
-        const addIntent = (opt) => {
-            const intentGeminiUrl = mkIntent(opt);
+        const addAlink = (intentGeminiUrl) => {
+            // const intentGeminiUrl = mkIntent(opt);
             const aTestG = mkElt("a", {
                 href: intentGeminiUrl,
                 style: "overflow-wrap:anywhere;"
@@ -898,8 +898,10 @@ pkg==${pkg}`);
             const divTestG = mkElt("div", { style: "margin:20px;" }, aTestG);
             divBtnCopy.insertAdjacentElement("afterend", divTestG);
         }
-        addIntent({});
-        addIntent({ noPackage: true });
+        addAlink(mkIntent({}));
+        addAlink(mkIntent({ noPackage: true }));
+        const intentUrlWithFallback = 'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;';
+        addAlink(intentUrlWithFallback);
 
         const urlGemini = "https://gemini.google.com/app";
         const btnGemini = mkElt("button", undefined, urlGemini);
