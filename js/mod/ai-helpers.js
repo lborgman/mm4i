@@ -925,17 +925,17 @@ pkg==${pkg}`);
                 // Create a hidden iframe
                 const iframe = document.createElement('iframe');
                 iframe.style.display = 'none';
+                // Append the iframe to the body
+                document.body.appendChild(iframe);
 
                 // Set the iframe's src to the intent URL
                 iframe.src = intentUrlWithFallback;
 
-                // Append the iframe to the body
-                document.body.appendChild(iframe);
-
                 // Set a timer to check for the fallback
                 setTimeout(function () {
-                    // Clean up the iframe
-                    document.body.removeChild(iframe);
+                    // Clean up
+                    // document.body.removeChild(iframe);
+                    iframe.remove();
                     document.removeEventListener('visibilitychange', checkVisibility);
 
                     // If the app was not launched, open the fallback in a new tab
