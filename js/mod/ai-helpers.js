@@ -906,6 +906,47 @@ pkg==${pkg}`);
         addAlink(googleAppIntentUrl);
 
 
+
+        {
+            const intentUrlWithFallback = 'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;';
+
+            const btnIframe = mkElt("button", undefined, "iframe");
+            const divBtnIframe = mkElt("div", {style:"margin:20px"}, btnIframe);
+            // 
+            divBtnCopy.insertAdjacentElement("afterend", divBtnIframe);
+
+            btnIframe.addEventListener('click', function () {
+                let appLaunched = false;
+
+                // Listen for visibility changes with the 'once' option
+                document.addEventListener('visibilitychange', checkVisibility);
+                function checkVisibility() { if (document.hidden) { appLaunched = true; } }
+
+                // Create a hidden iframe
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+
+                // Set the iframe's src to the intent URL
+                iframe.src = intentUrlWithFallback;
+
+                // Append the iframe to the body
+                document.body.appendChild(iframe);
+
+                // Set a timer to check for the fallback
+                setTimeout(function () {
+                    // Clean up the iframe
+                    document.body.removeChild(iframe);
+                    document.removeEventListener('visibilitychange', checkVisibility);
+
+                    // If the app was not launched, open the fallback in a new tab
+                    if (!appLaunched) {
+                        window.open('https://gemini.google.com/app', 'AIWINDOW');
+                    }
+                }, 500);
+            });
+        }
+
+
         const urlGemini = "https://gemini.google.com/app";
         const btnGemini = mkElt("button", undefined, urlGemini);
         btnGemini.addEventListener("click", () => {
