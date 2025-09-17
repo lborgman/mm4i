@@ -902,6 +902,9 @@ pkg==${pkg}`);
         addAlink(mkIntent({ noPackage: true }));
         const intentUrlWithFallback = 'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;';
         addAlink(intentUrlWithFallback);
+        const googleAppIntentUrl = 'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;';
+        addAlink(googleAppIntentUrl);
+
 
         const urlGemini = "https://gemini.google.com/app";
         const btnGemini = mkElt("button", undefined, urlGemini);
