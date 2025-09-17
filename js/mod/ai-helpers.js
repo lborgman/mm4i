@@ -627,7 +627,7 @@ pkg==${pkg}`);
                     return null;
                 }
                 */
-               window.location.href = intentUrl;
+                window.location.href = intentUrl;
             } catch (err) {
                 debugger;
                 // alert(`error from window.open`);
@@ -852,11 +852,17 @@ pkg==${pkg}`);
         gap: 10px;
         flex-wrap: wrap;
         `;
+    const intentGeminiUrl = 'intent://chat?source=button_click#Intent;scheme=gemini;package=com.google.android.apps.bard;end;';
+    const aTestG = mkElt("a", {
+        href: intentGeminiUrl,
+        style: "font-size:2rem;"
+    }, "test Gemini");
     const divHardWay = mkElt("div", undefined, [
         mkElt("div", undefined, cardPrompt),
         // divListAIhardWay,
         divAIhardWay,
         mkElt("div", undefined, btnCopyAndOpenAI),
+        mkElt("div", { style: "margin:30px;" }, aTestG),
         mkElt("div", undefined, eltDivAI),
     ]);
     divHardWay.id = "hard-way";
