@@ -943,17 +943,17 @@ pkg==${pkg}`);
                 function checkVisibility() {
                     document.removeEventListener('visibilitychange', checkVisibility);
                     console.log("checkVisibility, document.hidden", document.hidden);
+                    appLaunched = true;
                     if (document.hidden) {
                         appLaunched = true;
                     }
                 }
 
-                iframe.src = src
-
                 // Set a timer to check for the fallback
+                console.log("starting setTimeout");
                 setTimeout(function () {
                     // Clean up
-                    // document.body.removeChild(iframe);
+                    alert(`in setTimeout check appLaunched, ${appLaunched}`);
                     iframe.remove();
                     document.removeEventListener('visibilitychange', checkVisibility);
 
@@ -961,8 +961,13 @@ pkg==${pkg}`);
                     if (!appLaunched) {
                         window.open('https://gemini.google.com/app', 'AIWINDOW');
                     }
-                }, 500);
+                }, 4 * 1000);
+
+                console.log(">>>>>> Before iframe.src = src");
+                iframe.src = src;
+                console.log(">>>>>> After iframe.src = src");
             });
+
         }
 
 
