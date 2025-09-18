@@ -942,7 +942,8 @@ pkg==${pkg}`);
                 document.addEventListener('visibilitychange', checkVisibility);
                 function checkVisibility() {
                     document.removeEventListener('visibilitychange', checkVisibility);
-                    if (window.hidden) {
+                    // if (window.hidden) {
+                    if (document.visibility == "hidden") {
                         appLaunched = true;
                     }
                 }
