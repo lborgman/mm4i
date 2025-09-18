@@ -155,6 +155,7 @@ const infoAI = {
 }
 
 
+const keyLsAIhard = "mm4i-ai-hardway";
 
 export async function generateMindMap(fromLink) {
     const modMdc = await importFc4i("util-mdc");
@@ -182,7 +183,7 @@ export async function generateMindMap(fromLink) {
     const eltStatus = mkElt("div", undefined, "(empty)");
     if (fromLink) {
         inpLink.value = fromLink;
-        checkInpLink();
+        // setTimeout(() => { checkInpLink(); }, 1000);
     }
     inpLink.addEventListener("input", async _evt => {
         checkInpLink();
@@ -499,7 +500,6 @@ Important:
         margin-bottom: 10px;
         `;
 
-    const keyLsAIhard = "mm4i-ai-hardway";
     let valLsAIhard = localStorage.getItem(keyLsAIhard) || "none";
     {
         const radAI = mkElt("input", { type: "radio", name: "ai", value: "none", checked: true });
@@ -613,11 +613,12 @@ pkg==${pkg}`);
 
             //// https://g.co/gemini/share/5b9e707f9dee
             const intentUrl =
-                //// No pkg will fallback to web page (target)
-                `intent://${target}#Intent;scheme=https;end;`
-                //// Including pkg will fallback to Google Play
-                // `intent://${target}#Intent;scheme=https;package=${pkg};end;`;
-                ;
+                await dialogEditIntentUrl(false,
+                    //// No pkg will fallback to web page (target)
+                    `intent://${target}#Intent;scheme=https;end;`
+                    //// Including pkg will fallback to Google Play
+                    // `intent://${target}#Intent;scheme=https;package=${pkg};end;`;
+                );
             // alert(`Attempting to open app... (without Q)\n${target}\n${intentUrl}`);
             try {
                 /*
@@ -900,22 +901,28 @@ pkg==${pkg}`);
         }
         addAlink(mkIntent({}));
         addAlink(mkIntent({ noPackage: true }));
-        const intentUrlWithFallback = 'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;';
+        const intentUrlWithFallback =
+            await dialogEditIntentUrl(false,
+                'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;');
         addAlink(intentUrlWithFallback);
-        const googleAppIntentUrl = 'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;';
+        const googleAppIntentUrl =
+            await dialogEditIntentUrl(false,
+                'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;');
         addAlink(googleAppIntentUrl);
 
 
 
         {
-            const intentUrlWithFallback = 'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;';
+            const intentUrlWithFallback2 =
+                'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;';
 
+            // dialogEditIntentUrl
             const btnIframe = mkElt("button", undefined, "iframe");
-            const divBtnIframe = mkElt("div", {style:"margin:20px"}, btnIframe);
+            const divBtnIframe = mkElt("div", { style: "margin:20px" }, btnIframe);
             // 
             divBtnCopy.insertAdjacentElement("afterend", divBtnIframe);
 
-            btnIframe.addEventListener('click', function () {
+            btnIframe.addEventListener('click', async function () {
                 let appLaunched = false;
 
                 // Listen for visibility changes with the 'once' option
@@ -929,7 +936,9 @@ pkg==${pkg}`);
                 document.body.appendChild(iframe);
 
                 // Set the iframe's src to the intent URL
-                iframe.src = intentUrlWithFallback;
+                const src = await dialogEditIntentUrl(true);
+                if (src == null) return;
+                iframe.src = src
 
                 // Set a timer to check for the fallback
                 setTimeout(function () {
@@ -984,6 +993,8 @@ pkg==${pkg}`);
         divWays,
     ]);
     modMdc.mkMDCdialogAlert(body, "Close");
+    // debugger;
+    checkInpLink(); // Necessary elements are connected to the DOM here
     async function doMakeGeneratedMindmap() {
         const strAIraw = eltAItextarea.value;
 
@@ -1091,4 +1102,100 @@ pkg==${pkg}`);
         return { strAIjson, cleaned };
     }
 
+}
+
+/**
+ * 
+ * @param {boolean} doEdit 
+ * @param {string|undefined} origIntentUrl 
+ * @returns {Promise<string|null>}
+ */
+async function dialogEditIntentUrl(doEdit, origIntentUrl) {
+    if (!doEdit) return origIntentUrl;
+    const keyIndentChoice = "mm4i-indentUrl-choice";
+    const nameAI = localStorage.getItem(keyLsAIhard);
+    const infoThisAI = infoAI[nameAI];
+    const target = infoThisAI.url;
+    const arrIntentUrl = [
+        'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
+        `intent://${target}#Intent;scheme=https;end;`,
+        'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
+        'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;',
+    ];
+
+    const divIntents = mkElt("div");
+    const strOldIdx = localStorage.getItem(keyIndentChoice);
+    const oldIdx = strOldIdx == null ? 0 : parseInt(strOldIdx);
+    /** @param {string} strIntent @param {number} idx */
+    const addIntentAlt = (strIntent, idx) => {
+        const rad = mkElt("input", { type: "radio", name: "rad-intent", value: idx });
+        if (idx == oldIdx) { rad.checked = true; }
+        const span = mkElt("span", undefined, strIntent);
+        span.style = `
+            overflow-wrap: anywhere;
+            `;
+        const lbl = mkElt("label", undefined, [rad, span]);
+        lbl.style = `
+            display: flex;
+            gap: 5px;
+            `;
+        const div = mkElt("div", { class: "mdc-card" }, lbl);
+        div.style = `
+            margin-bottom: 10px;
+            padding: 8px 12px 8px 4px;
+            `;
+        divIntents.appendChild(div);
+    }
+    const len = arrIntentUrl.length;
+    for (let idx = 0; idx < len; idx++) {
+        const int = arrIntentUrl[idx];
+        addIntentAlt(int, idx);
+    }
+
+
+    const eltTA = mkElt("textarea");
+    eltTA.style = `
+        width: 100%;
+        height: 8rem;
+        `;
+
+    const updateEltTA = (idx) => {
+        const arrIntent = arrIntentUrl[idx]
+            .split(";")
+            .filter(l => l.trim() != "")
+            .map(l => {
+                return l.trim() + ";\n";
+            });
+
+        eltTA.value = arrIntent.join("");
+    }
+    updateEltTA(oldIdx);
+    divIntents.addEventListener("input", () => {
+        const currRad = divIntents.querySelector("input:checked");
+        const currIdx = currRad.value;
+        updateEltTA(currIdx);
+    });
+
+    const body = mkElt("div", undefined, [
+        mkElt("h2", undefined, "Edit intent url"),
+        divIntents,
+        eltTA
+    ]);
+    body.style = `
+        width: calc(100vw - 80px);
+        `;
+    const modMdc = await importFc4i("util-mdc");
+    const ans = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel");
+    if (ans) {
+        const inp = divIntents.querySelector("input:checked")
+        const idx = inp.value;
+        console.log({ idx });
+        localStorage.setItem(keyIndentChoice, idx);
+        const val = eltTA.value;
+        const arr = val.split("\n").map(l => l.trim());
+        const newIntentUrl = arr.join("");
+        console.log({ newIntentUrl });
+        return newIntentUrl;
+    }
+    return null;
 }
