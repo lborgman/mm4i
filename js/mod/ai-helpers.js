@@ -613,12 +613,12 @@ pkg==${pkg}`);
 
             //// https://g.co/gemini/share/5b9e707f9dee
             const intentUrl =
-                await dialogEditIntentUrl(false,
-                    //// No pkg will fallback to web page (target)
-                    `intent://${target}#Intent;scheme=https;end;`
-                    //// Including pkg will fallback to Google Play
-                    // `intent://${target}#Intent;scheme=https;package=${pkg};end;`;
-                );
+                // await dialogEditIntentUrl(false,
+                //// No pkg will fallback to web page (target)
+                `intent://${target}#Intent;scheme=https;end;`;
+            //// Including pkg will fallback to Google Play
+            // `intent://${target}#Intent;scheme=https;package=${pkg};end;`;
+            // );
             // alert(`Attempting to open app... (without Q)\n${target}\n${intentUrl}`);
             try {
                 /*
@@ -902,12 +902,14 @@ pkg==${pkg}`);
         addAlink(mkIntent({}));
         addAlink(mkIntent({ noPackage: true }));
         const intentUrlWithFallback =
-            await dialogEditIntentUrl(false,
-                'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;');
+            // await dialogEditIntentUrl(false,
+            'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;';
+        // );
         addAlink(intentUrlWithFallback);
         const googleAppIntentUrl =
-            await dialogEditIntentUrl(false,
-                'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;');
+            // await dialogEditIntentUrl(false,
+            'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;';
+        // );
         addAlink(googleAppIntentUrl);
 
 
@@ -925,10 +927,6 @@ pkg==${pkg}`);
             btnIframe.addEventListener('click', async function () {
                 let appLaunched = false;
 
-                // Listen for visibility changes with the 'once' option
-                document.addEventListener('visibilitychange', checkVisibility);
-                function checkVisibility() { if (document.hidden) { appLaunched = true; } }
-
                 // Create a hidden iframe
                 const iframe = document.createElement('iframe');
                 iframe.style.display = 'none';
@@ -936,8 +934,19 @@ pkg==${pkg}`);
                 document.body.appendChild(iframe);
 
                 // Set the iframe's src to the intent URL
-                const src = await dialogEditIntentUrl(true);
+                const src = await dialogEditIntentUrl();
                 if (src == null) return;
+
+
+                // Listen for visibility changes with the 'once' option
+                document.addEventListener('visibilitychange', checkVisibility);
+                function checkVisibility() {
+                    document.removeEventListener('visibilitychange', checkVisibility);
+                    if (document.hidden) {
+                        appLaunched = true;
+                    }
+                }
+
                 iframe.src = src
 
                 // Set a timer to check for the fallback
@@ -1106,13 +1115,12 @@ pkg==${pkg}`);
 
 /**
  * 
- * @param {boolean} doEdit 
- * @param {string|undefined} origIntentUrl 
  * @returns {Promise<string|null>}
  */
-async function dialogEditIntentUrl(doEdit, origIntentUrl) {
-    if (!doEdit) return origIntentUrl;
-    const keyIndentChoice = "mm4i-indentUrl-choice";
+async function dialogEditIntentUrl() {
+    // if (!doEdit) return origIntentUrl;
+    const keyIntentChoice = "mm4i-indentUrl-choice";
+    const keyLastIntent = "mm4i-indentUrl-last";
     const nameAI = localStorage.getItem(keyLsAIhard);
     const infoThisAI = infoAI[nameAI];
     const target = infoThisAI.url;
@@ -1124,7 +1132,7 @@ async function dialogEditIntentUrl(doEdit, origIntentUrl) {
     ];
 
     const divIntents = mkElt("div");
-    const strOldIdx = localStorage.getItem(keyIndentChoice);
+    const strOldIdx = localStorage.getItem(keyIntentChoice);
     const oldIdx = strOldIdx == null ? 0 : parseInt(strOldIdx);
     /** @param {string} strIntent @param {number} idx */
     const addIntentAlt = (strIntent, idx) => {
@@ -1145,11 +1153,19 @@ async function dialogEditIntentUrl(doEdit, origIntentUrl) {
             padding: 8px 12px 8px 4px;
             `;
         divIntents.appendChild(div);
+        return div;
     }
     const len = arrIntentUrl.length;
     for (let idx = 0; idx < len; idx++) {
         const int = arrIntentUrl[idx];
         addIntentAlt(int, idx);
+    }
+    const lastIntentUrl = localStorage.getItem(keyLastIntent);
+    if (lastIntentUrl) {
+        const div = addIntentAlt(lastIntentUrl, -1);
+        div.style = `
+            color: darkcyan;
+            `;
     }
 
 
@@ -1159,8 +1175,11 @@ async function dialogEditIntentUrl(doEdit, origIntentUrl) {
         height: 8rem;
         `;
 
+    let origIndentUrl;
     const updateEltTA = (idx) => {
-        const arrIntent = arrIntentUrl[idx]
+        origIndentUrl = idx == -1 ? localStorage.getItem(keyLastIntent) : arrIntentUrl[idx];
+        if (origIndentUrl == null) throw Error(`origIndentUrl==null, ${idx}`);
+        const arrIntent = origIndentUrl
             .split(";")
             .filter(l => l.trim() != "")
             .map(l => {
@@ -1190,11 +1209,14 @@ async function dialogEditIntentUrl(doEdit, origIntentUrl) {
         const inp = divIntents.querySelector("input:checked")
         const idx = inp.value;
         console.log({ idx });
-        localStorage.setItem(keyIndentChoice, idx);
+        if (idx != -1) { localStorage.setItem(keyIntentChoice, idx); }
         const val = eltTA.value;
         const arr = val.split("\n").map(l => l.trim());
         const newIntentUrl = arr.join("");
-        console.log({ newIntentUrl });
+        const same = newIntentUrl == origIndentUrl;
+        console.log({ same, newIntentUrl, origIndentUrl });
+        localStorage.removeItem(keyLastIntent);
+        if (!same || idx == -1) { localStorage.setItem(keyLastIntent, newIntentUrl); }
         return newIntentUrl;
     }
     return null;
