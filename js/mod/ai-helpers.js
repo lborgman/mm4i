@@ -942,7 +942,7 @@ pkg==${pkg}`);
                 document.addEventListener('visibilitychange', checkVisibility);
                 function checkVisibility() {
                     document.removeEventListener('visibilitychange', checkVisibility);
-                    if (document.hidden) {
+                    if (window.hidden) {
                         appLaunched = true;
                     }
                 }
@@ -1125,24 +1125,40 @@ async function dialogEditIntentUrl() {
     const infoThisAI = infoAI[nameAI];
     const target = infoThisAI.url;
     const arrIntentUrl = [
-        'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
-        `intent://${target}#Intent;scheme=https;end;`,
-        'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
-        'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;',
+        [
+            'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
+        ],
+        [
+            `intent://${target}#Intent;scheme=https;end;`,
+        ],
+        [
+            'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
+        ],
+        [
+            'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;',
+            "Opens Google Play"
+        ],
     ];
 
     const divIntents = mkElt("div");
     const strOldIdx = localStorage.getItem(keyIntentChoice);
     const oldIdx = strOldIdx == null ? 0 : parseInt(strOldIdx);
     /** @param {string} strIntent @param {number} idx */
-    const addIntentAlt = (strIntent, idx) => {
+    const addIntentAlt = (strIntent, comment, idx) => {
         const rad = mkElt("input", { type: "radio", name: "rad-intent", value: idx });
         if (idx == oldIdx) { rad.checked = true; }
-        const span = mkElt("span", undefined, strIntent);
-        span.style = `
+        const spanIntent = mkElt("span", undefined, strIntent);
+        spanIntent.style = `
             overflow-wrap: anywhere;
             `;
-        const lbl = mkElt("label", undefined, [rad, span]);
+        const spanComment = mkElt("span", undefined, comment);
+        spanComment.style = `color:red;`;
+        const spanEntry = mkElt("span", undefined, [spanIntent, spanComment])
+        spanEntry.style = `
+            display: flex;
+            flex-direction: column;
+            `;
+        const lbl = mkElt("label", undefined, [rad, spanEntry]);
         lbl.style = `
             display: flex;
             gap: 5px;
@@ -1158,11 +1174,13 @@ async function dialogEditIntentUrl() {
     const len = arrIntentUrl.length;
     for (let idx = 0; idx < len; idx++) {
         const int = arrIntentUrl[idx];
-        addIntentAlt(int, idx);
+        const int0 = int[0];
+        const int1 = int[1];
+        addIntentAlt(int0, int1, idx);
     }
     const lastIntentUrl = localStorage.getItem(keyLastIntent);
     if (lastIntentUrl) {
-        const div = addIntentAlt(lastIntentUrl, -1);
+        const div = addIntentAlt(lastIntentUrl, "Last used edited", -1);
         div.style = `
             color: darkcyan;
             `;
@@ -1177,7 +1195,8 @@ async function dialogEditIntentUrl() {
 
     let origIndentUrl;
     const updateEltTA = (idx) => {
-        origIndentUrl = idx == -1 ? localStorage.getItem(keyLastIntent) : arrIntentUrl[idx];
+        const origIndentUrlEntry = arrIntentUrl[idx];
+        const origIndentUrl = idx == -1 ? localStorage.getItem(keyLastIntent) : origIndentUrlEntry[0];
         if (origIndentUrl == null) throw Error(`origIndentUrl==null, ${idx}`);
         const arrIntent = origIndentUrl
             .split(";")
