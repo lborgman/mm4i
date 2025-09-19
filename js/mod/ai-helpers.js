@@ -111,7 +111,7 @@ const infoAI = {
         testedChat: true,
         q: false,
         comment: undefined,
-        url: "chatgpt.com/",
+        url: "chatgpt.com",
         // urlAndroidApp: "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;end",
         pkg: "com.openai.chatgpt",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b5/ChatGPT_logo_Square.svg"
@@ -121,7 +121,7 @@ const infoAI = {
         testedChat: true,
         q: false,
         comment: undefined,
-        url: "claude.ai/",
+        url: "claude.ai",
         // urlAndroidApp: true,
         pkg: "com.anthropic.claude",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Claude_AI_symbol.svg"
@@ -173,7 +173,15 @@ const testIntentsAI = {
             "Opens Google Play"
         ],
     ],
-    "ChatGPT": [],
+    "ChatGPT":
+        [
+            [
+                "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchat.openai.com%2F;end",
+            ],
+            [
+                "intent://chat.openai.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchat.openai.com%2F;end",
+            ],
+        ],
     "Claude": [],
     "Grok": [],
     "Perplexity":
@@ -186,7 +194,10 @@ const testIntentsAI = {
             // ["intent://perplexity.sng.link/A6awk/ppas?_android_dl=perplexity-app%3A%2F%2F&_ddl=perplexity-app%3A%2F%2F&_dl=perplexity-app%3A%2F%2F&_ios_dl=perplexity-app%3A%2F%2F&_p=origin%3Dmobile-header%26pvid%3D260ff302-b768-4fac-b492-3a0c81c5757d%26pathname%3D%252F&_smtype=3&referrer=singular_click_id%3Dc67b4fbc-b135-43e2-9d3e-0e72248ded73#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;S.market_referrer=singular_click_id%3Dc67b4fbc-b135-43e2-9d3e-0e72248ded73;S.browser_fallback_url=market%3A%2F%2Fdetails%3Fid%3Dai.perplexity.app.android%26referrer%3Dsingular_click_id%253Dc67b4fbc-b135-43e2-9d3e-0e72248ded73;end"],
             // ["intent://perplexity.sng.link/A6awk/ppas#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;S.browser_fallback_url=market://details?id=ai.perplexity.app.android;end;"],
             // ["intent://perplexity.sng.link/A6awk/ppas#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;end;"],
-            ["intent://perplexity.sng.link/A6awk/ppas?q=PLACEHOLDER#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;end;"],
+            [
+                "intent://perplexity.sng.link/A6awk/ppas?q=PLACEHOLDER#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;end;",
+                "Starts app, but q does not work"
+            ],
         ]
 }
 
