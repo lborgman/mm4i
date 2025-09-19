@@ -192,7 +192,12 @@ const testIntentsAI = {
             ],
         ],
     "Claude": [],
-    "Grok": [],
+    "Grok":
+        [
+            [
+                "intent://#Intent;package=ai.x.grok;end;",
+            ]
+        ],
     "Perplexity":
         [
             // ["intent://home?q=PLACEHOLDER#Intent;scheme=perplexity;end;"],
@@ -1176,6 +1181,7 @@ function mkWebUrl(nameAI, promptAI) {
     const infoThisAI = infoAI[nameAI];
     const url = infoThisAI.url;
     const promptEncoded = encodeURIComponent(promptAI);
-    let urlWeb = `https://${url}/?q=${promptEncoded}`;
+    let urlWeb = `https://${url}?q=${promptEncoded}`;
+    console.log(`mkWebUrl for ${nameAI}`, urlWeb);
     return urlWeb;
 }
