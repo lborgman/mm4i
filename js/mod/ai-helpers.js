@@ -176,7 +176,14 @@ const testIntentsAI = {
     "ChatGPT": [],
     "Claude": [],
     "Grok": [],
-    "Perplexity": [],
+    "Perplexity":
+        [
+            ["intent://home?q=PLACEHOLDER#Intent;scheme=perplexity;end;"],
+            ["intent://assistant?q=PLACEHOLDER#Intent;scheme=perplexity;end;"],
+            ["intent://?q=PLACEHOLDER#Intent;scheme=perplexity;end;"],
+            ["intent://start?q=PLACEHOLDER#Intent;scheme=perplexity;end;"],
+            ["intent://launch?q=PLACEHOLDER#Intent;scheme=perplexity;end;"]
+        ]
 }
 
 
@@ -302,7 +309,9 @@ export async function generateMindMap(fromLink) {
             `*Give as much details as in a text summary.`,
             `*Limit the hiearchy to max depth ${maxDepth} levels.`,
             `*Return only valid JSON (no text before or after).`,
-            `*Check that the JSON is parseable in Chromium browsers.`
+            // `*Check that the JSON is parseable in Chromium browsers.`
+            `*Validate that the JSON is parseable in Chromium browsers.`
+
         ];
         let n = 0;
         const arr = rules
@@ -317,7 +326,7 @@ export async function generateMindMap(fromLink) {
             ;
         return arr.join("\n\n");
         console.log({ arr });
-        debugger;
+        debugger; // eslint-disable-line no-debugger
         return `
 1. Summarize the article (or video)
    "${link}"
@@ -449,7 +458,7 @@ Important:
         } catch (err) {
             tellError(err.message);
             const objJsonErrorDetails = modTools.extractJSONparseError(err.message, strAIjson);
-            console.log({ objJsonErrorDetails });
+            // console.log({ objJsonErrorDetails });
             const eltBefore = mkElt("span", undefined,
                 objJsonErrorDetails.context.before
             );
@@ -537,7 +546,7 @@ Important:
     }
     Object.entries(infoAI).forEach(e => {
         const [k, v] = e;
-        const { testedChat, q, urlImg, pkg } = v;
+        const { testedChat, q, urlImg } = v;
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
         const imgAI = mkElt("span");
         imgAI.style = `
@@ -592,120 +601,11 @@ Important:
 
         modMdc.mkMDCsnackbar(`Copied prompt, opening AI "${nameAI}"`);
         setTimeout(() => {
-            // openIntentFallbackUrl(infoThisAI, promptAI);
-            openTheAI(nameAI); // FIX-ME: promptAI
+            openTheAI(nameAI, promptAI); // FIX-ME: promptAI
         }, 2000);
     });
 
-    /**
-     * Open app, fallback to web page.
-     * This version is Chrome specific.
-     * https://grok.com/share/bGVnYWN5LWNvcHk%3D_0aeb999f-448c-473c-89c4-ad3713907f09
-     * 
-     * @param {aiInfo} infoThisAI 
-     */
-    async function openIntentFallbackUrl(infoThisAI, prompt) {
-        // _openWithFallback
-        const pkg = infoThisAI.pkg;
-        const url = infoThisAI.url;
-        const msCheck = 2000;
 
-        const objUrl = new URL(`https://${url}`);
-        objUrl.searchParams.append("q", prompt);
-        const webUrlQ = objUrl.href;
-
-        /** @type {Window|null} */
-        let windowAI;
-
-        let canOnlyWebUrl = typeof pkg != "string";
-
-        const userAgent = navigator.userAgent.toLowerCase();
-        const isAndroid = userAgent.indexOf("android") > -1;
-        if (!canOnlyWebUrl) { canOnlyWebUrl = !isAndroid; }
-        alert(
-            `canOnlyWebUrl==${canOnlyWebUrl}
-
-isAndroid==${isAndroid}
-url==${url}
-pkg==${pkg}`);
-
-        if ((!canOnlyWebUrl) && pkg) {
-            // const promptEncoded = encodeURIComponent(prompt);
-            const target = infoThisAI.url;
-            // const target = webUrlQ ;
-
-            //// https://g.co/gemini/share/5b9e707f9dee
-            const intentUrl =
-                //// No pkg will fallback to web page (target)
-                `intent://${target}#Intent;scheme=https;end;`;
-            //// Including pkg will fallback to Google Play
-            // `intent://${target}#Intent;scheme=https;package=${pkg};end;`;
-            // );
-            // alert(`Attempting to open app... (without Q)\n${target}\n${intentUrl}`);
-            try {
-                /*
-                windowAI = window.open(intentUrl, 'AIWINDOW');
-                if (windowAI == null) {
-                    modMdc.mkMDCdialogConfirm("Popups are blocked, can't open app", "Close");
-                    return null;
-                }
-                */
-                window.location.href = intentUrl;
-            } catch (err) {
-                debugger;
-                // alert(`error from window.open`);
-                alert(`error from window.location.href = intentUrl`);
-            }
-
-            // Use a timeout to check if the app opened
-            // alert("starting hidden check timer");
-            setTimeout(() => {
-                // alert(`windowAI.closed==${windowAI?.closed}`);
-                // alert(`document.hidden==${document.hidden}`);
-                // if (windowAI && !windowAI.closed) {
-                if (!document.hidden) {
-                    // Window still open, app likely didn't launch
-                    // Window still in front, app likely didn't launch
-                    // FIX-ME: Will chrome try to close it???
-                    const url = `https://${target}`
-                    // alert(`App not found, redirecting to web page...\n${url}`);
-                    modMdc.mkMDCsnackbar('App not found, redirecting to web page...');
-                    // windowAI.location.href = url;
-                    window.open(url, "AIWINDOW");
-                    // appWindow = window.open(webUrl, "AIWINDOW");
-                } else {
-                    // Window closed or null, assume app opened
-                    // alert('App opened successfully!');
-                    modMdc.mkMDCsnackbar('App opened successfully!');
-                }
-            }, msCheck);
-
-            return;
-        }
-
-
-
-        // alert(`Attempting to open web...\n${webUrlQ}`);
-        windowAI = window.open(webUrlQ, "AIWINDOW");
-        if (windowAI == null) {
-            modMdc.mkMDCdialogConfirm("Popups are blocked, can't open url", "Close");
-            return null;
-        }
-        return windowAI;
-
-        // if (typeof pkg != "string") throw Error(`No appPkg, webUrl=="${webUrl}"`);
-
-        /*
-        const msCheck = _getCheckDelay(2000);
-        function _getCheckDelay(msDefault = 2000) {
-            return msDefault;
-            const ans = window.prompt("intent check delay, ms", msDefault).trim();
-            console.log({ ans });
-            const ms = parseInt(ans);
-            return ms;
-        }
-        */
-    }
     /**
      * https://chatgpt.com/share/68c20d3b-e168-8004-8cea-c80d30949054
      * 
@@ -908,53 +808,10 @@ pkg==${pkg}`);
             u = u.concat("end;");
             return u;
         }
-        /**
-         * @param {string} intentGeminiUrl 
-         * @returns 
-         */
-        const _addAlink = (intentGeminiUrl) => {
-            // const intentGeminiUrl = mkIntent(opt);
-            const aTestG = mkElt("a", {
-                href: intentGeminiUrl,
-                style: "overflow-wrap:anywhere;"
-            }, intentGeminiUrl);
-            const divTestG = mkElt("div", { style: "margin:20px;" }, aTestG);
-            divBtnCopy.insertAdjacentElement("afterend", divTestG);
-        }
-        // _addAlink(_mkChatIntent({}));
-        // _addAlink(_mkChatIntent({ noPackage: true }));
 
-
-
-
-        /*
-        {
-            const btnIframe = mkElt("button", undefined, "iframe test Gemini");
-            const divBtnIframe = mkElt("div", { style: "margin:20px" }, btnIframe);
-            // 
-            divBtnCopy.insertAdjacentElement("afterend", divBtnIframe);
-
-            btnIframe.addEventListener('click', function () {
-                openTheAI("Gemini");
-            });
-        }
-        */
-
-
-        /*
-        const urlGemini = "https://gemini.google.com/app";
-        const btnGemini = mkElt("button", undefined, urlGemini);
-        btnGemini.addEventListener("click", () => {
-            window.open(urlGemini, "AIWINDOW");
-        });
-        const divBtnGemini = mkElt("div", { style: "margin:20px;" }, btnGemini);
-        divBtnCopy.insertAdjacentElement("afterend", divBtnGemini);
-        */
     }
 
 
-    // const tabRecs = ["Easy way", "Hard way"];
-    // const contentElts = mkElt("div", undefined, [divEasyWay, divHardWay]);
     const tabRecs = ["Hard way", "Easy way"];
     const contentElts = mkElt("div", undefined, [divHardWay, divEasyWay]);
     if (tabRecs.length != contentElts.childElementCount) throw Error("Tab bar setup number mismatch");
@@ -1055,6 +912,7 @@ pkg==${pkg}`);
                 .replace(/\u200D/g, '') // Zero-width joiner
                 .replace(/\uFEFF/g, '') // Byte order mark
                 .replace(/\u00A0/g, ' ') // Non-breaking space to regular space
+                // oxlint-disable-next-line no-control-regex
                 .replace(/[\u0000-\u001F\u007F-\u009F]/g, '') // Control characters
                 .trim(); // Remove leading/trailing whitespace
         }
@@ -1215,13 +1073,14 @@ async function dialogEditIntentUrl(nameAI) {
  * 
  * @param {string} intentUrl 
  * @param {string} nameAI 
+ * @param {string} promptAI 
  * @returns 
  */
-async function launchIntentWithIframe(intentUrl, nameAI) {
+async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
     let appLaunched = false;
-    const infoThisAI = infoAI[nameAI];
-    if (!infoThisAI) throw Error(`Could not find info for AI "${nameAI}"`);
-    const urlFallBack = `https://${infoThisAI.url}`;
+    // const infoThisAI = infoAI[nameAI];
+    // if (!infoThisAI) throw Error(`Could not find info for AI "${nameAI}"`);
+    const urlFallBack = mkWebUrl(nameAI, promptAI);
 
     // Create a hidden iframe
     const iframe = document.createElement('iframe');
@@ -1267,14 +1126,16 @@ async function launchIntentWithIframe(intentUrl, nameAI) {
 /**
  * 
  * @param {string} nameAI 
+ * @param {string} promptAI 
  */
-async function openTheAI(nameAI) {
+async function openTheAI(nameAI, promptAI) {
     const userAgent = navigator.userAgent.toLowerCase();
     const isAndroid = userAgent.indexOf("android") > -1;
     if (!isAndroid) {
-        const infoThisAI = infoAI[nameAI];
-        const url = infoThisAI.url;
-        window.open(`https://${url}`, "AIWINDOW");
+        // const infoThisAI = infoAI[nameAI];
+        // const url = infoThisAI.url;
+        const webUrl = mkWebUrl(nameAI, promptAI);
+        window.open(`${webUrl}`, "AIWINDOW");
         return;
     }
     const intentUrl = await dialogEditIntentUrl(nameAI);
@@ -1284,5 +1145,13 @@ async function openTheAI(nameAI) {
         return;
     }
     if (!intentUrl) throw Error(`intentUrl=="${intentUrl}"`);
-    launchIntentWithIframe(intentUrl, nameAI);
+    launchIntentWithIframe(intentUrl, nameAI, promptAI);
+}
+
+function mkWebUrl(nameAI, promptAI) {
+    const infoThisAI = infoAI[nameAI];
+    const url = infoThisAI.url;
+    const promptEncoded = encodeURIComponent(promptAI);
+    let urlWeb = `https://${url}/?q=${promptEncoded}`;
+    return urlWeb;
 }
