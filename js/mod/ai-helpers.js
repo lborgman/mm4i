@@ -187,9 +187,15 @@ const testIntentsAI = {
             ],
             [
                 "https://play.google.com/store/apps/details?id=ai.x.grok",
+                "Does nothing"
             ],
             [
                 "intent://#Intent;component=ai.x.grok/.MainActivity;end",
+                "Does nothing"
+            ],
+            [
+                "https://play.google.com/store/apps/details?id=ai.x.grok",
+                "Does nothing"
             ],
             [
                 "https://play.google.com/store/apps/details?id=ai.x.grok",
