@@ -94,6 +94,9 @@ export async function checkGeminiOk() {
 const mkAIinfo = (aiInfo) => { return aiInfo }
 
 // https://chatgpt.com/share/68c0514e-c81c-8004-a196-d4f7f60c3930
+/**
+ * @type {Object<string,aiInfo>}
+ */
 const infoAI = {
     "Gemini": mkAIinfo({
         testedChat: true,
@@ -152,6 +155,29 @@ const infoAI = {
         pkg: "ai.perplexity.app.android",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Perplexity_AI_logo.svg"
     }),
+}
+/**
+ * @type {Object<string,string[][]>}
+ */
+const testIntentsAI = {
+    "Gemini": [
+        [
+            'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
+        ],
+        /*
+        [
+            `intent://${target}#Intent;scheme=https;end;`,
+        ],
+        */
+        [
+            'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
+        ],
+        [
+            'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;',
+            "Opens Google Play"
+        ],
+    ],
+
 }
 
 
@@ -613,7 +639,6 @@ pkg==${pkg}`);
 
             //// https://g.co/gemini/share/5b9e707f9dee
             const intentUrl =
-                // await dialogEditIntentUrl(false,
                 //// No pkg will fallback to web page (target)
                 `intent://${target}#Intent;scheme=https;end;`;
             //// Including pkg will fallback to Google Play
@@ -902,14 +927,10 @@ pkg==${pkg}`);
         addAlink(mkIntent({}));
         addAlink(mkIntent({ noPackage: true }));
         const intentUrlWithFallback =
-            // await dialogEditIntentUrl(false,
             'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;';
-        // );
         addAlink(intentUrlWithFallback);
         const googleAppIntentUrl =
-            // await dialogEditIntentUrl(false,
             'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;';
-        // );
         addAlink(googleAppIntentUrl);
 
 
@@ -918,56 +939,15 @@ pkg==${pkg}`);
             const intentUrlWithFallback2 =
                 'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;';
 
-            // dialogEditIntentUrl
-            const btnIframe = mkElt("button", undefined, "iframe");
+            const btnIframe = mkElt("button", undefined, "iframe test Gemini");
             const divBtnIframe = mkElt("div", { style: "margin:20px" }, btnIframe);
             // 
             divBtnCopy.insertAdjacentElement("afterend", divBtnIframe);
 
-            btnIframe.addEventListener('click', async function () {
-                let appLaunched = false;
-
-                // Create a hidden iframe
-                const iframe = document.createElement('iframe');
-                iframe.style.display = 'none';
-                // Append the iframe to the body
-                document.body.appendChild(iframe);
-
-                // Set the iframe's src to the intent URL
-                const src = await dialogEditIntentUrl();
-                if (src == null) return;
-
-
-                // Listen for visibility changes with the 'once' option
-                document.addEventListener('visibilitychange', checkVisibility);
-                function checkVisibility() {
-                    document.removeEventListener('visibilitychange', checkVisibility);
-                    console.log("checkVisibility, document.hidden", document.hidden);
-                    appLaunched = true;
-                    if (document.hidden) {
-                        appLaunched = true;
-                    }
-                }
-
-                // Set a timer to check for the fallback
-                console.log("starting setTimeout");
-                setTimeout(function () {
-                    // Clean up
-                    alert(`in setTimeout check appLaunched, ${appLaunched}`);
-                    iframe.remove();
-                    document.removeEventListener('visibilitychange', checkVisibility);
-
-                    // If the app was not launched, open the fallback in a new tab
-                    if (!appLaunched) {
-                        window.open('https://gemini.google.com/app', 'AIWINDOW');
-                    }
-                }, 4 * 1000);
-
-                console.log(">>>>>> Before iframe.src = src");
-                iframe.src = src;
-                console.log(">>>>>> After iframe.src = src");
+            btnIframe.addEventListener('click', function () {
+                // launchIntentWithIframe();
+                editIntentAndLaunchWithIframe("Gemini");
             });
-
         }
 
 
@@ -1119,32 +1099,21 @@ pkg==${pkg}`);
 
 }
 
+// infoAI =
+
 /**
  * 
+ * @param {string} nameAI
  * @returns {Promise<string|null>}
  */
-async function dialogEditIntentUrl() {
+async function dialogEditIntentUrl(nameAI) {
+    const arrIntentUrl = testIntentsAI[nameAI];
     // if (!doEdit) return origIntentUrl;
     const keyIntentChoice = "mm4i-indentUrl-choice";
     const keyLastIntent = "mm4i-indentUrl-last";
-    const nameAI = localStorage.getItem(keyLsAIhard);
-    const infoThisAI = infoAI[nameAI];
-    const target = infoThisAI.url;
-    const arrIntentUrl = [
-        [
-            'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
-        ],
-        [
-            `intent://${target}#Intent;scheme=https;end;`,
-        ],
-        [
-            'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
-        ],
-        [
-            'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;',
-            "Opens Google Play"
-        ],
-    ];
+    // const nameAI = localStorage.getItem(keyLsAIhard);
+    // const infoThisAI = infoAI[nameAI];
+    // const target = infoThisAI.url;
 
     const divIntents = mkElt("div");
     const strOldIdx = localStorage.getItem(keyIntentChoice);
@@ -1201,7 +1170,8 @@ async function dialogEditIntentUrl() {
 
     let origIndentUrl;
     const updateEltTA = (idx) => {
-        const origIndentUrlEntry = arrIntentUrl[idx];
+        const useIdx = Math.min(idx, arrIntentUrl.length - 1); // FIX-ME: Temp fix
+        const origIndentUrlEntry = arrIntentUrl[useIdx];
         const origIndentUrl = idx == -1 ? localStorage.getItem(keyLastIntent) : origIndentUrlEntry[0];
         if (origIndentUrl == null) throw Error(`origIndentUrl==null, ${idx}`);
         const arrIntent = origIndentUrl
@@ -1245,4 +1215,54 @@ async function dialogEditIntentUrl() {
         return newIntentUrl;
     }
     return null;
+}
+
+async function launchIntentWithIframe(intentUrl) {
+    let appLaunched = false;
+
+    // Create a hidden iframe
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    // Append the iframe to the body
+    document.body.appendChild(iframe);
+
+    // Set the iframe's src to the intent URL
+    const src = intentUrl;
+    if (src == null) return;
+
+
+    // Listen for visibility changes with the 'once' option
+    document.addEventListener('visibilitychange', checkVisibility);
+    function checkVisibility() {
+        document.removeEventListener('visibilitychange', checkVisibility);
+        console.log("checkVisibility, document.hidden", document.hidden);
+        appLaunched = true;
+        if (document.hidden) {
+            appLaunched = true;
+        }
+    }
+
+    // Set a timer to check for the fallback
+    console.log("starting setTimeout");
+    setTimeout(function () {
+        // Clean up
+        alert(`in setTimeout check appLaunched, ${appLaunched}`);
+        iframe.remove();
+        document.removeEventListener('visibilitychange', checkVisibility);
+
+        // If the app was not launched, open the fallback in a new tab
+        if (!appLaunched) {
+            window.open('https://gemini.google.com/app', 'AIWINDOW');
+        }
+    }, 4 * 1000);
+
+    console.log(">>>>>> Before iframe.src = src");
+    iframe.src = src;
+    console.log(">>>>>> After iframe.src = src");
+}
+
+async function editIntentAndLaunchWithIframe(nameAI) {
+
+    const intentUrl = await dialogEditIntentUrl("Gemini");
+    launchIntentWithIframe(intentUrl);
 }
