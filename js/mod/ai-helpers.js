@@ -102,7 +102,6 @@ const infoAI = {
         testedChat: true,
         q: false,
         comment: undefined,
-        // url: "gemini.google.com",
         url: "gemini.google.com/app",
         // urlAndroidApp: true,
         pkg: "com.google.android.apps.bard",
@@ -112,9 +111,7 @@ const infoAI = {
         testedChat: true,
         q: false,
         comment: undefined,
-        // url: "https://chatgpt.openai.com",
-        // url: "chatgpt.com/",
-        url: "chatgpt.openai.com/",
+        url: "chatgpt.com/",
         // urlAndroidApp: "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;end",
         pkg: "com.openai.chatgpt",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b5/ChatGPT_logo_Square.svg"
@@ -133,7 +130,6 @@ const infoAI = {
         testedChat: true,
         q: false,
         comment: "I have asked xAI about OAuth",
-        // url: "grok.com",
         url: "grok.com/chat",
 
         // urlAndroidApp: true,
@@ -150,7 +146,7 @@ const infoAI = {
         testedChat: true,
         q: true,
         comment: undefined,
-        url: "https://www.perplexity.ai/search",
+        url: "perplexity.ai",
         // urlAndroidApp: true,
         pkg: "ai.perplexity.app.android",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Perplexity_AI_logo.svg"
@@ -177,7 +173,10 @@ const testIntentsAI = {
             "Opens Google Play"
         ],
     ],
-
+    "ChatGPT": [],
+    "Claude": [],
+    "Grok": [],
+    "Perplexity": [],
 }
 
 
@@ -588,15 +587,13 @@ Important:
         const infoThisAI = infoAI[nameAI];
         if (!infoThisAI) { throw Error(`Did not find info for AI "${nameAI}"`); }
 
-        if (nameAI == "none") {
-            modMdc.mkMDCsnackbar(`Copied prompt, do not know how to open AI "${nameAI}"`);
-            return;
-        }
+        // if (nameAI == "none") { modMdc.mkMDCsnackbar(`Copied prompt, do not know how to open AI "${nameAI}"`); return; }
 
 
         modMdc.mkMDCsnackbar(`Copied prompt, opening AI "${nameAI}"`);
         setTimeout(() => {
-            openIntentFallbackUrl(infoThisAI, promptAI);
+            // openIntentFallbackUrl(infoThisAI, promptAI);
+            openTheAI(nameAI); // FIX-ME: promptAI
         }, 2000);
     });
 
@@ -900,7 +897,7 @@ pkg==${pkg}`);
          * @param {objIntent} opt 
          * @returns {string}
          */
-        const mkIntent = (opt) => {
+        const _mkChatIntent = (opt) => {
             // const intentGeminiUrl = 'intent://chat?source=button_click#Intent;scheme=gemini;package=com.google.android.apps.bard;end;';
             let u = "intent://";
             u = u.concat("chat");
@@ -915,7 +912,7 @@ pkg==${pkg}`);
          * @param {string} intentGeminiUrl 
          * @returns 
          */
-        const addAlink = (intentGeminiUrl) => {
+        const _addAlink = (intentGeminiUrl) => {
             // const intentGeminiUrl = mkIntent(opt);
             const aTestG = mkElt("a", {
                 href: intentGeminiUrl,
@@ -924,33 +921,27 @@ pkg==${pkg}`);
             const divTestG = mkElt("div", { style: "margin:20px;" }, aTestG);
             divBtnCopy.insertAdjacentElement("afterend", divTestG);
         }
-        addAlink(mkIntent({}));
-        addAlink(mkIntent({ noPackage: true }));
-        const intentUrlWithFallback =
-            'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;';
-        addAlink(intentUrlWithFallback);
-        const googleAppIntentUrl =
-            'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;';
-        addAlink(googleAppIntentUrl);
+        // _addAlink(_mkChatIntent({}));
+        // _addAlink(_mkChatIntent({ noPackage: true }));
 
 
 
+
+        /*
         {
-            const intentUrlWithFallback2 =
-                'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;';
-
             const btnIframe = mkElt("button", undefined, "iframe test Gemini");
             const divBtnIframe = mkElt("div", { style: "margin:20px" }, btnIframe);
             // 
             divBtnCopy.insertAdjacentElement("afterend", divBtnIframe);
 
             btnIframe.addEventListener('click', function () {
-                // launchIntentWithIframe();
-                editIntentAndLaunchWithIframe("Gemini");
+                openTheAI("Gemini");
             });
         }
+        */
 
 
+        /*
         const urlGemini = "https://gemini.google.com/app";
         const btnGemini = mkElt("button", undefined, urlGemini);
         btnGemini.addEventListener("click", () => {
@@ -958,6 +949,7 @@ pkg==${pkg}`);
         });
         const divBtnGemini = mkElt("div", { style: "margin:20px;" }, btnGemini);
         divBtnCopy.insertAdjacentElement("afterend", divBtnGemini);
+        */
     }
 
 
@@ -1108,12 +1100,14 @@ pkg==${pkg}`);
  */
 async function dialogEditIntentUrl(nameAI) {
     const arrIntentUrl = testIntentsAI[nameAI];
-    // if (!doEdit) return origIntentUrl;
+    if (!arrIntentUrl) throw Error(`Could not find testIntentsAI["${nameAI}"]`);
+    if (arrIntentUrl.length == 0) {
+        return `https://${infoAI[nameAI].url}`;
+    }
+
+
     const keyIntentChoice = "mm4i-indentUrl-choice";
     const keyLastIntent = "mm4i-indentUrl-last";
-    // const nameAI = localStorage.getItem(keyLsAIhard);
-    // const infoThisAI = infoAI[nameAI];
-    // const target = infoThisAI.url;
 
     const divIntents = mkElt("div");
     const strOldIdx = localStorage.getItem(keyIntentChoice);
@@ -1217,8 +1211,17 @@ async function dialogEditIntentUrl(nameAI) {
     return null;
 }
 
-async function launchIntentWithIframe(intentUrl) {
+/**
+ * 
+ * @param {string} intentUrl 
+ * @param {string} nameAI 
+ * @returns 
+ */
+async function launchIntentWithIframe(intentUrl, nameAI) {
     let appLaunched = false;
+    const infoThisAI = infoAI[nameAI];
+    if (!infoThisAI) throw Error(`Could not find info for AI "${nameAI}"`);
+    const urlFallBack = `https://${infoThisAI.url}`;
 
     // Create a hidden iframe
     const iframe = document.createElement('iframe');
@@ -1252,7 +1255,7 @@ async function launchIntentWithIframe(intentUrl) {
 
         // If the app was not launched, open the fallback in a new tab
         if (!appLaunched) {
-            window.open('https://gemini.google.com/app', 'AIWINDOW');
+            window.open(urlFallBack, 'AIWINDOW');
         }
     }, 4 * 1000);
 
@@ -1261,8 +1264,25 @@ async function launchIntentWithIframe(intentUrl) {
     console.log(">>>>>> After iframe.src = src");
 }
 
-async function editIntentAndLaunchWithIframe(nameAI) {
-
-    const intentUrl = await dialogEditIntentUrl("Gemini");
-    launchIntentWithIframe(intentUrl);
+/**
+ * 
+ * @param {string} nameAI 
+ */
+async function openTheAI(nameAI) {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isAndroid = userAgent.indexOf("android") > -1;
+    if (!isAndroid) {
+        const infoThisAI = infoAI[nameAI];
+        const url = infoThisAI.url;
+        window.open(`https://${url}`, "AIWINDOW");
+        return;
+    }
+    const intentUrl = await dialogEditIntentUrl(nameAI);
+    if (intentUrl == null) {
+        const modMdc = await importFc4i("util-mdc");
+        modMdc.mkMDCsnackbar("Canceled");
+        return;
+    }
+    if (!intentUrl) throw Error(`intentUrl=="${intentUrl}"`);
+    launchIntentWithIframe(intentUrl, nameAI);
 }
