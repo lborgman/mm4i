@@ -159,36 +159,23 @@ const testIntentsAI = {
     "Gemini":
         [
             [
-                'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
-            ],
-            /*
-            [
-                `intent://${target}#Intent;scheme=https;end;`,
-            ],
-            */
-            [
-                'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
-            ],
-            [
                 'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;',
                 "Opens Google Play"
             ],
             [
                 "intent://gemini.google.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.google.gemini;end;",
+                "Opens Google Play"
             ],
             [
                 "intent://gemini.google.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.google.android.apps.gemini;end;",
+                "Opens Google Play"
             ],
         ],
     "ChatGPT":
         [
-            // [ "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchat.openai.com%2F;end", ],
-            [
-                "intent://chat.openai.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchat.openai.com%2F;end",
-                "Opens android app and q works"
-            ],
             [
                 "intent://chat.openai.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.openai.chatgpt;end;",
+                "Opens android app and q works"
             ],
         ],
     "Claude": [],
@@ -196,18 +183,11 @@ const testIntentsAI = {
         [
             [
                 "intent://#Intent;package=ai.x.grok;end;",
+                "Opens Google play"
             ]
         ],
     "Perplexity":
         [
-            // ["intent://home?q=PLACEHOLDER#Intent;scheme=perplexity;end;"],
-            // ["intent://assistant?q=PLACEHOLDER#Intent;scheme=perplexity;end;"],
-            // ["intent://?q=PLACEHOLDER#Intent;scheme=perplexity;end;"],
-            // ["intent://start?q=PLACEHOLDER#Intent;scheme=perplexity;end;"],
-            // ["intent://launch?q=PLACEHOLDER#Intent;scheme=perplexity;end;"],
-            // ["intent://perplexity.sng.link/A6awk/ppas?_android_dl=perplexity-app%3A%2F%2F&_ddl=perplexity-app%3A%2F%2F&_dl=perplexity-app%3A%2F%2F&_ios_dl=perplexity-app%3A%2F%2F&_p=origin%3Dmobile-header%26pvid%3D260ff302-b768-4fac-b492-3a0c81c5757d%26pathname%3D%252F&_smtype=3&referrer=singular_click_id%3Dc67b4fbc-b135-43e2-9d3e-0e72248ded73#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;S.market_referrer=singular_click_id%3Dc67b4fbc-b135-43e2-9d3e-0e72248ded73;S.browser_fallback_url=market%3A%2F%2Fdetails%3Fid%3Dai.perplexity.app.android%26referrer%3Dsingular_click_id%253Dc67b4fbc-b135-43e2-9d3e-0e72248ded73;end"],
-            // ["intent://perplexity.sng.link/A6awk/ppas#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;S.browser_fallback_url=market://details?id=ai.perplexity.app.android;end;"],
-            // ["intent://perplexity.sng.link/A6awk/ppas#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;end;"],
             [
                 "intent://perplexity.sng.link/A6awk/ppas?q=PLACEHOLDER#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;end;",
                 "Starts app, but q does not work"
@@ -1082,7 +1062,7 @@ async function dialogEditIntentUrl(nameAI) {
     const modMdc = await importFc4i("util-mdc");
     const ans = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel");
     if (ans) {
-        const inp = divIntents.querySelector("input:checked")
+        const inp = divIntents.querySelector("input:checked") || divIntents.querySelector("input");
         const idx = inp.value;
         console.log({ idx });
         if (idx != -1) { localStorage.setItem(keyIntentChoice, idx); }
