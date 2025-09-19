@@ -200,6 +200,9 @@ const testIntentsAI = {
             [
                 "https://play.google.com/store/apps/details?id=ai.x.grok",
             ],
+            [
+                "market://details?id=ai.x.grok",
+            ],
         ],
     "Perplexity":
         [
