@@ -184,7 +184,16 @@ const testIntentsAI = {
             [
                 "intent://#Intent;package=ai.x.grok;end;",
                 "Opens Google play"
-            ]
+            ],
+            [
+                "https://play.google.com/store/apps/details?id=ai.x.grok",
+            ],
+            [
+                "intent://#Intent;component=ai.x.grok/.MainActivity;end",
+            ],
+            [
+                "https://play.google.com/store/apps/details?id=ai.x.grok",
+            ],
         ],
     "Perplexity":
         [
