@@ -156,30 +156,39 @@ const infoAI = {
  * @type {Object<string,string[][]>}
  */
 const testIntentsAI = {
-    "Gemini": [
-        [
-            'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
-        ],
-        /*
-        [
-            `intent://${target}#Intent;scheme=https;end;`,
-        ],
-        */
-        [
-            'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
-        ],
-        [
-            'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;',
-            "Opens Google Play"
-        ],
-    ],
-    "ChatGPT":
+    "Gemini":
         [
             [
-                "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchat.openai.com%2F;end",
+                'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
+            ],
+            /*
+            [
+                `intent://${target}#Intent;scheme=https;end;`,
+            ],
+            */
+            [
+                'intent://chat/#Intent;scheme=gemini;package=com.google.android.apps.bard;S.browser_fallback_url=https%3A%2F%2Fgemini.google.com%2Fapp;end;',
             ],
             [
+                'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;',
+                "Opens Google Play"
+            ],
+            [
+                "intent://gemini.google.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.google.gemini;end;",
+            ],
+            [
+                "intent://gemini.google.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.google.android.apps.gemini;end;",
+            ],
+        ],
+    "ChatGPT":
+        [
+            // [ "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchat.openai.com%2F;end", ],
+            [
                 "intent://chat.openai.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.openai.chatgpt;S.browser_fallback_url=https%3A%2F%2Fchat.openai.com%2F;end",
+                "Opens android app and q works"
+            ],
+            [
+                "intent://chat.openai.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.openai.chatgpt;end;",
             ],
         ],
     "Claude": [],
