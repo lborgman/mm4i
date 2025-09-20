@@ -110,7 +110,7 @@ const infoAI = {
     }),
     "ChatGPT": mkAIinfo({
         testedChat: true,
-        q: false,
+        q: true,
         comment: undefined,
         url: "chatgpt.com",
         android: "intent://chat.openai.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.openai.chatgpt;end;",
@@ -146,10 +146,10 @@ const infoAI = {
     }),
     "Perplexity": mkAIinfo({
         testedChat: true,
-        q: true,
+        q: false,
         comment: undefined,
         url: "perplexity.ai",
-        android: "intent://perplexity.sng.link/A6awk/ppas?q=PLACEHOLDER#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;end;",
+        // android: "intent://perplexity.sng.link/A6awk/ppas?q=PLACEHOLDER#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;end;",
         pkg: "ai.perplexity.app.android",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Perplexity_AI_logo.svg"
     }),
@@ -1138,8 +1138,8 @@ async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
     // Set a timer to check for the fallback
     console.log("starting setTimeout");
     setTimeout(function () {
+        // alert(`in setTimeout check appLaunched, ${appLaunched}`);
         // Clean up
-        alert(`in setTimeout check appLaunched, ${appLaunched}`);
         iframe.remove();
         document.removeEventListener('visibilitychange', checkVisibility);
 
