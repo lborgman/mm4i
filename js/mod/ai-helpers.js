@@ -83,6 +83,7 @@ export async function checkGeminiOk() {
  * @property {boolean} q
  * @property {string|undefined} comment
  * @property {string} url
+ * @property {string} [android]
  * @property {string} pkg
  * @property {string} urlImg
  */
@@ -112,6 +113,7 @@ const infoAI = {
         q: false,
         comment: undefined,
         url: "chatgpt.com",
+        android: "intent://chat.openai.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.openai.chatgpt;end;",
         // urlAndroidApp: "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;end",
         pkg: "com.openai.chatgpt",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b5/ChatGPT_logo_Square.svg"
@@ -147,7 +149,7 @@ const infoAI = {
         q: true,
         comment: undefined,
         url: "perplexity.ai",
-        // urlAndroidApp: true,
+        android: "intent://perplexity.sng.link/A6awk/ppas?q=PLACEHOLDER#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;end;",
         pkg: "ai.perplexity.app.android",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Perplexity_AI_logo.svg"
     }),
@@ -202,6 +204,7 @@ const testIntentsAI = {
             ],
             [
                 "market://details?id=ai.x.grok",
+                "Opens https://market.android.com/details?id=ai.x.grok;"
             ],
         ],
     "Perplexity":
@@ -573,9 +576,9 @@ Important:
     }
     Object.entries(infoAI).forEach(e => {
         const [k, v] = e;
-        const { testedChat, q, urlImg } = v;
+        const { testedChat, q, android, urlImg } = v;
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
-        const imgAI = mkElt("span");
+        const imgAI = mkElt("span", { class: "elt-ai-img" });
         imgAI.style = `
             height: 20px;
             width: 20px;
@@ -589,6 +592,7 @@ Important:
         eltAI.classList.add("elt-ai");
         if (testedChat) { eltAI.style.backgroundColor = "yellowgreen"; }
         if (q) { eltAI.style.borderColor = "greenyellow"; }
+        if (android) { imgAI.style.outline = "solid greenyellow 2px"; }
         divAIhardWay.appendChild(eltAI);
     });
     divAIhardWay.addEventListener("change", evt => {
@@ -1165,16 +1169,25 @@ async function openTheAI(nameAI, promptAI) {
         window.open(`${webUrl}`, "AIWINDOW");
         return;
     }
-    const intentUrl = await dialogEditIntentUrl(nameAI);
-    if (intentUrl == null) {
+    const infoThisAI = infoAI[nameAI];
+    const androidIntent = infoThisAI.android;
+    const rawIntentUrl = androidIntent ? androidIntent : await dialogEditIntentUrl(nameAI);
+    if (rawIntentUrl == null) {
         const modMdc = await importFc4i("util-mdc");
         modMdc.mkMDCsnackbar("Canceled");
         return;
     }
-    if (!intentUrl) throw Error(`intentUrl=="${intentUrl}"`);
-    launchIntentWithIframe(intentUrl, nameAI, promptAI);
+    if (!rawIntentUrl) throw Error(`intentUrl=="${rawIntentUrl}"`);
+    const intentUrl = rawIntentUrl.replaceAll(/PLACEHOLDER/g, promptAI);
+    const promptEncoded = encodeURIComponent(promptAI);
+    launchIntentWithIframe(intentUrl, nameAI, promptEncoded);
 }
 
+/**
+ * @param {string} nameAI 
+ * @param {string} promptAI 
+ * @returns {string}
+ */
 function mkWebUrl(nameAI, promptAI) {
     const infoThisAI = infoAI[nameAI];
     const url = infoThisAI.url;
