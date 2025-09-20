@@ -49,6 +49,11 @@ The edit history panel lets you quickly move between different views of you mind
 If you find some views more useful you can bookmark them.  If you give the bookmarks name they will be there the next time you start editing the mindmap.
 
 
+### Summary mindmap from a link with AI
+You can use the major AI:s to get a mindmap from a link. It is like asking the AI for a summary of a link you give it, but you get the summary in the form of a mindmap.
+
+If you install this app it will show up as a share target. Use this to get a summary mindmap.
+
 ### Sync and Backup
 There is currently no built in backup. And the mindmaps are only stored on your device (in your web browser, actually).
 
