@@ -149,7 +149,7 @@ const infoAI = {
         q: false,
         comment: undefined,
         url: "perplexity.ai",
-        // android: "intent://perplexity.sng.link/A6awk/ppas?q=PLACEHOLDER#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;end;",
+        android: "intent://perplexity.sng.link/A6awk/ppas?q=PLACEHOLDER#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;end;",
         pkg: "ai.perplexity.app.android",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Perplexity_AI_logo.svg"
     }),
@@ -592,7 +592,7 @@ Important:
         eltAI.classList.add("elt-ai");
         if (testedChat) { eltAI.style.backgroundColor = "yellowgreen"; }
         if (q) { eltAI.style.borderColor = "greenyellow"; }
-        if (android) { imgAI.style.outline = "solid greenyellow 2px"; }
+        if (android) { imgAI.style.outline = "solid greenyellow 3px"; }
         divAIhardWay.appendChild(eltAI);
     });
     divAIhardWay.addEventListener("change", evt => {
