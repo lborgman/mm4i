@@ -879,6 +879,13 @@ Important:
         console.log({ jsonNodeArray });
 
         const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(jsonNodeArray);
+        const arrRoots = nodeArray.reduce((arr, n) => {
+            if (!n.parentid) { arr.push(n); }
+            return arr;
+        }, []);
+        if (arrRoots.length != 1) throw Error(`Expected 1 root: ${arrRoots.length}`);
+        const rootNode = arrRoots[0];
+        console.log(rootNode);
 
 
         // debugger;

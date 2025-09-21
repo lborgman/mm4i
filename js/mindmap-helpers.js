@@ -1020,7 +1020,7 @@ export function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
             delete n.text;
             delete n.name;
         }
-        if (n.parentid) return n;
+        // if (n.parentid) return n;
         const parentid = n.parentId || n.parent;
         delete n.parentId;
         delete n.parent;
@@ -1028,8 +1028,11 @@ export function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
 
         const notes = n.notes;
         if (notes) {
+            const tofNotes = typeof notes;
+            if (tofNotes != "string") { throw Error(`typeof notes == "${tofNotes}`); }
             const shapeEtc = { notes }
             n.shapeEtc = shapeEtc;
+            delete n.notes;
         }
 
         return n;
