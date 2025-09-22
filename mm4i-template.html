@@ -1413,6 +1413,12 @@
         }
     </style>
     <style id="style-ai">
+        .elts-ai {
+            display: flex;
+            flex-direction: row;
+            flex-flow: wrap;
+            gap: 10px;
+        }
         .elt-ai {
             display: flex;
             flex-direction: row;
@@ -1429,6 +1435,10 @@
         }
         .elt-ai-img {
             border-radius: 50%;
+            height: 20px;
+            width: 20px;
+            background-size: cover;
+            background-position: top left;
         }
 
         .elt-ai:has(input:checked) .elt-ai-name {

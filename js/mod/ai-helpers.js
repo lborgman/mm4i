@@ -277,9 +277,9 @@ export async function generateMindMap(fromLink) {
         b.inert = false;
         const r = await isReachableUrl(u);
         if (!r) {
-            eltStatus.textContent = "Can't see if link is ok";
+            eltStatus.textContent = "Can't see if link exists";
         } else {
-            eltStatus.textContent = "Link seems ok";
+            eltStatus.textContent = "Link seems to exist";
         }
         updatePromptAi();
         const divWays = document.getElementById("div-ways");
@@ -442,9 +442,10 @@ Important:
 
     const eltAItextareaStatus = mkElt("div");
     eltAItextareaStatus.style.lineHeight = "1";
-    let toDoIt;
+    let toDoIt; let eltDialog;
     eltAItextarea.addEventListener("input", _evt => {
         clearTimeout(toDoIt);
+        if (eltDialog) { eltDialog.style.opacity = "1"; }
         eltAItextareaStatus.style.color = "unset";
         // valid
         const strAIraw = eltAItextarea.value.trim();
@@ -472,13 +473,25 @@ Important:
                 const msgStatus = strAIjson == strAIraw ? "OK" : `OK (cleaned: ${cleaned.join(", ")})`;
                 eltAItextareaStatus.textContent = msgStatus;
                 eltAItextareaStatus.style.backgroundColor = "greenyellow";
-                toDoIt = setTimeout(() => {
-                    // "make mindmap"
-                    const eltDialog = eltAItextareaStatus.closest("div.mdc-dialog");
-                    if (!eltDialog) throw Error('Could not find .closest("div.mdc-dialg")');
+
+                eltDialog = eltAItextareaStatus.closest("div.mdc-dialog");
+                if (!eltDialog) throw Error('Could not find .closest("div.mdc-dialg")');
+
+                eltDialog.style.opacity = "1";
+                eltDialog.style.transition = "opacity 0.7s";
+                eltDialog.style.transitionDelay = "1.6s";
+                /*
+                eltDialog.addEventListener("transitionend", () => {
                     eltDialog.remove();
                     doMakeGeneratedMindmap();
-                }, 3000);
+                });
+                */
+                eltDialog.style.opacity = "0";
+                toDoIt = setTimeout(() => {
+                    // "make mindmap"
+                    eltDialog.remove();
+                    doMakeGeneratedMindmap();
+                }, (0.7 + 1.6 + 5) * 1000);
             } else {
                 tellError(res.error);
                 // tellError(res.message);
@@ -488,28 +501,30 @@ Important:
         } catch (err) {
             tellError(err.message);
             const objJsonErrorDetails = modTools.extractJSONparseError(err.message, strAIjson);
+            const divError = mkElt("pre", undefined, err.message);
             // console.log({ objJsonErrorDetails });
-            const eltBefore = mkElt("span", undefined,
-                objJsonErrorDetails.context.before
-            );
-            const eltAfter = mkElt("span", undefined,
-                objJsonErrorDetails.context.after
-            );
-            const eltErrorChar = mkElt("span", undefined,
-                objJsonErrorDetails.context.errorChar
-            );
-            eltErrorChar.style.color = "red";
-            const divErrorPos = mkElt("div", undefined, [
-                eltBefore,
-                eltErrorChar,
-                eltAfter
-            ]);
-            divErrorPos.style = `
-                padding: 10px;
-                margin-top: 10px;
-                background-color: yellow;
-            `;
-            eltAItextareaStatus.append(divErrorPos)
+            if (objJsonErrorDetails.context) {
+                const eltBefore = mkElt("span", undefined,
+                    objJsonErrorDetails.context.before
+                );
+                const eltAfter = mkElt("span", undefined,
+                    objJsonErrorDetails.context.after
+                );
+                const eltErrorChar = mkElt("span", undefined,
+                    objJsonErrorDetails.context.errorChar
+                );
+                eltErrorChar.style.color = "red";
+                divError.textContent = "";
+                divError.appendChild(eltBefore);
+                divError.appendChild(eltErrorChar);
+                divError.appendChild(eltAfter);
+            }
+            divError.style.padding = "10px";
+            divError.style.marginTop = "10px";
+            divError.style.backgroundColor = "yellow";
+            divError.style.whiteSpace = "pre-wrap";
+            eltAItextareaStatus.textContent = "";
+            eltAItextareaStatus.append(divError);
         }
     });
 
@@ -525,7 +540,7 @@ Important:
             `Many content providers are currently blocking AI agents from accessing their web pages.
                     This is a complicated problems.
                     I have described part of it here:
-                    `,
+            `,
             mkElt("div", undefined,
                 mkElt("a", {
                     href: "https://tinyurl.com/AIvsContProv",
@@ -543,26 +558,20 @@ Important:
     eltDivAI.classList.add("VK_FOCUS");
 
     const cardInput = mkElt("p", { class: "mdc-card display-flex" }, [
-        mkElt("div", undefined, `Article or video to summarize as a mindmap:`),
+        mkElt("div", undefined, `Article or video to summarize as a mindmap: `),
         tfLink,
         eltStatus,
     ]);
     cardInput.style = `
-                NOdisplay: flex;
-                gap: 10px; 
-                flex-direction: column;
-                padding: 20px;
+            NOdisplay: flex;
+            gap: 10px;
+            flex-direction: column;
+            padding: 20px;
             `;
     // cardInput.classList.add("VK_FOCUS");
 
-    const divAIhardWay = mkElt("div");
-    divAIhardWay.style = `
-        display: flex;
-        flex-direction: row;
-        flex-flow: wrap;
-        gap: 10px;
-        margin-bottom: 10px;
-        `;
+    const divAIhardWay = mkElt("div", { class: "elts-ai" });
+    divAIhardWay.style.marginBottom = "10px";
 
     let valLsAIhard = localStorage.getItem(keyLsAIhard) || "none";
     {
@@ -579,13 +588,7 @@ Important:
         const { testedChat, q, android, urlImg } = v;
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
         const imgAI = mkElt("span", { class: "elt-ai-img" });
-        imgAI.style = `
-            height: 20px;
-            width: 20px;
-            background-image: url(${urlImg});
-            background-size: cover;
-            background-position: top left;
-        `;
+        imgAI.style.backgroundImage = `url(${urlImg})`;
         // if (pkg) { imgAI.style.outline = "1px dotted red"; }
         const eltAIname = mkElt("span", { class: "elt-ai-name" }, k);
         const eltAI = mkElt("label", undefined, [radAI, imgAI, eltAIname]);
@@ -603,7 +606,7 @@ Important:
         // const nameAI = t.getAttribute("value");
         localStorage.setItem(keyLsAIhard, nameAI);
     });
-    const radCurrentAI = divAIhardWay.querySelector(`input[type=radio][value=${valLsAIhard}`);
+    const radCurrentAI = divAIhardWay.querySelector(`input[type = radio][value = ${valLsAIhard} `);
     // @ts-ignore
     radCurrentAI.checked = true;
     const btnCopyAndOpenAI = modMdc.mkMDCbutton("Copy prompt and open AI", "raised");
@@ -660,7 +663,7 @@ Important:
                 return win;
             } catch (e) {
                 // Firefox throw synchronously if scheme is unsupported
-                const msg = `Opening intent ${intentUrl} failed: ${e.message}`;
+                const msg = `Opening intent ${ intentUrl } failed: ${ e.message } `;
                 console.error(msg);
                 modTools.mkMDCsnackbar(msg);
             }
@@ -676,7 +679,7 @@ Important:
                 return win;
             } catch (e) {
                 // blocked
-                const msg = `Opening ${webUrl} failed: ${e.message}`;
+                const msg = `Opening ${ webUrl } failed: ${ e.message } `;
                 console.error(msg);
                 modTools.mkMDCsnackbar(msg);
             }
@@ -706,10 +709,10 @@ Important:
         divPrompt,
     ]);
     cardPrompt.style = `
-                NOdisplay: flex;
-                gap: 10px; 
-                flex-direction: column;
-                padding: 20px;
+            NOdisplay: flex;
+            gap: 10px;
+            flex - direction: column;
+            padding: 20px;
             `;
 
 
@@ -720,7 +723,7 @@ Important:
         mkElt("summary", undefined, "This should have been more easy!"),
         mkElt("div", undefined, [
             mkElt("p", undefined, `
-                    Yes, it should be more easy.
+            Yes, it should be more easy.
                     I have asked xAI to fix a little part of this for Grok:
                 `),
             mkElt("p", { style: "margin-left: 20px;" },
@@ -738,9 +741,9 @@ Important:
         ])
     ]);
     eltWhyThisTrouble.style = `
-                padding: 10px;
-                background-color: #fff6;
-                color: black;
+            padding: 10px;
+            background - color: #fff6;
+            color: black;
             `;
 
 
@@ -767,13 +770,13 @@ Important:
         divWhyNotEasy.style.display = "unset";
     });
     const divListAIeasyWay = mkElt("div");
-    divListAIeasyWay.style = ` display: flex; flex-direction: row; gap: 10px; flex-wrap: wrap; `;
+    divListAIeasyWay.style = ` display: flex; flex - direction: row; gap: 10px; flex - wrap: wrap; `;
 
     const selectHeader = mkElt("div", undefined, "Select AI to use:");
     selectHeader.style = `
-        font-weight: bold;
-        margin-bottom: 20px;
-    `
+            font - weight: bold;
+            margin - bottom: 20px;
+            `
 
     const divSelectAIeasyWay = mkElt("div", { class: "NOmdc-card" }, [
         selectHeader,
@@ -801,11 +804,11 @@ Important:
 
     const divListAIhardWay = mkElt("div");
     divListAIhardWay.style = `
-        display: flex;
-        flex-direction: row;
-        gap: 10px;
-        flex-wrap: wrap;
-        `;
+            display: flex;
+            flex - direction: row;
+            gap: 10px;
+            flex - wrap: wrap;
+            `;
     const divBtnCopy = mkElt("div", undefined, btnCopyAndOpenAI);
     const divHardWay = mkElt("div", undefined, [
         mkElt("div", undefined, cardPrompt),
@@ -883,7 +886,7 @@ Important:
             if (!n.parentid) { arr.push(n); }
             return arr;
         }, []);
-        if (arrRoots.length != 1) throw Error(`Expected 1 root: ${arrRoots.length}`);
+        if (arrRoots.length != 1) throw Error(`Expected 1 root: ${arrRoots.length} `);
         const rootNode = arrRoots[0];
         console.log(rootNode);
 
@@ -908,27 +911,27 @@ Important:
             );
             // divInfo.classList.add("fixed-at-bottom");
             divInfo.style = `
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
+            display: flex;
+            flex - direction: column;
+            align - items: center;
+            justify - content: center;
             `;
             const eltTellGenerated = mkElt("div", undefined, [
                 divInfo,
                 // btnInfoLinked
             ]);
             eltTellGenerated.style = `
-                    position: fixed; bottom: 0; left: 0;
-                    min-height: 50px; min-width: 100px;
-                    max-width: 270px;
-                    NOdisplay: flex;
-                    gap: 10px;
-                    padding: 10px;
-                    z-index: 99999;
-                    color: black;
-                    background-color: magenta;
-                    background-color: #f068f0;
-                `;
+            position: fixed; bottom: 0; left: 0;
+            min - height: 50px; min - width: 100px;
+            max - width: 270px;
+            NOdisplay: flex;
+            gap: 10px;
+            padding: 10px;
+            z - index: 99999;
+            color: black;
+            background - color: magenta;
+            background - color: #f068f0;
+            `;
             eltTellGenerated.id = "generated-marker";
             eltTellGenerated.classList.add("generated-marker");
             eltTellGenerated.classList.add("fixed-at-bottom");
