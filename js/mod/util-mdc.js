@@ -2365,6 +2365,10 @@ export function addMDCrow2Table(row, table) {
 
 let useSvgIcon = false;
 // https://developers.google.com/fonts/docs/material_icons
+/**
+ * @param {string} iconMaterialName 
+ * @returns {HTMLSpanElement}
+ */
 export function mkMDCicon(iconMaterialName) {
     addToUsedSymbols(iconMaterialName);
     // usedIcons.add(iconMaterialName);
@@ -2375,6 +2379,16 @@ export function mkMDCicon(iconMaterialName) {
         if (icon) return icon;
     }
     return mkElt("span", { class: materialIconsClass }, iconMaterialName);
+}
+/**
+ * @param {string} newIconName 
+ * @param {HTMLSpanElement} spanIcon 
+ */
+export function replaceMDCicon(newIconName, spanIcon) {
+    const tagName = spanIcon.tagName;
+    if (tagName != "SPAN") throw Error(`spanIcon.tagName == "${tagName}"`);
+    if (!spanIcon.classList.contains(materialIconsClass)) throw Error(`spanIcon does not have class "${materialIconsClass}"`);
+    spanIcon.textContent = newIconName;
 }
 // The font icons does not work offline (and does not scale well).
 // Here is an alternative.
