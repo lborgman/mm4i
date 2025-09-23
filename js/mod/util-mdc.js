@@ -10,6 +10,8 @@ const UTIL_MDC_VER = "0.9.00";
 logConsoleHereIs(`here is util-mdc.js, module,${UTIL_MDC_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
+const urlWoff2File = "./ext/mdc-fonts/my-symbols.woff2";
+
 // let materialIconsClass = "material-icons";
 let materialIconsClass = "material-symbols-outlined";
 export function getMaterialIconClass() { return materialIconsClass; }
@@ -253,11 +255,14 @@ export function mkMDCbutton(txtLabel, emphasis, iconPar) {
 export function mkMDCiconButton(icon, ariaLabel, sizePx) {
     if ("string" == typeof icon) { addToUsedSymbols(icon); }
     // usedIcons.add(icon);
+    const spanIcon = mkElt("span", { class: materialIconsClass }, icon);
     const btn = mkElt("button",
-        { class: `mdc-icon-button ${materialIconsClass}` },
+        // { class: `mdc-icon-button ${materialIconsClass}` },
+        { class: `mdc-icon-button` },
         [
             mkElt("div", { class: "mdc-icon-button__ripple" }),
-            icon
+            // icon
+            spanIcon
         ]);
     const iconButtonRipple = new mdc.ripple.MDCRipple(btn);
     iconButtonRipple.unbounded = true;
@@ -2369,9 +2374,7 @@ export function mkMDCicon(iconMaterialName) {
         // So this does not work to check if the SVG icon is there.
         if (icon) return icon;
     }
-    return mkElt("span",
-        { class: materialIconsClass },
-        iconMaterialName);
+    return mkElt("span", { class: materialIconsClass }, iconMaterialName);
 }
 // The font icons does not work offline (and does not scale well).
 // Here is an alternative.
@@ -2697,12 +2700,18 @@ export function setIconsFor(whichApp) {
     saveStoredIconsUsed();
 }
 let tmrSaveIconsUsed;
-function addToUsedSymbols(sym) {
+// checkWoff2icons(action)
+const setIconsInWoffFile = await getIconsInWoffFile();
+addToUsedSymbols("edit");
+addToUsedSymbols("edit_off");
+export function addToUsedSymbols(sym) {
     if (location.hostname != "localhost") return;
     const tofSym = typeof sym;
     if (tofSym != "string") { throw Error(`typeof sym is not "string", but "${tofSym}"`); }
-    if (setIconsUsed.has(sym)) return;
+    // if (setIconsUsed.has(sym)) return;
     setIconsUsed.add(sym);
+    if (setIconsInWoffFile.has(sym)) return;
+
     clearTimeout(tmrSaveIconsUsed);
     tmrSaveIconsUsed = setTimeout(async () => {
         saveStoredIconsUsed();
@@ -2716,11 +2725,13 @@ function addToUsedSymbols(sym) {
 }
 
 // Keep used icons across sessions, but only in development (localhost):
-iconsForApp
+// iconsForApp
 const keyIcons = () => `used-mdc-symbols-${iconsForApp}`;
 function getStoredIconsUsed() {
     // const storedIconsUsed = localStorage.getItem("used-mdc-symbols")
-    const storedIconsUsed = localStorage.getItem(keyIcons());
+    // const storedIconsUsed = localStorage.getItem(keyIcons());
+    const keyIconsUsed = keyIcons();
+    const storedIconsUsed = localStorage.getItem(keyIconsUsed);
     if (storedIconsUsed != null) {
         const arrUsed = storedIconsUsed.split(",");
         arrUsed.forEach(sym => {
@@ -2738,13 +2749,22 @@ function saveStoredIconsUsed() {
     localStorage.setItem(keyIcons(), [...setIconsUsed].sort().join(","));
 }
 
+
+/**
+ * @returns {Promise<Set>}
+ */
+async function getIconsInWoffFile() {
+    const woffIconsList = await getMdcSymbolsInWoff2File(urlWoff2File);
+    const hasWoffIcons = woffIconsList != undefined;
+    return new Set(hasWoffIcons ? woffIconsList.split(",") : undefined);
+}
+
 /**
  * 
  * @param {string} action 
  */
 async function checkWoff2icons(action) {
     if (!["justCheck", "dialog"].includes(action)) throw Error(`Unknown action parameter: "${action}"`);
-    const urlWoff2File = "./ext/mdc-fonts/my-symbols.woff2";
     const woffIconsList = await getMdcSymbolsInWoff2File(urlWoff2File);
     const hasWoffIcons = woffIconsList != undefined;
     const setIconsWoff2 = new Set(hasWoffIcons ? woffIconsList.split(",") : undefined);
@@ -2753,6 +2773,9 @@ async function checkWoff2icons(action) {
     setIconsUsed.forEach(sym => {
         if (!setIconsWoff2.has(sym)) { setIconsMissing.add(sym); }
     });
+    // FIX-ME: codepoint problems:
+    setIconsMissing.delete("bookmark");
+    setIconsMissing.delete("history");
     if (action == "justCheck") return setIconsMissing.size;
 
     const linkWOFF2 = await mkWOFF2downloadLink();
@@ -2820,10 +2843,19 @@ async function getMdcSymbolsInWoff2File(woffUrl) {
     const codepoints = await modWoffCodepoints.getCodepoints(woffUrl);
     if (!codepoints) return;
     // const urlSymbolNames = await mkSymbol2codepointUrl(mdcIconStyle);
+
+    {
+        // const modCodepoints = await importFc4i("google-symbols-codepoints");
+        // const NEWcodepointToName = modCodepoints.getCodepointsToNames();
+    }
+
     const modWoff2MdcSymbols = await importFc4i("woff2-mdc-symbols");
     // const codepointToName = modWoff2MdcSymbols.fetchGoogleSymbolNameMap(urlSymbolNames);
-    const codepointToName = modWoff2MdcSymbols.fetchGoogleSymbolNameMap(mdcIconStyle);
+    const codepointToName = await modWoff2MdcSymbols.fetchGoogleSymbolNameMap(mdcIconStyle);
     if (!codepointToName) return;
+    /*
+    */
+
     // Now you can look up names:
     const names = codepoints.map(cp => codepointToName[cp]);
     const cleanedNames = names.filter(name => { if (typeof name == "string") return name; });

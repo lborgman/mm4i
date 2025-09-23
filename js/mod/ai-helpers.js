@@ -455,14 +455,23 @@ Important:
         }
         const { strAIjson, cleaned } = getJsonFromAIstr(strAIraw);
 
+        /** @param {string} txt */
         const tellError = (txt) => {
-            const divError = mkElt("div", undefined, txt);
-            divError.style.userSelect = "all";
-            divError.style.color = "darkred";
-            divError.style.userSelect = "all";
-            divError.style.marginTop = "10px";
-            eltAItextareaStatus.textContent = "";
-            eltAItextareaStatus.appendChild(mkElt("div", undefined, `Tell your AI that the JSON had this error:`));
+            const divTheError = mkElt("div", undefined, txt);
+            divTheError.style.userSelect = "all";
+            divTheError.style.color = "darkred";
+            divTheError.style.userSelect = "all";
+            divTheError.style.marginTop = "10px";
+            // eltAItextareaStatus.appendChild(mkElt("div", undefined, `Tell your AI that the JSON had this error:`));
+
+            const btnInfo = modMdc.mkMDCiconButton("help", "What are search links?");
+            // btnInfo.style = `color: blue;`;
+            btnInfo.addEventListener("click", () => {
+                alert("not ready");
+            });
+
+            const divError = mkElt("div", undefined, [divTheError, btnInfo]);
+            divError.style = ` display: flex; flex-direction: row; gap: 5px; `;
             eltAItextareaStatus.appendChild(divError);
         }
         try {
@@ -478,31 +487,24 @@ Important:
                 if (!eltDialog) throw Error('Could not find .closest("div.mdc-dialg")');
 
                 eltDialog.style.opacity = "1";
-                eltDialog.style.transition = "opacity 0.7s";
-                eltDialog.style.transitionDelay = "1.6s";
-                /*
-                eltDialog.addEventListener("transitionend", () => {
-                    eltDialog.remove();
-                    doMakeGeneratedMindmap();
-                });
-                */
+                const secOpacity = 0.7;
+                eltDialog.style.transition = `opacity ${secOpacity}s`;
+                const secDelay = 1.6 + 2;
+                eltDialog.style.transitionDelay = `${secDelay}s`;
                 eltDialog.style.opacity = "0";
                 toDoIt = setTimeout(() => {
-                    // "make mindmap"
                     eltDialog.remove();
                     doMakeGeneratedMindmap();
-                }, (0.7 + 1.6 + 5) * 1000);
+                }, (secDelay + secOpacity) * 1000);
             } else {
                 tellError(res.error);
-                // tellError(res.message);
-                // const objJsonErrorDetails = modTools.extractJSONparseError(res.message, strAIjson);
-                // console.log({objJsonErrorDetails});
             }
         } catch (err) {
+            eltAItextareaStatus.textContent = "";
+            if (!(err instanceof Error)) throw Error("err is not instanceof Error");
             tellError(err.message);
             const objJsonErrorDetails = modTools.extractJSONparseError(err.message, strAIjson);
-            const divError = mkElt("pre", undefined, err.message);
-            // console.log({ objJsonErrorDetails });
+            const divErrorLocation = mkElt("div");
             if (objJsonErrorDetails.context) {
                 const eltBefore = mkElt("span", undefined,
                     objJsonErrorDetails.context.before
@@ -514,17 +516,16 @@ Important:
                     objJsonErrorDetails.context.errorChar
                 );
                 eltErrorChar.style.color = "red";
-                divError.textContent = "";
-                divError.appendChild(eltBefore);
-                divError.appendChild(eltErrorChar);
-                divError.appendChild(eltAfter);
+                divErrorLocation.textContent = "";
+                divErrorLocation.appendChild(eltBefore);
+                divErrorLocation.appendChild(eltErrorChar);
+                divErrorLocation.appendChild(eltAfter);
+                divErrorLocation.style.padding = "10px";
+                divErrorLocation.style.marginTop = "10px";
+                divErrorLocation.style.backgroundColor = "yellow";
+                divErrorLocation.style.whiteSpace = "pre-wrap";
+                eltAItextareaStatus.append(divErrorLocation);
             }
-            divError.style.padding = "10px";
-            divError.style.marginTop = "10px";
-            divError.style.backgroundColor = "yellow";
-            divError.style.whiteSpace = "pre-wrap";
-            eltAItextareaStatus.textContent = "";
-            eltAItextareaStatus.append(divError);
         }
     });
 
