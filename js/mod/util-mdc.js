@@ -2773,9 +2773,12 @@ async function checkWoff2icons(action) {
     setIconsUsed.forEach(sym => {
         if (!setIconsWoff2.has(sym)) { setIconsMissing.add(sym); }
     });
+
     // FIX-ME: codepoint problems:
     setIconsMissing.delete("bookmark");
     setIconsMissing.delete("history");
+    setIconsMissing.delete("help");
+
     if (action == "justCheck") return setIconsMissing.size;
 
     const linkWOFF2 = await mkWOFF2downloadLink();
