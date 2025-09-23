@@ -1024,7 +1024,7 @@ export function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
         const parentid = n.parentId || n.parent;
         delete n.parentId;
         delete n.parent;
-        if (parentid) n.parentid = parentid;
+        if (parentid && parentid != "") n.parentid = parentid;
 
         const notes = n.notes;
         if (notes) {

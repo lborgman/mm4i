@@ -554,11 +554,12 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
             evt.stopPropagation();
             eltFaked = eltFaked || btnEditMyNotes.closest(".faked-viewer");
             eltFaked.classList.toggle("faked-viewer");
+            const spanIcon = btnEditMyNotes.querySelector("span.material-symbols-outlined");
             if (eltFaked.classList.contains("faked-viewer")) {
-                btnEditMyNotes.textContent = "edit";
+                spanIcon.textContent = "edit";
                 if (toastEditor.mode != "wysiwyg") { toastEditor.changeMode("wysiwyg"); }
             } else {
-                btnEditMyNotes.textContent = "edit_off";
+                spanIcon.textContent = "edit_off";
             }
             return;
 
