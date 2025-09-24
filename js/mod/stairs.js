@@ -224,7 +224,7 @@ export async function dialogStairs() {
             `),
     ]);
     const divInfoCollapsible = modTools.mkHeightExpander(divInfo);
-    const btnInfo = modMdc.mkMDCiconButton("info_i", "What is mindmap stairs?");
+    const btnInfo = modMdc.mkMDCiconButton("info", "What is mindmap stairs?");
     // const eltIconInfo = modMdc.mkMDCicon("info_i");
     // const btnInfo = modMdc.mkMDCfab(eltIconInfo, "What is a stair here?", true);
     eltTitle.appendChild(btnInfo);
@@ -234,6 +234,7 @@ export async function dialogStairs() {
         bottom: -45px;
         right: 50px;
         color: blue;
+        background-color: #ffffff85;
     `;
     btnInfo.addEventListener("click", evt => {
         evt.stopPropagation();

@@ -781,7 +781,9 @@ export class CustomRenderer4jsMind {
         eltCopied.classList.remove("right-side");
         eltCopied.classList.remove("has-children");
         if (eltCopied.style.width == "") {
-            eltCopied.style.width = `${bcrOrig.width}px`;
+            // FIX-ME: There is a mysterious pixel missing??? Just add 2px as a workaround.
+            // eltCopied.style.width = `${bcrOrig.width}px`;
+            eltCopied.style.width = `${bcrOrig.width + 2}px`;
             eltCopied.style.height = `${bcrOrig.height}px`;
         }
 
@@ -2331,17 +2333,13 @@ export class CustomRenderer4jsMind {
 
         // The workaround:
         const thumbSize = "30";
-        /*
-        const style = [
-            `width:${thumbSize}px`,
-            `height:${thumbSize}px`,
-        ].join(";");
-        */
         const icon = modMdc.mkMDCicon("resize");
         icon.style = `
-            fontSize: ${thumbSize}px;
+            font-size: ${thumbSize}px;
             width: ${thumbSize}px;
             aspect-ratio: 1 / 1;
+            align-items: center;
+            justify-contents: center;
         `;
         const thumb = mkElt("span", undefined, icon);
         thumb.id = "jsmind-ednode-copied-resizer";

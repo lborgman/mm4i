@@ -258,7 +258,7 @@ export function mkMDCiconButton(icon, ariaLabel, sizePx) {
     const spanIcon = mkElt("span", { class: materialIconsClass }, icon);
     const btn = mkElt("button",
         // { class: `mdc-icon-button ${materialIconsClass}` },
-        { class: `mdc-icon-button` },
+        { class: `mdc-icon-button flex-center` },
         [
             mkElt("div", { class: "mdc-icon-button__ripple" }),
             // icon
@@ -2804,18 +2804,37 @@ async function checkWoff2icons(action) {
     if (action == "justCheck") return setIconsMissing.size;
 
     const linkWOFF2 = await mkWOFF2downloadLink();
-    const missing = [...setIconsMissing].sort().join(",");
-    const used = [...setIconsUsed].sort().join(",");
-    const woff2 = [...setIconsWoff2].sort().join(",");
+    const missing = [...setIconsMissing].sort().join(", ");
+    const used = [...setIconsUsed].sort().join(", ");
+    const woff2 = [...setIconsWoff2].sort().join(", ");
     window.console.log(`Missing in woff file: "${missing}",\nsee console for .woff download link`);
 
     // alert(`Missing in woff file: "${missing}",\nsee console for .woff download link`);
+    const makeGroupLabel = (txt) => {
+        const elt = mkElt("span", undefined, txt);
+        elt.style.fontWeight = "bold";
+        elt.style.fontSize = "1.3rem";
+        return elt;
+    }
+    const eltDownload = mkElt("div", { class: "mdc-card" }, [
+        mkElt("a", { href: linkWOFF2 }, "Download new WOFF2"),
+        mkElt("p", undefined, [
+            `Replace the file `,
+            mkElt("div", undefined, "./ext/mdc-fonts/my-symbols.woff2"),
+            ` with the new file.`
+        ])
+    ]);
+    eltDownload.style = `
+        padding: 10px;
+        margin-top: 20px;
+        background-color: yellowgreen;
+    `;
     const body = mkElt("div", undefined, [
         mkElt("h2", undefined, "Missing Material Symbols"),
-        mkElt("div", undefined, `Used (${setIconsUsed.size}): ${used}`),
-        mkElt("div", undefined, `WOFF2 (${setIconsWoff2.size}): ${woff2}`),
-        mkElt("div", undefined, `Missing (${setIconsMissing.size}): ${missing}`),
-        mkElt("a", { href: linkWOFF2 }, "Download WOFF2"),
+        mkElt("div", undefined, [makeGroupLabel(`Used (${setIconsUsed.size}): `), `${used}`]),
+        mkElt("div", undefined, [makeGroupLabel(`WOFF2 (${setIconsWoff2.size}): `), `${woff2}`]),
+        mkElt("div", undefined, [makeGroupLabel(`Missing (${setIconsMissing.size}): `), `${missing}`]),
+        eltDownload,
     ]);
     mkMDCdialogAlert(body, "Close");
 }
