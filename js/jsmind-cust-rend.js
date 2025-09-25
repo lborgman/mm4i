@@ -1059,7 +1059,7 @@ export class CustomRenderer4jsMind {
             setupJmnodeBgTab();
         }
 
-        const taTopic = modMdc.mkMDCtextFieldTextarea(undefined, 8, 50);
+        const taTopic = modMdc.mkMDCtextFieldTextarea("ta-node-topic", 8, 50);
         taTopic.classList.add("jsmind-ednode-topic");
         taTopic.style.resize = "vertical";
         function onTaTopicInput() {
@@ -1085,6 +1085,8 @@ export class CustomRenderer4jsMind {
             onInpTopicInput();
         });
 
+        // const taTopic = modMdc.mkMDCtextFieldTextarea("ta-node-topic");
+        const tftaTopic = modMdc.mkMDCtextareaField("Test ta topic", taTopic, initTopic);
 
         // modMdc.mkMDC
 
@@ -1097,6 +1099,7 @@ export class CustomRenderer4jsMind {
 
         const divNotesTab = mkElt("div", undefined, [
             tfTopic,
+            tftaTopic,
             divEasyMdeOuterWrapper,
         ]);
         divNotesTab.style.gap = "30px";
@@ -2251,7 +2254,7 @@ export class CustomRenderer4jsMind {
 
         // console.log("setting up tabs bar", eltCopied);
         // mkMdcTabBarSimple(tabsRecs, contentElts, moreOnActivate) 
-        const tabRecs = ["Notes",
+        const tabRecs = ["Topic",
             // "Content",
             "Shapes", "Border", "Shadow", "Background"];
         const contentElts = mkElt("div", undefined,
@@ -2267,7 +2270,8 @@ export class CustomRenderer4jsMind {
             }
             switch (idx) {
                 case 0:
-                    checkTabname("Notes");
+                    // checkTabname("Notes");
+                    checkTabname("Topic");
                     activateNotesTab();
                     break;
                 /*

@@ -293,10 +293,10 @@ export function setMDCiconButton(iconButton, iconName) {
 
 
 // https://material.io/develop/web/components/input-controls/text-field/
-export function mkMDCtextFieldTextarea(id, rows, cols) {
+export function mkMDCtextFieldTextarea(id, _rows, _cols) {
     const eltTextarea = mkElt("textarea", {
         class: "mdc-text-field__input",
-        rows, cols,
+        // rows, cols,
     });
     if (id) {
         eltTextarea.id = id;
