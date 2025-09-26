@@ -129,35 +129,17 @@ jmnode.selected {
 
 
 
+/* Root font-size */
 jmnode.root {
-    font-size: 24px;
+    max-height: 150px;
 }
 
-/*
-jmnode.root:hover::before {
-    content: "";
-    height: 100%;
-    background-color: red;
-    position: absolute;
-    left: -20px;
-    border-top-left-radius: 50%;
-    border-bottom-left-radius: 50%;
-    width: 20px;
-    height: 20px;
+jmnodes jmnode.root div.jmnode-text {
+    font-size: 32px;
+    font-style: italic;
 }
 
-jmnode.root:hover::after {
-    content: "";
-    height: 100%;
-    background-color: red;
-    position: absolute;
-    right: -20px;
-    border-top-right-radius: 50%;
-    border-bottom-right-radius: 50%;
-    width: 20px;
-    height: 20px;
-}
-*/
+
 
 jmexpander {
     border-color: gray;
@@ -190,11 +172,6 @@ jmnodes.theme-primary jmnode .jmnode-bg {
 }
 
 
-/*
-jmnodes.theme-primary jmnode.root {}
-jmnodes.theme-primary jmexpander {}
-jmnodes.theme-primary jmexpander:hover {}
-*/
 
 /* warning theme */
 jmnodes.theme-warning jmnode {
@@ -205,11 +182,6 @@ jmnodes.theme-warning jmnode .jmnode-bg {
     background-color: #f0ad4e;
 }
 
-/*
-jmnodes.theme-warning jmnode.root {}
-jmnodes.theme-warning jmexpander {}
-jmnodes.theme-warning jmexpander:hover {}
-*/
 
 /* danger theme */
 jmnodes.theme-danger jmnode {
@@ -221,11 +193,6 @@ jmnodes.theme-danger jmnode .jmnode-bg {
 }
 
 
-/*
-jmnodes.theme-danger jmnode.root {}
-jmnodes.theme-danger jmexpander {}
-jmnodes.theme-danger jmexpander:hover {}
-*/
 
 /* success theme */
 jmnodes.theme-success jmnode {
@@ -236,11 +203,6 @@ jmnodes.theme-success jmnode .jmnode-bg {
     background-color: #5cb85c;
 }
 
-/*
-jmnodes.theme-success jmnode.root {}
-jmnodes.theme-success jmexpander {}
-jmnodes.theme-success jmexpander:hover {}
-*/
 
 /* info theme */
 jmnodes.theme-info jmnode {
@@ -252,11 +214,6 @@ jmnodes.theme-info jmnode .jmnode-bg {
 }
 
 
-/*
-jmnodes.theme-info jmnode.root {}
-jmnodes.theme-info jmexpander {}
-jmnodes.theme-info jmexpander:hover {}
-*/
 
 /* greensea theme */
 jmnodes.theme-greensea jmnode {
@@ -269,11 +226,6 @@ jmnodes.theme-greensea jmnode .jmnode-bg {
 
 
 
-/*
-jmnodes.theme-greensea jmnode.root {}
-jmnodes.theme-greensea jmexpander {}
-jmnodes.theme-greensea jmexpander:hover {}
-*/
 
 /* nephrite theme */
 jmnodes.theme-nephrite jmnode {
@@ -286,11 +238,6 @@ jmnodes.theme-nephrite jmnode .jmnode-bg {
 
 
 
-/*
-jmnodes.theme-nephrite jmnode.root {}
-jmnodes.theme-nephrite jmexpander {}
-jmnodes.theme-nephrite jmexpander:hover {}
-*/
 
 /* belizehole theme */
 jmnodes.theme-belizehole jmnode {
@@ -303,11 +250,6 @@ jmnodes.theme-belizehole jmnode .jmnode-bg {
 
 
 
-/*
-jmnodes.theme-belizehole jmnode.root {}
-jmnodes.theme-belizehole jmexpander {}
-jmnodes.theme-belizehole jmexpander:hover {}
-*/
 
 /* wisteria theme */
 jmnodes.theme-wisteria jmnode {
@@ -320,11 +262,6 @@ jmnodes.theme-wisteria jmnode .jmnode-bg {
 
 
 
-/*
-jmnodes.theme-wisteria jmnode.root {}
-jmnodes.theme-wisteria jmexpander {}
-jmnodes.theme-wisteria jmexpander:hover {}
-*/
 
 /* asphalt theme */
 jmnodes.theme-asphalt jmnode {
@@ -338,7 +275,6 @@ jmnodes.theme-asphalt jmnode .jmnode-bg {
 
 
 /*
-jmnodes.theme-asphalt jmnode.root {}
 jmnodes.theme-asphalt jmexpander {}
 jmnodes.theme-asphalt jmexpander:hover {}
 */
@@ -357,7 +293,6 @@ jmnodes.theme-orange jmnode .jmnode-bg {
 
 
 /*
-jmnodes.theme-orange jmnode.root {}
 jmnodes.theme-orange jmexpander {}
 jmnodes.theme-orange jmexpander:hover {}
 */
@@ -376,7 +311,6 @@ jmnodes.theme-pumpkin jmnode .jmnode-bg {
 
 
 /*
-jmnodes.theme-pumpkin jmnode.root {}
 jmnodes.theme-pumpkin jmexpander {}
 jmnodes.theme-pumpkin jmexpander:hover {}
 */
@@ -392,7 +326,6 @@ jmnodes.theme-pomegranate jmnode .jmnode-bg {
 
 
 /*
-jmnodes.theme-pomegranate jmnode.root {}
 jmnodes.theme-pomegranate jmexpander {}
 jmnodes.theme-pomegranate jmexpander:hover {}
 */
@@ -408,7 +341,6 @@ jmnodes.theme-clouds jmnode .jmnode-bg {
 
 
 /*
-jmnodes.theme-clouds jmnode.root {}
 jmnodes.theme-clouds jmexpander {}
 jmnodes.theme-clouds jmexpander:hover {}
 */
@@ -424,7 +356,6 @@ jmnodes.theme-asbestos jmnode .jmnode-bg {
 
 
 /*
-jmnodes.theme-asbestos jmnode.root {}
 jmnodes.theme-asbestos jmexpander {}
 jmnodes.theme-asbestos jmexpander:hover {}
 */
@@ -440,9 +371,6 @@ jmnodes jmnode {
     width: max-content;
 }
 
-jmnodes jmnode.root {
-    max-height: 150px;
-}
 
 /*
 jmnodes jmnode.text-overflow div.jmnode-text {
@@ -537,16 +465,9 @@ jmnodes jmnode .jmnode-text {
     -webkit-text-stroke: 0.3px black;
 }
 
-/* .jsmind_container jmnodes jmnode[nodeid='root'] { */
-/*
-.jsmind_container jmnodes jmnode.root {
-    overflow: hidden;
-    overflow: visible;
-    for the wavy to be visible
-}
-*/
 
-.jsmind_container jmnodes jmnode.root div.jmnode-text {
+/* Root font-size */
+.NOjsmind_container jmnodes jmnode.root div.jmnode-text {
     /* text-decoration: wavy underline; */
     /* text-underline-position: under; */
     /* line-height: 2; */
