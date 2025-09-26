@@ -838,8 +838,20 @@ export class CustomRenderer4jsMind {
         const origJmnodes = eltJmnode.closest("jmnodes");
         // const origJmnodesStyle = getComputedStyle(origJmnodes);
         // const origJmnodesParentStyle = getComputedStyle(origJmnodes.parentElement);
-        const bcrJmnode = eltJmnode.getBoundingClientRect();
-        const ourBgColor = modColorTools.getBackgroundColorAtPoint(bcrJmnode.x, bcrJmnode.y, origJmnodes);
+        const bcr = eltJmnode.getBoundingClientRect();
+        // One of the corners must be inside origJmnodes:
+        const ourBgColor =
+            modColorTools.getBackgroundColorAtPoint(bcr.x, bcr.y, origJmnodes)
+            ||
+            modColorTools.getBackgroundColorAtPoint(bcr.x+bcr.width, bcr.y, origJmnodes)
+            ||
+            modColorTools.getBackgroundColorAtPoint(bcr.x+bcr.width, bcr.y+bcr.height, origJmnodes)
+            ||
+            modColorTools.getBackgroundColorAtPoint(bcr.x, bcr.y+bcr.height, origJmnodes)
+            ;
+            if (!ourBgColor) {
+                throw Error(`ourBgColor == "${ourBgColor}"`);
+            }
 
         const themeCls = getJsmindTheme(origJmnodes)
         jmnodesCopied.classList.add(themeCls);

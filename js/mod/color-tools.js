@@ -196,6 +196,9 @@ export function getBackgroundColorAtPoint(x, y, eltTop = undefined) {
     if (!arrElts) {
         throw Error(`!arrElts: x==${x}, y==${y}`);
     }
+    if (arrElts.length == 0) {
+        return undefined; // Outside of document
+    }
     // console.log({ arrElts });
     // Look for eltTop
     let arrOurElts = [...arrElts];
