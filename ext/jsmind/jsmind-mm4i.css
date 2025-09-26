@@ -136,6 +136,8 @@ jmnode.root {
 
 jmnodes jmnode.root div.jmnode-text {
     font-size: 32px;
+    font-size: 28px;
+    font-size: 26px;
     font-style: italic;
 }
 
