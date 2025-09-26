@@ -979,11 +979,34 @@
             right: 48px;
         }
 
-        /*
-            I was going to add a workaround for a <jmnode> bug here, but the bug suddenly disappeared????
-        */
         #div-ednode-copied {
-            outline: 10px inset olive;
+            outline: 5px inset olive;
+            position: relative;
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        #div-ednode-copied::after {
+            content: " Preview ";
+
+            z-index: 9999;
+            position: absolute;
+            right: -10px;
+            top: -10px;
+            width: fit-content;
+            height: fit-content;
+            padding: 2px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+
+            background-color: olive;
+            color: black;
+            border: 1px solid gray;
+            border-radius: 4px;
+            font-size: 14px;
         }
 
         jmnodes jmnode {

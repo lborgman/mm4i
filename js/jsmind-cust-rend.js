@@ -856,17 +856,13 @@ export class CustomRenderer4jsMind {
         const themeCls = getJsmindTheme(origJmnodes)
         jmnodesCopied.classList.add(themeCls);
 
-        const divEdnodeCopied = mkElt("div", { class: "mdc-card" }, [jmnodesCopied]);
+        const divEdnodeCopied = mkElt("div", { class: "NOmdc-card" }, [jmnodesCopied]);
         divEdnodeCopied.id = "div-ednode-copied";
         jmnodesCopied.style.backgroundColor = ourBgColor;
         divEdnodeCopied.style.backgroundColor = ourBgColor;
 
         const paddingDivEdnodeCopied = 8;
-        divEdnodeCopied.style.position = "relative";
-        divEdnodeCopied.style.width = "100%";
         divEdnodeCopied.style.padding = `${paddingDivEdnodeCopied}px`;
-        divEdnodeCopied.style.border = "1px solid black";
-        divEdnodeCopied.style.marginBottom = "5px";
         // https://stackoverflow.com/questions/59010779/pointer-event-issue-pointercancel-with-pressure-input-pen
         divEdnodeCopied.style.touchAction = "none";
 
@@ -2335,6 +2331,7 @@ export class CustomRenderer4jsMind {
         });
 
         const tabBar = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, onActivateMore);
+        tabBar.style.marginTop = "20px";
         const divEdnodeParts = mkElt("div", { id: "jsmind-ednode-parts" }, [
             divEdnodeCopied,
             tabBar,
