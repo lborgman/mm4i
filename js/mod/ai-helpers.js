@@ -613,6 +613,7 @@ Important:
     radCurrentAI.checked = true;
     const btnCopyAndOpenAI = modMdc.mkMDCbutton("Copy prompt and open AI", "raised");
     btnCopyAndOpenAI.style.textTransform = "none";
+    /** @type {string} */ let nameUsedAI = "Not known";
     btnCopyAndOpenAI.addEventListener("click", async evt => {
         evt.stopPropagation();
         const modTools = await importFc4i("toolsJs");
@@ -625,6 +626,7 @@ Important:
         if (!inpAI) { throw Error("no selection of AI") }
         // @ts-ignore
         const nameAI = inpAI.value;
+        nameUsedAI = nameAI
         if (nameAI == "none") {
             modMdc.mkMDCsnackbar("Copied prompt for AI");
             return;
@@ -892,6 +894,15 @@ Important:
         if (arrRoots.length != 1) throw Error(`Expected 1 root: ${arrRoots.length} `);
         const rootNode = arrRoots[0];
         console.log(rootNode);
+        const rootNotes = rootNode.shapeEtc?.notes;
+        // Insert source data
+        if (typeof rootNotes == "string") {
+            const rootNotesWithSource =
+            `## Source etc\n\n**AI name:** ${nameUsedAI}\n\n## Notes\n\n${rootNotes}`;
+            rootNode.shapeEtc.notes = rootNotesWithSource;
+        } else {
+            alert("no root notes, handling not implemented yet");
+        }
 
 
         // debugger;
@@ -1217,7 +1228,7 @@ function mkWebUrl(nameAI, promptAI) {
  * @param {Object[]} aiNodeArray 
  * @returns {Object[]}
  */
-export function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
+function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
     // https://chatgpt.com/share/68ab0c5c-abe8-8004-8a37-616c5a28c8ce
 
     // parentId: Grok AI
