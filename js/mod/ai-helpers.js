@@ -898,7 +898,7 @@ Important:
         // Insert source data
         if (typeof rootNotes == "string") {
             const rootNotesWithSource =
-            `## Source etc\n\n**AI name:** ${nameUsedAI}\n\n## Notes\n\n${rootNotes}`;
+            `## Source etc\n\n*AI name:* ${nameUsedAI}\n\n## Notes\n\n${rootNotes}`;
             rootNode.shapeEtc.notes = rootNotesWithSource;
         } else {
             alert("no root notes, handling not implemented yet");
