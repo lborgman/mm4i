@@ -2931,3 +2931,23 @@ export function normalizeLineEndings(str) {
     let strWithLf = str.replaceAll(/\r?\n/g, lf);
     return strWithLf.replaceAll(/\r/g, lf);
 }
+
+
+/**
+ * Auto-grow textarea.
+ * https://css-tricks.com/the-cleanest-trick-for-autogrowing-textareas/
+ * 
+ * @param {HTMLTextAreaElement} textarea 
+ */
+export function mkTextareaGrowWrap(textarea) {
+    const parent = textarea.parentNode;
+    if (!parent) throw Error("textarea.parentNode is null");
+    if (!(parent instanceof HTMLDivElement)) throw Error("textarea.parentNode is not <DIV>");
+    // Check parent has .grow-wrap etc
+    if (!parent.classList.contains("grow-wrap")) throw Error("textarea parent does not have class .grow-wrap");
+    textarea.setAttribute("rows", "1");
+    // const replicate = () => { textarea.parentNode.dataset.replicatedValue = textarea.value; };
+    const replicate = () => { parent.dataset.replicatedValue = textarea.value; };
+    textarea.addEventListener("input", () => { replicate(); });
+    if (textarea.value.length > 0) replicate();
+}

@@ -376,10 +376,7 @@ export function mkMDCtextareaField(label, textarea, prefill) {
     return fl;
 }
 /*
-    Multi-line is not implemented in MDC Web 2. Use this instead!
-    https://css-tricks.com/the-cleanest-trick-for-autogrowing-textareas/
-*/
-export function mkMDCtextareaGrow(tf) {
+export function mkMDCtextfieldTextareaGrow(tf) {
     if (!tf.classList.contains("mdc-text-field")) throw Error(`Not an MDC tf for textarea`);
     if (!tf.tagName == "LABEL") throw Error(`Not a label tag: ${tf.tagName}`);
     const eltResizeContainer = tf.querySelector(".mdc-text-field__resizer");
@@ -390,15 +387,11 @@ export function mkMDCtextareaGrow(tf) {
     // textarea.style.border = "none";
     // textarea.rows = 1;
     textarea.setAttribute("rows", 1);
-    const replicate = () => {
-        // console.log("%cReplicating", "color:red");
-        textarea.parentNode.dataset.replicatedValue = textarea.value;
-    };
+    const replicate = () => { textarea.parentNode.dataset.replicatedValue = textarea.value; };
     textarea.addEventListener("input", () => { replicate(); });
-    // FIX-ME: This did not work. No change event?
-    textarea.addEventListener("change", () => { errorHandlerAsyncEvent(setTimeout(replicate, 2000)); });
     if (textarea.value.length > 0) replicate();
 }
+*/
 export function mkMDCtextField(label, input, prefill) {
     const id = input.id;
     if (prefill) input.value = prefill;

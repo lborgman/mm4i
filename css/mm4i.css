@@ -1106,10 +1106,11 @@ body.no-test-items .test-item {
 /* https://css-tricks.com/the-cleanest-trick-for-autogrowing-textareas/ */
 .grow-wrap {
     /* easy way to plop the elements on top of each other and have them both sized based on the tallest one's height */
-    display: inline-grid;
+    /* display: inline-grid; */
+    display: grid;
     margin-left: 0;
     margin-right: 0;
-    background-color: goldenrod;
+    /* background-color: goldenrod; */
 }
 
 .grow-wrap::after {
@@ -1122,20 +1123,23 @@ body.no-test-items .test-item {
     /* Hidden from view, clicks, and screen readers */
     visibility: hidden;
 
-    overflow-wrap: break-word;
-    overflow-x: hidden;
-    overflow-y: auto;
+    overflow: hidden;
+
+    NOoverflow-wrap: break-word;
+    NOoverflow-x: hidden;
+    NOoverflow-y: auto;
 
     /*
       Both inline-block and block works now?????
     */
-    display: inline-block;
+    /* display: inline-block; */
 
 
     /*
       FIX-ME: get those below from getComputedStyle() for the textarea.
       Now implemented in updateGrowWrap.
     */
+    /*
     font-family: Roboto, sans-serif;
     font-style: normal;
     font-weight: 400;
@@ -1162,6 +1166,7 @@ body.no-test-items .test-item {
     white-space: pre-wrap;
     width: 100%;
     word-spacing: 0;
+    */
 }
 
 .grow-wrap>textarea {
@@ -1183,8 +1188,8 @@ body.no-test-items .test-item {
     padding: 0.5rem;
     font: inherit;
     /* Don't ask me about the next 2 */
-    padding-top: 2rem;
-    margin-top: 1rem;
+    /* padding-top: 2rem; */
+    /* margin-top: 1rem; */
 
     /* Place on top of each other */
     grid-area: 1 / 1 / 2 / 2;
@@ -1192,7 +1197,7 @@ body.no-test-items .test-item {
         I don't understand the next one?
         And it hides the resizer...
     */
-    margin-bottom: -1.5rem !important;
+    /* margin-bottom: -1.5rem !important; */
 }
 
 NObody {

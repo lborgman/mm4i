@@ -1067,7 +1067,9 @@ export class CustomRenderer4jsMind {
             setupJmnodeBgTab();
         }
 
-        const taTopic = modMdc.mkMDCtextFieldTextarea("ta-node-topic", 8, 50);
+        // const taTopic = modMdc.mkMDCtextFieldTextarea("ta-node-topic", 8, 50);
+        const taTopic = mkElt("textarea");
+        taTopic.id = "ta-node-topic";
         taTopic.classList.add("jsmind-ednode-topic");
         // taTopic.style.resize = "vertical";
 
@@ -1094,24 +1096,34 @@ export class CustomRenderer4jsMind {
             onInpTopicInput();
         });
 
-        // const taTopic = modMdc.mkMDCtextFieldTextarea("ta-node-topic");
-        const tftaTopic = modMdc.mkMDCtextareaField("Node Topic", taTopic, initTopic);
 
-        // modMdc.mkMDC
-
-        // const taEasyMde = mkElt("textarea", { placeholder: "Enter notes for this node" });
-        // const divEasyMdeInert = mkElt("div", undefined, taEasyMde);
-        // divEasyMdeInert.setAttribute("inert", "");
-        // const divEasyMdeOuterWrapper = mkElt("div", undefined, divEasyMdeInert);
         const divEasyMdeOuterWrapper = mkElt("div");
 
+        const taTopicGrower = mkElt("div", { class: "grow-wrap" }, taTopic);
+        const eltTopicText = mkElt("span", undefined, "Topic");
+        eltTopicText.style.fontSize = "0.8rem";
+        const lblTopicGrower = mkElt("label", undefined, [eltTopicText, taTopicGrower]);
+
+        lblTopicGrower.style = `
+            padding: 5px 15px 15px 15px;
+            border: 1px solid #0006;
+            border-radius: 4px;
+            `;
+        // taTopic.style.borderColor = "#0002";
+        taTopic.style.borderColor = "transparent";
+        taTopic.style.backgroundColor = "transparent";
 
         const divTopicTab = mkElt("div", undefined, [
+            // tftaTopic,
+            // taTopic,
             // tfTopic,
-            tftaTopic,
+            // taTopicGrower,
+            lblTopicGrower,
         ]);
-        // divTopicTab.style.gap = "30px";
-        modMdc.mkMDCtextareaGrow(tfTopic);
+        // modMdc.mkTextareaGrowWrap(tftaTopic);
+        // taTopic.classList.add("grow-wrap");
+        taTopic.value = initTopic;
+        modTools.mkTextareaGrowWrap(taTopic);
 
         const divNotesTab = mkElt("div", undefined, [
             divEasyMdeOuterWrapper,
