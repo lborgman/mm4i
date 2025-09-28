@@ -1235,15 +1235,15 @@ export function getWayToCallAI(nameAI) {
     if (funAPI) {
         const keyAPI = getAPIkeyForAI(nameAI);
         if (keyAPI) {
-            return "AI API";
+            return "API";
         }
     }
     const userAgent = navigator.userAgent.toLowerCase();
     const isAndroid = userAgent.indexOf("android") > -1;
     if (!isAndroid) {
-        return "AI web";
+        return "web";
     }
-    return "AI android app";
+    return "android-app";
 }
 
 /**
@@ -1262,13 +1262,13 @@ async function callTheAI(nameAI, promptAI) {
     let wayToCallAI = getWayToCallAI(nameAI);
 
     switch (wayToCallAI) {
-        case "AI API":
+        case "API":
             callAIapi(nameAI);
             break;
-        case "AI web":
+        case "web":
             callAIweb(nameAI);
             break;
-        case "AI android app":
+        case "android-app":
             callAIandroidApp(nameAI);
             break;
         default:
@@ -1288,6 +1288,9 @@ async function callTheAI(nameAI, promptAI) {
     async function callAIapi(nameAI) {
         divGoStatus.textContent = `Waiting for ${nameAI} . . .`;
         const tmrAlive = setInterval(() => { divGoStatus.append(" ."); }, 1500);
+        const infoThisAI = infoAI[nameAI];
+        const funAPI = infoThisAI.fun;
+        const keyAPI = getAPIkeyForAI(nameAI);
         const res = await funAPI(promptAI, keyAPI);
         clearInterval(tmrAlive);
         console.log({ res });
