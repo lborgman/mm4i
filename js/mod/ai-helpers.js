@@ -559,8 +559,6 @@ Important:
         eltAI.classList.add("elt-ai");
         eltAI.style.background = "lightgray";
         divAIhardWay.appendChild(eltAI);
-        // @ts-ignore
-        // radAI.checked = true;
     }
     Object.entries(infoAI).forEach(e => {
         const [k, v] = e;
@@ -589,8 +587,8 @@ Important:
         if (!t) return;
         // @ts-ignore
         const nameAI = t.value;
-        // const nameAI = t.getAttribute("value");
         localStorage.setItem(keyLsAIhard, nameAI);
+        divGoStatus.textContent = "";
     });
     const radCurrentAI = divAIhardWay.querySelector(`input[type = radio][value = ${valLsAIhard} `);
     // @ts-ignore
@@ -897,20 +895,20 @@ Important:
         divAIsettings.appendChild(eltDetails);
     });
 
-    const tabRecs = ["Hard way", "Easy way", "AI Settings"];
-    const contentElts = mkElt("div", undefined, [divHardWay, divEasyWay, divAIsettings]);
+    // const tabRecs = ["Hard way", "Easy way", "AI Settings"];
+    const tabRecs = ["Call AI", "AIs Settings"];
+    // const contentElts = mkElt("div", undefined, [divHardWay, divEasyWay, divAIsettings]);
+    const contentElts = mkElt("div", undefined, [divHardWay, divAIsettings]);
     if (tabRecs.length != contentElts.childElementCount) throw Error("Tab bar setup number mismatch");
     const eltTabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, undefined);
 
     const divTabs = mkElt("p", undefined, [eltTabs, contentElts]);
     const divWays = mkElt("div", undefined, [
-        mkElt("p", undefined, "Choose how to proceed:"),
+        // mkElt("p", undefined, "Choose how to proceed:"),
         divTabs
     ]);
     divWays.id = "div-ways";
-    // divWays.style = styleWays;
     divWays.style.display = "none";
-    // ebbrowserInfoKeys
 
 
 
