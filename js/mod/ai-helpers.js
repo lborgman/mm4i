@@ -409,94 +409,95 @@ Important:
     const eltAItextareaStatus = mkElt("div");
     eltAItextareaStatus.style.lineHeight = "1";
     let toDoIt; let eltDialog;
+    function onAItextareaInput() {
+        eltAItextareaStatus.style.color = "unset";
+        // valid
+        const strAIraw = eltAItextarea.value.trim();
+        if (strAIraw.length == 0) {
+            eltAItextareaStatus.textContent = "";
+            return;
+        }
+        const { strAIjson, cleaned } = getJsonFromAIstr(strAIraw);
+
+        /** @param {string} txt */
+        const tellError = (txt) => {
+            const divTheError = mkElt("div", undefined, txt);
+            divTheError.style.userSelect = "all";
+            divTheError.style.color = "darkred";
+            divTheError.style.userSelect = "all";
+            divTheError.style.marginTop = "10px";
+            // eltAItextareaStatus.appendChild(mkElt("div", undefined, `Tell your AI that the JSON had this error:`));
+
+            const btnInfo = modMdc.mkMDCiconButton("help", "What are search links?");
+            // btnInfo.style = `color: blue;`;
+            btnInfo.addEventListener("click", () => {
+                alert("not ready");
+            });
+
+            const divError = mkElt("div", undefined, [divTheError, btnInfo]);
+            divError.style = ` display: flex; flex-direction: row; gap: 5px; `;
+            eltAItextareaStatus.appendChild(divError);
+        }
+        try {
+            const j = JSON.parse(strAIjson);
+            // const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(j);
+            const nodeArray = nodeArrayFromAI2jsmindFormat(j);
+            const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
+            if (res.isValid) {
+                const msgStatus = strAIjson == strAIraw ? "OK" : `OK (cleaned: ${cleaned.join(", ")})`;
+                eltAItextareaStatus.textContent = msgStatus;
+                eltAItextareaStatus.style.backgroundColor = "greenyellow";
+
+                eltDialog = eltAItextareaStatus.closest("div.mdc-dialog");
+                if (!eltDialog) throw Error('Could not find .closest("div.mdc-dialg")');
+
+                eltDialog.style.opacity = "1";
+                const secOpacity = 0.7;
+                eltDialog.style.transition = `opacity ${secOpacity}s`;
+                const secDelay = 1.6 + 2;
+                eltDialog.style.transitionDelay = `${secDelay}s`;
+                eltDialog.style.opacity = "0";
+                toDoIt = setTimeout(() => {
+                    eltDialog.remove();
+                    doMakeGeneratedMindmap();
+                }, (secDelay + secOpacity) * 1000);
+            } else {
+                tellError(res.error);
+            }
+        } catch (err) {
+            eltAItextareaStatus.textContent = "";
+            const msg = err instanceof Error ? err.message : err.toString();
+            tellError(msg);
+            const objJsonErrorDetails = modTools.extractJSONparseError(err.message, strAIjson);
+            const divErrorLocation = mkElt("div");
+            if (objJsonErrorDetails.context) {
+                const eltBefore = mkElt("span", undefined,
+                    objJsonErrorDetails.context.before
+                );
+                const eltAfter = mkElt("span", undefined,
+                    objJsonErrorDetails.context.after
+                );
+                const eltErrorChar = mkElt("span", undefined,
+                    objJsonErrorDetails.context.errorChar
+                );
+                eltErrorChar.style.color = "red";
+                divErrorLocation.textContent = "";
+                divErrorLocation.appendChild(eltBefore);
+                divErrorLocation.appendChild(eltErrorChar);
+                divErrorLocation.appendChild(eltAfter);
+                divErrorLocation.style.padding = "10px";
+                divErrorLocation.style.marginTop = "10px";
+                divErrorLocation.style.backgroundColor = "yellow";
+                divErrorLocation.style.whiteSpace = "pre-wrap";
+                eltAItextareaStatus.append(divErrorLocation);
+            }
+        }
+    }
+
     eltAItextarea.addEventListener("input", _evt => {
         clearTimeout(toDoIt);
         if (eltDialog) { eltDialog.style.opacity = "1"; }
         onAItextareaInput();
-        function onAItextareaInput() {
-            eltAItextareaStatus.style.color = "unset";
-            // valid
-            const strAIraw = eltAItextarea.value.trim();
-            if (strAIraw.length == 0) {
-                eltAItextareaStatus.textContent = "";
-                return;
-            }
-            const { strAIjson, cleaned } = getJsonFromAIstr(strAIraw);
-
-            /** @param {string} txt */
-            const tellError = (txt) => {
-                const divTheError = mkElt("div", undefined, txt);
-                divTheError.style.userSelect = "all";
-                divTheError.style.color = "darkred";
-                divTheError.style.userSelect = "all";
-                divTheError.style.marginTop = "10px";
-                // eltAItextareaStatus.appendChild(mkElt("div", undefined, `Tell your AI that the JSON had this error:`));
-
-                const btnInfo = modMdc.mkMDCiconButton("help", "What are search links?");
-                // btnInfo.style = `color: blue;`;
-                btnInfo.addEventListener("click", () => {
-                    alert("not ready");
-                });
-
-                const divError = mkElt("div", undefined, [divTheError, btnInfo]);
-                divError.style = ` display: flex; flex-direction: row; gap: 5px; `;
-                eltAItextareaStatus.appendChild(divError);
-            }
-            try {
-                const j = JSON.parse(strAIjson);
-                // const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(j);
-                const nodeArray = nodeArrayFromAI2jsmindFormat(j);
-                const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
-                if (res.isValid) {
-                    const msgStatus = strAIjson == strAIraw ? "OK" : `OK (cleaned: ${cleaned.join(", ")})`;
-                    eltAItextareaStatus.textContent = msgStatus;
-                    eltAItextareaStatus.style.backgroundColor = "greenyellow";
-
-                    eltDialog = eltAItextareaStatus.closest("div.mdc-dialog");
-                    if (!eltDialog) throw Error('Could not find .closest("div.mdc-dialg")');
-
-                    eltDialog.style.opacity = "1";
-                    const secOpacity = 0.7;
-                    eltDialog.style.transition = `opacity ${secOpacity}s`;
-                    const secDelay = 1.6 + 2;
-                    eltDialog.style.transitionDelay = `${secDelay}s`;
-                    eltDialog.style.opacity = "0";
-                    toDoIt = setTimeout(() => {
-                        eltDialog.remove();
-                        doMakeGeneratedMindmap();
-                    }, (secDelay + secOpacity) * 1000);
-                } else {
-                    tellError(res.error);
-                }
-            } catch (err) {
-                eltAItextareaStatus.textContent = "";
-                const msg = err instanceof Error? err.message: err.toString();
-                tellError(msg);
-                const objJsonErrorDetails = modTools.extractJSONparseError(err.message, strAIjson);
-                const divErrorLocation = mkElt("div");
-                if (objJsonErrorDetails.context) {
-                    const eltBefore = mkElt("span", undefined,
-                        objJsonErrorDetails.context.before
-                    );
-                    const eltAfter = mkElt("span", undefined,
-                        objJsonErrorDetails.context.after
-                    );
-                    const eltErrorChar = mkElt("span", undefined,
-                        objJsonErrorDetails.context.errorChar
-                    );
-                    eltErrorChar.style.color = "red";
-                    divErrorLocation.textContent = "";
-                    divErrorLocation.appendChild(eltBefore);
-                    divErrorLocation.appendChild(eltErrorChar);
-                    divErrorLocation.appendChild(eltAfter);
-                    divErrorLocation.style.padding = "10px";
-                    divErrorLocation.style.marginTop = "10px";
-                    divErrorLocation.style.backgroundColor = "yellow";
-                    divErrorLocation.style.whiteSpace = "pre-wrap";
-                    eltAItextareaStatus.append(divErrorLocation);
-                }
-            }
-        }
     });
 
     const eltAIprovidersTrouble = mkElt("details", undefined, [

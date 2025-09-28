@@ -38,7 +38,7 @@ export async function fetchGoogleSymbolNameMap(mdcIconStyle) {
             const int = parseInt(hex, 16);
             // codepointToName[parseInt(hex, 16)] = name;
             codepointToName[int] = name;
-            if (line.startsWith("edit ")) { console.log("EDIT: ", line, name, hex, int); }
+            // if (line.startsWith("edit ")) { console.log("EDIT: ", line, name, hex, int); }
         }
     });
     return codepointToName;

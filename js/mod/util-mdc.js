@@ -2876,28 +2876,18 @@ function getOurIconList() {
 
 async function getMdcSymbolsInWoff2File(woffUrl) {
     const modWoffCodepoints = await importFc4i("woff-codepoints");
-    console.log(modWoffCodepoints);
     const codepoints = await modWoffCodepoints.getCodepoints(woffUrl);
     if (!codepoints) return;
-    // const urlSymbolNames = await mkSymbol2codepointUrl(mdcIconStyle);
 
-    {
-        // const modCodepoints = await importFc4i("google-symbols-codepoints");
-        // const NEWcodepointToName = modCodepoints.getCodepointsToNames();
-    }
 
     const modWoff2MdcSymbols = await importFc4i("woff2-mdc-symbols");
-    // const codepointToName = modWoff2MdcSymbols.fetchGoogleSymbolNameMap(urlSymbolNames);
     const codepointToName = await modWoff2MdcSymbols.fetchGoogleSymbolNameMap(mdcIconStyle);
     if (!codepointToName) return;
-    /*
-    */
 
     // Now you can look up names:
     const names = codepoints.map(cp => codepointToName[cp]);
     const cleanedNames = names.filter(name => { if (typeof name == "string") return name; });
     const strNames = cleanedNames.sort().join(",");
-    console.log({ strNames });
     return strNames;
 
 }
