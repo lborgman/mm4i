@@ -1231,6 +1231,8 @@ async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
  * @param {string} promptAI 
  */
 async function callTheAI(nameAI, promptAI) {
+    const modTools = await importFc4i("toolsJs");
+
     const divGoStatus = document.getElementById("div-go-status");
     if (!divGoStatus) throw Error(`Did not find element "div-go-status"`);
 
@@ -1271,10 +1273,10 @@ async function callTheAI(nameAI, promptAI) {
     }
     if (!isAndroid) {
         divGoStatus.append(`, calling web ${nameAI}`);
-        const modTools = await importFc4i("toolsJs");
         await modTools.waitSeconds(2);
         const webUrl = mkWebUrl(nameAI, promptAI);
         window.open(`${webUrl}`, "AIWINDOW");
+        divGoStatus.textContent = "";
         return;
     }
     const androidIntent = infoThisAI.android;
@@ -1285,9 +1287,13 @@ async function callTheAI(nameAI, promptAI) {
         return;
     }
     if (!rawIntentUrl) throw Error(`intentUrl=="${rawIntentUrl}"`);
+
+    divGoStatus.append(`, opening ${nameAI} Android app`);
+    await modTools.waitSeconds(2);
     const intentUrl = rawIntentUrl.replaceAll(/PLACEHOLDER/g, promptAI);
     const promptEncoded = encodeURIComponent(promptAI);
     launchIntentWithIframe(intentUrl, nameAI, promptEncoded);
+    divGoStatus.textContent = "";
 }
 
 /**
