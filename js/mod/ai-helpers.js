@@ -197,6 +197,7 @@ const testIntentsAI = {
 
 const keyLsAIhard = "mm4i-ai-hardway";
 
+let initAItextarea;
 export async function generateMindMap(fromLink) {
     const modMdc = await importFc4i("util-mdc");
     const modTools = await importFc4i("toolsJs");
@@ -205,6 +206,7 @@ export async function generateMindMap(fromLink) {
     const tfLink = modMdc.mkMDCtextField("Link to article/video", inpLink);
     const eltNotReady = mkElt("p", undefined, "Please try, but it is no ready!");
     eltNotReady.style = `color:red; font-size:1.2rem`;
+    initAItextarea = onAItextareaInput;
 
 
     const eltStatus = mkElt("div", undefined, "(empty)");
@@ -499,6 +501,11 @@ Important:
         if (eltDialog) { eltDialog.style.opacity = "1"; }
         onAItextareaInput();
     });
+    eltAItextarea.addEventListener("change", _evt => {
+        clearTimeout(toDoIt);
+        if (eltDialog) { eltDialog.style.opacity = "1"; }
+        onAItextareaInput();
+    });
 
     const eltAIprovidersTrouble = mkElt("details", undefined, [
         mkElt("summary", undefined, "AI providers do not let me ask for you"),
@@ -588,34 +595,38 @@ Important:
     const radCurrentAI = divAIhardWay.querySelector(`input[type = radio][value = ${valLsAIhard} `);
     // @ts-ignore
     radCurrentAI.checked = true;
-    // const btnCopyAndOpenAI = modMdc.mkMDCbutton("Copy prompt and open AI", "raised");
-    const btnCopyAndOpenAI = modMdc.mkMDCbutton("Go", "raised");
-    btnCopyAndOpenAI.style.textTransform = "none";
+
+    const divGoStatus = mkElt("div");
+    divGoStatus.id = "div-go-status";
+    divGoStatus.style.outline = "1px dotted red";
+
+    const btnGo = modMdc.mkMDCbutton("Go", "raised");
+    btnGo.style.textTransform = "none";
+
     /** @type {string} */ let nameUsedAI = "Not known";
-    btnCopyAndOpenAI.addEventListener("click", async evt => {
+
+    btnGo.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         const modTools = await importFc4i("toolsJs");
         await modTools.copyTextToClipboard(promptAI);
-        const divGoStatus = document.getElementById("div-go-status");
-        if (!divGoStatus) throw Error(`Did not find element "div-go-status"`);
-
-        divGoStatus.textContent = "Copied prompt for AI";
-
 
         const divHardWay = document.getElementById("hard-way");
         if (!divHardWay) throw Error('Could not find "#hard-way"');
         divHardWay.querySelector("input[type=radio][name=ai]:checked");
         const inpAI = divHardWay.querySelector("input[type=radio][name=ai]:checked");
         if (!inpAI) {
-            divGoStatus.textContent = "no AI selected";
+            divGoStatus.textContent = "Please select an AI alternative";
             return;
         }
+
+
+        divGoStatus.textContent = "Copied prompt";
 
         // @ts-ignore
         const nameAI = inpAI.value;
         nameUsedAI = nameAI
         if (nameAI == "none") {
-            modMdc.mkMDCsnackbar("Just copied prompt for AI");
+            divGoStatus.append(", no AI selected. Start the AI you want and paste the prompt there.");
             return;
         }
 
@@ -624,7 +635,7 @@ Important:
         if (!infoThisAI) { throw Error(`Did not find info for AI "${nameAI}"`); }
 
 
-        divGoStatus.textContent = `Copied prompt, will call AI "${nameAI}"`;
+        // divGoStatus.textContent = `Copied prompt, will call AI "${nameAI}"`;
         setTimeout(() => {
             callTheAI(nameAI, promptAI);
         }, 2000);
@@ -787,10 +798,7 @@ Important:
             gap: 10px;
             flex - wrap: wrap;
             `;
-    const divGoStatus = mkElt("div");
-    divGoStatus.id = "div-go-status";
-    divGoStatus.style.outline = "1px dotted red";
-    const divBtnCopy = mkElt("div", undefined, [btnCopyAndOpenAI, divGoStatus]);
+    const divBtnCopy = mkElt("div", undefined, [btnGo, divGoStatus]);
     divBtnCopy.style = "display:grid; grid-template-columns: auto 1fr; gap:10px;"
 
 
@@ -1236,9 +1244,10 @@ async function callTheAI(nameAI, promptAI) {
     if (funAPI) {
         const keyAPI = getAPIkeyForAI(nameAI);
         if (keyAPI) {
-
-            divGoStatus.textContent = `Waiting for ${nameAI}...`;
+            divGoStatus.textContent = `Waiting for ${nameAI} . . .`;
+            const tmrAlive = setInterval(() => { divGoStatus.append(" ."); }, 1500);
             const res = await funAPI(promptAI, keyAPI);
+            clearInterval(tmrAlive);
             console.log({ res });
             if (res instanceof Error) {
                 console.error(res);
@@ -1250,13 +1259,20 @@ async function callTheAI(nameAI, promptAI) {
                     (document.getElementById("textarea-response"));
                 if (!eltAItextarea) throw Error(`Did not find "textarea-respones"`);
                 eltAItextarea.value = res;
+                const tofInitAItextarea = typeof initAItextarea;
+                if (tofInitAItextarea == "function") {
+                    initAItextarea();
+                } else {
+                    throw Error(`tofInitAItextarea == "${tofInitAItextarea}"`);
+                }
             }
-            debugger;
-            // FIX-ME: use res
             return;
         }
     }
     if (!isAndroid) {
+        divGoStatus.append(`, calling web ${nameAI}`);
+        const modTools = await importFc4i("toolsJs");
+        await modTools.waitSeconds(2);
         const webUrl = mkWebUrl(nameAI, promptAI);
         window.open(`${webUrl}`, "AIWINDOW");
         return;
