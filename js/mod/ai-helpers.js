@@ -244,7 +244,8 @@ export async function generateMindMap(fromLink) {
         b.inert = false;
         const r = await isReachableUrl(u);
         if (!r) {
-            eltStatus.textContent = "Can't see if link exists";
+            // eltStatus.textContent = "Can't see if link exists";
+            eltStatus.textContent = " ";
         } else {
             eltStatus.textContent = "Link seems to exist";
         }
@@ -530,7 +531,7 @@ Important:
     ]);
 
     const eltDivAI = mkElt("p", undefined, [
-        mkElt("div", undefined, "Paste the JSON-formatted answer you got from AI:"),
+        mkElt("div", undefined, "Paste the answer you got from AI here:"),
         eltAItextarea,
         eltAItextareaStatus,
     ]);
@@ -624,7 +625,7 @@ Important:
         const nameAI = inpAI.value;
         nameUsedAI = nameAI
         if (nameAI == "none") {
-            divGoStatus.append(", no AI selected. Start the AI you want and paste the prompt there.");
+            divGoStatus.append(", no AI selected. Go to the AI you want and paste the prompt there.");
             return;
         }
 
@@ -633,10 +634,9 @@ Important:
         if (!infoThisAI) { throw Error(`Did not find info for AI "${nameAI}"`); }
 
 
-        // divGoStatus.textContent = `Copied prompt, will call AI "${nameAI}"`;
-        setTimeout(() => {
-            callTheAI(nameAI, promptAI);
-        }, 2000);
+        // setTimeout(() => {
+        callTheAI(nameAI, promptAI);
+        // }, 2000);
     });
 
 
@@ -1226,6 +1226,29 @@ async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
 /**
  * 
  * @param {string} nameAI 
+ * @returns {string}
+ */
+export function getWayToCallAI(nameAI) {
+    const infoThisAI = infoAI[nameAI];
+    // First try API
+    const funAPI = infoThisAI.fun;
+    if (funAPI) {
+        const keyAPI = getAPIkeyForAI(nameAI);
+        if (keyAPI) {
+            return "AI API";
+        }
+    }
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isAndroid = userAgent.indexOf("android") > -1;
+    if (!isAndroid) {
+        return "AI web";
+    }
+    return "AI android app";
+}
+
+/**
+ * 
+ * @param {string} nameAI 
  * @param {string} promptAI 
  */
 async function callTheAI(nameAI, promptAI) {
@@ -1234,64 +1257,76 @@ async function callTheAI(nameAI, promptAI) {
     const divGoStatus = document.getElementById("div-go-status");
     if (!divGoStatus) throw Error(`Did not find element "div-go-status"`);
 
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isAndroid = userAgent.indexOf("android") > -1;
 
-    const infoThisAI = infoAI[nameAI];
 
-    // First try API
-    const funAPI = infoThisAI.fun;
-    if (funAPI) {
-        const keyAPI = getAPIkeyForAI(nameAI);
-        if (keyAPI) {
-            divGoStatus.textContent = `Waiting for ${nameAI} . . .`;
-            const tmrAlive = setInterval(() => { divGoStatus.append(" ."); }, 1500);
-            const res = await funAPI(promptAI, keyAPI);
-            clearInterval(tmrAlive);
-            console.log({ res });
-            if (res instanceof Error) {
-                console.error(res);
-                divGoStatus.textContent = `Error from ${nameAI}: ${res.message}`;
-            } else {
-                divGoStatus.textContent = `Got response from ${nameAI}`;
-                const eltAItextarea =
-                    /** @type {HTMLTextAreaElement|null} */
-                    (document.getElementById("textarea-response"));
-                if (!eltAItextarea) throw Error(`Did not find "textarea-respones"`);
-                eltAItextarea.value = res;
-                const tofInitAItextarea = typeof initAItextarea;
-                if (tofInitAItextarea == "function") {
-                    initAItextarea();
-                } else {
-                    throw Error(`tofInitAItextarea == "${tofInitAItextarea}"`);
-                }
-            }
-            return;
-        }
+    let wayToCallAI = getWayToCallAI(nameAI);
+
+    switch (wayToCallAI) {
+        case "AI API":
+            callAIapi(nameAI);
+            break;
+        case "AI web":
+            callAIweb(nameAI);
+            break;
+        case "AI android app":
+            callAIandroidApp(nameAI);
+            break;
+        default:
+            throw Error(`Did not handle AI way "${wayToCallAI}"`);
     }
-    if (!isAndroid) {
+
+
+    //// Ways to call AI
+    async function callAIweb(nameAI) {
         divGoStatus.append(`, calling web ${nameAI}`);
         await modTools.waitSeconds(2);
         const webUrl = mkWebUrl(nameAI, promptAI);
         window.open(`${webUrl}`, "AIWINDOW");
         divGoStatus.textContent = "";
-        return;
     }
-    const androidIntent = infoThisAI.android;
-    const rawIntentUrl = androidIntent ? androidIntent : await dialogEditIntentUrl(nameAI);
-    if (rawIntentUrl == null) {
-        const modMdc = await importFc4i("util-mdc");
-        modMdc.mkMDCsnackbar("Canceled");
-        return;
-    }
-    if (!rawIntentUrl) throw Error(`intentUrl=="${rawIntentUrl}"`);
 
-    divGoStatus.append(`, opening ${nameAI} Android app`);
-    await modTools.waitSeconds(2);
-    const intentUrl = rawIntentUrl.replaceAll(/PLACEHOLDER/g, promptAI);
-    const promptEncoded = encodeURIComponent(promptAI);
-    launchIntentWithIframe(intentUrl, nameAI, promptEncoded);
-    divGoStatus.textContent = "";
+    async function callAIapi(nameAI) {
+        divGoStatus.textContent = `Waiting for ${nameAI} . . .`;
+        const tmrAlive = setInterval(() => { divGoStatus.append(" ."); }, 1500);
+        const res = await funAPI(promptAI, keyAPI);
+        clearInterval(tmrAlive);
+        console.log({ res });
+        if (res instanceof Error) {
+            console.error(res);
+            divGoStatus.textContent = `Error from ${nameAI}: ${res.message}`;
+        } else {
+            divGoStatus.textContent = `Got response from ${nameAI}`;
+            const eltAItextarea =
+                /** @type {HTMLTextAreaElement|null} */
+                (document.getElementById("textarea-response"));
+            if (!eltAItextarea) throw Error(`Did not find "textarea-respones"`);
+            eltAItextarea.value = res;
+            const tofInitAItextarea = typeof initAItextarea;
+            if (tofInitAItextarea == "function") {
+                initAItextarea();
+            } else {
+                throw Error(`tofInitAItextarea == "${tofInitAItextarea}"`);
+            }
+        }
+    }
+
+    async function callAIandroidApp(nameAI) {
+        const androidIntent = infoThisAI.android;
+        const rawIntentUrl = androidIntent ? androidIntent : await dialogEditIntentUrl(nameAI);
+        if (rawIntentUrl == null) {
+            const modMdc = await importFc4i("util-mdc");
+            modMdc.mkMDCsnackbar("Canceled");
+            return;
+        }
+        if (!rawIntentUrl) throw Error(`intentUrl=="${rawIntentUrl}"`);
+
+        divGoStatus.append(`, opening ${nameAI} Android app`);
+        await modTools.waitSeconds(2);
+        const intentUrl = rawIntentUrl.replaceAll(/PLACEHOLDER/g, promptAI);
+        const promptEncoded = encodeURIComponent(promptAI);
+        launchIntentWithIframe(intentUrl, nameAI, promptEncoded);
+        divGoStatus.textContent = "";
+    }
 }
 
 /**
