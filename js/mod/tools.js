@@ -203,98 +203,6 @@ export async function wait4connected(elt, msMaxWait, msInterval) {
 
 
 
-/*
-function mkButton(attrib, inner) {
-    const btn = mkElt("button", attrib, inner);
-    btn.classList.add("popup-button");
-    btn.classList.add("color-button");
-    return btn;
-}
-*/
-/*
-(function () {
-    // FIXME: Just return if from Puppeteer;
-    // https://antoinevastel.com/bot%20detection/2018/01/17/detect-chrome-headless-v2.html
-    // if (navigator.webdriver) return;
-
-    // console.log("checking web browser supported");
-    // return;
-    const missingFeatures = [];
-    const isChromiumBased = navigator.webdriver || typeof window["chrome"] === "object";
-    // const isChromiumBased = true;
-    // @ts-ignore
-    let isEdge = false;
-    let isFirefox = false;
-    if (isChromiumBased) {
-        // Tested ok in Chrome and Edge on desktop
-        // @ts-ignore
-        isEdge = navigator.userAgent.indexOf(" Edg/") > -1;
-        if (isEdge) console.log({ isEdge });
-    } else {
-        const m = navigator.userAgent.match(/ Firefox\/(\d+)/);
-        isFirefox = !!m;
-        if (m && typeof m[1] === "string") {
-            let v = parseInt(m[1]);
-            // if (v > 64) return;
-            if (v <= 64) missingFeatures.push("Too old Firefox");
-        }
-    }
-    // return;
-
-
-    if (!isChromiumBased && !isFirefox) {
-        missingFeatures.push("It looks like your browser is not Chromium based or Firefox");
-    }
-
-    try {
-        new Function('n?.x');
-    } catch (err) {
-        console.log(err);
-        debugger; // eslint-disable-line no-debugger
-        missingFeatures.push("Syntax n?.x not recognized");
-    }
-    // return;
-
-    // missingFeatures.push("test 1");
-    // missingFeatures.push("test 2");
-    if (missingFeatures.length === 0) return;
-    // return;
-
-    console.warn("Not supported");
-
-    const pathnameHowto = "/js/msj/howto.html";
-    if (location.pathname === pathnameHowto) return;
-    const helpURL = `${location.protocol}//${location.host}${pathnameHowto}`;
-
-    const ulMissing = mkElt("ul", undefined,
-        missingFeatures.map(miss => mkElt("li", undefined, miss)));
-    const pMissing = mkElt("p", undefined, ulMissing);
-    const title = "Your web browser may not work 👩‍💼";
-    // const btnOk = mkButton(undefined, "OK");
-    const body = mkElt("p", undefined, [
-        mkElt("p", undefined,
-            [
-                "Sorry, your web browser is probably not up to date with the web standards.",
-                " EasyCapEd does only fully support Google Chrome",
-                " and newer Firefox at the moment.",
-                " You may proceed, but it will probably not work.",
-            ]
-        ),
-        pMissing,
-        // mkElt("p", undefined, [btnOk]),
-        mkElt("hr"),
-        mkElt("p", undefined, [
-            "To learn more about EasyCapEd read the ",
-            mkElt("a", {
-                href: helpURL,
-            }, "step-by-step guide"),
-            ".",
-        ])
-    ])
-
-    popupDialog(title, body, "info");
-})();
-*/
 async function _getWebBrowserInfo() {
 
     function getRealBrands() {
@@ -583,7 +491,8 @@ function alertRealError(msg, e) {
             }
         }
     } catch (e) {
-        contextStr += "\n* Error checking logged in: " + e;
+        const errMsg = e instanceof Error? e.message: e.toString();
+        contextStr += "\n* Error checking logged in: " + errMsg;
     }
 
     const title = "Error";
@@ -855,78 +764,6 @@ export function removeTokensFromObject(obj) {
     }
 }
 
-/*
-async function throwFetchError(url, response) {
-    debugger; // eslint-disable-line no-debugger
-
-    let errResp = "";
-    if (!response) {
-        errResp += "fetch failed before response was available.";
-    } else {
-        errResp += "Response status: " + response.status + " (" + response.statusText + ")";
-        errResp += "\n";
-        errResp += makeDisplayableUrl(response.url);
-
-    }
-    errResp += "\n";
-    errResp += "fetch url=(" + makeDisplayableUrl(url) + ")";
-    errResp += "\n";
-    errResp += "\n";
-
-    // errResp += "Error tracing on browser side:";
-    // errResp += "\n";
-    // errResp += JSON.stringify(result, undefined, 2);
-    // errResp += "\n";
-
-    if (response) {
-        let bodyText;
-        try {
-            bodyText = await response.text();
-        } catch (err) {
-            bodyText = "Error: " + err;
-            console.error("%c bodyText", "color: yellowgreen; font-size:1.5rem;", bodyText, err);
-        }
-        try {
-            const json = JSON.parse(bodyText);
-            removeTokensFromObject(json);
-            bodyText = JSON.stringify(json, undefined, 2);
-        } catch (err) {
-            bodyText = "Error: " + err;
-            console.error("%c bodyText", "color: yellowgreen; font-size:1.5rem;", bodyText, err);
-        }
-
-        errResp += "\n";
-        errResp += "Response from server (should be JSON):";
-        errResp += "\n";
-        errResp += bodyText;
-        errResp += "\n";
-    } else {
-        errResp += "\n";
-        errResp += "(No repsonse from server)";
-        errResp += "\n";
-    }
-    // FIXME: move this line break to alertError()?
-    errResp += "\n";
-    errResp += "-------------------------------------";
-    errResp += "\n";
-    // console.log("errResp", errResp)
-    const errFetch = new FetchError("Fetch error", errResp, response === undefined)
-    throw errFetch;
-}
-*/
-
-/*
-class FetchError extends Error {
-    constructor(message, errResp, thisIsNetworkTrouble) {
-        debugger; // eslint-disable-line no-debugger
-        super(message); // (1)
-        this.name = "FetchError"; // (2)
-        this.easyCapEd = "throwFetchError";
-        this.errResp = errResp;
-        this.thisIsNetworkTrouble = thisIsNetworkTrouble;
-    }
-}
-*/
 
 
 // function getStack() { try { throw Error(); } catch (e) { return e.stack; } }

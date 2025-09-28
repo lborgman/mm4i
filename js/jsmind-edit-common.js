@@ -812,21 +812,6 @@ function mkMenuItem(lbl, fun, keyHint) {
 }
 let jmDisplayed;
 
-// FIX-ME: The node does not get DOM focus???
-/*
-function focusSelectedNode() {
-    // FIX-ME: What is wrong with jmDisplayed here???
-    try {
-        const selectedNode = jmDisplayed?.get_selected_node();
-        if (selectedNode) {
-            const selectedElt = getDOMeltFromNode(selectedNode);
-            selectedElt.focus();
-        }
-    } catch (err) {
-        console.log("*** focusSelectedNode", { err });
-    }
-}
-*/
 
 
 const extraPageMenuItems = [];
@@ -2001,7 +1986,8 @@ export async function pageSetup() {
             try {
                 strNodeId = eltExpander.getAttribute("nodeid");
             } catch (err) {
-                fastLog4bug(`error: ${hasId} "${err}"`); // 
+                const msg = err instanceof Error ? err.message : err.toString();
+                fastLog4bug(`error: ${hasId} "${msg}"`); // 
             }
 
             if (null == strNodeId) throw Error("jmexpander attribute nodeid is null");

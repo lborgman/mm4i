@@ -41,41 +41,12 @@ const aiGeminiThroughFirebase = modAiFirebase.getAI(firebaseApp, { backend: new 
 // Create a `GenerativeModel` instance with a model that supports your use case
 export const modelAiGeminiThroughFirebase = modAiFirebase.getGenerativeModel(aiGeminiThroughFirebase, { model: "gemini-2.5-flash" });
 
-/*
-export async function askGemini(prompt) {
-    // Provide a prompt that contains text
-    // const prompt = "Write a story about a magic backpack."
-    // To generate text output, call generateContent with the text input
-    let text = "(no result)";
-    const result = { text };
-    try {
-        const generated = await modelAiGeminiThroughFirebase.generateContent(prompt);
-        const response = generated.response;
-        const text = response.text();
-        result.text = text;
-        console.log(text);
-    } catch (err) {
-        result.error = err;
-    }
-    return result;
-}
-// promiseDOMready
-const promGeminiOk = new Promise(function (resolve, reject) {
-    const prompt = "Are you ok?"
-    askGemini(prompt).then(answer => {
-        console.log("Gemini answer:", answer);
-        if (answer.error) {
-            reject(answer.error);
-        } else {
-            resolve(true);
-        }
-    });
-});
-
-export async function checkGeminiOk() {
-    return promGeminiOk;
-}
-*/
+/**
+ * @typedef {function} funCallAI
+ * @param {string} prompt 
+ * @param {string} apiKey 
+ * @returns {Promise<string|Error>}
+ */
 
 /**
  * @typedef {Object} aiInfo
@@ -86,7 +57,10 @@ export async function checkGeminiOk() {
  * @property {string} [android]
  * @property {string} pkg
  * @property {string} urlImg
+ * @property {funCallAI} [fun]
+ * @property {string} [urlAPIkey]
  */
+
 /**
  * 
  * @param {aiInfo} aiInfo
@@ -106,7 +80,9 @@ const infoAI = {
         url: "gemini.google.com/app",
         // urlAndroidApp: true,
         pkg: "com.google.android.apps.bard",
-        urlImg: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg"
+        urlImg: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg",
+        fun: callGeminiAPI,
+        urlAPIkey: "https://support.gemini.com/hc/en-us/articles/360031080191-How-do-I-create-an-API-key"
     }),
     "ChatGPT": mkAIinfo({
         testedChat: true,
@@ -116,7 +92,8 @@ const infoAI = {
         android: "intent://chat.openai.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.openai.chatgpt;end;",
         // urlAndroidApp: "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;end",
         pkg: "com.openai.chatgpt",
-        urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b5/ChatGPT_logo_Square.svg"
+        urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b5/ChatGPT_logo_Square.svg",
+        fun: callOpenAIapi
 
     }),
     "Claude": mkAIinfo({
@@ -142,7 +119,8 @@ const infoAI = {
             + "end",
         */
         pkg: "ai.x.grok",
-        urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg"
+        urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg",
+        fun: callGrokApi
     }),
     "Perplexity": mkAIinfo({
         testedChat: true,
@@ -228,19 +206,6 @@ export async function generateMindMap(fromLink) {
     const eltNotReady = mkElt("p", undefined, "Please try, but it is no ready!");
     eltNotReady.style = `color:red; font-size:1.2rem`;
 
-    /*
-    let eltOk = "";
-    try {
-        await checkGeminiOk();
-    } catch (err) {
-        const eltNoAPI = mkElt("details", undefined, [
-            mkElt("summary", undefined, "Can't use Gemini at the moment"),
-            `Gemini API Error: ${err}`,
-        ]);
-        eltNoAPI.style.color = "red";
-        eltOk = eltNoAPI;
-    }
-    */
 
     const eltStatus = mkElt("div", undefined, "(empty)");
     if (fromLink) {
@@ -434,6 +399,7 @@ Important:
     }
 
     const eltAItextarea = mkElt("textarea");
+    eltAItextarea.id = "textarea-response";
     eltAItextarea.style = `
                 width: 100%;
                 min-height: 4rem;
@@ -446,86 +412,89 @@ Important:
     eltAItextarea.addEventListener("input", _evt => {
         clearTimeout(toDoIt);
         if (eltDialog) { eltDialog.style.opacity = "1"; }
-        eltAItextareaStatus.style.color = "unset";
-        // valid
-        const strAIraw = eltAItextarea.value.trim();
-        if (strAIraw.length == 0) {
-            eltAItextareaStatus.textContent = "";
-            return;
-        }
-        const { strAIjson, cleaned } = getJsonFromAIstr(strAIraw);
-
-        /** @param {string} txt */
-        const tellError = (txt) => {
-            const divTheError = mkElt("div", undefined, txt);
-            divTheError.style.userSelect = "all";
-            divTheError.style.color = "darkred";
-            divTheError.style.userSelect = "all";
-            divTheError.style.marginTop = "10px";
-            // eltAItextareaStatus.appendChild(mkElt("div", undefined, `Tell your AI that the JSON had this error:`));
-
-            const btnInfo = modMdc.mkMDCiconButton("help", "What are search links?");
-            // btnInfo.style = `color: blue;`;
-            btnInfo.addEventListener("click", () => {
-                alert("not ready");
-            });
-
-            const divError = mkElt("div", undefined, [divTheError, btnInfo]);
-            divError.style = ` display: flex; flex-direction: row; gap: 5px; `;
-            eltAItextareaStatus.appendChild(divError);
-        }
-        try {
-            const j = JSON.parse(strAIjson);
-            // const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(j);
-            const nodeArray = nodeArrayFromAI2jsmindFormat(j);
-            const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
-            if (res.isValid) {
-                const msgStatus = strAIjson == strAIraw ? "OK" : `OK (cleaned: ${cleaned.join(", ")})`;
-                eltAItextareaStatus.textContent = msgStatus;
-                eltAItextareaStatus.style.backgroundColor = "greenyellow";
-
-                eltDialog = eltAItextareaStatus.closest("div.mdc-dialog");
-                if (!eltDialog) throw Error('Could not find .closest("div.mdc-dialg")');
-
-                eltDialog.style.opacity = "1";
-                const secOpacity = 0.7;
-                eltDialog.style.transition = `opacity ${secOpacity}s`;
-                const secDelay = 1.6 + 2;
-                eltDialog.style.transitionDelay = `${secDelay}s`;
-                eltDialog.style.opacity = "0";
-                toDoIt = setTimeout(() => {
-                    eltDialog.remove();
-                    doMakeGeneratedMindmap();
-                }, (secDelay + secOpacity) * 1000);
-            } else {
-                tellError(res.error);
+        onAItextareaInput();
+        function onAItextareaInput() {
+            eltAItextareaStatus.style.color = "unset";
+            // valid
+            const strAIraw = eltAItextarea.value.trim();
+            if (strAIraw.length == 0) {
+                eltAItextareaStatus.textContent = "";
+                return;
             }
-        } catch (err) {
-            eltAItextareaStatus.textContent = "";
-            if (!(err instanceof Error)) throw Error("err is not instanceof Error");
-            tellError(err.message);
-            const objJsonErrorDetails = modTools.extractJSONparseError(err.message, strAIjson);
-            const divErrorLocation = mkElt("div");
-            if (objJsonErrorDetails.context) {
-                const eltBefore = mkElt("span", undefined,
-                    objJsonErrorDetails.context.before
-                );
-                const eltAfter = mkElt("span", undefined,
-                    objJsonErrorDetails.context.after
-                );
-                const eltErrorChar = mkElt("span", undefined,
-                    objJsonErrorDetails.context.errorChar
-                );
-                eltErrorChar.style.color = "red";
-                divErrorLocation.textContent = "";
-                divErrorLocation.appendChild(eltBefore);
-                divErrorLocation.appendChild(eltErrorChar);
-                divErrorLocation.appendChild(eltAfter);
-                divErrorLocation.style.padding = "10px";
-                divErrorLocation.style.marginTop = "10px";
-                divErrorLocation.style.backgroundColor = "yellow";
-                divErrorLocation.style.whiteSpace = "pre-wrap";
-                eltAItextareaStatus.append(divErrorLocation);
+            const { strAIjson, cleaned } = getJsonFromAIstr(strAIraw);
+
+            /** @param {string} txt */
+            const tellError = (txt) => {
+                const divTheError = mkElt("div", undefined, txt);
+                divTheError.style.userSelect = "all";
+                divTheError.style.color = "darkred";
+                divTheError.style.userSelect = "all";
+                divTheError.style.marginTop = "10px";
+                // eltAItextareaStatus.appendChild(mkElt("div", undefined, `Tell your AI that the JSON had this error:`));
+
+                const btnInfo = modMdc.mkMDCiconButton("help", "What are search links?");
+                // btnInfo.style = `color: blue;`;
+                btnInfo.addEventListener("click", () => {
+                    alert("not ready");
+                });
+
+                const divError = mkElt("div", undefined, [divTheError, btnInfo]);
+                divError.style = ` display: flex; flex-direction: row; gap: 5px; `;
+                eltAItextareaStatus.appendChild(divError);
+            }
+            try {
+                const j = JSON.parse(strAIjson);
+                // const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(j);
+                const nodeArray = nodeArrayFromAI2jsmindFormat(j);
+                const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
+                if (res.isValid) {
+                    const msgStatus = strAIjson == strAIraw ? "OK" : `OK (cleaned: ${cleaned.join(", ")})`;
+                    eltAItextareaStatus.textContent = msgStatus;
+                    eltAItextareaStatus.style.backgroundColor = "greenyellow";
+
+                    eltDialog = eltAItextareaStatus.closest("div.mdc-dialog");
+                    if (!eltDialog) throw Error('Could not find .closest("div.mdc-dialg")');
+
+                    eltDialog.style.opacity = "1";
+                    const secOpacity = 0.7;
+                    eltDialog.style.transition = `opacity ${secOpacity}s`;
+                    const secDelay = 1.6 + 2;
+                    eltDialog.style.transitionDelay = `${secDelay}s`;
+                    eltDialog.style.opacity = "0";
+                    toDoIt = setTimeout(() => {
+                        eltDialog.remove();
+                        doMakeGeneratedMindmap();
+                    }, (secDelay + secOpacity) * 1000);
+                } else {
+                    tellError(res.error);
+                }
+            } catch (err) {
+                eltAItextareaStatus.textContent = "";
+                const msg = err instanceof Error? err.message: err.toString();
+                tellError(msg);
+                const objJsonErrorDetails = modTools.extractJSONparseError(err.message, strAIjson);
+                const divErrorLocation = mkElt("div");
+                if (objJsonErrorDetails.context) {
+                    const eltBefore = mkElt("span", undefined,
+                        objJsonErrorDetails.context.before
+                    );
+                    const eltAfter = mkElt("span", undefined,
+                        objJsonErrorDetails.context.after
+                    );
+                    const eltErrorChar = mkElt("span", undefined,
+                        objJsonErrorDetails.context.errorChar
+                    );
+                    eltErrorChar.style.color = "red";
+                    divErrorLocation.textContent = "";
+                    divErrorLocation.appendChild(eltBefore);
+                    divErrorLocation.appendChild(eltErrorChar);
+                    divErrorLocation.appendChild(eltAfter);
+                    divErrorLocation.style.padding = "10px";
+                    divErrorLocation.style.marginTop = "10px";
+                    divErrorLocation.style.backgroundColor = "yellow";
+                    divErrorLocation.style.whiteSpace = "pre-wrap";
+                    eltAItextareaStatus.append(divErrorLocation);
+                }
             }
         }
     });
@@ -587,17 +556,24 @@ Important:
     }
     Object.entries(infoAI).forEach(e => {
         const [k, v] = e;
-        const { testedChat, q, android, urlImg } = v;
+        const nameAI = k;
+        const { testedChat, q, android, urlImg, fun } = v;
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
         const imgAI = mkElt("span", { class: "elt-ai-img" });
         imgAI.style.backgroundImage = `url(${urlImg})`;
-        // if (pkg) { imgAI.style.outline = "1px dotted red"; }
-        const eltAIname = mkElt("span", { class: "elt-ai-name" }, k);
+        const eltAIname = mkElt("span", { class: "elt-ai-name" }, nameAI);
         const eltAI = mkElt("label", undefined, [radAI, imgAI, eltAIname]);
         eltAI.classList.add("elt-ai");
         if (testedChat) { eltAI.style.backgroundColor = "yellowgreen"; }
         if (q) { eltAI.style.borderColor = "greenyellow"; }
         if (android) { imgAI.style.outline = "solid greenyellow 3px"; }
+        if (fun) {
+            eltAI.style.outline = "solid orange 3px";
+            const apiKey = getAPIkeyForAI(nameAI);
+            if (apiKey) {
+                eltAI.style.outlineColor = "red";
+            }
+        }
         divAIhardWay.appendChild(eltAI);
     });
     divAIhardWay.addEventListener("change", evt => {
@@ -611,100 +587,51 @@ Important:
     const radCurrentAI = divAIhardWay.querySelector(`input[type = radio][value = ${valLsAIhard} `);
     // @ts-ignore
     radCurrentAI.checked = true;
-    const btnCopyAndOpenAI = modMdc.mkMDCbutton("Copy prompt and open AI", "raised");
+    // const btnCopyAndOpenAI = modMdc.mkMDCbutton("Copy prompt and open AI", "raised");
+    const btnCopyAndOpenAI = modMdc.mkMDCbutton("Go", "raised");
     btnCopyAndOpenAI.style.textTransform = "none";
     /** @type {string} */ let nameUsedAI = "Not known";
     btnCopyAndOpenAI.addEventListener("click", async evt => {
         evt.stopPropagation();
         const modTools = await importFc4i("toolsJs");
         await modTools.copyTextToClipboard(promptAI);
+        const divGoStatus = document.getElementById("div-go-status");
+        if (!divGoStatus) throw Error(`Did not find element "div-go-status"`);
+
+        divGoStatus.textContent = "Copied prompt for AI";
+
 
         const divHardWay = document.getElementById("hard-way");
         if (!divHardWay) throw Error('Could not find "#hard-way"');
         divHardWay.querySelector("input[type=radio][name=ai]:checked");
         const inpAI = divHardWay.querySelector("input[type=radio][name=ai]:checked");
-        if (!inpAI) { throw Error("no selection of AI") }
+        if (!inpAI) {
+            divGoStatus.textContent = "no AI selected";
+            return;
+        }
+
         // @ts-ignore
         const nameAI = inpAI.value;
         nameUsedAI = nameAI
         if (nameAI == "none") {
-            modMdc.mkMDCsnackbar("Copied prompt for AI");
+            modMdc.mkMDCsnackbar("Just copied prompt for AI");
             return;
         }
+
+
         const infoThisAI = infoAI[nameAI];
         if (!infoThisAI) { throw Error(`Did not find info for AI "${nameAI}"`); }
 
-        // if (nameAI == "none") { modMdc.mkMDCsnackbar(`Copied prompt, do not know how to open AI "${nameAI}"`); return; }
 
-
-        modMdc.mkMDCsnackbar(`Copied prompt, opening AI "${nameAI}"`);
+        divGoStatus.textContent = `Copied prompt, will call AI "${nameAI}"`;
         setTimeout(() => {
-            openTheAI(nameAI, promptAI); // FIX-ME: promptAI
+            callTheAI(nameAI, promptAI);
         }, 2000);
     });
 
 
-    /**
-     * https://chatgpt.com/share/68c20d3b-e168-8004-8cea-c80d30949054
-     * 
-     * @param {string} intentUrl 
-     * @param {string} webUrl 
-     * @returns {Promise<Window|null>}
-     */
-    /*
-    async function _openWithFallback(intentUrl, webUrl) {
-        const modTools = await importFc4i("toolsJs");
-        setTimeout(() => { check(); }, 2000);
-        let win = null;
-        if (intentUrl) {
-            try {
-                win = window.open(intentUrl, "_blank");
-                // win == null always means popups are blocked
-                if (win == null) {
-                    modTools.mkMDCsnackbar("Popups are blocked, can't open intent");
-                    return null;
-                }
-                return win;
-            } catch (e) {
-                // Firefox throw synchronously if scheme is unsupported
-                const msg = `Opening intent ${ intentUrl } failed: ${ e.message } `;
-                console.error(msg);
-                modTools.mkMDCsnackbar(msg);
-            }
-        }
-        if (!win) {
-            try {
-                win = window.open(webUrl, "_blank");
-                // win == null always means popups are blocked
-                if (win == null) {
-                    modTools.mkMDCsnackbar("Popups are blocked, can't open url");
-                    return null;
-                }
-                return win;
-            } catch (e) {
-                // blocked
-                const msg = `Opening ${ webUrl } failed: ${ e.message } `;
-                console.error(msg);
-                modTools.mkMDCsnackbar(msg);
-            }
-        }
-        return null;
 
-        // In case a useless about:blank tab was opened (desktop case)
-        function check() {
-            if (!win) return;
-            try {
-                // If location is still about:blank after ~1s → fallback
-                if (win.location.href === "about:blank" || win.location.href === "about:blank#blocked") {
-                    win.close();
-                    modTools.mkMDCsnackbar(`The url does not seem to have been opened`);
-                }
-            } catch (e) {
-                // Cross-origin error usually means the OS intercepted successfully (Android) → do nothing
-            }
-        }
-    }
-    */
+    // https://chatgpt.com/share/68c20d3b-e168-8004-8cea-c80d30949054
 
 
 
@@ -769,18 +696,63 @@ Important:
     ]);
     divWhyNotEasy.style.display = "none";
     divWhyNotEasy.style.color = "red";
-    btnEasyWay.addEventListener("click", _evt => {
-        btnEasyWay.style.display = "none";
-        divWhyNotEasy.style.display = "unset";
+    btnEasyWay.addEventListener("click", async _evt => {
+        // btnEasyWay.style.display = "none";
+        // divWhyNotEasy.style.display = "unset";
+
+        const inpAI = divEasyWay.querySelector("input[type=radio][name=ai]:checked");
+        if (!inpAI) { throw Error("no selection of AI") }
+        // @ts-ignore
+        const nameAI = inpAI.value;
+
+        let keyAPI = getAPIkeyForAI(nameAI);
+        // keyAPI = keyAPI || "just testing...";
+        if (!keyAPI) {
+            debugger;
+            const inpKey = mkElt("input", { type: "text" });
+            const aGetKey = mkElt("a", {
+                href: "",
+                target: "_blank"
+            }, `Get API key for ${nameAI}`);
+            const divGetKey = mkElt("p", undefined, [
+                "You must get an API key for this. ",
+                aGetKey
+            ]);
+            const lbl = mkElt("label", undefined, [`API key for ${nameAI}: `, inpKey]);
+            const body = mkElt("div", undefined, [
+                divGetKey,
+                lbl
+            ]);
+            const ans = await modMdc.mkMDCdialogConfirm(body);
+            if (!ans) return;
+            keyAPI = inpKey.value.trim();
+        }
+        const infoThisAI = infoAI[nameAI];
+        debugger;
+        const fun = infoThisAI["fun"];
+        if (!fun) throw Error("!fun");
+
+        const tofFun = typeof fun;
+        if (tofFun != "function") throw Error(`tofFun == "${tofFun}"`);
+        const res = await fun(promptAI, keyAPI);
+        console.log({ res });
+        if (res instanceof Error) {
+            console.error(res);
+            throw res;
+            return;
+        }
+        const tofRes = typeof res;
+        if (tofRes != "string") {
+            throw Error(`tofRes == "${tofRes}"`)
+        }
+        console.log(res);
+        debugger;
     });
     const divListAIeasyWay = mkElt("div");
-    divListAIeasyWay.style = ` display: flex; flex - direction: row; gap: 10px; flex - wrap: wrap; `;
+    divListAIeasyWay.style = ` display: flex; flex-direction: row; gap: 10px; flex-flow: wrap; `;
 
-    const selectHeader = mkElt("div", undefined, "Select AI to use:");
-    selectHeader.style = `
-            font - weight: bold;
-            margin - bottom: 20px;
-            `
+    const selectHeader = mkElt("div", undefined, "Select AI to call:");
+    selectHeader.style = ` font-weight: bold; margin-bottom: 20px; `;
 
     const divSelectAIeasyWay = mkElt("div", { class: "NOmdc-card" }, [
         selectHeader,
@@ -788,12 +760,13 @@ Important:
     ]);
     Object.entries(infoAI).forEach(e => {
         const [k, v] = e;
-        const { testedChat, q } = v;
-        const radAI = mkElt("input", { type: "radio", name: "ai" });
+        const { testedChat, q, fun } = v;
+        const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
         const eltAI = mkElt("label", undefined, [radAI, k]);
         eltAI.classList.add("elt-ai");
         if (testedChat) { eltAI.style.backgroundColor = "yellow"; }
         if (q) { eltAI.style.borderColor = "greenyellow"; }
+        if (!fun) eltAI.inert = true;
         divListAIeasyWay.appendChild(eltAI);
     });
 
@@ -813,12 +786,17 @@ Important:
             gap: 10px;
             flex - wrap: wrap;
             `;
-    const divBtnCopy = mkElt("div", undefined, btnCopyAndOpenAI);
+    const divGoStatus = mkElt("div");
+    divGoStatus.id = "div-go-status";
+    divGoStatus.style.outline = "1px dotted red";
+    const divBtnCopy = mkElt("div", undefined, [btnCopyAndOpenAI, divGoStatus]);
+    divBtnCopy.style = "display:grid; grid-template-columns: auto 1fr; gap:10px;"
+
+
     const divHardWay = mkElt("div", undefined, [
         mkElt("div", undefined, cardPrompt),
         // divListAIhardWay,
         divAIhardWay,
-        // mkElt("div", undefined, btnCopyAndOpenAI),
         divBtnCopy,
         // mkElt("div", { style: "margin:30px;" }, aTestG),
         mkElt("div", undefined, eltDivAI),
@@ -849,9 +827,69 @@ Important:
 
     }
 
+    const divAIsettings = mkElt("div", undefined, [
+        // infoAI
+    ]);
+    Object.entries(infoAI).forEach(e => {
+        const [k, v] = e;
+        const { q, android, urlImg, fun, urlAPIkey } = v;
+        const imgAI = mkElt("span", { class: "elt-ai-img" });
+        imgAI.style.backgroundImage = `url(${urlImg})`;
+        const nameAI = k;
 
-    const tabRecs = ["Hard way", "Easy way"];
-    const contentElts = mkElt("div", undefined, [divHardWay, divEasyWay]);
+        const divAIdetails = mkElt("div");
+        if (android) {
+            const divAndroid = mkElt("div");
+            divAIdetails.appendChild(divAndroid);
+            divAndroid.appendChild(mkElt("span", undefined, "Can start Android app"));
+        }
+        if (fun) {
+            const divAPI = mkElt("div");
+            divAIdetails.appendChild(divAPI);
+            const inpAPIkey = mkElt("input", { type: "password" });
+            const key = getAPIkeyForAI(nameAI);
+            if (key) inpAPIkey.value = key;
+            const saveAPIkeyInput = modTools.throttleTO(() => { setAPIkeyForAI(nameAI, inpAPIkey.value); }, 500);
+            inpAPIkey.addEventListener("input", () => {
+                console.log("input inpAPIkey", inpAPIkey.value);
+                saveAPIkeyInput();
+            });
+            const lbl = mkElt("label", undefined, ["API key: ", inpAPIkey]);
+            lbl.style = "display:grid; grid-template-columns: auto 1fr; gap: 10px;";
+
+            const divAPIinfo = mkElt("div", undefined, [
+                "Can show the mindmap automatically, but it requires an API key.",
+            ]);
+            if (urlAPIkey) {
+                const aAPIkey = mkElt("a", {
+                    href: urlAPIkey,
+                    target: "_blank"
+                }, `Get an API key for ${nameAI}`);
+                const spanAPIkeyInfo = mkElt("span", undefined, [" (", aAPIkey, ".)"]);
+                divAPIinfo.appendChild(spanAPIkeyInfo);
+            }
+            divAPI.appendChild(divAPIinfo);
+            divAPI.appendChild(lbl);
+        }
+        const numDetails = divAIdetails.childElementCount;
+        console.log(nameAI, { numDetails });
+        if (numDetails > 0) {
+            divAIdetails.style = "display:flex; flex-direction:column; gap:20px;";
+        } else {
+            divAIdetails.appendChild(mkElt("span", undefined, "(Nothing special.)"))
+        }
+
+        const eltSummary = mkElt("summary", undefined, nameAI);
+        const divDetailsInner = mkElt("div", undefined, [
+            imgAI, divAIdetails
+        ]);
+        divDetailsInner.style = "display:grid; grid-template-columns:20px auto; gap:10px; margin-left:10px;";
+        const eltDetails = mkElt("details", undefined, [eltSummary, divDetailsInner]);
+        divAIsettings.appendChild(eltDetails);
+    });
+
+    const tabRecs = ["Hard way", "Easy way", "AI Settings"];
+    const contentElts = mkElt("div", undefined, [divHardWay, divEasyWay, divAIsettings]);
     if (tabRecs.length != contentElts.childElementCount) throw Error("Tab bar setup number mismatch");
     const eltTabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, undefined);
 
@@ -898,7 +936,7 @@ Important:
         // Insert source data
         if (typeof rootNotes == "string") {
             const rootNotesWithSource =
-            `## Source etc\n\n*AI name:* ${nameUsedAI}\n\n## Notes\n\n${rootNotes}`;
+                `## Source etc\n\n*AI name:* ${nameUsedAI}\n\n## Notes\n\n${rootNotes}`;
             rootNode.shapeEtc.notes = rootNotesWithSource;
         } else {
             alert("no root notes, handling not implemented yet");
@@ -1183,17 +1221,45 @@ async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
  * @param {string} nameAI 
  * @param {string} promptAI 
  */
-async function openTheAI(nameAI, promptAI) {
+async function callTheAI(nameAI, promptAI) {
+    const divGoStatus = document.getElementById("div-go-status");
+    if (!divGoStatus) throw Error(`Did not find element "div-go-status"`);
+
     const userAgent = navigator.userAgent.toLowerCase();
     const isAndroid = userAgent.indexOf("android") > -1;
+
+    const infoThisAI = infoAI[nameAI];
+
+    // First try API
+    const funAPI = infoThisAI.fun;
+    if (funAPI) {
+        const keyAPI = getAPIkeyForAI(nameAI);
+        if (keyAPI) {
+
+            divGoStatus.textContent = `Waiting for ${nameAI}...`;
+            const res = await funAPI(promptAI, keyAPI);
+            console.log({ res });
+            if (res instanceof Error) {
+                console.error(res);
+                divGoStatus.textContent = `Error from ${nameAI}: ${res.message}`;
+            } else {
+                divGoStatus.textContent = `Got response from ${nameAI}`;
+                const eltAItextarea =
+                    /** @type {HTMLTextAreaElement|null} */
+                    (document.getElementById("textarea-response"));
+                if (!eltAItextarea) throw Error(`Did not find "textarea-respones"`);
+                eltAItextarea.value = res;
+            }
+            debugger;
+            // FIX-ME: use res
+            return;
+        }
+    }
     if (!isAndroid) {
-        // const infoThisAI = infoAI[nameAI];
-        // const url = infoThisAI.url;
         const webUrl = mkWebUrl(nameAI, promptAI);
         window.open(`${webUrl}`, "AIWINDOW");
         return;
     }
-    const infoThisAI = infoAI[nameAI];
     const androidIntent = infoThisAI.android;
     const rawIntentUrl = androidIntent ? androidIntent : await dialogEditIntentUrl(nameAI);
     if (rawIntentUrl == null) {
@@ -1288,3 +1354,171 @@ function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
 
     return nodeArray;
 }
+
+
+////// AI API keys etc
+// AI to call
+
+// btnEasyWay.addEventListener("click", _evt => {
+
+/**
+ * @param {string} nameAI 
+ * @returns {string}
+ */
+function keyNameAI(nameAI) {
+    const key = `mm4i-ai-api-key-${nameAI}`;
+    return key;
+}
+
+/**
+ * @param {string} nameAI 
+ * @return {string|null}
+ */
+function getAPIkeyForAI(nameAI) {
+    const key = keyNameAI(nameAI);
+    return localStorage.getItem(key);
+}
+
+/**
+ * 
+ * @param {string} nameAI 
+ * @param {string} apiKey 
+ */
+function setAPIkeyForAI(nameAI, apiKey) {
+    const key = keyNameAI(nameAI);
+    return localStorage.setItem(key, apiKey);
+}
+
+// infoAI
+/**
+ * 
+ * @param {string} prompt 
+ * @param {string} apiKey 
+ * @returns {Promise<string>}
+ */
+async function callGrokApi(prompt, apiKey) {
+    // const apiKey = 'YOUR_API_KEY'; // Replace with secure method (e.g., backend proxy)
+    const url = 'https://api.x.ai/v1/chat/completions';
+
+    const requestBody = {
+        model: 'grok-beta', // Or 'grok-4' for the latest model
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 100,
+        temperature: 0.7
+    };
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.choices?.[0]?.message?.content || 'No response';
+    } catch (error) {
+        console.error('Error calling Grok API:', error);
+        return 'Error: Could not fetch response';
+    }
+}
+
+// Example usage
+// callGrokApi('What is the meaning of life?').then(response => console.log(response));
+
+
+async function callOpenAIapi(userMessage, apiKey) {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+            // "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`, // set your API key
+            "Authorization": `Bearer ${apiKey}`, // set your API key
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            model: "gpt-4.1-mini", // fast + cheaper model; use gpt-4.1 for more reasoning
+            messages: [
+                { role: "system", content: "You are a helpful assistant." },
+                { role: "user", content: userMessage }
+            ]
+        })
+    });
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+}
+
+// Example usage:
+// callChatGPT("Write a haiku about autumn")
+// .then(reply => console.log("ChatGPT:", reply))
+// .catch(err => console.error("Error:", err));
+
+
+// Variable to store the initialized AI client so we don't reload or re-initialize.
+/** @type {Object|null} */ let aiClient = null;
+
+
+/**
+ * Dynamically loads the Gemini SDK from a CDN and calls the API.
+ * ⚠️ NOTE: This script must be run as an ES Module (e.g., <script type="module">)
+ * @param {string} userPrompt The text prompt to send to the Gemini model.
+ * @param {string} apiKey Your Gemini API Key.
+ * @returns {Promise<string|Error>} The text response from the model.
+ */
+async function callGeminiAPI(userPrompt, apiKey) {
+    // if (!userPrompt || !userPrompt.trim()) { return "Please provide a prompt."; }
+
+    // --- Dynamic Loading and Initialization (Happens only once) ---
+    if (!aiClient) {
+        try {
+            // Dynamically import the Google Gen AI SDK from the CDN URL
+            // const module = await import('https://unpkg.com/@google/genai/dist/index.js');
+            const module = await import("https://cdn.jsdelivr.net/npm/@google/genai@latest/+esm");
+
+
+            // The module export contains the GoogleGenAI class
+            const { GoogleGenAI } = module;
+
+            // Initialize the client
+            aiClient = new GoogleGenAI({ apiKey: apiKey });
+
+        } catch (error) {
+            console.error("Failed to dynamically load or initialize Gemini SDK:", error);
+            return Error("Could not load the required library.");
+        }
+        if (aiClient == null) {
+            return Error("aiClient is null");
+        }
+    }
+    // ----------------------------------------------------------------
+
+    // --- API Call (Happens every time) ---
+    try {
+        const response = await aiClient.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: userPrompt,
+        });
+        return response.text;
+    } catch (error) {
+        console.error("Error calling the Gemini API:", error);
+        return Error(`An API error occurred: ${error}`);
+    }
+}
+
+// Example of how you would call it:
+/*
+// ⚠️ IMPORTANT: Replace with your actual key
+const MY_GEMINI_KEY = "YOUR_API_KEY_HERE";
+
+(async () => {
+    const prompt = "Explain why dynamic import() is useful in two sentences.";
+    const result = await generateGeminiContentWithImport(prompt, MY_GEMINI_KEY);
+    console.log(result);
+})();
+*/

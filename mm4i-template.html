@@ -2106,7 +2106,8 @@
                     }
                     throttleSaveHistoryPanelSize();
                 } catch (err) {
-                    console.error("resizeHistory", err);
+                    const errMsg = err instanceof Error ? err.message : err.toString();
+                    console.error("resizeHistory", errMsg);
                 }
                 requestAnimationFrame(resizeHistory);
             }
