@@ -1,6 +1,6 @@
 // @ts-check
 const INIT_ERROR_VER = "0.1.7";
-// @ts-ignore
+/** @param {string} _msg */
 function logConsoleHereIs(_msg) {
     // console.log(`%c${_msg}`, "color:white; background-color:blue; padding: 0px 5px;");
 }
@@ -126,19 +126,42 @@ logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
 }
 
 /**
+ * From Grok. Not sure why this works??
+ * 
+ * A JavaScript object with dynamic string keys (unquoted in syntax) and string values.
+ * @typedef {Object.<string, string>} DynamicStringObject
+ * @property {string} [key: string] - A string value associated with a string key.
+ * @example
+ * {
+ *   userId: "12345",
+ *   status: "active",
+ *   department: "engineering"
+ * }
+ */
+/** @type {DynamicStringObject} */
+const _dynamicObject = {
+    // 5: "test",
+    userId: "12345",
+    status: "active",
+    department: "engineering",
+};
+
+
+
+/**
  * 
  * @param {string} type 
- * @param {Object=} attrib 
- * @param {any=} inner 
+ * @param {DynamicStringObject} [attrib]
+ * @param {string|string[]|HTMLElement|HTMLElement[]} [inner]
  * @returns {HTMLElement}
  */
-// eslint-disable-next-line no-unused-vars
+// oxlint-disable-next-line no-unused-vars
 function mkElt(type, attrib, inner) {
     const elt = document.createElement(type);
 
     /**
      * 
-     * @param {HTMLElement | string} inr 
+     * @param {HTMLElement | HTMLElement[] | string | string[]} inr 
      */
     function addInner(inr) {
         if (inr instanceof Element) {
@@ -149,7 +172,7 @@ function mkElt(type, attrib, inner) {
         }
     }
     if (inner) {
-        if (inner.length && typeof inner != "string") {
+        if (Array.isArray(inner) && inner.length && typeof inner != "string") {
             for (var i = 0; i < inner.length; i++)
                 if (inner[i])
                     addInner(inner[i]);

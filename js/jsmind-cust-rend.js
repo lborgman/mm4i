@@ -1,13 +1,12 @@
 // @ts-check
 
-const logConsoleHereIs = window["logConsoleHereIs"];
 const importFc4i = window["importFc4i"];
 const mkElt = window["mkElt"];
 const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 const jsMind = window["jsMind"];
 
 const CUST_REND_VER = "0.0.3";
-logConsoleHereIs(`here is jsmind-cust-rend.js, module,${CUST_REND_VER}`);
+window["logConsoleHereIs"](`here is jsmind-cust-rend.js, module,${CUST_REND_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 const modTools = await importFc4i("toolsJs");

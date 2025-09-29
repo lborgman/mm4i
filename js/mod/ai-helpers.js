@@ -13,6 +13,9 @@ const modApp = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-
 const modAiFirebase = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-ai.js");
 // import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 
+const userAgent = navigator.userAgent.toLowerCase();
+const isAndroid = userAgent.indexOf("android") > -1;
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -50,13 +53,13 @@ export const modelAiGeminiThroughFirebase = modAiFirebase.getGenerativeModel(aiG
 
 /**
  * @typedef {Object} aiInfo
- * @property {boolean} testedChat
- * @property {boolean} q
- * @property {string|undefined} comment
- * @property {string} url
+ * @property {boolean} [qW]
+ * @property {boolean} [qA]
+ * @property {string} [comment]
+ * @property {string} urlChat
+ * @property {string} urlImg
  * @property {string} [android]
  * @property {string} pkg
- * @property {string} urlImg
  * @property {funCallAI} [fun]
  * @property {string} [urlAPIkey]
  */
@@ -74,61 +77,38 @@ const mkAIinfo = (aiInfo) => { return aiInfo }
  */
 const infoAI = {
     "Gemini": mkAIinfo({
-        testedChat: true,
-        q: false,
-        comment: undefined,
-        url: "gemini.google.com/app",
-        // urlAndroidApp: true,
+        fun: callGeminiAPI,
         pkg: "com.google.android.apps.bard",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg",
-        fun: callGeminiAPI,
+        urlChat: "gemini.google.com/app",
         urlAPIkey: "https://support.gemini.com/hc/en-us/articles/360031080191-How-do-I-create-an-API-key"
     }),
     "ChatGPT": mkAIinfo({
-        testedChat: true,
-        q: true,
-        comment: undefined,
-        url: "chatgpt.com",
         android: "intent://chat.openai.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.openai.chatgpt;end;",
-        // urlAndroidApp: "intent://chat.openai.com/#Intent;scheme=https;package=com.openai.chatgpt;end",
+        fun: callOpenAIapi,
         pkg: "com.openai.chatgpt",
-        urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b5/ChatGPT_logo_Square.svg",
-        fun: callOpenAIapi
-
+        qA: true,
+        qW: true,
+        urlChat: "chatgpt.com",
+        urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b5/ChatGPT_logo_Square.svg"
     }),
     "Claude": mkAIinfo({
-        testedChat: true,
-        q: false,
-        comment: undefined,
-        url: "claude.ai",
-        // urlAndroidApp: true,
         pkg: "com.anthropic.claude",
+        urlChat: "claude.ai",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Claude_AI_symbol.svg"
     }),
     "Grok": mkAIinfo({
-        testedChat: true,
-        q: false,
-        comment: "I have asked xAI about OAuth",
-        url: "grok.com/chat",
-
-        // urlAndroidApp: true,
-        // window.location.href = "intent://grok.com/chat?q=" + promptEncoded + "#Intent;scheme=https;package=ai.x.grok;end
-        /*
-        urlAndroidApp: "intent://grok.com/chat?q=PROMPT-ENCODED#Intent;"
-            + "scheme=https;package=ai.x.grok;"
-            + "end",
-        */
+        // fun: callGrokApi, // The other version seems better, but I can not test with a valid key
+        fun: callOpenAIapi,
         pkg: "ai.x.grok",
-        urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg",
-        fun: callGrokApi
+        urlChat: "grok.com/chat",
+        urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg"
     }),
     "Perplexity": mkAIinfo({
-        testedChat: true,
-        q: false,
-        comment: undefined,
-        url: "perplexity.ai",
         android: "intent://perplexity.sng.link/A6awk/ppas?q=PLACEHOLDER#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;end;",
+        qW: true,
         pkg: "ai.perplexity.app.android",
+        urlChat: "perplexity.ai",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Perplexity_AI_logo.svg"
     }),
 }
@@ -598,6 +578,8 @@ Important:
     const divGoStatus = mkElt("div");
     divGoStatus.id = "div-go-status";
     divGoStatus.style.outline = "1px dotted red";
+    divGoStatus.style.overflow = "auto";
+    divGoStatus.style.overflowWrap = "anywhere";
 
     const btnGo = modMdc.mkMDCbutton("Go", "raised");
     btnGo.style.textTransform = "none";
@@ -758,6 +740,7 @@ Important:
         console.log(res);
         debugger;
     });
+    /*
     const divListAIeasyWay = mkElt("div");
     divListAIeasyWay.style = ` display: flex; flex-direction: row; gap: 10px; flex-flow: wrap; `;
 
@@ -780,7 +763,6 @@ Important:
         divListAIeasyWay.appendChild(eltAI);
     });
 
-    const styleWays = " background-color: #80800036; padding: 10px; ";
     const divEasyWay = mkElt("div", undefined, [
         divSelectAIeasyWay,
         mkElt("p", undefined, btnEasyWay),
@@ -788,6 +770,9 @@ Important:
     ]);
     divEasyWay.id = "easy-way";
     divEasyWay.style = styleWays;
+    */
+
+    const styleWays = " background-color: #80800036; padding: 10px; ";
 
     const divListAIhardWay = mkElt("div");
     divListAIhardWay.style = `
@@ -835,12 +820,15 @@ Important:
     }
 
     const divAIsettings = mkElt("div", undefined, [
-        // infoAI
+        mkElt("p", undefined, `
+            All AI:s here has a web chat. Some of them adds the prompt for you.
+            (Updated 2025-09-29.)
+            `),
     ]);
     divAIsettings.style.marginTop = "20px";
     Object.entries(infoAI).forEach(e => {
         const [k, v] = e;
-        const { q, android, urlImg, fun, urlAPIkey } = v;
+        const { qW, qA, android, urlImg, urlChat, fun, urlAPIkey } = v;
         const imgAI = mkElt("span", { class: "elt-ai-img" });
         imgAI.style.backgroundImage = `url(${urlImg})`;
         const imgAIsummary = mkElt("span", { class: "elt-ai-img" });
@@ -876,10 +864,22 @@ Important:
             listAPI.appendChild(divAPIinfo);
             listAPI.appendChild(lbl);
         }
-        if (android) {
-            const listAndroid = mkElt("list");
-            ulAIdetails.appendChild(listAndroid);
-            listAndroid.appendChild(mkElt("span", undefined, "Can start Android app"));
+        if (isAndroid) {
+            if (android) {
+                const listAndroid = mkElt("list");
+                ulAIdetails.appendChild(listAndroid);
+                let strCan = "Can start Android app";
+                if (qA) strCan = `${strCan} with prompt`;
+                listAndroid.appendChild(mkElt("span", undefined, strCan));
+            }
+        }
+        if (urlChat) {
+            if (qW) {
+                const listWeb = mkElt("list");
+                ulAIdetails.appendChild(listWeb);
+                const strCan = `Web chat adds the prompt for you`;
+                listWeb.appendChild(mkElt("span", undefined, strCan));
+            }
         }
 
         const numDetails = ulAIdetails.childElementCount;
@@ -889,10 +889,12 @@ Important:
         } else {
             ulAIdetails.appendChild(mkElt("list", undefined, "(Nothing special.)"))
         }
-        ulAIdetails.childNodes.forEach(list => {
+        [...ulAIdetails.children].forEach((list) => {
+            if (!(list instanceof HTMLElement)) throw Error("Not HTMLElement");
             const tn = list.tagName;
-            if (tn!= "LIST") throw Error(`list.tagName == "${tn}"`);
+            if (tn != "LIST") throw Error(`list.tagName == "${tn}"`);
             list.style.display = "list-item";
+            list.style.marginBottom = "15px";
         });
 
         const spanSummary = mkElt("span", undefined, [imgAIsummary, nameAI]);
@@ -1196,7 +1198,7 @@ async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
     let appLaunched = false;
     // const infoThisAI = infoAI[nameAI];
     // if (!infoThisAI) throw Error(`Could not find info for AI "${nameAI}"`);
-    const urlFallBack = mkWebUrl(nameAI, promptAI);
+    const urlFallBack = mkUrlChat(nameAI, promptAI);
 
     // Create a hidden iframe
     const iframe = document.createElement('iframe');
@@ -1254,8 +1256,6 @@ export function getWayToCallAI(nameAI) {
             return "API";
         }
     }
-    const userAgent = navigator.userAgent.toLowerCase();
-    const isAndroid = userAgent.indexOf("android") > -1;
     if (!isAndroid) {
         return "web";
     }
@@ -1299,12 +1299,13 @@ async function callTheAI(nameAI, promptAI) {
     async function callAIweb(nameAI) {
         divGoStatus.append(`, calling web ${nameAI}`);
         await modTools.waitSeconds(2);
-        const webUrl = mkWebUrl(nameAI, promptAI);
+        const webUrl = mkUrlChat(nameAI, promptAI);
         window.open(`${webUrl}`, "AIWINDOW");
         divGoStatus.textContent = "";
     }
 
     async function callAIapi(nameAI) {
+        divGoStatus.style.color = "unset";
         divGoStatus.textContent = `Waiting for ${nameAI} . . .`;
         const tmrAlive = setInterval(() => { divGoStatus.append(" ."); }, 1500);
         const infoThisAI = infoAI[nameAI];
@@ -1315,8 +1316,10 @@ async function callTheAI(nameAI, promptAI) {
         console.log({ res });
         if (res instanceof Error) {
             console.error(res);
+            divGoStatus.style.color = "red";
             divGoStatus.textContent = `Error from ${nameAI}: ${res.message}`;
         } else {
+            divGoStatus.style.color = "green";
             divGoStatus.textContent = `Got response from ${nameAI}`;
             const eltAItextarea =
                 /** @type {HTMLTextAreaElement|null} */
@@ -1357,13 +1360,13 @@ async function callTheAI(nameAI, promptAI) {
  * @param {string} promptAI 
  * @returns {string}
  */
-function mkWebUrl(nameAI, promptAI) {
+function mkUrlChat(nameAI, promptAI) {
     const infoThisAI = infoAI[nameAI];
-    const url = infoThisAI.url;
+    const url = infoThisAI.urlChat;
     const promptEncoded = encodeURIComponent(promptAI);
-    let urlWeb = `https://${url}?q=${promptEncoded}`;
-    console.log(`mkWebUrl for ${nameAI}`, urlWeb);
-    return urlWeb;
+    const urlChat = `https://${url}?q=${promptEncoded}`;
+    console.log(`mkWebUrl for ${nameAI}`, urlChat);
+    return urlChat;
 }
 
 
@@ -1468,15 +1471,22 @@ function setAPIkeyForAI(nameAI, apiKey) {
     return localStorage.setItem(key, apiKey);
 }
 
-// infoAI
+
+
+
 /**
- * 
- * @param {string} prompt 
- * @param {string} apiKey 
- * @returns {Promise<string>}
+ * @callback CallAIapi
+ * @param {string} userPrompt The text prompt to send to the Gemini model.
+ * @param {string} apiKey Your Gemini API Key.
+ * @returns {Promise<string|Error>} The text response from the model.
+ */
+
+
+
+/**
+ * @type {CallAIapi}
  */
 async function callGrokApi(prompt, apiKey) {
-    // const apiKey = 'YOUR_API_KEY'; // Replace with secure method (e.g., backend proxy)
     const url = 'https://api.x.ai/v1/chat/completions';
 
     const requestBody = {
@@ -1497,22 +1507,20 @@ async function callGrokApi(prompt, apiKey) {
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
+            return Error(`HTTP error! Status: ${response.status}`);
         }
 
         const data = await response.json();
-        return data.choices?.[0]?.message?.content || 'No response';
+        debugger;
+        return data.choices?.[0]?.message?.content || Error('No response');
     } catch (error) {
         console.error('Error calling Grok API:', error);
-        return 'Error: Could not fetch response';
+        return Error(`Could not fetch response`);
     }
 }
 
-// Example usage
-// callGrokApi('What is the meaning of life?').then(response => console.log(response));
-
-
-async function callOpenAIapi(userMessage, apiKey) {
+/** @type {CallAIapi} */
+async function callOpenAIapi(userPrompt, apiKey) {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
@@ -1524,42 +1532,46 @@ async function callOpenAIapi(userMessage, apiKey) {
             model: "gpt-4.1-mini", // fast + cheaper model; use gpt-4.1 for more reasoning
             messages: [
                 { role: "system", content: "You are a helpful assistant." },
-                { role: "user", content: userMessage }
+                { role: "user", content: userPrompt }
             ]
         })
     });
 
     const data = await response.json();
+    debugger;
+    {
+        const example = {
+            message: 'Incorrect API key provided: xai-99FV**************… at https://platform.openai.com/account/api-keys.',
+            type: 'invalid_request_error',
+            param: null,
+            code: 'invalid_api_key'
+        }
+    }
+    if (data.error) {
+        debugger;
+        console.error(data);
+        const errObj = Error(data.error.message);
+        return errObj;
+    }
     return data.choices[0].message.content;
 }
-
-// Example usage:
-// callChatGPT("Write a haiku about autumn")
-// .then(reply => console.log("ChatGPT:", reply))
-// .catch(err => console.error("Error:", err));
 
 
 // Variable to store the initialized AI client so we don't reload or re-initialize.
 /** @type {Object|null} */ let aiClient = null;
 
 
+
 /**
- * Dynamically loads the Gemini SDK from a CDN and calls the API.
- * ⚠️ NOTE: This script must be run as an ES Module (e.g., <script type="module">)
- * @param {string} userPrompt The text prompt to send to the Gemini model.
- * @param {string} apiKey Your Gemini API Key.
- * @returns {Promise<string|Error>} The text response from the model.
+ * @type {CallAIapi}
  */
 async function callGeminiAPI(userPrompt, apiKey) {
-    // if (!userPrompt || !userPrompt.trim()) { return "Please provide a prompt."; }
-
     // --- Dynamic Loading and Initialization (Happens only once) ---
     if (!aiClient) {
         try {
             // Dynamically import the Google Gen AI SDK from the CDN URL
             // const module = await import('https://unpkg.com/@google/genai/dist/index.js');
             const module = await import("https://cdn.jsdelivr.net/npm/@google/genai@latest/+esm");
-
 
             // The module export contains the GoogleGenAI class
             const { GoogleGenAI } = module;
@@ -1589,15 +1601,3 @@ async function callGeminiAPI(userPrompt, apiKey) {
         return Error(`An API error occurred: ${error}`);
     }
 }
-
-// Example of how you would call it:
-/*
-// ⚠️ IMPORTANT: Replace with your actual key
-const MY_GEMINI_KEY = "YOUR_API_KEY_HERE";
-
-(async () => {
-    const prompt = "Explain why dynamic import() is useful in two sentences.";
-    const result = await generateGeminiContentWithImport(prompt, MY_GEMINI_KEY);
-    console.log(result);
-})();
-*/

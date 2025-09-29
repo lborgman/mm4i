@@ -1,12 +1,11 @@
 // @ts-check
 
-const logConsoleHereIs = window["logConsoleHereIs"];
 const importFc4i = window["importFc4i"];
 // const mkElt = window["mkElt"];
 // const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 
 const CUST_REND_VER = "0.0.1";
-if (logConsoleHereIs) logConsoleHereIs(`here is jssm-tools.js, module,${CUST_REND_VER}`);
+window["logConsoleHereIs"](`here is jssm-tools.js, module,${CUST_REND_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 // @ts-ignore

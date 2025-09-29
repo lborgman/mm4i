@@ -13,7 +13,10 @@ const version = "0.1.000";
 window["logConsoleHereIs"](`here is mm4i-jsmind.drag-node.js, module ${version}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
+/** @param any[] @returns {HTMLElement} */
 const mkElt = window["mkElt"];
+
+/** @param {string} idOrLink @returns {Promise<Object>} */
 const importFc4i = window["importFc4i"];
 const jsMind = window["jsMind"];
 

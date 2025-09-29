@@ -1,5 +1,6 @@
 // @ts-check
 const MM4I_IMPORTMAPS_VER = "0.2.6";
+/** @param {string} _msg */
 window["logConsoleHereIs"](`here is mm4i-importmaps ${MM4I_IMPORTMAPS_VER}`);
 
 const importFc4i_nocachenames = {};
@@ -189,11 +190,7 @@ const baseUrl = (() => {
     const isImporting = {};
 
 
-    /**
-     * 
-     * @param {string} idOrLink 
-     * @returns 
-     */
+    /** @param {string} idOrLink @returns {Promise<Object>} */
     async function importFc4i(idOrLink) {
         if (window["in-app-screen"]) return;
         const webBrowserInfo = await window["promWebBrowserInfo"];

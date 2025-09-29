@@ -1,7 +1,6 @@
 // @ts-check
 // https://www.npmjs.com/package/@toast-ui/editor
 
-const logConsoleHereIs = window["logConsoleHereIs"];
 const importFc4i = window["importFc4i"];
 
 
@@ -11,7 +10,7 @@ const modTools = await importFc4i("toolsJs");
 const modMdc = await importFc4i("util-mdc");
 
 const TOASTUI_HELPERS_VER = "0.0.0";
-logConsoleHereIs(`here is toast-ui-helpers.js, module,${TOASTUI_HELPERS_VER}`);
+window["logConsoleHereIs"](`here is toast-ui-helpers.js, module,${TOASTUI_HELPERS_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 
