@@ -1243,6 +1243,9 @@ export function getWayToCallAI(nameAI) {
     if (!isAndroid) {
         return "web";
     }
+    if (!infoThisAI.android) {
+        return "web";
+    }
     return "android-app";
 }
 
