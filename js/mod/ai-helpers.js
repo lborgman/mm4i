@@ -837,22 +837,20 @@ Important:
     const divAIsettings = mkElt("div", undefined, [
         // infoAI
     ]);
+    divAIsettings.style.marginTop = "20px";
     Object.entries(infoAI).forEach(e => {
         const [k, v] = e;
         const { q, android, urlImg, fun, urlAPIkey } = v;
         const imgAI = mkElt("span", { class: "elt-ai-img" });
         imgAI.style.backgroundImage = `url(${urlImg})`;
+        const imgAIsummary = mkElt("span", { class: "elt-ai-img" });
+        imgAIsummary.style.backgroundImage = `url(${urlImg})`;
         const nameAI = k;
 
-        const divAIdetails = mkElt("div");
-        if (android) {
-            const divAndroid = mkElt("div");
-            divAIdetails.appendChild(divAndroid);
-            divAndroid.appendChild(mkElt("span", undefined, "Can start Android app"));
-        }
+        const ulAIdetails = mkElt("ul");
         if (fun) {
-            const divAPI = mkElt("div");
-            divAIdetails.appendChild(divAPI);
+            const listAPI = mkElt("list");
+            ulAIdetails.appendChild(listAPI);
             const inpAPIkey = mkElt("input", { type: "password" });
             const key = getAPIkeyForAI(nameAI);
             if (key) inpAPIkey.value = key;
@@ -875,23 +873,41 @@ Important:
                 const spanAPIkeyInfo = mkElt("span", undefined, [" (", aAPIkey, ".)"]);
                 divAPIinfo.appendChild(spanAPIkeyInfo);
             }
-            divAPI.appendChild(divAPIinfo);
-            divAPI.appendChild(lbl);
+            listAPI.appendChild(divAPIinfo);
+            listAPI.appendChild(lbl);
         }
-        const numDetails = divAIdetails.childElementCount;
-        console.log(nameAI, { numDetails });
-        if (numDetails > 0) {
-            divAIdetails.style = "display:flex; flex-direction:column; gap:20px;";
-        } else {
-            divAIdetails.appendChild(mkElt("span", undefined, "(Nothing special.)"))
+        if (android) {
+            const listAndroid = mkElt("list");
+            ulAIdetails.appendChild(listAndroid);
+            listAndroid.appendChild(mkElt("span", undefined, "Can start Android app"));
         }
 
-        const eltSummary = mkElt("summary", undefined, nameAI);
+        const numDetails = ulAIdetails.childElementCount;
+        console.log(nameAI, { numDetails });
+        if (numDetails > 0) {
+            // ulAIdetails.style = "display:flex; flex-direction:column; gap:20px;";
+        } else {
+            ulAIdetails.appendChild(mkElt("list", undefined, "(Nothing special.)"))
+        }
+        ulAIdetails.childNodes.forEach(list => {
+            const tn = list.tagName;
+            if (tn!= "LIST") throw Error(`list.tagName == "${tn}"`);
+            list.style.display = "list-item";
+        });
+
+        const spanSummary = mkElt("span", undefined, [imgAIsummary, nameAI]);
+        imgAIsummary.style.height = "30px";
+        imgAIsummary.style.width = "30px";
+        spanSummary.style.display = "inline-flex";
+        spanSummary.style.gap = "10px";
+        spanSummary.style.padding = "5px";
+        const eltSummary = mkElt("summary", undefined, spanSummary);
         const divDetailsInner = mkElt("div", undefined, [
-            imgAI, divAIdetails
+            // imgAI,
+            ulAIdetails
         ]);
-        divDetailsInner.style = "display:grid; grid-template-columns:20px auto; gap:10px; margin-left:10px;";
         const eltDetails = mkElt("details", undefined, [eltSummary, divDetailsInner]);
+        eltDetails.style.borderBottom = "1px solid lightgray";
         divAIsettings.appendChild(eltDetails);
     });
 
