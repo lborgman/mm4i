@@ -1314,6 +1314,7 @@ async function callTheAI(nameAI, promptAI) {
     }
 
     async function callAIandroidApp(nameAI) {
+        const infoThisAI = infoAI[nameAI];
         const androidIntent = infoThisAI.android;
         const rawIntentUrl = androidIntent ? androidIntent : await dialogEditIntentUrl(nameAI);
         if (rawIntentUrl == null) {
