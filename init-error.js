@@ -14,6 +14,7 @@ logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
      * @param {Event} evt 
      */
     const doDisplay = (evt) => {
+        // @ts-ignore
         if (window["in-app-screen"]) return;
         if (numErrors++ > 0) return; // Only display one error
         console.log("in doDisplay", evt);
@@ -37,7 +38,9 @@ logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
         // @ts-ignore
         const stack = ourError.stack;
 
+        // @ts-ignore
         if (window["NOalertError"]) {
+            // @ts-ignore
             window["alertError"](type, evt);
             return;
         }
@@ -116,6 +119,7 @@ logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
         displayError(evt);
     });
     window.addEventListener("unhandledrejection", evt => {
+        // @ts-ignore
         console.log("in unhandledrejection", window["useRejection"], evt);
         // displayError(evt);
         // https://stackoverflow.com/questions/76230924/get-location-information-for-promiserejectionevent
@@ -191,7 +195,6 @@ function mkElt(type, attrib, inner) {
 // https://itnext.io/error-handling-with-async-await-in-js-26c3f20bc06a
 // eslint-disable-next-line no-unused-vars
 function errorHandlerAsyncEvent(asyncFun) {
-    // console.warn("typeof asyncFun", typeof asyncFun);
     return function (evt) {
         asyncFun(evt).catch(err => {
             console.log("handler", err);

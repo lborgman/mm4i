@@ -4,13 +4,14 @@ window["logConsoleHereIs"](`here is ai-helpers.js, module, ${AI_HELPERS_VER}`);
 if (document.currentScript) { throw "ai-helpers.js is not loaded as module"; }
 
 const mkElt = window["mkElt"];
+// @ts-ignore
 const importFc4i = window["importFc4i"];
 
 // Import the functions you need from the SDKs you need
 // import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 
-const modApp = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js");
-const modAiFirebase = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-ai.js");
+// const modApp = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js");
+// const modAiFirebase = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-ai.js");
 // import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 
 const userAgent = navigator.userAgent.toLowerCase();
@@ -20,7 +21,8 @@ const isAndroid = userAgent.indexOf("android") > -1;
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 // Your web app's Firebase configuration
-function getFirebaseApp() {
+/*
+function _getFirebaseApp() {
 
     const firebaseConfig = {
         apiKey: "AIzaSyANd3vgrDROcCw4ZdZ2_xCXwcfGd8ZWH_o",
@@ -33,16 +35,16 @@ function getFirebaseApp() {
     const firebaseApp = modApp.initializeApp(firebaseConfig);
     return firebaseApp;
 }
+*/
 
 // Initialize Firebase
-// const firebaseApp = modApp.initializeApp(firebaseConfig);
-const firebaseApp = getFirebaseApp();
+// const firebaseApp = getFirebaseApp();
 
 // Initialize the Gemini Developer API backend service
-const aiGeminiThroughFirebase = modAiFirebase.getAI(firebaseApp, { backend: new modAiFirebase.GoogleAIBackend() });
+// const aiGeminiThroughFirebase = modAiFirebase.getAI(firebaseApp, { backend: new modAiFirebase.GoogleAIBackend() });
 
 // Create a `GenerativeModel` instance with a model that supports your use case
-export const modelAiGeminiThroughFirebase = modAiFirebase.getGenerativeModel(aiGeminiThroughFirebase, { model: "gemini-2.5-flash" });
+// export const modelAiGeminiThroughFirebase = modAiFirebase.getGenerativeModel(aiGeminiThroughFirebase, { model: "gemini-2.5-flash" });
 
 /**
  * @typedef {function} funCallAI
@@ -177,7 +179,12 @@ const testIntentsAI = {
 
 const keyLsAIhard = "mm4i-ai-hardway";
 
+// @ts-ignore
 let initAItextarea;
+/**
+ * 
+ * @param {string} fromLink 
+ */
 export async function generateMindMap(fromLink) {
     const modMdc = await importFc4i("util-mdc");
     const modTools = await importFc4i("toolsJs");
@@ -194,13 +201,15 @@ export async function generateMindMap(fromLink) {
         inpLink.value = fromLink;
         // setTimeout(() => { checkInpLink(); }, 1000);
     }
-    inpLink.addEventListener("input", async _evt => {
+    inpLink.addEventListener("input", async () => {
         checkInpLink();
     });
     async function checkInpLink() {
+        // @ts-ignore
         const funHasInternet = window["PWAhasInternet"];
         if (funHasInternet) {
-            // const i = await window["PWAhasInternet"]();
+            const tofFun = typeof funHasInternet;
+            if (tofFun != "function") throw Error(`typeof funHasInternet == "${tofFun}"`);
             const i = await funHasInternet();
             if (!i) {
                 eltStatus.textContent = "No internet connection";
@@ -234,6 +243,7 @@ export async function generateMindMap(fromLink) {
         if (!divWays) throw Error(`Could not find element "div-ways"`);
         divWays.style.display = "block";
     }
+    // @ts-ignore
     async function isReachableUrl(url) {
         let reachable = false;
         let resp;
@@ -276,6 +286,7 @@ export async function generateMindMap(fromLink) {
         if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
         bPrompt.textContent = promptAI;
     }
+    // @ts-ignore
     function makeAIprompt(link, maxDepth = 4) {
         const rules = [
             `*Summarize the article (or video)
@@ -303,6 +314,7 @@ export async function generateMindMap(fromLink) {
             })
             ;
         return arr.join("\n\n");
+        // @ts-ignore
         console.log({ arr });
         debugger; // eslint-disable-line no-debugger
         return `
@@ -391,15 +403,18 @@ Important:
 
     const eltAItextareaStatus = mkElt("div");
     eltAItextareaStatus.style.lineHeight = "1";
+    // @ts-ignore
     let toDoIt; let eltDialog;
     function onAItextareaInput() {
         eltAItextareaStatus.style.color = "unset";
         // valid
+        // @ts-ignore
         const strAIraw = eltAItextarea.value.trim();
         if (strAIraw.length == 0) {
             eltAItextareaStatus.textContent = "";
             return;
         }
+        // @ts-ignore
         const { strAIjson, cleaned } = getJsonFromAIstr(strAIraw);
 
         /** @param {string} txt */
@@ -434,13 +449,18 @@ Important:
                 eltDialog = eltAItextareaStatus.closest("div.mdc-dialog");
                 if (!eltDialog) throw Error('Could not find .closest("div.mdc-dialg")');
 
+                // @ts-ignore
                 eltDialog.style.opacity = "1";
                 const secOpacity = 0.7;
+                // @ts-ignore
                 eltDialog.style.transition = `opacity ${secOpacity}s`;
                 const secDelay = 1.6 + 2;
+                // @ts-ignore
                 eltDialog.style.transitionDelay = `${secDelay}s`;
+                // @ts-ignore
                 eltDialog.style.opacity = "0";
                 toDoIt = setTimeout(() => {
+                    // @ts-ignore
                     eltDialog.remove();
                     doMakeGeneratedMindmap();
                 }, (secDelay + secOpacity) * 1000);
@@ -449,8 +469,10 @@ Important:
             }
         } catch (err) {
             eltAItextareaStatus.textContent = "";
+            // @ts-ignore
             const msg = err instanceof Error ? err.message : err.toString();
             tellError(msg);
+            // @ts-ignore
             const objJsonErrorDetails = modTools.extractJSONparseError(err.message, strAIjson);
             const divErrorLocation = mkElt("div");
             if (objJsonErrorDetails.context) {
@@ -478,12 +500,16 @@ Important:
     }
 
     eltAItextarea.addEventListener("input", _evt => {
+        // @ts-ignore
         clearTimeout(toDoIt);
+        // @ts-ignore
         if (eltDialog) { eltDialog.style.opacity = "1"; }
         onAItextareaInput();
     });
     eltAItextarea.addEventListener("change", _evt => {
+        // @ts-ignore
         clearTimeout(toDoIt);
+        // @ts-ignore
         if (eltDialog) { eltDialog.style.opacity = "1"; }
         onAItextareaInput();
     });
@@ -497,6 +523,7 @@ Important:
     const eltContentProviderTrouble = mkElt("details", undefined, [
         mkElt("summary", undefined, "Content providers are blocking AI access"),
         mkElt("div", undefined, [
+            // @ts-ignore
             `Many content providers are currently blocking AI agents from accessing their web pages.
                     This is a complicated problems.
                     I have described part of it here:
@@ -535,7 +562,9 @@ Important:
 
     let valLsAIhard = localStorage.getItem(keyLsAIhard) || "none";
     {
+        // @ts-ignore
         const radAI = mkElt("input", { type: "radio", name: "ai", value: "none", checked: true });
+        // @ts-ignore
         const eltAI = mkElt("label", undefined, [radAI, "none"]);
         eltAI.classList.add("elt-ai");
         eltAI.style.background = "lightgray";
@@ -544,6 +573,7 @@ Important:
     Object.entries(infoAI).forEach(e => {
         const [k, v] = e;
         const nameAI = k;
+        // @ts-ignore
         const { testedChat, q, android, urlImg, fun } = v;
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
         const imgAI = mkElt("span", { class: "elt-ai-img" });
@@ -586,6 +616,7 @@ Important:
 
     /** @type {string} */ let nameUsedAI = "Not known";
 
+    // @ts-ignore
     btnGo.addEventListener("click", async (evt) => {
         evt.stopPropagation();
         const modTools = await importFc4i("toolsJs");
@@ -628,6 +659,7 @@ Important:
 
 
     const cardPrompt = mkElt("p", { class: "mdc-card display-flex" }, [
+        // @ts-ignore
         `I have created an AI prompt that you should use.`,
         divPrompt,
     ]);
@@ -688,10 +720,12 @@ Important:
     ]);
     divWhyNotEasy.style.display = "none";
     divWhyNotEasy.style.color = "red";
+    // @ts-ignore
     btnEasyWay.addEventListener("click", async _evt => {
         // btnEasyWay.style.display = "none";
         // divWhyNotEasy.style.display = "unset";
 
+        // @ts-ignore
         const inpAI = divEasyWay.querySelector("input[type=radio][name=ai]:checked");
         if (!inpAI) { throw Error("no selection of AI") }
         // @ts-ignore
@@ -700,16 +734,18 @@ Important:
         let keyAPI = getAPIkeyForAI(nameAI);
         // keyAPI = keyAPI || "just testing...";
         if (!keyAPI) {
-            debugger;
+            // debugger;
             const inpKey = mkElt("input", { type: "text" });
             const aGetKey = mkElt("a", {
                 href: "",
                 target: "_blank"
             }, `Get API key for ${nameAI}`);
             const divGetKey = mkElt("p", undefined, [
+                // @ts-ignore
                 "You must get an API key for this. ",
                 aGetKey
             ]);
+            // @ts-ignore
             const lbl = mkElt("label", undefined, [`API key for ${nameAI}: `, inpKey]);
             const body = mkElt("div", undefined, [
                 divGetKey,
@@ -717,10 +753,11 @@ Important:
             ]);
             const ans = await modMdc.mkMDCdialogConfirm(body);
             if (!ans) return;
+            // @ts-ignore
             keyAPI = inpKey.value.trim();
         }
         const infoThisAI = infoAI[nameAI];
-        debugger;
+        // debugger;
         const fun = infoThisAI["fun"];
         if (!fun) throw Error("!fun");
 
@@ -731,6 +768,7 @@ Important:
         if (res instanceof Error) {
             console.error(res);
             throw res;
+            // @ts-ignore
             return;
         }
         const tofRes = typeof res;
@@ -738,7 +776,7 @@ Important:
             throw Error(`tofRes == "${tofRes}"`)
         }
         console.log(res);
-        debugger;
+        // debugger;
     });
     /*
     const divListAIeasyWay = mkElt("div");
@@ -805,6 +843,7 @@ Important:
          * @param {objIntent} opt 
          * @returns {string}
          */
+        // @ts-ignore
         const _mkChatIntent = (opt) => {
             // const intentGeminiUrl = 'intent://chat?source=button_click#Intent;scheme=gemini;package=com.google.android.apps.bard;end;';
             let u = "intent://";
@@ -841,12 +880,16 @@ Important:
             ulAIdetails.appendChild(listAPI);
             const inpAPIkey = mkElt("input", { type: "password" });
             const key = getAPIkeyForAI(nameAI);
+            // @ts-ignore
             if (key) inpAPIkey.value = key;
+            // @ts-ignore
             const saveAPIkeyInput = modTools.throttleTO(() => { setAPIkeyForAI(nameAI, inpAPIkey.value); }, 500);
             inpAPIkey.addEventListener("input", () => {
+                // @ts-ignore
                 console.log("input inpAPIkey", inpAPIkey.value);
                 saveAPIkeyInput();
             });
+            // @ts-ignore
             const lbl = mkElt("label", undefined, ["API key: ", inpAPIkey]);
             lbl.style = "display:grid; grid-template-columns: auto 1fr; gap: 10px;";
 
@@ -858,6 +901,7 @@ Important:
                     href: urlAPIkey,
                     target: "_blank"
                 }, `Get an API key for ${nameAI}`);
+                // @ts-ignore
                 const spanAPIkeyInfo = mkElt("span", undefined, [" (", aAPIkey, ".)"]);
                 divAPIinfo.appendChild(spanAPIkeyInfo);
             }
@@ -897,6 +941,7 @@ Important:
             list.style.marginBottom = "15px";
         });
 
+        // @ts-ignore
         const spanSummary = mkElt("span", undefined, [imgAIsummary, nameAI]);
         imgAIsummary.style.height = "30px";
         imgAIsummary.style.width = "30px";
@@ -941,9 +986,11 @@ Important:
     // debugger;
     checkInpLink(); // Necessary elements are connected to the DOM here
     async function doMakeGeneratedMindmap() {
+        // @ts-ignore
         const strAIraw = eltAItextarea.value;
 
 
+        // @ts-ignore
         const { strAIjson } = getJsonFromAIstr(strAIraw);
         jsonNodeArray = JSON.parse(strAIjson);
         console.log({ jsonNodeArray });
@@ -951,10 +998,13 @@ Important:
         // const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(jsonNodeArray);
         const nodeArray = nodeArrayFromAI2jsmindFormat(jsonNodeArray);
         const arrRoots = nodeArray.reduce((arr, n) => {
+            // @ts-ignore
             if (!n.parentid) { arr.push(n); }
             return arr;
         }, []);
+        // @ts-ignore
         if (arrRoots.length != 1) throw Error(`Expected 1 root: ${arrRoots.length} `);
+        // @ts-ignore
         const rootNode = arrRoots[0];
         console.log(rootNode);
         const rootNotes = rootNode.shapeEtc?.notes;
@@ -1022,6 +1072,7 @@ Important:
      * @returns {Object}
      */
     function getJsonFromAIstr(strAI) {
+        // @ts-ignore
         function cleanJsonString(jsonString) {
             // Remove common problematic Unicode characters
             return jsonString
@@ -1078,6 +1129,7 @@ async function dialogEditIntentUrl(nameAI) {
     const arrIntentUrl = testIntentsAI[nameAI];
     if (!arrIntentUrl) throw Error(`Could not find testIntentsAI["${nameAI}"]`);
     if (arrIntentUrl.length == 0) {
+        // @ts-ignore
         return `https://${infoAI[nameAI].url}`;
     }
 
@@ -1089,8 +1141,11 @@ async function dialogEditIntentUrl(nameAI) {
     const strOldIdx = localStorage.getItem(keyIntentChoice);
     const oldIdx = strOldIdx == null ? 0 : parseInt(strOldIdx);
     /** @param {string} strIntent @param {number} idx */
+    // @ts-ignore
     const addIntentAlt = (strIntent, comment, idx) => {
+        // @ts-ignore
         const rad = mkElt("input", { type: "radio", name: "rad-intent", value: idx });
+        // @ts-ignore
         if (idx == oldIdx) { rad.checked = true; }
         const spanIntent = mkElt("span", undefined, strIntent);
         spanIntent.style = `
@@ -1138,7 +1193,9 @@ async function dialogEditIntentUrl(nameAI) {
         height: 8rem;
         `;
 
-    let origIndentUrl;
+    let origIndentUrl = null;
+
+    // @ts-ignore
     const updateEltTA = (idx) => {
         const useIdx = Math.min(idx, arrIntentUrl.length - 1); // FIX-ME: Temp fix
         const origIndentUrlEntry = arrIntentUrl[useIdx];
@@ -1151,11 +1208,13 @@ async function dialogEditIntentUrl(nameAI) {
                 return l.trim() + ";\n";
             });
 
+        // @ts-ignore
         eltTA.value = arrIntent.join("");
     }
     updateEltTA(oldIdx);
     divIntents.addEventListener("input", () => {
         const currRad = divIntents.querySelector("input:checked");
+        // @ts-ignore
         const currIdx = currRad.value;
         updateEltTA(currIdx);
     });
@@ -1172,10 +1231,13 @@ async function dialogEditIntentUrl(nameAI) {
     const ans = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel");
     if (ans) {
         const inp = divIntents.querySelector("input:checked") || divIntents.querySelector("input");
+        // @ts-ignore
         const idx = inp.value;
         console.log({ idx });
         if (idx != -1) { localStorage.setItem(keyIntentChoice, idx); }
+        // @ts-ignore
         const val = eltTA.value;
+        // @ts-ignore
         const arr = val.split("\n").map(l => l.trim());
         const newIntentUrl = arr.join("");
         const same = newIntentUrl == origIndentUrl;
@@ -1296,38 +1358,52 @@ async function callTheAI(nameAI, promptAI) {
 
 
     //// Ways to call AI
+    // @ts-ignore
     async function callAIweb(nameAI) {
+        // @ts-ignore
         divGoStatus.append(`, calling web ${nameAI}`);
         await modTools.waitSeconds(2);
         const webUrl = mkUrlChat(nameAI, promptAI);
         window.open(`${webUrl}`, "AIWINDOW");
+        // @ts-ignore
         divGoStatus.textContent = "";
     }
 
+    // @ts-ignore
     async function callAIapi(nameAI) {
+        // @ts-ignore
         divGoStatus.style.color = "unset";
+        // @ts-ignore
         divGoStatus.textContent = `Waiting for ${nameAI} . . .`;
+        // @ts-ignore
         const tmrAlive = setInterval(() => { divGoStatus.append(" ."); }, 1500);
         const infoThisAI = infoAI[nameAI];
         const funAPI = infoThisAI.fun;
         const keyAPI = getAPIkeyForAI(nameAI);
+        // @ts-ignore
         const res = await funAPI(promptAI, keyAPI);
         clearInterval(tmrAlive);
         console.log({ res });
         if (res instanceof Error) {
             console.error(res);
+            // @ts-ignore
             divGoStatus.style.color = "red";
+            // @ts-ignore
             divGoStatus.textContent = `Error from ${nameAI}: ${res.message}`;
         } else {
+            // @ts-ignore
             divGoStatus.style.color = "green";
+            // @ts-ignore
             divGoStatus.textContent = `Got response from ${nameAI}`;
             const eltAItextarea =
                 /** @type {HTMLTextAreaElement|null} */
                 (document.getElementById("textarea-response"));
             if (!eltAItextarea) throw Error(`Did not find "textarea-respones"`);
             eltAItextarea.value = res;
+            // @ts-ignore
             const tofInitAItextarea = typeof initAItextarea;
             if (tofInitAItextarea == "function") {
+                // @ts-ignore
                 initAItextarea();
             } else {
                 throw Error(`tofInitAItextarea == "${tofInitAItextarea}"`);
@@ -1335,6 +1411,7 @@ async function callTheAI(nameAI, promptAI) {
         }
     }
 
+    // @ts-ignore
     async function callAIandroidApp(nameAI) {
         const infoThisAI = infoAI[nameAI];
         const androidIntent = infoThisAI.android;
@@ -1346,11 +1423,13 @@ async function callTheAI(nameAI, promptAI) {
         }
         if (!rawIntentUrl) throw Error(`intentUrl=="${rawIntentUrl}"`);
 
+        // @ts-ignore
         divGoStatus.append(`, opening ${nameAI} Android app`);
         await modTools.waitSeconds(2);
         const intentUrl = rawIntentUrl.replaceAll(/PLACEHOLDER/g, promptAI);
         const promptEncoded = encodeURIComponent(promptAI);
         launchIntentWithIframe(intentUrl, nameAI, promptEncoded);
+        // @ts-ignore
         divGoStatus.textContent = "";
     }
 }
@@ -1386,28 +1465,42 @@ function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
     ////// .notes
     if (!Array.isArray(aiNodeArray)) throw Error("Expected JSON to be an array");
     const nodeArray = aiNodeArray.map(n => {
+        // @ts-ignore
         n.expanded = false;
+        // @ts-ignore
         if (!n.topic) {
             let topic;
+            // @ts-ignore
             if (n.text) topic = n.text;
+            // @ts-ignore
             if (n.name) topic = n.name;
             if (!topic) throw Error(`!n.text || !n.name: ${JSON.stringify(n)}`);
+            // @ts-ignore
             n.topic = topic;
+            // @ts-ignore
             delete n.text;
+            // @ts-ignore
             delete n.name;
         }
         // if (n.parentid) return n;
+        // @ts-ignore
         const parentid = n.parentId || n.parent;
+        // @ts-ignore
         delete n.parentId;
+        // @ts-ignore
         delete n.parent;
+        // @ts-ignore
         if (parentid && parentid != "") n.parentid = parentid;
 
+        // @ts-ignore
         const notes = n.notes;
         if (notes) {
             const tofNotes = typeof notes;
             if (tofNotes != "string") { throw Error(`typeof notes == "${tofNotes}`); }
             const shapeEtc = { notes }
+            // @ts-ignore
             n.shapeEtc = shapeEtc;
+            // @ts-ignore
             delete n.notes;
         }
 
@@ -1416,9 +1509,12 @@ function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
 
 
     /////// find root
+    // @ts-ignore
     let root_node;
     nodeArray.forEach(n => {
+        // @ts-ignore
         if (!n.parentid) {
+            // @ts-ignore
             if (root_node) { throw Error("Found second node with no parent"); }
             root_node = n;
         }
@@ -1430,8 +1526,11 @@ function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
     root_node.isroot = true;
     // @ts-ignore
     const rootId = root_node.id;
+    // @ts-ignore
     const rootChildren = [];
+    // @ts-ignore
     nodeArray.forEach(n => { if (n.parentid == rootId) rootChildren.push(n); });
+    // @ts-ignore
     rootChildren.forEach(n => n.direction = 1);
 
     return nodeArray;
@@ -1483,9 +1582,8 @@ function setAPIkeyForAI(nameAI, apiKey) {
 
 
 
-/**
- * @type {CallAIapi}
- */
+/** type {CallAIapi} */
+/*
 async function callGrokApi(prompt, apiKey) {
     const url = 'https://api.x.ai/v1/chat/completions';
 
@@ -1518,6 +1616,7 @@ async function callGrokApi(prompt, apiKey) {
         return Error(`Could not fetch response`);
     }
 }
+*/
 
 /** @type {CallAIapi} */
 async function callOpenAIapi(userPrompt, apiKey) {
@@ -1538,7 +1637,8 @@ async function callOpenAIapi(userPrompt, apiKey) {
     });
 
     const data = await response.json();
-    debugger;
+    // debugger;
+    /*
     {
         const example = {
             message: 'Incorrect API key provided: xai-99FV**************… at https://platform.openai.com/account/api-keys.',
@@ -1547,8 +1647,9 @@ async function callOpenAIapi(userPrompt, apiKey) {
             code: 'invalid_api_key'
         }
     }
+    */
     if (data.error) {
-        debugger;
+        // debugger;
         console.error(data);
         const errObj = Error(data.error.message);
         return errObj;
@@ -1562,15 +1663,14 @@ async function callOpenAIapi(userPrompt, apiKey) {
 
 
 
-/**
- * @type {CallAIapi}
- */
+/** @type {CallAIapi} */
 async function callGeminiAPI(userPrompt, apiKey) {
     // --- Dynamic Loading and Initialization (Happens only once) ---
     if (!aiClient) {
         try {
             // Dynamically import the Google Gen AI SDK from the CDN URL
             // const module = await import('https://unpkg.com/@google/genai/dist/index.js');
+            // @ts-ignore
             const module = await import("https://cdn.jsdelivr.net/npm/@google/genai@latest/+esm");
 
             // The module export contains the GoogleGenAI class
@@ -1591,6 +1691,7 @@ async function callGeminiAPI(userPrompt, apiKey) {
 
     // --- API Call (Happens every time) ---
     try {
+        // @ts-ignore
         const response = await aiClient.models.generateContent({
             model: "gemini-2.5-flash",
             contents: userPrompt,
@@ -1601,3 +1702,456 @@ async function callGeminiAPI(userPrompt, apiKey) {
         return Error(`An API error occurred: ${error}`);
     }
 }
+
+
+
+// From Grok:
+// https://console.anthropic.com/login?returnTo=%2F%3F
+/* @type {CallAIapi} */
+/*
+async function callClaude({ apiKey, message, model = 'claude-3-5-sonnet-20240620', maxTokens = 1024 }) {
+  try {
+    // Dynamically import the Anthropic SDK ES6 module
+    const Anthropic = (await import('https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.26.0/+esm')).default;
+
+    // Initialize the Anthropic client
+    const anthropic = new Anthropic({ apiKey });
+
+    // Call the messages endpoint
+    const response = await anthropic.messages.create({
+      model,
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: message }],
+    });
+
+    // Return the response text
+    return response.content[0].text;
+  } catch (error) {
+    console.error('Error calling Claude API:', error);
+    throw new Error(`Failed to call Claude API: ${error.message}`);
+  }
+}
+*/
+
+/*
+// Example usage (for testing in the browser console)
+async function testClaude() {
+  try {
+    const response = await callClaude({
+      apiKey: 'YOUR_API_KEY', // Replace with your secure method of providing the key
+      message: 'Hello, Claude! Tell me a fun fact about the ocean.',
+    });
+    console.log('Claude\'s response:', response);
+  } catch (error) {
+    console.error(error);
+  }
+}
+*/
+
+/**
+ * Calls the Claude API with a user prompt and returns the response.
+ * @callback CallAIapi2
+ * @param {string} userPrompt The text prompt to send to the Claude model.
+ * @param {string} apiKey Your Anthropic API Key.
+ * @param {Object} [options] Optional parameters for the API call.
+ * @returns {Promise<string|Error>} The text response from the model or an Error object.
+ */
+/** @type {CallAIapi2} */
+export async function callClaudeAPI(userPrompt, apiKey, options = {}) {
+    try {
+        // Dynamically import the Anthropic SDK ES6 module
+        const Anthropic = (await import('https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.26.0/+esm')).default;
+
+        // Initialize the Anthropic client
+        const anthropic = new Anthropic({ apiKey });
+
+        // Extract options with defaults
+        const { model = 'claude-3-5-sonnet-20240620', maxTokens = 1024 } = options;
+
+        // Call the messages endpoint
+        const response = await anthropic.messages.create({
+            model,
+            max_tokens: maxTokens,
+            messages: [{ role: 'user', content: userPrompt }],
+        });
+
+        // Return the response text
+        return response.content[0].text;
+    } catch (error) {
+        console.error('Error calling Claude API:', error);
+        return new Error(`Failed to call Claude API: ${error.message}`);
+    }
+}
+
+// Example usage (for testing in the browser console)
+async function _testClaude() {
+    try {
+        const response = await callClaudeAPI(
+            'Hello, Claude! Tell me a fun fact about the ocean.',
+            'YOUR_API_KEY', // Replace with your secure method of providing the key
+            { model: 'claude-3-5-sonnet-20240620', maxTokens: 50 }
+        );
+        if (response instanceof Error) {
+            console.error(response);
+        } else {
+            console.log('Claude\'s response:', response);
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+// Uncomment to test in browser
+// _testClaude();
+
+
+
+/**
+ * Calls the Claude API with a user prompt and returns the response.
+ * @callback CallAIapi
+ * @param {string} userPrompt The text prompt to send to the Claude model.
+ * @param {string} apiKey Your Anthropic API Key.
+ * @param {Object} [options] Optional parameters for the API call.
+ * @param {string} [options.model='claude-3-5-sonnet-20240620'] The Claude model to use.
+ * @param {number} [options.maxTokens=1024] The maximum number of tokens in the response.
+ * @returns {Promise<string|Error>} The text response from the model or an Error object.
+ */
+/** @type {CallAIapi} */
+export async function callClaudeAPI2(userPrompt, apiKey, options = {}) {
+    try {
+        // Extract options with defaults
+        const { model = 'claude-3-5-sonnet-20240620', maxTokens = 1024 } = options;
+
+        // Make direct HTTP request to Anthropic API
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01', // Required API version
+            },
+            body: JSON.stringify({
+                model,
+                max_tokens: maxTokens,
+                messages: [{ role: 'user', content: userPrompt }],
+            }),
+        });
+
+        // Check for HTTP errors
+        if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
+        }
+
+        // Parse response
+        const data = await response.json();
+
+        // Ensure response contains text content
+        if (!data.content || !data.content[0]?.text) {
+            throw new Error('No text content in response');
+        }
+
+        // Return the response text
+        return data.content[0].text;
+    } catch (error) {
+        console.error('Error calling Claude API:', error);
+        return new Error(`Failed to call Claude API: ${error.message}`);
+    }
+}
+
+// Example usage (for testing in the browser console)
+async function _testClaude2() {
+    try {
+        const response = await callClaudeAPI2(
+            'Hello, Claude! Tell me a fun fact about the ocean.',
+            'YOUR_API_KEY', // Replace with your secure method of providing the key
+            { model: 'claude-3-5-sonnet-20240620', maxTokens: 50 }
+        );
+        if (response instanceof Error) {
+            console.error(response);
+        } else {
+            console.log('Claude\'s response:', response);
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+// Uncomment to test in browser
+// _testClaude2();
+
+
+
+/**
+ * Calls the Claude API with a user prompt and returns the response.
+ * @callback CallAIapi
+ * @param {string} userPrompt The text prompt to send to the Claude model.
+ * @param {string} apiKey Your Anthropic API Key.
+ * @param {Object} [options] Optional parameters for the API call.
+ * @param {string} [options.model='claude-3-5-sonnet-20240620'] The Claude model to use.
+ * @param {number} [options.maxTokens=1024] The maximum number of tokens in the response.
+ * @returns {Promise<string|Error>} The text response from the model or an Error object.
+ */
+/** @type {CallAIapi} */
+export async function callClaudeAPI3(userPrompt, apiKey, options = {}) {
+    try {
+        // Validate inputs
+        if (!userPrompt || typeof userPrompt !== 'string') {
+            throw new Error('userPrompt must be a non-empty string');
+        }
+        if (!apiKey || typeof apiKey !== 'string') {
+            throw new Error('apiKey must be a non-empty string');
+        }
+
+        // Extract options with defaults
+        const { model = 'claude-3-5-sonnet-20240620', maxTokens = 1024 } = options;
+
+        // Make direct HTTP request to Anthropic API
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01', // Required API version
+            },
+            body: JSON.stringify({
+                model,
+                max_tokens: maxTokens,
+                messages: [{ role: 'user', content: userPrompt }],
+            }),
+        });
+
+        // Check for HTTP errors
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            throw new Error(`HTTP error: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        // Parse response
+        const data = await response.json();
+
+        // Ensure response contains text content
+        if (!data.content || !data.content[0]?.text) {
+            throw new Error('No text content in response');
+        }
+
+        // Return the response text
+        return data.content[0].text;
+    } catch (error) {
+        // Enhanced error logging for debugging
+        console.error('Error calling Claude API:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack,
+            userPrompt,
+            options,
+        });
+        return new Error(`Failed to call Claude API: ${error.message}`);
+    }
+}
+
+// Example usage (for testing in the browser console)
+async function _testClaude3() {
+    try {
+        const response = await callClaudeAPI3(
+            'Hello, Claude! Tell me a fun fact about the ocean.',
+            'YOUR_API_KEY', // Replace with your secure method of providing the key
+            { model: 'claude-3-5-sonnet-20240620', maxTokens: 50 }
+        );
+        if (response instanceof Error) {
+            console.error(response);
+        } else {
+            console.log('Claude\'s response:', response);
+        }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+// Uncomment to test in browser
+// _testClaude3();
+
+
+
+/**
+ * Calls the Claude API via a proxy with a user prompt and returns the response.
+ * @callback CallAIapi
+ * @param {string} userPrompt The text prompt to send to the Claude model.
+ * @param {string} apiKey Your Anthropic API Key.
+ * @param {Object} [options] Optional parameters for the API call.
+ * @param {string} [options.model='claude-3-5-sonnet-20240620'] The Claude model to use.
+ * @param {number} [options.maxTokens=1024] The maximum number of tokens in the response.
+ * @returns {Promise<string|Error>} The text response from the model or an Error object.
+ */
+/** @type {CallAIapi} */
+export async function callClaudeAPI4(userPrompt, apiKey, options = {}) {
+  try {
+    // Validate inputs
+    if (!userPrompt || typeof userPrompt !== 'string') {
+      throw new Error('userPrompt must be a non-empty string');
+    }
+    if (!apiKey || typeof apiKey !== 'string') {
+      throw new Error('apiKey must be a non-empty string');
+    }
+
+    // Extract options with defaults
+    const { model = 'claude-3-5-sonnet-20240620', maxTokens = 1024 } = options;
+
+    // Call the backend proxy
+    const response = await fetch('http://localhost:3000/api/claude', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userPrompt, apiKey, options }),
+    });
+
+    // Check for HTTP errors
+    if (!response.ok) {
+      const errorText = await response.text().catch(() => 'Unknown error');
+      throw new Error(`Proxy error: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    // Parse response
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
+    // Ensure response contains text content
+    if (!data.response) {
+      throw new Error('No text content in proxy response');
+    }
+
+    // Return the response text
+    return data.response;
+  } catch (error) {
+    console.error('Error calling Claude API via proxy:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      userPrompt,
+      options,
+    });
+    return new Error(`Failed to call Claude API: ${error.message}`);
+  }
+}
+
+// Example usage (for testing in the browser console)
+async function _testClaude4() {
+  try {
+    const response = await callClaudeAPI4(
+      'Hello, Claude! Tell me a fun fact about the ocean.',
+      'YOUR_API_KEY', // Replace with your secure method of providing the key
+      { model: 'claude-3-5-sonnet-20240620', maxTokens: 50 }
+    );
+    if (response instanceof Error) {
+      console.error(response);
+    } else {
+      console.log('Claude\'s response:', response);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Uncomment to test in browser
+// _testClaude4();
+
+
+
+// This version needs a proxy.
+/**
+ * Calls the Perplexity AI API with a user prompt and returns the response.
+ * @callback CallPerplexityAPI
+ * @param {string} userPrompt The text prompt to send to the Perplexity model.
+ * @param {string} apiKey Your Perplexity API Key.
+ * @param {Object} [options] Optional parameters for the API call.
+ * @param {string} [options.model='llama-3.1-sonar-small-128k-online'] The Perplexity model to use.
+ * @param {number} [options.maxTokens=1024] The maximum number of tokens in the response.
+ * @returns {Promise<string|Error>} The text response from the model or an Error object.
+ */
+/** @type {CallPerplexityAPI} */
+export async function callPerplexityAPIthroughProxy(userPrompt, apiKey, options = {}) {
+  try {
+    // Validate inputs
+    if (!userPrompt || typeof userPrompt !== 'string') {
+      throw new Error('userPrompt must be a non-empty string');
+    }
+    if (!apiKey || typeof apiKey !== 'string') {
+      throw new Error('apiKey must be a non-empty string');
+    }
+
+    // Extract options with defaults
+    const { 
+      model = 'llama-3.1-sonar-small-128k-online', 
+      maxTokens = 1024,
+    } = options;
+
+    // Make direct HTTP request to Perplexity API
+    const response = await fetch('https://api.perplexity.ai/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: 'user', content: userPrompt }],
+        max_tokens: maxTokens,
+        stream: false,
+      }),
+    });
+
+    // Check for HTTP errors
+    if (!response.ok) {
+      let errorText;
+      try {
+        const errorData = await response.json();
+        errorText = errorData.error?.message || (await response.text()) || 'Unknown error';
+      } catch {
+        errorText = 'Failed to parse error response';
+      }
+      throw new Error(`Perplexity API error: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    // Parse response
+    const data = await response.json();
+
+    // Ensure response contains text content
+    if (!data.choices || !data.choices[0]?.message?.content) {
+      throw new Error('No text content in response');
+    }
+
+    // Return the response text
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error('Error calling Perplexity AI API:', {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      userPrompt,
+      options,
+      timestamp: new Date().toISOString(),
+    });
+    return new Error(`Failed to call Perplexity AI API: ${error.message}`);
+  }
+}
+
+// Example usage (for testing in the browser console)
+async function _testPerplexity() {
+  try {
+    const response = await callPerplexityAPIthroughProxy(
+      'Hello, Perplexity! Tell me a fun fact about the ocean.',
+      'YOUR_API_KEY', // Replace with your secure method
+      { model: 'llama-3.1-sonar-small-128k-online', maxTokens: 50 }
+    );
+    if (response instanceof Error) {
+      console.error(response);
+    } else {
+      console.log('Perplexity\'s response:', response);
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Uncomment to test in browser
+// _testPerplexity();

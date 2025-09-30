@@ -501,3 +501,6 @@ const baseUrl = (() => {
     }
 
 }
+
+/** @param {string} idOrLink @returns {Promise<Object>} */
+window["importFc4i"];
