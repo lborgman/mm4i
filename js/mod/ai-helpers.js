@@ -1468,12 +1468,12 @@ function mkUrlChat(nameAI, promptAI) {
         console.log("removing prompt for Grok");
         return urlChat;
     }
-    */
     if (nameAI == "Grok") {
         const urlChat = `https://${url}?q=hello`;
         console.log("setting prompt to hello for Grok");
         return urlChat;
     }
+    */
     const promptEncoded = encodeURIComponent(promptAI);
     const urlChat = `https://${url}?q=${promptEncoded}`;
     console.log(`mkWebUrl for ${nameAI}`, urlChat);
