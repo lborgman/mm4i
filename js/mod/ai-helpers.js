@@ -1463,6 +1463,11 @@ function mkUrlChat(nameAI, promptAI) {
     const infoThisAI = infoAI[nameAI];
     const url = infoThisAI.urlChat;
     if (nameAI == "Grok") {
+        const urlChat = `https://${url}`;
+        console.log("removing prompt for Grok");
+        return urlChat;
+    }
+    if (nameAI == "Grok") {
         const urlChat = `https://${url}?q=hello`;
         console.log("setting prompt to hello for Grok");
         return urlChat;
