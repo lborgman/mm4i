@@ -1310,7 +1310,7 @@ async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
 
         // If the app was not launched, open the fallback in a new tab
         if (!appLaunched) {
-            window.open(urlFallBack, 'AIWINDOW');
+            window.open(urlFallBack, 'AIWINDOW', "noopener,noreferrer");
         }
     }, 4 * 1000);
 
@@ -1381,7 +1381,7 @@ async function callTheAI(nameAI, promptAI) {
         divGoStatus.append(`, calling web ${nameAI}`);
         await modTools.waitSeconds(2);
         const webUrl = mkUrlChat(nameAI, promptAI);
-        const winHandle = window.open(`${webUrl}`, "AIWINDOW");
+        const winHandle = window.open(`${webUrl}`, "AIWINDOW", "noopener,noreferrer");
         if (winHandle == null) {
             divGoStatus.textContent = "Could not open new window";
         } else {
