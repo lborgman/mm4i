@@ -599,8 +599,9 @@ Important:
         const eltAI = mkElt("label", undefined, [radAI, imgAI, eltAIname, wayIndicator]);
         eltAI.classList.add("elt-ai");
         // if (testedChat) { eltAI.style.backgroundColor = "yellowgreen"; }
-        if (q) { eltAI.style.borderColor = "greenyellow"; }
-        if (android) { imgAI.style.outline = "solid greenyellow 3px"; }
+        // if (q) { eltAI.style.borderColor = "greenyellow"; }
+        // if (android) { imgAI.style.outline = "solid greenyellow 3px"; }
+        /*
         if (fun) {
             eltAI.style.outline = "solid orange 3px";
             const apiKey = getAPIkeyForAI(nameAI);
@@ -608,6 +609,7 @@ Important:
                 eltAI.style.outlineColor = "red";
             }
         }
+        */
         divAIhardWay.appendChild(eltAI);
     });
     divAIhardWay.addEventListener("change", evt => {
