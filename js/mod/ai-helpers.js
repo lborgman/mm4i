@@ -58,10 +58,10 @@ function _getFirebaseApp() {
  * @property {boolean} [qW]
  * @property {boolean} [qA]
  * @property {string} [comment]
- * @property {string} urlChat
- * @property {string} urlImg
+ * @property {string} [urlChat]
+ * @property {string} [urlImg]
  * @property {string} [android]
- * @property {string} pkg
+ * @property {string} [pkg]
  * @property {funCallAI} [fun]
  * @property {string} [urlAPIkey]
  */
@@ -113,6 +113,9 @@ const infoAI = {
         pkg: "ai.perplexity.app.android",
         urlChat: "perplexity.ai",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Perplexity_AI_logo.svg"
+    }),
+    "PuterJs": mkAIinfo({
+        fun: callPuterJs,
     }),
 }
 /**
@@ -292,7 +295,7 @@ export async function generateMindMap(fromLink) {
         const rules = [
             `*Summarize the article (or video)
                 "${link}"
-              into a mind map and
+              into one mind map and
               output a strict, parse-ready JSON node array
               (flat; fields: id, name, parentid, and notes).`,
             `*Optional field "notes": For details, markdown format.`,
@@ -581,7 +584,7 @@ Important:
         const imgAI = mkElt("span", { class: "elt-ai-img" });
         imgAI.style.backgroundImage = `url(${urlImg})`;
         const eltAIname = mkElt("span", { class: "elt-ai-name" }, nameAI);
-        const way = getWayToCallAI(nameAI);
+        const { way } = getWayToCallAI(nameAI);
         let q = "";
         let nameIcon = "help";
         let iconQ = "";
@@ -619,9 +622,11 @@ Important:
         localStorage.setItem(keyLsAIhard, nameAI);
         divGoStatus.textContent = "";
     });
-    const radCurrentAI = divAIhardWay.querySelector(`input[type = radio][value = ${valLsAIhard} `);
-    // @ts-ignore
-    radCurrentAI.checked = true;
+    try {
+        const radCurrentAI = divAIhardWay.querySelector(`input[type=radio][value=${valLsAIhard}]`);
+        // @ts-ignore
+        radCurrentAI.checked = true;
+    } catch (_err) { console.log({ _err }); }
 
     const divGoStatus = mkElt("div");
     divGoStatus.id = "div-go-status";
@@ -1320,11 +1325,13 @@ async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
 }
 
 /**
- * 
- * @param {string} nameAI 
- * @returns {string}
+ * @param {string} nameAI - AI name
+ * @returns {{way: string, copyQ: boolean}} 
  */
 export function getWayToCallAI(nameAI) {
+    if (nameAI == "PuterJs") {
+        return { way: "API", copyQ: false };
+    }
     const infoThisAI = infoAI[nameAI];
     // First try API
     const funAPI = infoThisAI.fun;
@@ -1332,16 +1339,16 @@ export function getWayToCallAI(nameAI) {
         const keyAPI = getAPIkeyForAI(nameAI);
         console.warn(nameAI, { keyAPI });
         if (keyAPI) {
-            return "API";
+            return { way: "API", copyQ: false };
         }
     }
     if (!isAndroid) {
-        return "web";
+        return { way: "web", copyQ: false };
     }
     if (!infoThisAI.android) {
-        return "web";
+        return { way: "web", copyQ: false };
     }
-    return "android-app";
+    return { way: "android-app", copyQ: false };
 }
 
 /**
@@ -1357,7 +1364,7 @@ async function callTheAI(nameAI, promptAI) {
 
 
 
-    let wayToCallAI = getWayToCallAI(nameAI);
+    const { way: wayToCallAI } = getWayToCallAI(nameAI);
 
     switch (wayToCallAI) {
         case "API":
@@ -1607,48 +1614,12 @@ function setAPIkeyForAI(nameAI, apiKey) {
 
 /**
  * @callback CallAIapi
- * @param {string} userPrompt The text prompt to send to the Gemini model.
- * @param {string} apiKey Your Gemini API Key.
- * @returns {Promise<string|Error>} The text response from the model.
+ * @param {string} userPrompt The text prompt to send to the AI model.
+ * @param {string} [apiKey] Your API Key.
+ * @returns {Promise<string|Error>} The text response from the AI model.
  */
 
 
-
-/** type {CallAIapi} */
-/*
-async function callGrokApi(prompt, apiKey) {
-    const url = 'https://api.x.ai/v1/chat/completions';
-
-    const requestBody = {
-        model: 'grok-beta', // Or 'grok-4' for the latest model
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 100,
-        temperature: 0.7
-    };
-
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiKey}`
-            },
-            body: JSON.stringify(requestBody)
-        });
-
-        if (!response.ok) {
-            return Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        debugger;
-        return data.choices?.[0]?.message?.content || Error('No response');
-    } catch (error) {
-        console.error('Error calling Grok API:', error);
-        return Error(`Could not fetch response`);
-    }
-}
-*/
 
 /** @type {CallAIapi} */
 async function callOpenAIapi(userPrompt, apiKey) {
@@ -1840,7 +1811,7 @@ async function _testClaude() {
 
 /**
  * Calls the Claude API with a user prompt and returns the response.
- * @callback CallAIapi
+ * @callback CallAIapi4
  * @param {string} userPrompt The text prompt to send to the Claude model.
  * @param {string} apiKey Your Anthropic API Key.
  * @param {Object} [options] Optional parameters for the API call.
@@ -1848,7 +1819,7 @@ async function _testClaude() {
  * @param {number} [options.maxTokens=1024] The maximum number of tokens in the response.
  * @returns {Promise<string|Error>} The text response from the model or an Error object.
  */
-/** @type {CallAIapi} */
+/** @type {CallAIapi4} */
 export async function callClaudeAPI2(userPrompt, apiKey, options = {}) {
     try {
         // Extract options with defaults
@@ -1915,7 +1886,7 @@ async function _testClaude2() {
 
 /**
  * Calls the Claude API with a user prompt and returns the response.
- * @callback CallAIapi
+ * @callback CallAIapi3
  * @param {string} userPrompt The text prompt to send to the Claude model.
  * @param {string} apiKey Your Anthropic API Key.
  * @param {Object} [options] Optional parameters for the API call.
@@ -1923,7 +1894,7 @@ async function _testClaude2() {
  * @param {number} [options.maxTokens=1024] The maximum number of tokens in the response.
  * @returns {Promise<string|Error>} The text response from the model or an Error object.
  */
-/** @type {CallAIapi} */
+/** @type {CallAIapi3} */
 export async function callClaudeAPI3(userPrompt, apiKey, options = {}) {
     try {
         // Validate inputs
@@ -2006,7 +1977,7 @@ async function _testClaude3() {
 
 /**
  * Calls the Claude API via a proxy with a user prompt and returns the response.
- * @callback CallAIapi
+ * @callback CallAIapi5
  * @param {string} userPrompt The text prompt to send to the Claude model.
  * @param {string} apiKey Your Anthropic API Key.
  * @param {Object} [options] Optional parameters for the API call.
@@ -2014,7 +1985,7 @@ async function _testClaude3() {
  * @param {number} [options.maxTokens=1024] The maximum number of tokens in the response.
  * @returns {Promise<string|Error>} The text response from the model or an Error object.
  */
-/** @type {CallAIapi} */
+/** @type {CallAIapi5} */
 export async function callClaudeAPI4(userPrompt, apiKey, options = {}) {
     try {
         // Validate inputs
@@ -2187,3 +2158,13 @@ async function _testPerplexity() {
 
 // Uncomment to test in browser
 // _testPerplexity();
+
+
+
+/** @type {CallAIapi} */
+async function callPuterJs(userPrompt) {
+    debugger;
+    const res = await puter.ai.chat(userPrompt);
+    console.log(res)
+    return res;
+}
