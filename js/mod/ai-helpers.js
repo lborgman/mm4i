@@ -192,8 +192,8 @@ export async function generateMindMap(fromLink) {
     const modMMhelpers = await importFc4i("mindmap-helpers");
     const inpLink = modMdc.mkMDCtextFieldInput(undefined, "text");
     const tfLink = modMdc.mkMDCtextField("Link to article/video", inpLink);
-    const eltNotReady = mkElt("p", undefined, "Please try, but it is no ready!");
-    eltNotReady.style = `color:red; font-size:1.2rem`;
+    // const eltNotReady = mkElt("p", undefined, "Please try, but it is no ready!");
+    // eltNotReady.style = `color:red; font-size:1.2rem`;
     initAItextarea = onAItextareaInput;
 
 
@@ -538,8 +538,9 @@ Important:
         ]),
     ]);
 
+    const eltPasteAnswer = mkElt("div", undefined, "Paste AI´s answer here:");
     const eltDivAI = mkElt("p", undefined, [
-        mkElt("div", undefined, "Paste the answer you got from AI here:"),
+        eltPasteAnswer,
         eltAItextarea,
         eltAItextareaStatus,
     ]);
@@ -582,34 +583,32 @@ Important:
         const eltAIname = mkElt("span", { class: "elt-ai-name" }, nameAI);
         const way = getWayToCallAI(nameAI);
         let q = "";
+        let nameIcon = "help";
+        let iconQ = "";
         switch (way) {
             case "API":
+                nameIcon = "smart_toy";
                 break;
             case "web":
+                nameIcon = "open_in_browser";
                 if (qW) q = "/q";
+                iconQ = modMdc.mkMDCicon("attach_file");
                 break;
             case "android-app":
+                nameIcon = "android";
                 if (qA) q = "/q";
+                iconQ = modMdc.mkMDCicon("attach_file");
                 break;
             default:
                 throw Error(`Did not handle way "${way}"`);
         }
-        const wayIndicator = mkElt("i", undefined, ` ${way}${q}`);
+        const iconWay = modMdc.mkMDCicon(nameIcon);
+        const wayIndicator = mkElt("i", undefined, [iconWay, iconQ, ` ${way}${q}`]);
         wayIndicator.style.color = "blue";
+        wayIndicator.style.display = "inline-flex";
+        wayIndicator.style.alignItems = "center";
         const eltAI = mkElt("label", undefined, [radAI, imgAI, eltAIname, wayIndicator]);
         eltAI.classList.add("elt-ai");
-        // if (testedChat) { eltAI.style.backgroundColor = "yellowgreen"; }
-        // if (q) { eltAI.style.borderColor = "greenyellow"; }
-        // if (android) { imgAI.style.outline = "solid greenyellow 3px"; }
-        /*
-        if (fun) {
-            eltAI.style.outline = "solid orange 3px";
-            const apiKey = getAPIkeyForAI(nameAI);
-            if (apiKey) {
-                eltAI.style.outlineColor = "red";
-            }
-        }
-        */
         divAIhardWay.appendChild(eltAI);
     });
     divAIhardWay.addEventListener("change", evt => {
@@ -995,14 +994,12 @@ Important:
 
 
     const body = mkElt("div", undefined, [
-        eltNotReady,
-        // eltOk,
+        // eltNotReady,
         mkElt("h2", undefined, "Make mindmap from link"),
         mkElt("div", undefined, cardInput),
         divWays,
     ]);
     modMdc.mkMDCdialogAlert(body, "Close");
-    // debugger;
     checkInpLink(); // Necessary elements are connected to the DOM here
     async function doMakeGeneratedMindmap() {
         // @ts-ignore
@@ -1378,42 +1375,49 @@ async function callTheAI(nameAI, promptAI) {
 
 
     //// Ways to call AI
-    // @ts-ignore
+    /** @param {string} nameAI */
     async function callAIweb(nameAI) {
-        // @ts-ignore
+        if (divGoStatus == null) throw Error(`divGoStatus == null`);
         divGoStatus.append(`, calling web ${nameAI}`);
         await modTools.waitSeconds(2);
         const webUrl = mkUrlChat(nameAI, promptAI);
-        window.open(`${webUrl}`, "AIWINDOW");
-        // @ts-ignore
-        divGoStatus.textContent = "";
+        const winHandle = window.open(`${webUrl}`, "AIWINDOW");
+        if (winHandle == null) {
+            divGoStatus.textContent = "Could not open new window";
+        } else {
+            divGoStatus.textContent = `Opened ${nameAI} in new window`;
+        }
     }
 
-    // @ts-ignore
+    /** @param {string} nameAI */
     async function callAIapi(nameAI) {
-        // @ts-ignore
+        if (divGoStatus == null) throw Error("divGoStatus == null");
         divGoStatus.style.color = "unset";
-        // @ts-ignore
         divGoStatus.textContent = `Waiting for ${nameAI} . . .`;
-        // @ts-ignore
-        const tmrAlive = setInterval(() => { divGoStatus.append(" ."); }, 1500);
+        let s10 = 0;
+        let msStart = Date.now();
+        const tmrAlive = setInterval(() => {
+            const s10new = Math.floor((Date.now() - msStart) / (10 * 1000));
+            if (s10new > s10) {
+                s10 = s10new;
+                divGoStatus.append(` ${s10 * 10}s`);
+            } else {
+                divGoStatus.append(" .");
+            }
+        }, 1500);
         const infoThisAI = infoAI[nameAI];
-        const funAPI = infoThisAI.fun;
         const keyAPI = getAPIkeyForAI(nameAI);
-        // @ts-ignore
+        const funAPI = infoThisAI.fun;
+        if (typeof funAPI != "function") throw Error(`typeof funAPI == "${typeof funAPI}"`);
         const res = await funAPI(promptAI, keyAPI);
         clearInterval(tmrAlive);
         console.log({ res });
         if (res instanceof Error) {
             console.error(res);
-            // @ts-ignore
             divGoStatus.style.color = "red";
-            // @ts-ignore
             divGoStatus.textContent = `Error from ${nameAI}: ${res.message}`;
         } else {
-            // @ts-ignore
             divGoStatus.style.color = "green";
-            // @ts-ignore
             divGoStatus.textContent = `Got response from ${nameAI}`;
             const eltAItextarea =
                 /** @type {HTMLTextAreaElement|null} */
@@ -1421,18 +1425,16 @@ async function callTheAI(nameAI, promptAI) {
             if (!eltAItextarea) throw Error(`Did not find "textarea-respones"`);
             eltAItextarea.value = res;
             // @ts-ignore
-            const tofInitAItextarea = typeof initAItextarea;
-            if (tofInitAItextarea == "function") {
-                // @ts-ignore
-                initAItextarea();
-            } else {
-                throw Error(`tofInitAItextarea == "${tofInitAItextarea}"`);
+            if (typeof initAItextarea != "function") {
+                throw Error(`tofInitAItextarea == "${typeof InitAItextarea}"`);
             }
+            initAItextarea();
         }
     }
 
     // @ts-ignore
     async function callAIandroidApp(nameAI) {
+        if (divGoStatus == null) throw Error(`divGoStatus == null`);
         const infoThisAI = infoAI[nameAI];
         const androidIntent = infoThisAI.android;
         const rawIntentUrl = androidIntent ? androidIntent : await dialogEditIntentUrl(nameAI);
@@ -1443,14 +1445,12 @@ async function callTheAI(nameAI, promptAI) {
         }
         if (!rawIntentUrl) throw Error(`intentUrl=="${rawIntentUrl}"`);
 
-        // @ts-ignore
         divGoStatus.append(`, opening ${nameAI} Android app`);
         await modTools.waitSeconds(2);
         const intentUrl = rawIntentUrl.replaceAll(/PLACEHOLDER/g, promptAI);
         const promptEncoded = encodeURIComponent(promptAI);
         launchIntentWithIframe(intentUrl, nameAI, promptEncoded);
-        // @ts-ignore
-        divGoStatus.textContent = "";
+        divGoStatus.textContent = `Launched ${nameAI} android app`;
     }
 }
 

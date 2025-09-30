@@ -1482,7 +1482,7 @@
             gap: 5px;
             background-color: #e0ffffbd;
             padding: 2px;
-            border-radius: 4px;
+            border-radius: 18px 4px 4px 18px;
             border: 2px solid transparent;
         }
 
@@ -1496,6 +1496,11 @@
             width: 20px;
             background-size: cover;
             background-position: top left;
+        }
+
+
+        .elt-ai:has(input:checked) {
+            outline: 1px solid olive;
         }
 
         .elt-ai:has(input:checked) .elt-ai-name {
