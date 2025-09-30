@@ -103,6 +103,7 @@ const infoAI = {
         // fun: callGrokApi, // The other version seems better, but I can not test with a valid key
         fun: callOpenAIapi,
         pkg: "ai.x.grok",
+        qW: true,
         urlChat: "grok.com/chat",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg"
     }),
@@ -574,14 +575,30 @@ Important:
         const [k, v] = e;
         const nameAI = k;
         // @ts-ignore
-        const { testedChat, q, android, urlImg, fun } = v;
+        const { qA, qW, android, urlImg, fun } = v;
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
         const imgAI = mkElt("span", { class: "elt-ai-img" });
         imgAI.style.backgroundImage = `url(${urlImg})`;
         const eltAIname = mkElt("span", { class: "elt-ai-name" }, nameAI);
-        const eltAI = mkElt("label", undefined, [radAI, imgAI, eltAIname]);
+        const way = getWayToCallAI(nameAI);
+        let q = "";
+        switch (way) {
+            case "API":
+                break;
+            case "web":
+                if (qW) q = "/q";
+                break;
+            case "android-app":
+                if (qA) q = "/q";
+                break;
+            default:
+                throw Error(`Did not handle way "${way}"`);
+        }
+        const wayIndicator = mkElt("i", undefined, ` ${way}${q}`);
+        wayIndicator.style.color = "blue";
+        const eltAI = mkElt("label", undefined, [radAI, imgAI, eltAIname, wayIndicator]);
         eltAI.classList.add("elt-ai");
-        if (testedChat) { eltAI.style.backgroundColor = "yellowgreen"; }
+        // if (testedChat) { eltAI.style.backgroundColor = "yellowgreen"; }
         if (q) { eltAI.style.borderColor = "greenyellow"; }
         if (android) { imgAI.style.outline = "solid greenyellow 3px"; }
         if (fun) {
@@ -1314,6 +1331,7 @@ export function getWayToCallAI(nameAI) {
     const funAPI = infoThisAI.fun;
     if (funAPI) {
         const keyAPI = getAPIkeyForAI(nameAI);
+        console.warn(nameAI, { keyAPI });
         if (keyAPI) {
             return "API";
         }
@@ -1984,72 +2002,72 @@ async function _testClaude3() {
  */
 /** @type {CallAIapi} */
 export async function callClaudeAPI4(userPrompt, apiKey, options = {}) {
-  try {
-    // Validate inputs
-    if (!userPrompt || typeof userPrompt !== 'string') {
-      throw new Error('userPrompt must be a non-empty string');
+    try {
+        // Validate inputs
+        if (!userPrompt || typeof userPrompt !== 'string') {
+            throw new Error('userPrompt must be a non-empty string');
+        }
+        if (!apiKey || typeof apiKey !== 'string') {
+            throw new Error('apiKey must be a non-empty string');
+        }
+
+        // Extract options with defaults
+        const { model = 'claude-3-5-sonnet-20240620', maxTokens = 1024 } = options;
+
+        // Call the backend proxy
+        const response = await fetch('http://localhost:3000/api/claude', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userPrompt, apiKey, options }),
+        });
+
+        // Check for HTTP errors
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            throw new Error(`Proxy error: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        // Parse response
+        const data = await response.json();
+        if (data.error) {
+            throw new Error(data.error);
+        }
+
+        // Ensure response contains text content
+        if (!data.response) {
+            throw new Error('No text content in proxy response');
+        }
+
+        // Return the response text
+        return data.response;
+    } catch (error) {
+        console.error('Error calling Claude API via proxy:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack,
+            userPrompt,
+            options,
+        });
+        return new Error(`Failed to call Claude API: ${error.message}`);
     }
-    if (!apiKey || typeof apiKey !== 'string') {
-      throw new Error('apiKey must be a non-empty string');
-    }
-
-    // Extract options with defaults
-    const { model = 'claude-3-5-sonnet-20240620', maxTokens = 1024 } = options;
-
-    // Call the backend proxy
-    const response = await fetch('http://localhost:3000/api/claude', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userPrompt, apiKey, options }),
-    });
-
-    // Check for HTTP errors
-    if (!response.ok) {
-      const errorText = await response.text().catch(() => 'Unknown error');
-      throw new Error(`Proxy error: ${response.status} ${response.statusText} - ${errorText}`);
-    }
-
-    // Parse response
-    const data = await response.json();
-    if (data.error) {
-      throw new Error(data.error);
-    }
-
-    // Ensure response contains text content
-    if (!data.response) {
-      throw new Error('No text content in proxy response');
-    }
-
-    // Return the response text
-    return data.response;
-  } catch (error) {
-    console.error('Error calling Claude API via proxy:', {
-      message: error.message,
-      name: error.name,
-      stack: error.stack,
-      userPrompt,
-      options,
-    });
-    return new Error(`Failed to call Claude API: ${error.message}`);
-  }
 }
 
 // Example usage (for testing in the browser console)
 async function _testClaude4() {
-  try {
-    const response = await callClaudeAPI4(
-      'Hello, Claude! Tell me a fun fact about the ocean.',
-      'YOUR_API_KEY', // Replace with your secure method of providing the key
-      { model: 'claude-3-5-sonnet-20240620', maxTokens: 50 }
-    );
-    if (response instanceof Error) {
-      console.error(response);
-    } else {
-      console.log('Claude\'s response:', response);
+    try {
+        const response = await callClaudeAPI4(
+            'Hello, Claude! Tell me a fun fact about the ocean.',
+            'YOUR_API_KEY', // Replace with your secure method of providing the key
+            { model: 'claude-3-5-sonnet-20240620', maxTokens: 50 }
+        );
+        if (response instanceof Error) {
+            console.error(response);
+        } else {
+            console.log('Claude\'s response:', response);
+        }
+    } catch (error) {
+        console.error(error);
     }
-  } catch (error) {
-    console.error(error);
-  }
 }
 
 // Uncomment to test in browser
@@ -2070,87 +2088,87 @@ async function _testClaude4() {
  */
 /** @type {CallPerplexityAPI} */
 export async function callPerplexityAPIthroughProxy(userPrompt, apiKey, options = {}) {
-  try {
-    // Validate inputs
-    if (!userPrompt || typeof userPrompt !== 'string') {
-      throw new Error('userPrompt must be a non-empty string');
+    try {
+        // Validate inputs
+        if (!userPrompt || typeof userPrompt !== 'string') {
+            throw new Error('userPrompt must be a non-empty string');
+        }
+        if (!apiKey || typeof apiKey !== 'string') {
+            throw new Error('apiKey must be a non-empty string');
+        }
+
+        // Extract options with defaults
+        const {
+            model = 'llama-3.1-sonar-small-128k-online',
+            maxTokens = 1024,
+        } = options;
+
+        // Make direct HTTP request to Perplexity API
+        const response = await fetch('https://api.perplexity.ai/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+                model,
+                messages: [{ role: 'user', content: userPrompt }],
+                max_tokens: maxTokens,
+                stream: false,
+            }),
+        });
+
+        // Check for HTTP errors
+        if (!response.ok) {
+            let errorText;
+            try {
+                const errorData = await response.json();
+                errorText = errorData.error?.message || (await response.text()) || 'Unknown error';
+            } catch {
+                errorText = 'Failed to parse error response';
+            }
+            throw new Error(`Perplexity API error: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+
+        // Parse response
+        const data = await response.json();
+
+        // Ensure response contains text content
+        if (!data.choices || !data.choices[0]?.message?.content) {
+            throw new Error('No text content in response');
+        }
+
+        // Return the response text
+        return data.choices[0].message.content;
+    } catch (error) {
+        console.error('Error calling Perplexity AI API:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack,
+            userPrompt,
+            options,
+            timestamp: new Date().toISOString(),
+        });
+        return new Error(`Failed to call Perplexity AI API: ${error.message}`);
     }
-    if (!apiKey || typeof apiKey !== 'string') {
-      throw new Error('apiKey must be a non-empty string');
-    }
-
-    // Extract options with defaults
-    const { 
-      model = 'llama-3.1-sonar-small-128k-online', 
-      maxTokens = 1024,
-    } = options;
-
-    // Make direct HTTP request to Perplexity API
-    const response = await fetch('https://api.perplexity.ai/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: 'user', content: userPrompt }],
-        max_tokens: maxTokens,
-        stream: false,
-      }),
-    });
-
-    // Check for HTTP errors
-    if (!response.ok) {
-      let errorText;
-      try {
-        const errorData = await response.json();
-        errorText = errorData.error?.message || (await response.text()) || 'Unknown error';
-      } catch {
-        errorText = 'Failed to parse error response';
-      }
-      throw new Error(`Perplexity API error: ${response.status} ${response.statusText} - ${errorText}`);
-    }
-
-    // Parse response
-    const data = await response.json();
-
-    // Ensure response contains text content
-    if (!data.choices || !data.choices[0]?.message?.content) {
-      throw new Error('No text content in response');
-    }
-
-    // Return the response text
-    return data.choices[0].message.content;
-  } catch (error) {
-    console.error('Error calling Perplexity AI API:', {
-      message: error.message,
-      name: error.name,
-      stack: error.stack,
-      userPrompt,
-      options,
-      timestamp: new Date().toISOString(),
-    });
-    return new Error(`Failed to call Perplexity AI API: ${error.message}`);
-  }
 }
 
 // Example usage (for testing in the browser console)
 async function _testPerplexity() {
-  try {
-    const response = await callPerplexityAPIthroughProxy(
-      'Hello, Perplexity! Tell me a fun fact about the ocean.',
-      'YOUR_API_KEY', // Replace with your secure method
-      { model: 'llama-3.1-sonar-small-128k-online', maxTokens: 50 }
-    );
-    if (response instanceof Error) {
-      console.error(response);
-    } else {
-      console.log('Perplexity\'s response:', response);
+    try {
+        const response = await callPerplexityAPIthroughProxy(
+            'Hello, Perplexity! Tell me a fun fact about the ocean.',
+            'YOUR_API_KEY', // Replace with your secure method
+            { model: 'llama-3.1-sonar-small-128k-online', maxTokens: 50 }
+        );
+        if (response instanceof Error) {
+            console.error(response);
+        } else {
+            console.log('Perplexity\'s response:', response);
+        }
+    } catch (error) {
+        console.error(error);
     }
-  } catch (error) {
-    console.error(error);
-  }
 }
 
 // Uncomment to test in browser
