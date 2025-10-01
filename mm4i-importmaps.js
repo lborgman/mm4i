@@ -185,6 +185,8 @@ const baseUrl = (() => {
 
         // "jsmind": "https://cdn.jsdelivr.net/npm/jsmind@0.8.5/es6/jsmind.js",
         "css-specificity": "https://cdn.jsdelivr.net/npm/@bramus/specificity",
+
+        "puter-ai-models": "./ext/puter/puter-ai-models.js",
     };
 
     const isImporting = {};

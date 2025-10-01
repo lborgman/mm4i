@@ -1469,6 +1469,31 @@
         }
     </style>
     <style id="style-ai">
+        #div-ai-settings {
+            margin-top: 20px;
+        }
+
+
+        #div-settings-not-puter {
+            display: none;
+        }
+
+        #div-settings-puter {
+            display: none;
+        }
+
+        body.use-puter {
+            #div-settings-puter {
+                display: unset;
+            }
+        }
+
+        body:not(.use-puter) {
+            #div-settings-not-puter {
+                display: unset;
+            }
+        }
+
         .elts-ai {
             display: flex;
             flex-direction: row;

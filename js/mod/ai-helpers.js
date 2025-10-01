@@ -17,6 +17,12 @@ const importFc4i = window["importFc4i"];
 const userAgent = navigator.userAgent.toLowerCase();
 const isAndroid = userAgent.indexOf("android") > -1;
 
+const modLocalSettings = await importFc4i("local-settings");
+class SettingsMm4iAI extends modLocalSettings.LocalSetting {
+    constructor(key, defaultValue) { super("mm4i-settings-ai-", key, defaultValue); }
+}
+const settingUsePuterJs = new SettingsMm4iAI("use-puter-js", false);
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -846,7 +852,7 @@ Important:
     divBtnCopy.style = "display:grid; grid-template-columns: auto 1fr; gap:10px;"
 
 
-    const divHardWay = mkElt("div", undefined, [
+    const divTabForGo = mkElt("div", undefined, [
         mkElt("div", undefined, cardPrompt),
         // divListAIhardWay,
         divAIhardWay,
@@ -854,8 +860,8 @@ Important:
         // mkElt("div", { style: "margin:30px;" }, aTestG),
         mkElt("div", undefined, eltDivAI),
     ]);
-    divHardWay.id = "hard-way";
-    divHardWay.style = styleWays;
+    divTabForGo.id = "hard-way";
+    divTabForGo.style = styleWays;
 
     {
         /** @typedef {Object} objIntent
@@ -868,10 +874,8 @@ Important:
          */
         // @ts-ignore
         const _mkChatIntent = (opt) => {
-            // const intentGeminiUrl = 'intent://chat?source=button_click#Intent;scheme=gemini;package=com.google.android.apps.bard;end;';
             let u = "intent://";
             u = u.concat("chat");
-            // u = u.concat("?source=button_click"); // Optional
             u = u.concat("#Intent;");
             u = u.concat("scheme=gemini;");
             if (!opt.noPackage) u = u.concat("package=com.google.android.apps.bard;");
@@ -880,14 +884,26 @@ Important:
         }
 
     }
-
-    const divAIsettings = mkElt("div", undefined, [
+    const divSettingsNotPuter = mkElt("div", undefined, [
         mkElt("p", undefined, `
             All AI:s here has a web chat. Some of them adds the prompt for you.
             (Updated 2025-09-29.)
             `),
     ]);
-    divAIsettings.style.marginTop = "20px";
+    divSettingsNotPuter.id = "div-settings-not-puter";
+    const divSettingsPuter = mkElt("div", undefined, [
+        mkElt("p", undefined, "when using puter"),
+    ]);
+    divSettingsPuter.id = "div-settings-puter";
+
+    const divTabSettings = mkElt("div", undefined, [
+        divSettingsPuter,
+        divSettingsNotPuter,
+    ]);
+    divTabSettings.id = "div-ai-settings";
+
+
+
     Object.entries(infoAI).forEach(e => {
         const [k, v] = e;
         const { qW, qA, android, urlImg, urlChat, fun, urlAPIkey } = v;
@@ -950,7 +966,7 @@ Important:
         }
 
         const numDetails = ulAIdetails.childElementCount;
-        console.log(nameAI, { numDetails });
+        // console.log(nameAI, { numDetails });
         if (numDetails > 0) {
             // ulAIdetails.style = "display:flex; flex-direction:column; gap:20px;";
         } else {
@@ -978,23 +994,35 @@ Important:
         ]);
         const eltDetails = mkElt("details", undefined, [eltSummary, divDetailsInner]);
         eltDetails.style.borderBottom = "1px solid lightgray";
-        divAIsettings.appendChild(eltDetails);
+        divSettingsNotPuter.appendChild(eltDetails);
     });
 
-    // const tabRecs = ["Hard way", "Easy way", "AI Settings"];
     const tabRecs = ["Call AI", "AIs Settings"];
-    // const contentElts = mkElt("div", undefined, [divHardWay, divEasyWay, divAIsettings]);
-    const contentElts = mkElt("div", undefined, [divHardWay, divAIsettings]);
+    const contentElts = mkElt("div", undefined, [divTabForGo, divTabSettings]);
     if (tabRecs.length != contentElts.childElementCount) throw Error("Tab bar setup number mismatch");
     const eltTabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, undefined);
 
+    puterDisplay();
+    const chkUsePuterJs = settingUsePuterJs.getInputElement();
+    chkUsePuterJs.addEventListener("input", () => puterDisplay());
+    function puterDisplay() {
+        const usePuter = settingUsePuterJs.valueB;
+        if (usePuter) {
+            document.body.classList.add("use-puter");
+        } else {
+            document.body.classList.remove("use-puter");
+        }
+    }
+
     const divTabs = mkElt("p", undefined, [eltTabs, contentElts]);
     const divWays = mkElt("div", undefined, [
-        // mkElt("p", undefined, "Choose how to proceed:"),
+        mkElt("p", undefined, mkElt("label", undefined, ["Use Puter.js: ", chkUsePuterJs])),
         divTabs
     ]);
     divWays.id = "div-ways";
     divWays.style.display = "none";
+
+
 
 
 
@@ -1337,7 +1365,7 @@ export function getWayToCallAI(nameAI) {
     const funAPI = infoThisAI.fun;
     if (funAPI) {
         const keyAPI = getAPIkeyForAI(nameAI);
-        console.warn(nameAI, { keyAPI });
+        // console.warn(nameAI, { keyAPI });
         if (keyAPI) {
             return { way: "API", copyQ: false };
         }
@@ -2168,3 +2196,18 @@ async function callPuterJs(userPrompt) {
     console.log(res)
     return res;
 }
+
+async function fetchPuterAImodels() {
+    const url = "https://puter.com/puterai/chat/models";
+    try {
+        const response = await fetch(url);
+        if (!response.ok) {
+            console.error("fetchPuterAImodels", `Response status: ${response.status}`);
+        }
+        const result = await response.json();
+        console.log(result);
+    } catch (error) {
+        console.error("fetchPuterAImodels", error.message);
+    }
+}
+fetchPuterAImodels();
