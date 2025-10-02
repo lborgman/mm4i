@@ -22,6 +22,7 @@ class SettingsMm4iAI extends modLocalSettings.LocalSetting {
     constructor(key, defaultValue) { super("mm4i-settings-ai-", key, defaultValue); }
 }
 const settingUsePuterJs = new SettingsMm4iAI("use-puter-js", false);
+const settingPuterAImodel = new SettingsMm4iAI("puter-ai-model", "");
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -891,8 +892,39 @@ Important:
             `),
     ]);
     divSettingsNotPuter.id = "div-settings-not-puter";
+    const modPutinModels = await importFc4i("puter-ai-models");
+    const arrModels = modPutinModels.getModels();
+    const divPuterModels = mkElt("div", undefined, [
+        mkElt("p", undefined, "AI models available through Puter:")
+    ]);
+    const oldModel = settingPuterAImodel.value;
+    let providerGroup;
+    arrModels.sort().forEach( /** @param {string} fullNameModel */(fullNameModel) => {
+        const radModel = mkElt("input", { type: "radio", name: "puter-model", value: fullNameModel });
+        if (oldModel == fullNameModel) radModel.checked = true;
+        const longName = fullNameModel.slice(11);
+        const [provider, nameModel] = longName.split("/");
+        if (provider != providerGroup) {
+            providerGroup = provider;
+            divPuterModels.appendChild(
+                mkElt("div", { style: "font-size:1.3rem; font-weight:bold;" }, `${provider}:`)
+            );
+        }
+        const lblModel = mkElt("label", undefined, [radModel, " ", nameModel]);
+        divPuterModels.appendChild(mkElt("div", undefined, lblModel));
+    });
+    divPuterModels.addEventListener("click", evt => {
+        evt.stopPropagation();
+        const trg = evt.target;
+        const tn = trg.tagName;
+        if (tn != "INPUT") return;
+        const nameModel = trg.value;
+        console.log({ nameModel });
+        settingPuterAImodel.value = nameModel;
+    });
     const divSettingsPuter = mkElt("div", undefined, [
         mkElt("p", undefined, "when using puter"),
+        divPuterModels
     ]);
     divSettingsPuter.id = "div-settings-puter";
 
@@ -1014,9 +1046,17 @@ Important:
         }
     }
 
+    const btnPuterUser = modMdc.mkMDCbutton("Puter user");
+    btnPuterUser.addEventListener("click", () => {
+        window.open("https://puter.com/settings");
+    });
+
     const divTabs = mkElt("p", undefined, [eltTabs, contentElts]);
     const divWays = mkElt("div", undefined, [
-        mkElt("p", undefined, mkElt("label", undefined, ["Use Puter.js: ", chkUsePuterJs])),
+        mkElt("p", undefined, [
+            mkElt("label", undefined, ["Use Puter.js: ", chkUsePuterJs]),
+            btnPuterUser
+        ]),
         divTabs
     ]);
     divWays.id = "div-ways";
@@ -2191,8 +2231,9 @@ async function _testPerplexity() {
 
 /** @type {CallAIapi} */
 async function callPuterJs(userPrompt) {
-    debugger;
-    const res = await puter.ai.chat(userPrompt);
+    const res = await puter.ai.chat( userPrompt,{
+        model: settingPuterAImodel.value
+    });
     console.log(res)
     return res;
 }
