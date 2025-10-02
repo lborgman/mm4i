@@ -23,6 +23,7 @@ class SettingsMm4iAI extends modLocalSettings.LocalSetting {
 }
 const settingUsePuterJs = new SettingsMm4iAI("use-puter-js", false);
 const settingPuterAImodel = new SettingsMm4iAI("puter-ai-model", "");
+const settingUsedAIname = new SettingsMm4iAI("used-ai-name", "");
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -187,8 +188,6 @@ const testIntentsAI = {
         ]
 }
 
-
-const keyLsAIhard = "mm4i-ai-hardway";
 
 // @ts-ignore
 let initAItextarea;
@@ -391,9 +390,14 @@ Important:
         `;
         const divNewPrompt = mkElt("div", undefined, [
             mkElt("details", undefined, [
-                mkElt("summary", undefined, "Show AI prompt"),
-                // mkElt("div", undefined, bPrompt)
-                bPrompt
+                mkElt("summary", undefined, "AI prompt info"),
+                mkElt("div", undefined, [
+                    mkElt("p", undefined,
+                        `I have created the AI prompt below.
+                        It will be given to the AI you use if possible
+                        and copied to the clipboard otherwise.`),
+                    bPrompt
+                ])
             ])
         ]);
         divNewPrompt.style = `
@@ -572,7 +576,7 @@ Important:
     const divAIhardWay = mkElt("div", { class: "elts-ai" });
     divAIhardWay.style.marginBottom = "10px";
 
-    let valLsAIhard = localStorage.getItem(keyLsAIhard) || "none";
+    /*
     {
         // @ts-ignore
         const radAI = mkElt("input", { type: "radio", name: "ai", value: "none", checked: true });
@@ -580,6 +584,45 @@ Important:
         const eltAI = mkElt("label", undefined, [radAI, "none"]);
         eltAI.classList.add("elt-ai");
         eltAI.style.background = "lightgray";
+        divAIhardWay.appendChild(eltAI);
+    }
+    */
+
+
+    // Add puter alternative first
+    {
+        const imgAI = mkElt("span", { class: "elt-ai-img" });
+        const urlImg = "./ext/puter/puter.svg";
+        imgAI.style.backgroundImage = `url(${urlImg})`;
+        const nameIcon = "smart_toy";
+        const iconWay = modMdc.mkMDCicon(nameIcon);
+        const wayIndicator = mkElt("i", undefined, [iconWay]);
+        wayIndicator.style.color = "lightseagreen";
+        const radAI = mkElt("input", { type: "radio", name: "ai", value: "PuterJs" });
+
+        const longNameModel = settingPuterAImodel.value;
+        const nameModel = longNameModel.slice(11);
+        const [provider, model] = nameModel.split("/");
+        const niceProvider = makeNiceProviderName(provider);
+        const divModel = mkElt("div", undefined, [
+            mkElt("b", undefined, `${niceProvider}: `), model]);
+        wayIndicator.style.color = "cyan";
+        wayIndicator.style.color = "lightseagreen";
+        divModel.marginLeft = "10px";
+        const divHeader = mkElt("div", undefined, ["Automated ", wayIndicator]);
+        divHeader.style.display = "flex";
+        divHeader.style.justifyContent = "space-between";
+
+        const divPuter = mkElt("div", undefined, [
+            // mkElt("div", undefined, ["Through Puter", wayIndicator]),
+            divHeader,
+            divModel,
+        ]);
+        const eltAI = mkElt("label", undefined, [radAI, imgAI, divPuter]);
+        eltAI.classList.add("elt-ai");
+        eltAI.id = "elt-ai-puter";
+        // eltAI.style.color = "yellow";
+        // eltAI.style.backgroundColor = "yellow";
         divAIhardWay.appendChild(eltAI);
     }
     Object.entries(infoAI).forEach(e => {
@@ -626,14 +669,16 @@ Important:
         if (!t) return;
         // @ts-ignore
         const nameAI = t.value;
-        localStorage.setItem(keyLsAIhard, nameAI);
+        settingUsedAIname.value = nameAI;
         divGoStatus.textContent = "";
     });
-    try {
-        const radCurrentAI = divAIhardWay.querySelector(`input[type=radio][value=${valLsAIhard}]`);
-        // @ts-ignore
-        radCurrentAI.checked = true;
-    } catch (_err) { console.log({ _err }); }
+    {
+        const currentAIname = settingUsedAIname.value;
+        if (currentAIname.length > 0) {
+            const radCurrentAI = divAIhardWay.querySelector(`input[type=radio][value="${currentAIname}"]`);
+            if (radCurrentAI) { radCurrentAI.checked = true; }
+        }
+    }
 
     const divGoStatus = mkElt("div");
     divGoStatus.id = "div-go-status";
@@ -673,8 +718,10 @@ Important:
         }
 
 
-        const infoThisAI = infoAI[nameAI];
-        if (!infoThisAI) { throw Error(`Did not find info for AI "${nameAI}"`); }
+        if (nameAI != "PuterJs") {
+            const infoThisAI = infoAI[nameAI];
+            if (!infoThisAI) { throw Error(`Did not find info for AI "${nameAI}"`); }
+        }
 
 
         // setTimeout(() => {
@@ -689,8 +736,6 @@ Important:
 
 
     const cardPrompt = mkElt("p", { class: "mdc-card display-flex" }, [
-        // @ts-ignore
-        `I have created an AI prompt that you should use.`,
         divPrompt,
     ]);
     cardPrompt.style = `
@@ -898,20 +943,32 @@ Important:
         mkElt("p", undefined, "AI models available through Puter:")
     ]);
     const oldModel = settingPuterAImodel.value;
-    let providerGroup;
+    let providerGroup = "";
+    /** @type {HTMLDivElement} */
+    let divProvider;
     arrModels.sort().forEach( /** @param {string} fullNameModel */(fullNameModel) => {
         const radModel = mkElt("input", { type: "radio", name: "puter-model", value: fullNameModel });
-        if (oldModel == fullNameModel) radModel.checked = true;
         const longName = fullNameModel.slice(11);
         const [provider, nameModel] = longName.split("/");
         if (provider != providerGroup) {
             providerGroup = provider;
-            divPuterModels.appendChild(
-                mkElt("div", { style: "font-size:1.3rem; font-weight:bold;" }, `${provider}:`)
-            );
+            // divPuterModels.appendChild( mkElt("div", { style: "font-size:1.3rem; font-weight:bold;" }, `${provider}:`));
+            divProvider = /** @type {HTMLDivElement} */ mkElt("div");
+            const detailsProvider = mkElt("details", undefined, [
+                mkElt("summary", undefined, makeNiceProviderName(provider)),
+                divProvider
+            ]);
+            divPuterModels.appendChild(detailsProvider)
         }
         const lblModel = mkElt("label", undefined, [radModel, " ", nameModel]);
-        divPuterModels.appendChild(mkElt("div", undefined, lblModel));
+        // divPuterModels.appendChild(mkElt("div", undefined, lblModel));
+        divProvider.appendChild(mkElt("div", undefined, lblModel));
+        if (oldModel == fullNameModel) {
+            radModel.checked = true;
+            const eltDetails = lblModel.closest("details");
+            if (!eltDetails) throw Error("Did not find <details>");
+            eltDetails.open = true;
+        }
     });
     divPuterModels.addEventListener("click", evt => {
         evt.stopPropagation();
@@ -928,12 +985,21 @@ Important:
     ]);
     divSettingsPuter.id = "div-settings-puter";
 
+
+
     const divTabSettings = mkElt("div", undefined, [
         divSettingsPuter,
         divSettingsNotPuter,
     ]);
     divTabSettings.id = "div-ai-settings";
-
+    // tabBar
+    const tabAIrecs = ["Puter", "Direct"];
+    const contentAIelts = mkElt("div", undefined, [divSettingsPuter, divSettingsNotPuter]);
+    if (tabAIrecs.length != contentAIelts.childElementCount) throw Error("Tab bar setup number mismatch");
+    const eltAIsettingsTabs = modMdc.mkMdcTabBarSimple(tabAIrecs, contentAIelts, undefined);
+    eltAIsettingsTabs.style.zoom = "0.9";
+    const divEltsAIsettingsTabs = mkElt("div", { class: "mdc-card" }, [eltAIsettingsTabs, contentAIelts]);
+    divEltsAIsettingsTabs.style.padding = "10px";
 
 
     Object.entries(infoAI).forEach(e => {
@@ -1030,7 +1096,8 @@ Important:
     });
 
     const tabRecs = ["Call AI", "AIs Settings"];
-    const contentElts = mkElt("div", undefined, [divTabForGo, divTabSettings]);
+    // const contentElts = mkElt("div", undefined, [divTabForGo, divTabSettings]);
+    const contentElts = mkElt("div", undefined, [divTabForGo, divEltsAIsettingsTabs]);
     if (tabRecs.length != contentElts.childElementCount) throw Error("Tab bar setup number mismatch");
     const eltTabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, undefined);
 
@@ -2231,24 +2298,20 @@ async function _testPerplexity() {
 
 /** @type {CallAIapi} */
 async function callPuterJs(userPrompt) {
-    const res = await puter.ai.chat( userPrompt,{
+    const res = await puter.ai.chat(userPrompt, {
         model: settingPuterAImodel.value
     });
     console.log(res)
     return res;
 }
 
-async function fetchPuterAImodels() {
-    const url = "https://puter.com/puterai/chat/models";
-    try {
-        const response = await fetch(url);
-        if (!response.ok) {
-            console.error("fetchPuterAImodels", `Response status: ${response.status}`);
-        }
-        const result = await response.json();
-        console.log(result);
-    } catch (error) {
-        console.error("fetchPuterAImodels", error.message);
+/** @param {string} provider @returns {string} */
+function makeNiceProviderName(provider) {
+    switch (provider) {
+        case "google":
+            return "Google";
+        case "openai":
+            return "OpenAI";
     }
+    return provider;
 }
-fetchPuterAImodels();
