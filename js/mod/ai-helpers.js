@@ -122,9 +122,11 @@ const infoAI = {
         urlChat: "perplexity.ai",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Perplexity_AI_logo.svg"
     }),
-    "PuterJs": mkAIinfo({
-        fun: callPuterJs,
+    /*
+    "Puterjs": mkAIinfo({
+        fun: callPuterjs,
     }),
+    */
 }
 /**
  * @type {Object<string,string[][]>}
@@ -553,9 +555,14 @@ Important:
     ]);
 
     const eltPasteAnswer = mkElt("div", undefined, "Paste AI´s answer here:");
-    const eltDivAI = mkElt("p", undefined, [
+    const divAIpaste = mkElt("div", undefined, [
         eltPasteAnswer,
         eltAItextarea,
+    ]);
+    divAIpaste.id = "div-ai-paste";
+
+    const eltDivAI = mkElt("p", undefined, [
+        divAIpaste,
         eltAItextareaStatus,
     ]);
     eltDivAI.classList.add("VK_FOCUS");
@@ -671,6 +678,12 @@ Important:
         const nameAI = t.value;
         settingUsedAIname.value = nameAI;
         divGoStatus.textContent = "";
+        const { way } = getWayToCallAI(nameAI);
+        if (way == "API") {
+            hideAIpasteDiv();
+        } else {
+            showAIpasteDiv();
+        }
     });
     {
         const currentAIname = settingUsedAIname.value;
@@ -940,7 +953,7 @@ Important:
     const modPutinModels = await importFc4i("puter-ai-models");
     const arrModels = modPutinModels.getModels();
     const divPuterModels = mkElt("div", undefined, [
-        mkElt("p", undefined, "AI models available through Puter:")
+        mkElt("h3", undefined, "AI models")
     ]);
     const oldModel = settingPuterAImodel.value;
     let providerGroup = "";
@@ -979,22 +992,44 @@ Important:
         console.log({ nameModel });
         settingPuterAImodel.value = nameModel;
     });
-    const divSettingsPuter = mkElt("div", undefined, [
-        mkElt("p", undefined, "when using puter"),
+
+    const iconAutomated = modMdc.mkMDCicon("smart_toy");
+    iconAutomated.style.color = "goldenrod";
+    iconAutomated.style.fontSize = "1.4rem";
+    const eltInfoAutomated = mkElt("div", undefined, [
+        mkElt("p", undefined, [
+            iconAutomated,
+            ` The AI:s below are automated here. 
+            This means that when they are ready the mindmap will be created automatically.
+            (You will not have to copy-and-paste the answer from the AI.)
+        `]),
+        mkElt("p", undefined, [
+            `
+            The AI:s below are handled by https://puter.com - a service that helps me automate.
+            You can probably create a few mindmaps each day for free.
+            (I am not in any way involved in payments. And I do not get anything.)
+        `]),
+    ])
+    const detInfoAutomated = mkElt("details", { style: "color:blue; margin-top:20px;" }, [
+        mkElt("summary", { style: "color:blue" }, "Info about these AI models"),
+        eltInfoAutomated,
+    ]);
+    const divSettingsAutomated = mkElt("div", undefined, [
+        detInfoAutomated,
         divPuterModels
     ]);
-    divSettingsPuter.id = "div-settings-puter";
+    divSettingsAutomated.id = "div-settings-puter";
 
 
 
     const divTabSettings = mkElt("div", undefined, [
-        divSettingsPuter,
+        divSettingsAutomated,
         divSettingsNotPuter,
     ]);
     divTabSettings.id = "div-ai-settings";
     // tabBar
-    const tabAIrecs = ["Puter", "Direct"];
-    const contentAIelts = mkElt("div", undefined, [divSettingsPuter, divSettingsNotPuter]);
+    const tabAIrecs = ["Automated", "Direct"];
+    const contentAIelts = mkElt("div", undefined, [divSettingsAutomated, divSettingsNotPuter]);
     if (tabAIrecs.length != contentAIelts.childElementCount) throw Error("Tab bar setup number mismatch");
     const eltAIsettingsTabs = modMdc.mkMdcTabBarSimple(tabAIrecs, contentAIelts, undefined);
     eltAIsettingsTabs.style.zoom = "0.9";
@@ -2314,4 +2349,19 @@ function makeNiceProviderName(provider) {
             return "OpenAI";
     }
     return provider;
+}
+
+export function showAIpasteDiv() {
+    const div = document.getElementById("div-ai-paste");
+    if (div == null) throw Error("Did not get #div-ai-paste");
+    // console.warn("showAIpasteDiv", { div });
+    div.inert = false;
+    document.body.classList.remove("no-paste-ai");
+}
+export function hideAIpasteDiv() {
+    const div = document.getElementById("div-ai-paste");
+    if (div == null) throw Error("Did not get #div-ai-paste");
+    // console.warn("hideAIpasteDiv", { div });
+    div.inert = true;
+    document.body.classList.add("no-paste-ai");
 }
