@@ -695,7 +695,11 @@ Important:
     divGoStatus.style.overflow = "auto";
     divGoStatus.style.overflowWrap = "anywhere";
 
-    const btnGo = modMdc.mkMDCbutton("Go", "raised");
+    // const btnGo = modMdc.mkMDCbutton("Go", "raised", "play_circle");
+    // const btnGo = modMdc.mkMDCbutton("", "raised", "play_circle");
+    // const btnGo = modMdc.mkMDCiconButton("play_circle", "Go", 28);
+    const btnGo = modMdc.mkMDCiconButton("play_arrow", "Get mindmap", 40);
+    btnGo.classList.add("mdc-button--raised");
     btnGo.style.textTransform = "none";
 
     /** @type {string} */ let nameUsedAI = "Not known";
@@ -1046,7 +1050,8 @@ Important:
         if (fun) {
             const listAPI = mkElt("list");
             ulAIdetails.appendChild(listAPI);
-            const inpAPIkey = mkElt("input", { type: "password" });
+            // const inpAPIkey = mkElt("input", { type: "password" });
+            const inpAPIkey = mkElt("input", { type: "text" }); // FIX-ME:
             const key = getAPIkeyForAI(nameAI);
             // @ts-ignore
             if (key) inpAPIkey.value = key;
@@ -2377,3 +2382,79 @@ export function isAIautomated(nameAI) {
     }
     return document.body.classList.contains("no-paste-ai");
 }
+
+
+// From Grok.
+function estimateJsonObjectTokens(objJson) {
+    // Base heuristic: ~4.5 chars per token for strings/numbers
+    const charsPerToken = 4.5;
+
+    // Helper to count tokens for a value (string, number, boolean, null, object, array)
+    function countTokens(value) {
+        if (value === null || value === undefined) {
+            return 1; // null is ~1 token
+        }
+        if (typeof value === 'boolean') {
+            return 1; // true/false is ~1 token
+        }
+        if (typeof value === 'number') {
+            // Numbers: ~1 token for small integers, more for decimals/longer numbers
+            return Math.ceil(String(value).length / charsPerToken) || 1;
+        }
+        if (typeof value === 'string') {
+            // Strings: chars / 4.5 + 2 for quotes
+            return Math.ceil(value.length / charsPerToken) + 2;
+        }
+        if (Array.isArray(value)) {
+            // Arrays: 2 for [] + tokens for elements + commas
+            let tokens = 2; // []
+            for (let i = 0; i < value.length; i++) {
+                tokens += countTokens(value[i]);
+                if (i < value.length - 1) tokens += 1; // Comma
+            }
+            return tokens;
+        }
+        if (typeof value === 'object') {
+            // Objects: 2 for {} + tokens for keys/values + commas + colons
+            let tokens = 2; // {}
+            const entries = Object.entries(value);
+            for (let i = 0; i < entries.length; i++) {
+                const [key, val] = entries[i];
+                tokens += countTokens(key) + countTokens(val) + 1; // Key + value + colon
+                if (i < entries.length - 1) tokens += 1; // Comma
+            }
+            return tokens;
+        }
+        return 0; // Fallback for unexpected types
+    }
+
+    try {
+        return countTokens(objJson);
+    } catch (error) {
+        console.error('Error estimating tokens:', error);
+        return 0;
+    }
+}
+
+// Example usage
+function _testEstimateTokens() {
+    const testCases = [
+        { name: "Alice", age: 30 },
+        { items: [1, 2, 3], config: { enabled: true, id: "xyz123" } },
+        { data: "Hello, world!" },
+        { nested: { a: 1, b: { c: "test" } } },
+        [], // Empty array
+        {}, // Empty object
+        null
+    ];
+
+    testCases.forEach((input, index) => {
+        const tokens = estimateJsonObjectTokens(input);
+        console.log(`Test ${index + 1}:`, 
+            JSON.stringify(input, null, 2), 
+            `→ ~${tokens} tokens`);
+    });
+}
+
+// Run tests
+_testEstimateTokens();
