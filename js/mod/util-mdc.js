@@ -2373,16 +2373,38 @@ export function mkMDCicon(iconMaterialName) {
     }
     return mkElt("span", { class: materialIconsClass }, iconMaterialName);
 }
+
 /**
  * @param {string} newIconName 
  * @param {HTMLSpanElement} spanIcon 
  */
-export function replaceMDCicon(newIconName, spanIcon) {
+export function _OLDreplaceMDCicon(newIconName, spanIcon) {
     const tagName = spanIcon.tagName;
     if (tagName != "SPAN") throw Error(`spanIcon.tagName == "${tagName}"`);
     if (!spanIcon.classList.contains(materialIconsClass)) throw Error(`spanIcon does not have class "${materialIconsClass}"`);
     spanIcon.textContent = newIconName;
 }
+
+/**
+ * @param {string} newIconName 
+ * @param {HTMLElement} eltWithIcon 
+ */
+export function replaceMDCicon(newIconName, eltWithIcon) {
+    if (!(eltWithIcon instanceof HTMLElement)) throw Error(`eltWithIcon is not HTMLElement`);
+    let spanIcon;
+    const tagName = eltWithIcon.tagName;
+    // Is eltWithIcon the span?
+    if (tagName == "SPAN" && eltWithIcon.classList.contains(materialIconsClass)) {
+        spanIcon = eltWithIcon;
+    } else {
+        const arrSpanIcon = [...eltWithIcon.querySelectorAll(`span.${materialIconsClass}`)];
+        const num = arrSpanIcon.length;
+        if (num != 1) throw Error(`Found ${num} span icons`);
+        spanIcon = arrSpanIcon[0];
+    }
+    spanIcon.textContent = newIconName;
+}
+
 // The font icons does not work offline (and does not scale well).
 // Here is an alternative.
 export function mkMDCsvgIcon(iconMaterialName) {

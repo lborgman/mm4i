@@ -243,6 +243,8 @@ export async function generateMindMap(fromLink) {
         }
         // "head"
         b.inert = false;
+
+        /*
         const r = await isReachableUrl(u);
         if (!r) {
             // eltStatus.textContent = "Can't see if link exists";
@@ -250,6 +252,8 @@ export async function generateMindMap(fromLink) {
         } else {
             eltStatus.textContent = "Link seems to exist";
         }
+        */
+
         updatePromptAi();
         const divWays = document.getElementById("div-ways");
         if (!divWays) throw Error(`Could not find element "div-ways"`);
@@ -678,14 +682,14 @@ Important:
         const nameAI = t.value;
         settingUsedAIname.value = nameAI;
         divGoStatus.textContent = "";
-        isAIautomated(nameAI);
+        checkIsAIautomated(nameAI);
     });
     {
         const currentAIname = settingUsedAIname.value;
         if (currentAIname.length > 0) {
             const radCurrentAI = divAIhardWay.querySelector(`input[type=radio][value="${currentAIname}"]`);
             if (radCurrentAI) { radCurrentAI.checked = true; }
-            isAIautomated(currentAIname);
+            checkIsAIautomated(currentAIname);
         }
     }
 
@@ -696,19 +700,16 @@ Important:
     divGoStatus.style.overflowWrap = "anywhere";
 
     // const btnGo = modMdc.mkMDCbutton("Go", "raised", "play_circle");
-    // const btnGo = modMdc.mkMDCbutton("", "raised", "play_circle");
-    // const btnGo = modMdc.mkMDCiconButton("play_circle", "Go", 28);
     const btnGo = modMdc.mkMDCiconButton("play_arrow", "Get mindmap", 40);
     btnGo.classList.add("mdc-button--raised");
     btnGo.style.textTransform = "none";
+    btnGo.inert = true;
 
     /** @type {string} */ let nameUsedAI = "Not known";
 
     // @ts-ignore
     btnGo.addEventListener("click", async (evt) => {
         evt.stopPropagation();
-        const modTools = await importFc4i("toolsJs");
-        await modTools.copyTextToClipboard(promptAI);
 
         const divHardWay = document.getElementById("hard-way");
         if (!divHardWay) throw Error('Could not find "#hard-way"');
@@ -719,17 +720,20 @@ Important:
             return;
         }
 
-
-        divGoStatus.textContent = "Copied prompt";
-
         // @ts-ignore
         const nameAI = inpAI.value;
+        const { way } = getWayToCallAI(nameAI);
+        if (way != "API") {
+            const modTools = await importFc4i("toolsJs");
+            await modTools.copyTextToClipboard(promptAI);
+            divGoStatus.textContent = "Copied prompt, ";
+        }
+
         nameUsedAI = nameAI
         if (nameAI == "none") {
             divGoStatus.append(", no AI selected. Go to the AI you want and paste the prompt there.");
             return;
         }
-
 
         if (nameAI != "PuterJs") {
             const infoThisAI = infoAI[nameAI];
@@ -869,10 +873,10 @@ Important:
     /*
     const divListAIeasyWay = mkElt("div");
     divListAIeasyWay.style = ` display: flex; flex-direction: row; gap: 10px; flex-flow: wrap; `;
-
+    
     const selectHeader = mkElt("div", undefined, "Select AI to call:");
     selectHeader.style = ` font-weight: bold; margin-bottom: 20px; `;
-
+    
     const divSelectAIeasyWay = mkElt("div", { class: "NOmdc-card" }, [
         selectHeader,
         divListAIeasyWay
@@ -888,7 +892,7 @@ Important:
         if (!fun) eltAI.inert = true;
         divListAIeasyWay.appendChild(eltAI);
     });
-
+    
     const divEasyWay = mkElt("div", undefined, [
         divSelectAIeasyWay,
         mkElt("p", undefined, btnEasyWay),
@@ -1309,11 +1313,28 @@ Important:
     }
 
     const currentAIname = settingUsedAIname.value;
-    if (isAIautomated(currentAIname)) {
+    if (checkIsAIautomated(currentAIname)) {
         const doIitNow = confirm(`AI ${currentAIname} is automated. Make mindmap directly?`);
         if (!doIitNow) return;
         // "go"
         callTheAI(currentAIname, promptAI);
+    }
+
+
+    checkIsAIchoosen();
+    function checkIsAIchoosen() {
+        const tellChoosen = (b, nameAI) => {
+            console.log("checkIsAIchoosen", {b, nameAI});
+            return b;
+        }
+        const eltAI = divAIhardWay.querySelector("input[type=radio][name=ai]:checked");
+        if (!eltAI) return tellChoosen(false);
+        const nameAI = eltAI.value;
+        if (nameAI != "") return tellChoosen(true, nameAI);
+        if (nameAI != "PuterJS") return tellChoosen(true, nameAI);
+        const model = settingPuterAImodel.value;
+        if (model == "") return tellChoosen(false, nameAI);
+        return tellChoosen(true, `${nameAI}, ${model}`);
     }
 }
 
@@ -2371,13 +2392,13 @@ export function hideAIpasteDiv() {
     // console.warn("hideAIpasteDiv", { div });
     div.inert = true;
 }
-export function isAIautomated(nameAI) {
+export function checkIsAIautomated(nameAI) {
     const { way } = getWayToCallAI(nameAI);
     if (way == "API") {
         document.body.classList.add("no-paste-ai");
         // hideAIpasteDiv();
     } else {
-    document.body.classList.remove("no-paste-ai");
+        document.body.classList.remove("no-paste-ai");
         // showAIpasteDiv();
     }
     return document.body.classList.contains("no-paste-ai");
@@ -2450,11 +2471,11 @@ function _testEstimateTokens() {
 
     testCases.forEach((input, index) => {
         const tokens = estimateJsonObjectTokens(input);
-        console.log(`Test ${index + 1}:`, 
-            JSON.stringify(input, null, 2), 
+        console.log(`Test ${index + 1}:`,
+            JSON.stringify(input, null, 2),
             `→ ~${tokens} tokens`);
     });
 }
 
 // Run tests
-_testEstimateTokens();
+// _testEstimateTokens();

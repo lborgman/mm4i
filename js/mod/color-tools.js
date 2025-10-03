@@ -41,7 +41,7 @@ if (document.currentScript) { throw "color-tools.js is not loaded as module"; }
 
 // https://stackoverflow.com/questions/1573053/javascript-function-to-convert-color-names-to-hex-codes/47355187#47355187
 const color_convert = function () {
-    console.warn("color_convert");
+    // console.warn("color_convert");
     // debugger;
     var pub = {}, canvas, context;
     canvas = document.createElement('canvas');
@@ -581,9 +581,9 @@ export function getCEILabContrastingHEX(strColor) {
 // const hexOut = RGBtoHEX(contrastingRedRGB);
 // const ctColor = contrastRatio(rgbRed, contrastingRedRGB)
 
-startLogClrCnvTest("#38483a");
+// startLogClrCnvTest("#38483a");
 // contrastTest("#38483a");
-stopLogClrCnvTest();
+// stopLogClrCnvTest();
 
 function contrastTest(hexTest) {
     const rgbTest = hexToRGB(hexTest);

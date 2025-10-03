@@ -1,7 +1,7 @@
 // @ts-check
 const UNDO_REDO_TREE_VERSION = "0.0.001";
 window["logConsoleHereIs"](`here is undo-redo-tree.js, module ${UNDO_REDO_TREE_VERSION}`);
-console.warn(`here is undo-redo-tree.js, module ${UNDO_REDO_TREE_VERSION}`);
+// console.warn(`here is undo-redo-tree.js, module ${UNDO_REDO_TREE_VERSION}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 if (typeof window["diff_match_patch"] !== "function") {

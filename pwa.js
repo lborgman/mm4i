@@ -87,7 +87,7 @@ function logConsole(...msg) { console.log(`%cpwa.js`, logStyle, ...msg); }
 function logStrongConsole(...msg) { console.warn(`%cpwa.js`, logStrongStyle, ...msg); }
 function logInstallEvent(...msg) { console.warn("%cpwa.js", styleInstallEvents, ...msg); }
 
-logStrongConsole(`Here is pwa.js, module ${version}`, import.meta.url);
+logConsole(`Here is pwa.js, module ${version}`, import.meta.url);
 
 
 const idDebugSection = "pwa-debug-output";

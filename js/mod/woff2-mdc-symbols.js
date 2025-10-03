@@ -1,8 +1,8 @@
 // @ts-check
 // debugger;
 const WOFF2_MDC_SYMBOLS_VER = "0.0.1";
+// @ts-ignore
 window["logConsoleHereIs"](`here is woff2-mdc-symbols.js ${WOFF2_MDC_SYMBOLS_VER}`);
-console.warn(`here is woff2-mdc-symbols.js ${WOFF2_MDC_SYMBOLS_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 /**
@@ -11,7 +11,7 @@ if (document.currentScript) throw Error("import .currentScript"); // is module
  * @returns {Promise<Object>}
  */
 export async function fetchGoogleSymbolNameMap(mdcIconStyle) {
-    console.log("fetchGoogleSymbolNameMap", mdcIconStyle);
+    console.warn("fetchGoogleSymbolNameMap", mdcIconStyle);
     const url = mkSymbol2codepointUrl(mdcIconStyle);
     let response;
     try {
