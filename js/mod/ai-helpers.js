@@ -678,18 +678,14 @@ Important:
         const nameAI = t.value;
         settingUsedAIname.value = nameAI;
         divGoStatus.textContent = "";
-        const { way } = getWayToCallAI(nameAI);
-        if (way == "API") {
-            hideAIpasteDiv();
-        } else {
-            showAIpasteDiv();
-        }
+        isAIautomated(nameAI);
     });
     {
         const currentAIname = settingUsedAIname.value;
         if (currentAIname.length > 0) {
             const radCurrentAI = divAIhardWay.querySelector(`input[type=radio][value="${currentAIname}"]`);
             if (radCurrentAI) { radCurrentAI.checked = true; }
+            isAIautomated(currentAIname);
         }
     }
 
@@ -1307,6 +1303,13 @@ Important:
         return { strAIjson, cleaned };
     }
 
+    const currentAIname = settingUsedAIname.value;
+    if (isAIautomated(currentAIname)) {
+        const doIitNow = confirm(`AI ${currentAIname} is automated. Make mindmap directly?`);
+        if (!doIitNow) return;
+        // "go"
+        callTheAI(currentAIname, promptAI);
+    }
 }
 
 // infoAI =
@@ -2356,12 +2359,21 @@ export function showAIpasteDiv() {
     if (div == null) throw Error("Did not get #div-ai-paste");
     // console.warn("showAIpasteDiv", { div });
     div.inert = false;
-    document.body.classList.remove("no-paste-ai");
 }
 export function hideAIpasteDiv() {
     const div = document.getElementById("div-ai-paste");
     if (div == null) throw Error("Did not get #div-ai-paste");
     // console.warn("hideAIpasteDiv", { div });
     div.inert = true;
-    document.body.classList.add("no-paste-ai");
+}
+export function isAIautomated(nameAI) {
+    const { way } = getWayToCallAI(nameAI);
+    if (way == "API") {
+        document.body.classList.add("no-paste-ai");
+        // hideAIpasteDiv();
+    } else {
+    document.body.classList.remove("no-paste-ai");
+        // showAIpasteDiv();
+    }
+    return document.body.classList.contains("no-paste-ai");
 }
