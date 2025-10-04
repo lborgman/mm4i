@@ -21,7 +21,7 @@ const modLocalSettings = await importFc4i("local-settings");
 class SettingsMm4iAI extends modLocalSettings.LocalSetting {
     constructor(key, defaultValue) { super("mm4i-settings-ai-", key, defaultValue); }
 }
-const settingUsePuterJs = new SettingsMm4iAI("use-puter-js", false);
+// const settingUsePuterJs = new SettingsMm4iAI("use-puter-js", false);
 const settingPuterAImodel = new SettingsMm4iAI("puter-ai-model", "");
 const settingUsedAIname = new SettingsMm4iAI("used-ai-name", "");
 
@@ -244,23 +244,13 @@ export async function generateMindMap(fromLink) {
         // "head"
         b.inert = false;
 
-        /*
-        const r = await isReachableUrl(u);
-        if (!r) {
-            // eltStatus.textContent = "Can't see if link exists";
-            eltStatus.textContent = " ";
-        } else {
-            eltStatus.textContent = "Link seems to exist";
-        }
-        */
-
         updatePromptAi();
         const divWays = document.getElementById("div-ways");
         if (!divWays) throw Error(`Could not find element "div-ways"`);
         divWays.style.display = "block";
     }
     // @ts-ignore
-    async function isReachableUrl(url) {
+    async function _isReachableUrl(url) {
         let reachable = false;
         let resp;
         // let error;
@@ -625,15 +615,12 @@ Important:
         divHeader.style.justifyContent = "space-between";
 
         const divPuter = mkElt("div", undefined, [
-            // mkElt("div", undefined, ["Through Puter", wayIndicator]),
             divHeader,
             divModel,
         ]);
         const eltAI = mkElt("label", undefined, [radAI, imgAI, divPuter]);
         eltAI.classList.add("elt-ai");
         eltAI.id = "elt-ai-puter";
-        // eltAI.style.color = "yellow";
-        // eltAI.style.backgroundColor = "yellow";
         divAIhardWay.appendChild(eltAI);
     }
     Object.entries(infoAI).forEach(e => {
@@ -683,6 +670,7 @@ Important:
         settingUsedAIname.value = nameAI;
         divGoStatus.textContent = "";
         checkIsAIautomated(nameAI);
+        checkIsAIchoosen();
     });
     {
         const currentAIname = settingUsedAIname.value;
@@ -701,6 +689,7 @@ Important:
 
     // const btnGo = modMdc.mkMDCbutton("Go", "raised", "play_circle");
     const btnGo = modMdc.mkMDCiconButton("play_arrow", "Get mindmap", 40);
+    btnGo.id = "btn-go";
     btnGo.classList.add("mdc-button--raised");
     btnGo.style.textTransform = "none";
     btnGo.inert = true;
@@ -726,7 +715,7 @@ Important:
         if (way != "API") {
             const modTools = await importFc4i("toolsJs");
             await modTools.copyTextToClipboard(promptAI);
-            divGoStatus.textContent = "Copied prompt, ";
+            divGoStatus.textContent = "Copied prompt. ";
         }
 
         nameUsedAI = nameAI
@@ -740,10 +729,12 @@ Important:
             if (!infoThisAI) { throw Error(`Did not find info for AI "${nameAI}"`); }
         }
 
+        if (wayToCallAIisAPI(nameAI)) {
+            document.documentElement.classList.add("ai-in-progress");
+            modMdc.replaceMDCicon("stop", btnGo);
+        }
 
-        // setTimeout(() => {
         callTheAI(nameAI, promptAI);
-        // }, 2000);
     });
 
 
@@ -1005,15 +996,26 @@ Important:
             iconAutomated,
             ` The AI:s below are automated here. 
             This means that when they are ready the mindmap will be created automatically.
-            (You will not have to copy-and-paste the answer from the AI.)
         `]),
         mkElt("p", undefined, [
-            `
-            The AI:s below are handled by https://puter.com - a service that helps me automate.
-            You can probably create a few mindmaps each day for free.
+            `These AI:s are handled by `,
+            mkElt("a", { href: "https://puter.com/settings", target: "_blank" }, "https://puter.com"),
+            ` - a service that helps me automate.
             (I am not in any way involved in payments. And I do not get anything.)
         `]),
-    ])
+        mkElt("p", undefined, [
+            `Puter takes care of paying for these AI:s.
+            You will have to pay through Puter.
+            I am not involved in any way in that.
+            Click the link above to find out more.
+            `
+        ]),
+        mkElt("p", undefined, [
+            `You can probably create a few mindmaps each day for free.
+            I am not sure about that.
+            `
+        ]),
+    ]);
     const detInfoAutomated = mkElt("details", { style: "color:blue; margin-top:20px;" }, [
         mkElt("summary", { style: "color:blue" }, "Info about these AI models"),
         eltInfoAutomated,
@@ -1022,7 +1024,7 @@ Important:
         detInfoAutomated,
         divPuterModels
     ]);
-    divSettingsAutomated.id = "div-settings-puter";
+    // divSettingsAutomated.id = "div-settings-puter";
 
 
 
@@ -1141,8 +1143,9 @@ Important:
     if (tabRecs.length != contentElts.childElementCount) throw Error("Tab bar setup number mismatch");
     const eltTabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, undefined);
 
+    /*
     puterDisplay();
-    const chkUsePuterJs = settingUsePuterJs.getInputElement();
+    // const chkUsePuterJs = settingUsePuterJs.getInputElement();
     chkUsePuterJs.addEventListener("input", () => puterDisplay());
     function puterDisplay() {
         const usePuter = settingUsePuterJs.valueB;
@@ -1152,6 +1155,7 @@ Important:
             document.body.classList.remove("use-puter");
         }
     }
+    */
 
     const btnPuterUser = modMdc.mkMDCbutton("Puter user");
     btnPuterUser.addEventListener("click", () => {
@@ -1160,10 +1164,12 @@ Important:
 
     const divTabs = mkElt("p", undefined, [eltTabs, contentElts]);
     const divWays = mkElt("div", undefined, [
+        /*
         mkElt("p", undefined, [
             mkElt("label", undefined, ["Use Puter.js: ", chkUsePuterJs]),
             btnPuterUser
         ]),
+        */
         divTabs
     ]);
     divWays.id = "div-ways";
@@ -1323,8 +1329,15 @@ Important:
 
     checkIsAIchoosen();
     function checkIsAIchoosen() {
+        console.warn("checkIsAIchoosen: typeof btnGo", typeof btnGo);
         const tellChoosen = (b, nameAI) => {
-            console.log("checkIsAIchoosen", {b, nameAI});
+            console.log("checkIsAIchoosen", { b, nameAI });
+            btnGo.inert = !b;
+            if (b) {
+                document.documentElement.classList.add("ai-is-choosen");
+            } else {
+                document.documentElement.classList.remove("ai-is-choosen");
+            }
             return b;
         }
         const eltAI = divAIhardWay.querySelector("input[type=radio][name=ai]:checked");
@@ -1553,6 +1566,16 @@ export function getWayToCallAI(nameAI) {
 /**
  * 
  * @param {string} nameAI 
+ * @returns {boolean}
+ */
+export function wayToCallAIisAPI(nameAI) {
+    const { way } = getWayToCallAI(nameAI);
+    return way == "API";
+}
+
+/**
+ * 
+ * @param {string} nameAI 
  * @param {string} promptAI 
  */
 async function callTheAI(nameAI, promptAI) {
@@ -1584,15 +1607,18 @@ async function callTheAI(nameAI, promptAI) {
     /** @param {string} nameAI */
     async function callAIweb(nameAI) {
         if (divGoStatus == null) throw Error(`divGoStatus == null`);
-        divGoStatus.append(`, calling web ${nameAI}`);
+        divGoStatus.append(`Trying to open web chat: ${nameAI}`);
         await modTools.waitSeconds(2);
         const webUrl = mkUrlChat(nameAI, promptAI);
         const winHandle = window.open(`${webUrl}`, "AIWINDOW", "noopener,noreferrer");
+        /*
+        // winHandle will be null when using noopener or noreferrer
         if (winHandle == null) {
             divGoStatus.textContent = "Could not open new window";
         } else {
             divGoStatus.textContent = `Opened ${nameAI} in new window`;
         }
+        */
     }
 
     /** @param {string} nameAI */

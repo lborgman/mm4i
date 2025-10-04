@@ -1474,25 +1474,6 @@
         }
 
 
-        #div-settings-not-puter {
-            display: none;
-        }
-
-        #div-settings-puter {
-            display: none;
-        }
-
-        body.use-puter {
-            #div-settings-puter {
-                display: unset;
-            }
-        }
-
-        body:not(.use-puter) {
-            #div-settings-not-puter {
-                display: unset;
-            }
-        }
 
         .elts-ai {
             display: flex;
@@ -1546,6 +1527,16 @@
 
         .no-paste-ai #div-ai-paste {
             opacity: 0;
+        }
+
+        #btn-go {
+            color: greenyellow;
+        }
+
+        .ai-in-progress {
+            #btn-go {
+                color: red;
+            }
         }
     </style>
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind@0.5/es6/jsmind.js"></script> -->
