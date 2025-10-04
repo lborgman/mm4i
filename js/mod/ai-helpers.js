@@ -67,6 +67,7 @@ function _getFirebaseApp() {
  * @property {boolean} [qA]
  * @property {string} [comment]
  * @property {string} [urlChat]
+ * @property {boolean} [isPWA] - is urlChat a PWA?
  * @property {string} [urlImg]
  * @property {string} [android]
  * @property {string} [pkg]
@@ -91,6 +92,7 @@ const infoAI = {
         pkg: "com.google.android.apps.bard",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg",
         urlChat: "gemini.google.com/app",
+        isPWA: false, // 2025-10-04
         urlAPIkey: "https://support.gemini.com/hc/en-us/articles/360031080191-How-do-I-create-an-API-key"
     }),
     "ChatGPT": mkAIinfo({
@@ -100,11 +102,13 @@ const infoAI = {
         qA: true,
         qW: true,
         urlChat: "chatgpt.com",
+        isPWA: false, // 2025-10-04
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b5/ChatGPT_logo_Square.svg"
     }),
     "Claude": mkAIinfo({
         pkg: "com.anthropic.claude",
         urlChat: "claude.ai",
+        isPWA: true, // 2025-10-04
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Claude_AI_symbol.svg"
     }),
     "Grok": mkAIinfo({
@@ -113,6 +117,7 @@ const infoAI = {
         pkg: "ai.x.grok",
         qW: true,
         urlChat: "grok.com/chat",
+        isPWA: true, // 2025-10-04
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg"
     }),
     "Perplexity": mkAIinfo({
@@ -627,12 +632,12 @@ Important:
         const [k, v] = e;
         const nameAI = k;
         // @ts-ignore
-        const { qA, qW, android, urlImg, fun } = v;
+        const { qA, qW, android, urlImg, fun, isPWA } = v;
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
         const imgAI = mkElt("span", { class: "elt-ai-img" });
         imgAI.style.backgroundImage = `url(${urlImg})`;
         const eltAIname = mkElt("span", { class: "elt-ai-name" }, nameAI);
-        const { way } = getWayToCallAI(nameAI);
+        let { way } = getWayToCallAI(nameAI);
         let q = "";
         let nameIcon = "help";
         let iconQ = "";
@@ -642,6 +647,10 @@ Important:
                 break;
             case "web":
                 nameIcon = "open_in_browser";
+                if (isPWA) {
+                    way = "PWA";
+                    nameIcon = "install_desktop";
+                }
                 if (qW) q = "/q";
                 iconQ = modMdc.mkMDCicon("attach_file");
                 break;
@@ -1607,18 +1616,27 @@ async function callTheAI(nameAI, promptAI) {
     /** @param {string} nameAI */
     async function callAIweb(nameAI) {
         if (divGoStatus == null) throw Error(`divGoStatus == null`);
-        divGoStatus.append(`Trying to open web chat: ${nameAI}`);
+        const isPWA = infoThisAI.isPWA;
+        const tofIsPWA = typeof isPWA;
+        if (tofIsPWA != "boolean") throw Error(`typeof isPWA == "${tofIsPWA}"`);
+        divGoStatus.append(`Try open web chat: ${nameAI}`);
+        if (isPWA) divGoStatus.append(`, PWA`);
         await modTools.waitSeconds(2);
+
         const webUrl = mkUrlChat(nameAI, promptAI);
-        const winHandle = window.open(`${webUrl}`, "AIWINDOW", "noopener,noreferrer");
-        /*
-        // winHandle will be null when using noopener or noreferrer
-        if (winHandle == null) {
-            divGoStatus.textContent = "Could not open new window";
+        const infoThisAI = infoAI[nameAI];
+        if (tofIsPWA) {
+            const winHandle = window.open(`${webUrl}`, "AIWINDOW", "noopener,noreferrer");
+            // winHandle will be null when using noopener or noreferrer
+            if (winHandle != null) throw Error(`winHandle is not null, but isPWA`);
         } else {
-            divGoStatus.textContent = `Opened ${nameAI} in new window`;
+            const winHandle = window.open(`${webUrl}`);
+            if (winHandle == null) {
+                divGoStatus.textContent = "Could not open new window";
+            } else {
+                divGoStatus.textContent = `Opened ${nameAI} in new window`;
+            }
         }
-        */
     }
 
     /** @param {string} nameAI */
