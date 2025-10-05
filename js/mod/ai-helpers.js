@@ -300,7 +300,10 @@ export async function generateMindMap(fromLink) {
     }
     // @ts-ignore
     function makeAIprompt(link, maxDepth = 4) {
+        const endMark = "----";
         const rules = [
+            `*If this prompt does not end with ${endMark}, consider it incomplete and notify the user
+              that the prompt appears to be cut off.`,
             `*Summarize the article (or video)
                 "${link}"
               into one mind map and
@@ -310,9 +313,8 @@ export async function generateMindMap(fromLink) {
             `*Give as much details as in a text summary.`,
             `*Limit the hiearchy to max depth ${maxDepth} levels.`,
             `*Return only valid JSON (no text before or after).`,
-            // `*Check that the JSON is parseable in Chromium browsers.`
-            `*Validate that the JSON is parseable in Chromium browsers.`
-
+            `*Validate that the JSON is parseable in Chromium browsers.`,
+            `*${endMark}`
         ];
         let n = 0;
         const arr = rules
