@@ -1780,13 +1780,16 @@ function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
             // @ts-ignore
             delete n.name;
         }
-        // if (n.parentid) return n;
+
         // @ts-ignore
-        const parentid = n.parentId || n.parent;
+        const parentid = n.parentId || n.parent || n.parentid;
         // @ts-ignore
         delete n.parentId;
         // @ts-ignore
+        delete n.parentid; // chatGPT
+        // @ts-ignore
         delete n.parent;
+
         // @ts-ignore
         if (parentid && parentid != "") n.parentid = parentid;
 
