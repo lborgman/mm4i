@@ -125,6 +125,7 @@ const infoAI = {
         qW: true,
         pkg: "ai.perplexity.app.android",
         urlChat: "perplexity.ai",
+        isPWA: false, // 2025-10-04
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Perplexity_AI_logo.svg"
     }),
     /*
@@ -633,6 +634,8 @@ Important:
         const nameAI = k;
         // @ts-ignore
         const { qA, qW, android, urlImg, fun, isPWA } = v;
+        const tofIsPWA = typeof isPWA;
+        if (tofIsPWA != "boolean") throw Error(`typeof isPWA == "${tofIsPWA}"`);
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
         const imgAI = mkElt("span", { class: "elt-ai-img" });
         imgAI.style.backgroundImage = `url(${urlImg})`;
@@ -1616,6 +1619,7 @@ async function callTheAI(nameAI, promptAI) {
     /** @param {string} nameAI */
     async function callAIweb(nameAI) {
         if (divGoStatus == null) throw Error(`divGoStatus == null`);
+        const infoThisAI = infoAI[nameAI];
         const isPWA = infoThisAI.isPWA;
         const tofIsPWA = typeof isPWA;
         if (tofIsPWA != "boolean") throw Error(`typeof isPWA == "${tofIsPWA}"`);
@@ -1624,7 +1628,6 @@ async function callTheAI(nameAI, promptAI) {
         await modTools.waitSeconds(2);
 
         const webUrl = mkUrlChat(nameAI, promptAI);
-        const infoThisAI = infoAI[nameAI];
         if (tofIsPWA) {
             const winHandle = window.open(`${webUrl}`, "AIWINDOW", "noopener,noreferrer");
             // winHandle will be null when using noopener or noreferrer
