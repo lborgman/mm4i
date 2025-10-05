@@ -629,21 +629,21 @@ Important:
         eltAI.id = "elt-ai-puter";
         divAIhardWay.appendChild(eltAI);
     }
-    Object.entries(infoAI).forEach(e => {
+    Object.entries(infoAI).forEach(e => { // "elt-ai"
         const [k, v] = e;
         const nameAI = k;
         // @ts-ignore
-        const { qA, qW, android, urlImg, fun, isPWA } = v;
+        const { qA, qW, android, urlImg, isPWA } = v; // "Gemini"
         const tofIsPWA = typeof isPWA;
         if (tofIsPWA != "boolean") throw Error(`typeof isPWA == "${tofIsPWA}"`);
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
         const imgAI = mkElt("span", { class: "elt-ai-img" });
         imgAI.style.backgroundImage = `url(${urlImg})`;
         const eltAIname = mkElt("span", { class: "elt-ai-name" }, nameAI);
-        let { way } = getWayToCallAI(nameAI);
+        let { way, hasWebAPI } = getWayToCallAI(nameAI);
         let q = "";
         let nameIcon = "help";
-        let iconQ = "";
+        let iconQ = mkElt("span");
         switch (way) {
             case "API":
                 nameIcon = "smart_toy";
@@ -665,8 +665,19 @@ Important:
             default:
                 throw Error(`Did not handle way "${way}"`);
         }
+        iconQ.style.zoom = "0.7";
         const iconWay = modMdc.mkMDCicon(nameIcon);
-        const wayIndicator = mkElt("i", undefined, [iconWay, iconQ, ` ${way}${q}`]);
+        let iconHintAPI = mkElt("span");
+        if (way !== "API") {
+            if (hasWebAPI) {
+                iconHintAPI = modMdc.mkMDCicon("smart_toy");
+                if (!(iconHintAPI instanceof HTMLSpanElement)) throw Error(`iconHintAPI is not HTMLSpanElement`);
+                iconHintAPI.inert = true;
+                iconHintAPI.style.opacity = "0.5";
+                iconHintAPI.style.zoom = "0.7";
+            }
+        }
+        const wayIndicator = mkElt("i", undefined, [iconWay, iconQ, iconHintAPI, ` ${way}${q}`]);
         wayIndicator.style.color = "blue";
         wayIndicator.style.display = "inline-flex";
         wayIndicator.style.alignItems = "center";
@@ -1550,29 +1561,30 @@ async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
 
 /**
  * @param {string} nameAI - AI name
- * @returns {{way: string, copyQ: boolean}} 
+ * @returns {{way: string, copyQ: boolean, hasWebAPI: boolean}} 
  */
 export function getWayToCallAI(nameAI) {
     if (nameAI == "PuterJs") {
-        return { way: "API", copyQ: false };
+        return { way: "API", copyQ: false,  hasWebAPI: true};
     }
     const infoThisAI = infoAI[nameAI];
     // First try API
     const funAPI = infoThisAI.fun;
+    const hasWebAPI = !!funAPI;
     if (funAPI) {
         const keyAPI = getAPIkeyForAI(nameAI);
         // console.warn(nameAI, { keyAPI });
         if (keyAPI) {
-            return { way: "API", copyQ: false };
+            return { way: "API", copyQ: false, hasWebAPI };
         }
     }
     if (!isAndroid) {
-        return { way: "web", copyQ: false };
+        return { way: "web", copyQ: false, hasWebAPI };
     }
     if (!infoThisAI.android) {
-        return { way: "web", copyQ: false };
+        return { way: "web", copyQ: false, hasWebAPI };
     }
-    return { way: "android-app", copyQ: false };
+    return { way: "android-app", copyQ: false, hasWebAPI };
 }
 
 /**
@@ -1620,15 +1632,16 @@ async function callTheAI(nameAI, promptAI) {
     async function callAIweb(nameAI) {
         if (divGoStatus == null) throw Error(`divGoStatus == null`);
         const infoThisAI = infoAI[nameAI];
-        const isPWA = infoThisAI.isPWA;
-        const tofIsPWA = typeof isPWA;
+        const thisAIisPWA = infoThisAI.isPWA;
+        const tofIsPWA = typeof thisAIisPWA;
         if (tofIsPWA != "boolean") throw Error(`typeof isPWA == "${tofIsPWA}"`);
-        divGoStatus.append(`Try open web chat: ${nameAI}`);
-        if (isPWA) divGoStatus.append(`, PWA`);
+        const pwaIndicator = thisAIisPWA ? "/PWA" : "";
+        divGoStatus.append(`Opening web${pwaIndicator} chat: ${nameAI}`);
+        // if (thisAIisPWA) divGoStatus.append(`, PWA`);
         await modTools.waitSeconds(2);
 
         const webUrl = mkUrlChat(nameAI, promptAI);
-        if (tofIsPWA) {
+        if (thisAIisPWA) {
             const winHandle = window.open(`${webUrl}`, "AIWINDOW", "noopener,noreferrer");
             // winHandle will be null when using noopener or noreferrer
             if (winHandle != null) throw Error(`winHandle is not null, but isPWA`);
