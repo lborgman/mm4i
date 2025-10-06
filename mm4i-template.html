@@ -1483,14 +1483,31 @@
         }
 
         .elt-ai {
-            display: flex;
-            flex-direction: row;
-            align-items: center;
-            gap: 5px;
             background-color: #e0ffffbd;
             padding: 2px;
             border-radius: 18px 4px 4px 18px;
             border: 2px solid transparent;
+            position: relative;
+        }
+
+        .elt-ai-label {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 5px;
+            margin-right: 30px;
+        }
+
+        .elt-ai-summary {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+        }
+
+        .elt-ai-det-content {
+            margin-left: 25px;
+            margin-top: 10px;
+            border-top: 0.5px solid;
         }
 
         #elt-ai-puter {
@@ -1569,6 +1586,7 @@
     <div id="jsmind_container" class="jsmind_container"></div>
 
     <script>
+        if (location.hostname == "localhost") { document.documentElement.classList.add("is-localhost"); }
         function debugAddFollowPointer() {
             if (/Android|iPhone/.test(navigator.userAgent)) return;
             document.addEventListener("pointermove", evt => {

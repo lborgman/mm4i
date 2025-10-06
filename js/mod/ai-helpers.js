@@ -82,6 +82,17 @@ function _getFirebaseApp() {
  */
 const mkAIinfo = (aiInfo) => { return aiInfo }
 
+function getAIinfoValue(aiInfo, key) {
+    const rec = aiInfo[key];
+    if (Array.isArray(rec)) { return rec[0]; }
+    return rec;
+}
+function getAIinfoComment(aiInfo, key) {
+    const rec = aiInfo[key];
+    if (Array.isArray(rec)) { return rec[1]; }
+    return undefined;
+}
+
 // https://chatgpt.com/share/68c0514e-c81c-8004-a196-d4f7f60c3930
 /**
  * @type {Object<string,aiInfo>}
@@ -327,7 +338,7 @@ export async function generateMindMap(fromLink) {
                 }
             })
             ;
-        return arr.join("\n\n");
+        return arr.join(";\n\n");
         // @ts-ignore
         console.log({ arr });
         debugger; // eslint-disable-line no-debugger
@@ -603,6 +614,7 @@ Important:
         const imgAI = mkElt("span", { class: "elt-ai-img" });
         const urlImg = "./ext/puter/puter.svg";
         imgAI.style.backgroundImage = `url(${urlImg})`;
+        imgAI.style.display = "none";
         const nameIcon = "smart_toy";
         const iconWay = modMdc.mkMDCicon(nameIcon);
         const wayIndicator = mkElt("i", undefined, [iconWay]);
@@ -617,16 +629,39 @@ Important:
             mkElt("b", undefined, `${niceProvider}: `), model]);
         wayIndicator.style.color = "cyan";
         wayIndicator.style.color = "lightseagreen";
-        divModel.marginLeft = "10px";
-        const divHeader = mkElt("div", undefined, ["Automated ", wayIndicator]);
+        wayIndicator.style.color = "lightskyblue";
+        // divModel.marginLeft = "10px";
+        divModel.style.fontSize = "0.8rem";
+        const divHeader = mkElt("div", undefined, [wayIndicator, "Automated "]);
         divHeader.style.display = "flex";
-        divHeader.style.justifyContent = "space-between";
+        // divHeader.style.justifyContent = "space-between";
+        divHeader.style.gap = "10px";
+        divHeader.style.marginBottom = "-10px";
 
         const divPuter = mkElt("div", undefined, [
             divHeader,
             divModel,
         ]);
-        const eltAI = mkElt("label", undefined, [radAI, imgAI, divPuter]);
+
+        const eltAIlabel = mkElt("label", undefined, [radAI, imgAI, divPuter]);
+        eltAIlabel.classList.add("elt-ai-label");
+
+        // "details"
+        const sumAI = mkElt("summary", undefined, "");
+        sumAI.classList.add("elt-ai-summary");
+        sumAI.style.top = "20px";
+
+        const divDetAIcontent = mkElt("div", undefined, "Much more to come here!");
+        divDetAIcontent.classList.add("elt-ai-det-content");
+
+        const detAI = mkElt("details", undefined, [
+            sumAI,
+            // mkElt("div", undefined, [ "More to come!", ]),
+            divDetAIcontent
+        ]);
+
+
+        const eltAI = mkElt("div", undefined, [eltAIlabel, detAI]);
         eltAI.classList.add("elt-ai");
         eltAI.id = "elt-ai-puter";
         divAIhardWay.appendChild(eltAI);
@@ -635,7 +670,8 @@ Important:
         const [k, v] = e;
         const nameAI = k;
         // @ts-ignore
-        const { qA, qW, android, urlImg, isPWA } = v; // "Gemini"
+        const { qW, qA, android, urlImg, urlChat, isPWA, fun, urlAPIkey } = v;
+        // const { qA, qW, android, urlImg, isPWA } = v; // "Gemini"
         const tofIsPWA = typeof isPWA;
         if (tofIsPWA != "boolean") throw Error(`typeof isPWA == "${tofIsPWA}"`);
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
@@ -679,11 +715,83 @@ Important:
                 iconHintAPI.style.zoom = "0.7";
             }
         }
-        const wayIndicator = mkElt("i", undefined, [iconWay, iconQ, iconHintAPI, ` ${way}${q}`]);
+        // const wayIndicator = mkElt("i", undefined, [iconWay, iconQ, iconHintAPI, ` ${way}${q}`]);
+        const wayIndicator = mkElt("i", undefined, [iconWay, iconQ, iconHintAPI]);
         wayIndicator.style.color = "blue";
         wayIndicator.style.display = "inline-flex";
         wayIndicator.style.alignItems = "center";
-        const eltAI = mkElt("label", undefined, [radAI, imgAI, eltAIname, wayIndicator]);
+        const lblAI = mkElt("label", undefined, [radAI, imgAI, eltAIname, wayIndicator]);
+        lblAI.classList.add("elt-ai-label");
+        const sumAI = mkElt("summary", undefined, "");
+        sumAI.classList.add("elt-ai-summary");
+        const company = "unknown";
+
+        const ulAIdetails = mkElt("ul");
+        const listAPI = mkElt("list");
+        ulAIdetails.appendChild(listAPI);
+        if (fun) {
+            const listAPI = mkElt("list");
+            ulAIdetails.appendChild(listAPI);
+            const inpAPIkey = mkElt("input", { type: "text" });
+            const key = getAPIkeyForAI(nameAI);
+            // @ts-ignore
+            if (key) inpAPIkey.value = key;
+            // @ts-ignore
+            const saveAPIkeyInput = modTools.throttleTO(() => { setAPIkeyForAI(nameAI, inpAPIkey.value); }, 500);
+            inpAPIkey.addEventListener("input", () => {
+                // @ts-ignore
+                console.log("input inpAPIkey", inpAPIkey.value);
+                saveAPIkeyInput();
+            });
+            // @ts-ignore
+            const lbl = mkElt("label", undefined, ["API key: ", inpAPIkey]);
+            lbl.style = "display:grid; grid-template-columns: auto 1fr; gap: 10px;";
+
+            const divAPIinfo = mkElt("div", undefined, [
+                "Can show the mindmap automatically, but it requires an API key.",
+            ]);
+            if (urlAPIkey) {
+                const aAPIkey = mkElt("a", {
+                    href: urlAPIkey,
+                    target: "_blank"
+                }, `Get an API key for ${nameAI}`);
+                // @ts-ignore
+                const spanAPIkeyInfo = mkElt("span", undefined, [" (", aAPIkey, ".)"]);
+                divAPIinfo.appendChild(spanAPIkeyInfo);
+            }
+            listAPI.appendChild(divAPIinfo);
+            listAPI.appendChild(lbl);
+        }
+        if (isAndroid) {
+            if (android) {
+                const listAndroid = mkElt("list");
+                ulAIdetails.appendChild(listAndroid);
+                let strCan = "Can start Android app";
+                if (qA) strCan = `${strCan} with prompt`;
+                listAndroid.appendChild(mkElt("span", undefined, strCan));
+            }
+        }
+        if (urlChat) {
+            if (qW) {
+                const listWeb = mkElt("list");
+                ulAIdetails.appendChild(listWeb);
+                const strCan = `Web chat adds the prompt for you`;
+                listWeb.appendChild(mkElt("span", undefined, strCan));
+            }
+        }
+
+
+        const divDetAIcontent = mkElt("div", undefined, [
+            `${nameAI} (${company})`,
+            ` ${way}${q}`,
+            ulAIdetails
+        ]);
+        divDetAIcontent.classList.add("elt-ai-det-content");
+        const detAI = mkElt("details", undefined, [
+            sumAI,
+            divDetAIcontent
+        ]);
+        const eltAI = mkElt("div", undefined, [lblAI, detAI]);
         eltAI.classList.add("elt-ai");
         divAIhardWay.appendChild(eltAI);
     });
@@ -886,37 +994,6 @@ Important:
         console.log(res);
         // debugger;
     });
-    /*
-    const divListAIeasyWay = mkElt("div");
-    divListAIeasyWay.style = ` display: flex; flex-direction: row; gap: 10px; flex-flow: wrap; `;
-    
-    const selectHeader = mkElt("div", undefined, "Select AI to call:");
-    selectHeader.style = ` font-weight: bold; margin-bottom: 20px; `;
-    
-    const divSelectAIeasyWay = mkElt("div", { class: "NOmdc-card" }, [
-        selectHeader,
-        divListAIeasyWay
-    ]);
-    Object.entries(infoAI).forEach(e => {
-        const [k, v] = e;
-        const { testedChat, q, fun } = v;
-        const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
-        const eltAI = mkElt("label", undefined, [radAI, k]);
-        eltAI.classList.add("elt-ai");
-        if (testedChat) { eltAI.style.backgroundColor = "yellow"; }
-        if (q) { eltAI.style.borderColor = "greenyellow"; }
-        if (!fun) eltAI.inert = true;
-        divListAIeasyWay.appendChild(eltAI);
-    });
-    
-    const divEasyWay = mkElt("div", undefined, [
-        divSelectAIeasyWay,
-        mkElt("p", undefined, btnEasyWay),
-        divWhyNotEasy
-    ]);
-    divEasyWay.id = "easy-way";
-    divEasyWay.style = styleWays;
-    */
 
     const styleWays = " background-color: #80800036; padding: 10px; ";
 
@@ -1068,7 +1145,7 @@ Important:
     divEltsAIsettingsTabs.style.padding = "10px";
 
 
-    Object.entries(infoAI).forEach(e => {
+    Object.entries(infoAI).forEach(e => { // details
         const [k, v] = e;
         const { qW, qA, android, urlImg, urlChat, fun, urlAPIkey } = v;
         const imgAI = mkElt("span", { class: "elt-ai-img" });
@@ -1081,8 +1158,7 @@ Important:
         if (fun) {
             const listAPI = mkElt("list");
             ulAIdetails.appendChild(listAPI);
-            // const inpAPIkey = mkElt("input", { type: "password" });
-            const inpAPIkey = mkElt("input", { type: "text" }); // FIX-ME:
+            const inpAPIkey = mkElt("input", { type: "text" });
             const key = getAPIkeyForAI(nameAI);
             // @ts-ignore
             if (key) inpAPIkey.value = key;
@@ -1567,7 +1643,7 @@ async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
  */
 export function getWayToCallAI(nameAI) {
     if (nameAI == "PuterJs") {
-        return { way: "API", copyQ: false,  hasWebAPI: true};
+        return { way: "API", copyQ: false, hasWebAPI: true };
     }
     const infoThisAI = infoAI[nameAI];
     // First try API
@@ -1634,7 +1710,8 @@ async function callTheAI(nameAI, promptAI) {
     async function callAIweb(nameAI) {
         if (divGoStatus == null) throw Error(`divGoStatus == null`);
         const infoThisAI = infoAI[nameAI];
-        const thisAIisPWA = infoThisAI.isPWA;
+        // const thisAIisPWA = infoThisAI.isPWA;
+        const thisAIisPWA = getAIinfoValue(infoThisAI["isPWA"]);
         const tofIsPWA = typeof thisAIisPWA;
         if (tofIsPWA != "boolean") throw Error(`typeof isPWA == "${tofIsPWA}"`);
         const pwaIndicator = thisAIisPWA ? "/PWA" : "";
