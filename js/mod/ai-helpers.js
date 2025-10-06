@@ -63,6 +63,7 @@ function _getFirebaseApp() {
 
 /**
  * @typedef {Object} aiInfo
+ * @property {string} [company]
  * @property {boolean} [qW]
  * @property {boolean} [qA]
  * @property {string} [comment]
@@ -97,8 +98,9 @@ function getAIinfoComment(aiInfo, key) {
 /**
  * @type {Object<string,aiInfo>}
  */
-const infoAI = {
+const infoAIs = {
     "Gemini": mkAIinfo({
+        company: "Google",
         fun: callGeminiAPI,
         pkg: "com.google.android.apps.bard",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg",
@@ -107,6 +109,7 @@ const infoAI = {
         urlAPIkey: "https://support.gemini.com/hc/en-us/articles/360031080191-How-do-I-create-an-API-key"
     }),
     "ChatGPT": mkAIinfo({
+        company: "OpenAI",
         android: "intent://chat.openai.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.openai.chatgpt;end;",
         fun: callOpenAIapi,
         pkg: "com.openai.chatgpt",
@@ -117,12 +120,14 @@ const infoAI = {
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b5/ChatGPT_logo_Square.svg"
     }),
     "Claude": mkAIinfo({
+        company: "Anthropic",
         pkg: "com.anthropic.claude",
         urlChat: "claude.ai",
         isPWA: true, // 2025-10-04
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Claude_AI_symbol.svg"
     }),
     "Grok": mkAIinfo({
+        company: "xAI",
         // fun: callGrokApi, // The other version seems better, but I can not test with a valid key
         fun: callOpenAIapi,
         pkg: "ai.x.grok",
@@ -132,6 +137,7 @@ const infoAI = {
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg"
     }),
     "Perplexity": mkAIinfo({
+        company: "Perplexity",
         android: "intent://perplexity.sng.link/A6awk/ppas?q=PLACEHOLDER#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;end;",
         qW: true,
         pkg: "ai.perplexity.app.android",
@@ -666,11 +672,11 @@ Important:
         eltAI.id = "elt-ai-puter";
         divAIhardWay.appendChild(eltAI);
     }
-    Object.entries(infoAI).forEach(e => { // "elt-ai"
+    Object.entries(infoAIs).forEach(e => { // "elt-ai"
         const [k, v] = e;
         const nameAI = k;
         // @ts-ignore
-        const { qW, qA, android, urlImg, urlChat, isPWA, fun, urlAPIkey } = v;
+        const { company, qW, qA, android, urlImg, urlChat, isPWA, fun, urlAPIkey } = v;
         // const { qA, qW, android, urlImg, isPWA } = v; // "Gemini"
         const tofIsPWA = typeof isPWA;
         if (tofIsPWA != "boolean") throw Error(`typeof isPWA == "${tofIsPWA}"`);
@@ -724,7 +730,7 @@ Important:
         lblAI.classList.add("elt-ai-label");
         const sumAI = mkElt("summary", undefined, "");
         sumAI.classList.add("elt-ai-summary");
-        const company = "unknown";
+        const showCompany = company ? company : "unknown";
 
         const ulAIdetails = mkElt("ul");
         const listAPI = mkElt("list");
@@ -782,8 +788,8 @@ Important:
 
 
         const divDetAIcontent = mkElt("div", undefined, [
-            `${nameAI} (${company})`,
-            ` ${way}${q}`,
+            `${nameAI} (from ${showCompany})`,
+            mkElt("div", {style:"opacity:0.5"},`DEBUG: ${way}${q}`),
             ulAIdetails
         ]);
         divDetAIcontent.classList.add("elt-ai-det-content");
@@ -858,7 +864,7 @@ Important:
         }
 
         if (nameAI != "PuterJs") {
-            const infoThisAI = infoAI[nameAI];
+            const infoThisAI = infoAIs[nameAI];
             if (!infoThisAI) { throw Error(`Did not find info for AI "${nameAI}"`); }
         }
 
@@ -972,7 +978,7 @@ Important:
             // @ts-ignore
             keyAPI = inpKey.value.trim();
         }
-        const infoThisAI = infoAI[nameAI];
+        const infoThisAI = infoAIs[nameAI];
         // debugger;
         const fun = infoThisAI["fun"];
         if (!fun) throw Error("!fun");
@@ -1145,7 +1151,7 @@ Important:
     divEltsAIsettingsTabs.style.padding = "10px";
 
 
-    Object.entries(infoAI).forEach(e => { // details
+    Object.entries(infoAIs).forEach(e => { // details
         const [k, v] = e;
         const { qW, qA, android, urlImg, urlChat, fun, urlAPIkey } = v;
         const imgAI = mkElt("span", { class: "elt-ai-img" });
@@ -1464,7 +1470,7 @@ async function dialogEditIntentUrl(nameAI) {
     if (!arrIntentUrl) throw Error(`Could not find testIntentsAI["${nameAI}"]`);
     if (arrIntentUrl.length == 0) {
         // @ts-ignore
-        return `https://${infoAI[nameAI].url}`;
+        return `https://${infoAIs[nameAI].url}`;
     }
 
 
@@ -1645,7 +1651,7 @@ export function getWayToCallAI(nameAI) {
     if (nameAI == "PuterJs") {
         return { way: "API", copyQ: false, hasWebAPI: true };
     }
-    const infoThisAI = infoAI[nameAI];
+    const infoThisAI = infoAIs[nameAI];
     // First try API
     const funAPI = infoThisAI.fun;
     const hasWebAPI = !!funAPI;
@@ -1709,7 +1715,7 @@ async function callTheAI(nameAI, promptAI) {
     /** @param {string} nameAI */
     async function callAIweb(nameAI) {
         if (divGoStatus == null) throw Error(`divGoStatus == null`);
-        const infoThisAI = infoAI[nameAI];
+        const infoThisAI = infoAIs[nameAI];
         // const thisAIisPWA = infoThisAI.isPWA;
         const thisAIisPWA = getAIinfoValue(infoThisAI["isPWA"]);
         const tofIsPWA = typeof thisAIisPWA;
@@ -1750,7 +1756,7 @@ async function callTheAI(nameAI, promptAI) {
                 divGoStatus.append(" .");
             }
         }, 1500);
-        const infoThisAI = infoAI[nameAI];
+        const infoThisAI = infoAIs[nameAI];
         const keyAPI = getAPIkeyForAI(nameAI);
         const funAPI = infoThisAI.fun;
         if (typeof funAPI != "function") throw Error(`typeof funAPI == "${typeof funAPI}"`);
@@ -1780,7 +1786,7 @@ async function callTheAI(nameAI, promptAI) {
     // @ts-ignore
     async function callAIandroidApp(nameAI) {
         if (divGoStatus == null) throw Error(`divGoStatus == null`);
-        const infoThisAI = infoAI[nameAI];
+        const infoThisAI = infoAIs[nameAI];
         const androidIntent = infoThisAI.android;
         const rawIntentUrl = androidIntent ? androidIntent : await dialogEditIntentUrl(nameAI);
         if (rawIntentUrl == null) {
@@ -1805,7 +1811,7 @@ async function callTheAI(nameAI, promptAI) {
  * @returns {string}
  */
 function mkUrlChat(nameAI, promptAI) {
-    const infoThisAI = infoAI[nameAI];
+    const infoThisAI = infoAIs[nameAI];
     const url = infoThisAI.urlChat;
     /*
     if (nameAI == "Grok") {
