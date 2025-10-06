@@ -732,11 +732,15 @@ Important:
         sumAI.classList.add("elt-ai-summary");
         const showCompany = company ? company : "unknown";
 
-        const ulAIdetails = mkElt("ul");
-        const listAPI = mkElt("list");
+        const ulAIdetails = mkElt("div");
+        ulAIdetails.style.display = "flex";
+        ulAIdetails.style.flexDirection = "column";
+        ulAIdetails.style.gap = "20px";
+
+        const listAPI = mkElt("div");
         ulAIdetails.appendChild(listAPI);
         if (fun) {
-            const listAPI = mkElt("list");
+            const listAPI = mkElt("div");
             ulAIdetails.appendChild(listAPI);
             const inpAPIkey = mkElt("input", { type: "text" });
             const key = getAPIkeyForAI(nameAI);
