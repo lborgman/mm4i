@@ -344,7 +344,8 @@ export async function generateMindMap(fromLink) {
             `*Give as much details as in a text summary.`,
             `*Limit the hiearchy to max depth ${maxDepth} levels.`,
             `*Return only valid JSON (no text before or after).`,
-            `*Validate that the JSON is parseable in Chromium browsers.`,
+            // `*Validate that the JSON is parseable in Chromium browsers.`,
+            `*Preserve escaped newlines (\\n) inside string values for JSON validity; they should represent Markdown line breaks when rendered.`,
             `*${endMark}`
         ];
         let n = 0;
