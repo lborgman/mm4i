@@ -1,9 +1,13 @@
 // @ts-check
 const AI_HELPERS_VER = "0.0.1";
+
+// @ts-ignore
 window["logConsoleHereIs"](`here is ai-helpers.js, module, ${AI_HELPERS_VER}`);
 if (document.currentScript) { throw "ai-helpers.js is not loaded as module"; }
 
+// @ts-ignore
 const mkElt = window["mkElt"];
+
 // @ts-ignore
 const importFc4i = window["importFc4i"];
 
@@ -19,9 +23,13 @@ const isAndroid = userAgent.indexOf("android") > -1;
 
 const modLocalSettings = await importFc4i("local-settings");
 class SettingsMm4iAI extends modLocalSettings.LocalSetting {
+    /**
+     * 
+     * @param {string} key 
+     * @param {string|number|boolean} defaultValue 
+     */
     constructor(key, defaultValue) { super("mm4i-settings-ai-", key, defaultValue); }
 }
-// const settingUsePuterJs = new SettingsMm4iAI("use-puter-js", false);
 const settingPuterAImodel = new SettingsMm4iAI("puter-ai-model", "");
 const settingUsedAIname = new SettingsMm4iAI("used-ai-name", "");
 
@@ -55,15 +63,20 @@ function _getFirebaseApp() {
 // export const modelAiGeminiThroughFirebase = modAiFirebase.getGenerativeModel(aiGeminiThroughFirebase, { model: "gemini-2.5-flash" });
 
 /**
- * @typedef {function} funCallAI
+ * @typedef {Function} OLDfunCallAI
  * @param {string} prompt 
  * @param {string} apiKey 
  * @returns {Promise<string|Error>}
  */
 
 /**
- * @typedef {Object} aiInfo
- * @property {string} [company]
+ * @typedef {(prompt: string, apiKey: string) => Promise<string | Error>} funCallAI
+ */
+
+/**
+ * @typedef {Object.<string, any>} aiInfo
+ * @property {string} company
+ * @property {string} urlCompany
  * @property {boolean} [qW]
  * @property {boolean} [qA]
  * @property {string} [comment]
@@ -83,12 +96,14 @@ function _getFirebaseApp() {
  */
 const mkAIinfo = (aiInfo) => { return aiInfo }
 
+/** * @param {aiInfo} aiInfo * @param {string} key * @returns {boolean|funCallAI|string} */
 function getAIinfoValue(aiInfo, key) {
     const rec = aiInfo[key];
     if (Array.isArray(rec)) { return rec[0]; }
     return rec;
 }
-function getAIinfoComment(aiInfo, key) {
+/** * @param {aiInfo} aiInfo * @param {string} key * @returns {string|undefined} */
+function _getAIinfoComment(aiInfo, key) {
     const rec = aiInfo[key];
     if (Array.isArray(rec)) { return rec[1]; }
     return undefined;
@@ -214,7 +229,7 @@ const testIntentsAI = {
 }
 
 
-// @ts-ignore
+/** @type {function|undefined} */
 let initAItextarea;
 /**
  * 
@@ -226,8 +241,6 @@ export async function generateMindMap(fromLink) {
     const modMMhelpers = await importFc4i("mindmap-helpers");
     const inpLink = modMdc.mkMDCtextFieldInput(undefined, "text");
     const tfLink = modMdc.mkMDCtextField("Link to article/video", inpLink);
-    // const eltNotReady = mkElt("p", undefined, "Please try, but it is no ready!");
-    // eltNotReady.style = `color:red; font-size:1.2rem`;
     initAItextarea = onAItextareaInput;
 
 
@@ -281,7 +294,8 @@ export async function generateMindMap(fromLink) {
             resp = await fetch(url, { method: "HEAD" });
             reachable = resp.ok;
         } catch (err) {
-            console.log("HEAD", { err, resp });
+            const errorMsg = String(err);
+            console.log("HEAD", errorMsg, { err, resp });
             // error = err;
         }
         if (!reachable) {
@@ -293,9 +307,9 @@ export async function generateMindMap(fromLink) {
                     }
                 });
                 reachable = resp.ok;
-            } catch (err) {
-                console.log("GET", { err, resp });
-                // error = err;
+            } catch (error) {
+                const errorMsg = String(error);
+                console.log("GET", errorMsg, { error, resp });
             }
             finally {
                 if (!reachable) {
@@ -503,13 +517,13 @@ Important:
             } else {
                 tellError(res.error);
             }
-        } catch (err) {
+        } catch (error) {
+            const errorMsg = String(error);
             eltAItextareaStatus.textContent = "";
             // @ts-ignore
-            const msg = err instanceof Error ? err.message : err.toString();
-            tellError(msg);
+            tellError(errorMsg);
             // @ts-ignore
-            const objJsonErrorDetails = modTools.extractJSONparseError(err.message, strAIjson);
+            const objJsonErrorDetails = modTools.extractJSONparseError(errorMsg, strAIjson);
             const divErrorLocation = mkElt("div");
             if (objJsonErrorDetails.context) {
                 const eltBefore = mkElt("span", undefined,
@@ -535,6 +549,7 @@ Important:
         }
     }
 
+    // @ts-ignore
     eltAItextarea.addEventListener("input", _evt => {
         // @ts-ignore
         clearTimeout(toDoIt);
@@ -542,6 +557,7 @@ Important:
         if (eltDialog) { eltDialog.style.opacity = "1"; }
         onAItextareaInput();
     });
+    // @ts-ignore
     eltAItextarea.addEventListener("change", _evt => {
         // @ts-ignore
         clearTimeout(toDoIt);
@@ -732,16 +748,22 @@ Important:
         sumAI.classList.add("elt-ai-summary");
         const showCompany = company ? company : "unknown";
 
-        const ulAIdetails = mkElt("div");
-        ulAIdetails.style.display = "flex";
-        ulAIdetails.style.flexDirection = "column";
-        ulAIdetails.style.gap = "20px";
+        // const BADulAIdetails = mkElt("div");
+        // BADulAIdetails.style.display = "flex";
+        // BADulAIdetails.style.flexDirection = "column";
+        // BADulAIdetails.style.gap = "20px";
 
-        const listAPI = mkElt("div");
-        ulAIdetails.appendChild(listAPI);
+        // const BADlistAPI = mkElt("div");
+        // BADulAIdetails.appendChild(BADlistAPI);
+        const divDetAIcontent = mkElt("div", undefined, [
+            `${nameAI} (from ${showCompany})`,
+            mkElt("div", { style: "opacity:0.5" }, `DEBUG: ${way}${q}`),
+        ]);
+        divDetAIcontent.classList.add("elt-ai-det-content");
+
         if (fun) {
-            const listAPI = mkElt("div");
-            ulAIdetails.appendChild(listAPI);
+            // const listAPI = mkElt("div");
+            // ulAIdetails.appendChild(listAPI);
             const inpAPIkey = mkElt("input", { type: "text" });
             const key = getAPIkeyForAI(nameAI);
             // @ts-ignore
@@ -769,34 +791,34 @@ Important:
                 const spanAPIkeyInfo = mkElt("span", undefined, [" (", aAPIkey, ".)"]);
                 divAPIinfo.appendChild(spanAPIkeyInfo);
             }
-            listAPI.appendChild(divAPIinfo);
-            listAPI.appendChild(lbl);
+            // BADlistAPI.appendChild(divAPIinfo);
+            // BADulAIdetails.appendChild(divAPIinfo);
+            divDetAIcontent.appendChild(divAPIinfo);
+            // BADlistAPI.appendChild(lbl);
+            // BADulAIdetails.appendChild(lbl);
+            divDetAIcontent.appendChild(lbl);
         }
         if (isAndroid) {
             if (android) {
-                const listAndroid = mkElt("list");
-                ulAIdetails.appendChild(listAndroid);
+                // const listAndroid = mkElt("list");
+                // BADulAIdetails.appendChild(listAndroid);
                 let strCan = "Can start Android app";
                 if (qA) strCan = `${strCan} with prompt`;
-                listAndroid.appendChild(mkElt("span", undefined, strCan));
+                // listAndroid.appendChild(mkElt("span", undefined, strCan));
+                divDetAIcontent.appendChild(mkElt("span", undefined, strCan));
             }
         }
         if (urlChat) {
             if (qW) {
-                const listWeb = mkElt("list");
-                ulAIdetails.appendChild(listWeb);
+                // const listWeb = mkElt("list");
+                // BADulAIdetails.appendChild(listWeb);
                 const strCan = `Web chat adds the prompt for you`;
-                listWeb.appendChild(mkElt("span", undefined, strCan));
+                // listWeb.appendChild(mkElt("span", undefined, strCan));
+                divDetAIcontent.appendChild(mkElt("span", undefined, strCan));
             }
         }
 
 
-        const divDetAIcontent = mkElt("div", undefined, [
-            `${nameAI} (from ${showCompany})`,
-            mkElt("div", {style:"opacity:0.5"},`DEBUG: ${way}${q}`),
-            ulAIdetails
-        ]);
-        divDetAIcontent.classList.add("elt-ai-det-content");
         const detAI = mkElt("details", undefined, [
             sumAI,
             divDetAIcontent
@@ -805,6 +827,7 @@ Important:
         eltAI.classList.add("elt-ai");
         divAIhardWay.appendChild(eltAI);
     });
+    // @ts-ignore
     divAIhardWay.addEventListener("change", evt => {
         const t = evt.target;
         if (!t) return;
@@ -1441,6 +1464,7 @@ Important:
     checkIsAIchoosen();
     function checkIsAIchoosen() {
         console.warn("checkIsAIchoosen: typeof btnGo", typeof btnGo);
+        /** @param {boolean} b * @param {string} [nameAI] * @returns {boolean} */
         const tellChoosen = (b, nameAI) => {
             console.log("checkIsAIchoosen", { b, nameAI });
             btnGo.inert = !b;
@@ -1721,7 +1745,7 @@ async function callTheAI(nameAI, promptAI) {
         if (divGoStatus == null) throw Error(`divGoStatus == null`);
         const infoThisAI = infoAIs[nameAI];
         // const thisAIisPWA = infoThisAI.isPWA;
-        const thisAIisPWA = getAIinfoValue(infoThisAI["isPWA"]);
+        const thisAIisPWA = getAIinfoValue(infoThisAI, "isPWA");
         const tofIsPWA = typeof thisAIisPWA;
         if (tofIsPWA != "boolean") throw Error(`typeof isPWA == "${tofIsPWA}"`);
         const pwaIndicator = thisAIisPWA ? "/PWA" : "";
@@ -1781,7 +1805,7 @@ async function callTheAI(nameAI, promptAI) {
             eltAItextarea.value = res;
             // @ts-ignore
             if (typeof initAItextarea != "function") {
-                throw Error(`tofInitAItextarea == "${typeof InitAItextarea}"`);
+                throw Error(`tofInitAItextarea == "${typeof initAItextarea}"`);
             }
             initAItextarea();
         }
@@ -2034,8 +2058,9 @@ async function callGeminiAPI(userPrompt, apiKey) {
             aiClient = new GoogleGenAI({ apiKey: apiKey });
 
         } catch (error) {
-            console.error("Failed to dynamically load or initialize Gemini SDK:", error);
-            return Error("Could not load the required library.");
+            const errorMsg = String(error);
+            console.error("Failed to dynamically load or initialize Gemini SDK:", errorMsg, error);
+            return Error(`Could not load the required library, ${errorMsg}`);
         }
         if (aiClient == null) {
             return Error("aiClient is null");
@@ -2052,8 +2077,9 @@ async function callGeminiAPI(userPrompt, apiKey) {
         });
         return response.text;
     } catch (error) {
-        console.error("Error calling the Gemini API:", error);
-        return Error(`An API error occurred: ${error}`);
+        const errorMsg = String(error);
+        console.error("Error calling the Gemini API:", errorMsg, error);
+        return Error(`An API error occurred: ${errorMsg}`);
     }
 }
 
@@ -2061,46 +2087,7 @@ async function callGeminiAPI(userPrompt, apiKey) {
 
 // From Grok:
 // https://console.anthropic.com/login?returnTo=%2F%3F
-/* @type {CallAIapi} */
-/*
-async function callClaude({ apiKey, message, model = 'claude-3-5-sonnet-20240620', maxTokens = 1024 }) {
-  try {
-    // Dynamically import the Anthropic SDK ES6 module
-    const Anthropic = (await import('https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.26.0/+esm')).default;
 
-    // Initialize the Anthropic client
-    const anthropic = new Anthropic({ apiKey });
-
-    // Call the messages endpoint
-    const response = await anthropic.messages.create({
-      model,
-      max_tokens: maxTokens,
-      messages: [{ role: 'user', content: message }],
-    });
-
-    // Return the response text
-    return response.content[0].text;
-  } catch (error) {
-    console.error('Error calling Claude API:', error);
-    throw new Error(`Failed to call Claude API: ${error.message}`);
-  }
-}
-*/
-
-/*
-// Example usage (for testing in the browser console)
-async function testClaude() {
-  try {
-    const response = await callClaude({
-      apiKey: 'YOUR_API_KEY', // Replace with your secure method of providing the key
-      message: 'Hello, Claude! Tell me a fun fact about the ocean.',
-    });
-    console.log('Claude\'s response:', response);
-  } catch (error) {
-    console.error(error);
-  }
-}
-*/
 
 /**
  * Calls the Claude API with a user prompt and returns the response.
@@ -2114,12 +2101,14 @@ async function testClaude() {
 export async function callClaudeAPI(userPrompt, apiKey, options = {}) {
     try {
         // Dynamically import the Anthropic SDK ES6 module
+        // @ts-ignore
         const Anthropic = (await import('https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.26.0/+esm')).default;
 
         // Initialize the Anthropic client
         const anthropic = new Anthropic({ apiKey });
 
         // Extract options with defaults
+        // @ts-ignore
         const { model = 'claude-3-5-sonnet-20240620', maxTokens = 1024 } = options;
 
         // Call the messages endpoint
@@ -2132,8 +2121,9 @@ export async function callClaudeAPI(userPrompt, apiKey, options = {}) {
         // Return the response text
         return response.content[0].text;
     } catch (error) {
+        const errorMsg = String(error);
         console.error('Error calling Claude API:', error);
-        return new Error(`Failed to call Claude API: ${error.message}`);
+        return new Error(`Failed to call Claude API: ${errorMsg}`);
     }
 }
 
@@ -2151,7 +2141,8 @@ async function _testClaude() {
             console.log('Claude\'s response:', response);
         }
     } catch (error) {
-        console.error(error);
+        const errorMsg = String(error);
+        console.error(errorMsg, error);
     }
 }
 
@@ -2207,8 +2198,9 @@ export async function callClaudeAPI2(userPrompt, apiKey, options = {}) {
         // Return the response text
         return data.content[0].text;
     } catch (error) {
-        console.error('Error calling Claude API:', error);
-        return new Error(`Failed to call Claude API: ${error.message}`);
+        const errorMsg = String(error);
+        console.error('Error calling Claude API:', errorMsg, error);
+        return new Error(`Failed to call Claude API: ${errorMsg}`);
     }
 }
 
@@ -2291,15 +2283,16 @@ export async function callClaudeAPI3(userPrompt, apiKey, options = {}) {
         // Return the response text
         return data.content[0].text;
     } catch (error) {
+        const errorMsg = String(error);
         // Enhanced error logging for debugging
         console.error('Error calling Claude API:', {
-            message: error.message,
-            name: error.name,
-            stack: error.stack,
+            message: errorMsg,
+            // @ts-ignore
+            name: error.name, stack: error.stack,
             userPrompt,
             options,
         });
-        return new Error(`Failed to call Claude API: ${error.message}`);
+        return new Error(`Failed to call Claude API: ${errorMsg}`);
     }
 }
 
@@ -2317,7 +2310,8 @@ async function _testClaude3() {
             console.log('Claude\'s response:', response);
         }
     } catch (error) {
-        console.error(error);
+        const errorMsg = String(error);
+        console.error(errorMsg, error);
     }
 }
 
@@ -2348,7 +2342,8 @@ export async function callClaudeAPI4(userPrompt, apiKey, options = {}) {
         }
 
         // Extract options with defaults
-        const { model = 'claude-3-5-sonnet-20240620', maxTokens = 1024 } = options;
+        // FIX-ME:
+        // const { model = 'claude-3-5-sonnet-20240620', maxTokens = 1024 } = options;
 
         // Call the backend proxy
         const response = await fetch('http://localhost:3000/api/claude', {
@@ -2377,14 +2372,15 @@ export async function callClaudeAPI4(userPrompt, apiKey, options = {}) {
         // Return the response text
         return data.response;
     } catch (error) {
+        const errorMsg = String(error);
         console.error('Error calling Claude API via proxy:', {
-            message: error.message,
-            name: error.name,
-            stack: error.stack,
+            message: errorMsg,
+            // @ts-ignore
+            name: error.name, stack: error.stack,
             userPrompt,
             options,
         });
-        return new Error(`Failed to call Claude API: ${error.message}`);
+        return new Error(`Failed to call Claude API: ${errorMsg}`);
     }
 }
 
@@ -2402,7 +2398,8 @@ async function _testClaude4() {
             console.log('Claude\'s response:', response);
         }
     } catch (error) {
-        console.error(error);
+        const errorMsg = String(error);
+        console.error(errorMsg, error);
     }
 }
 
@@ -2460,8 +2457,9 @@ export async function callPerplexityAPIthroughProxy(userPrompt, apiKey, options 
             try {
                 const errorData = await response.json();
                 errorText = errorData.error?.message || (await response.text()) || 'Unknown error';
-            } catch {
-                errorText = 'Failed to parse error response';
+            } catch (error) {
+                const errorMsg = String(error);
+                errorText = `Failed to parse error response: ${errorMsg}`;
             }
             throw new Error(`Perplexity API error: ${response.status} ${response.statusText} - ${errorText}`);
         }
@@ -2477,15 +2475,16 @@ export async function callPerplexityAPIthroughProxy(userPrompt, apiKey, options 
         // Return the response text
         return data.choices[0].message.content;
     } catch (error) {
+        const errorMsg = String(error);
         console.error('Error calling Perplexity AI API:', {
-            message: error.message,
-            name: error.name,
-            stack: error.stack,
+            message: errorMsg,
+            // @ts-ignore
+            name: error.name, stack: error.stack,
             userPrompt,
             options,
             timestamp: new Date().toISOString(),
         });
-        return new Error(`Failed to call Perplexity AI API: ${error.message}`);
+        return new Error(`Failed to call Perplexity AI API: ${errorMsg}`);
     }
 }
 
@@ -2503,7 +2502,8 @@ async function _testPerplexity() {
             console.log('Perplexity\'s response:', response);
         }
     } catch (error) {
-        console.error(error);
+        const errorMsg = String(error);
+        console.error(errorMsg, error);
     }
 }
 
@@ -2513,7 +2513,7 @@ async function _testPerplexity() {
 
 
 /** @type {CallAIapi} */
-async function callPuterJs(userPrompt) {
+async function _callPuterJs(userPrompt) {
     const res = await puter.ai.chat(userPrompt, {
         model: settingPuterAImodel.value
     });
@@ -2558,6 +2558,11 @@ export function checkIsAIautomated(nameAI) {
 
 
 // From Grok.
+/**
+ * 
+ * @param {Object|null} objJson 
+ * @returns 
+ */
 function estimateJsonObjectTokens(objJson) {
     // Base heuristic: ~4.5 chars per token for strings/numbers
     const charsPerToken = 4.5;
@@ -2604,7 +2609,8 @@ function estimateJsonObjectTokens(objJson) {
     try {
         return countTokens(objJson);
     } catch (error) {
-        console.error('Error estimating tokens:', error);
+        const errorMsg = String(error);
+        console.error('Error estimating tokens:', errorMsg, error);
         return 0;
     }
 }
