@@ -749,11 +749,36 @@ Important:
         sumAI.classList.add("elt-ai-summary");
         const showCompany = company ? company : "unknown";
 
-        const eltLabelCurrentWay = mkElt("b", undefined, `What you must do (${way}${q}): `);
+        // const eltLabelCurrentWay = mkElt("b", undefined, `What you must do (${way}${q}): `);
+        const eltLabelCurrentWay = mkElt("b", undefined, `${way}${q}, what to do: `);
         const eltCurrentWay = mkElt("div", undefined, eltLabelCurrentWay);
         switch (way) {
             case "API":
                 eltCurrentWay.append("Just wait, it is automated.");
+                break;
+            case "web":
+                {
+                    const eltWeb = mkElt("span", undefined, `${nameAI} will be opened in a new tab.`);
+                    const needPaste = (isAndroid && !qA) || ((!isAndroid) && !qW);
+                    if (needPaste) {
+                        eltWeb.append(" You have to paste the AI prompt.");
+                    }
+                    if (isAndroid) {
+                    } else {
+                    }
+                }
+                break;
+            case "PWA":
+                {
+                    const eltPWA = mkElt("span", undefined, `${nameAI} will be opened in a new tab.`);
+                    const needPaste = (isAndroid && !qA) || ((!isAndroid) && !qW);
+                    if (needPaste) {
+                        eltPWA.append(" You have to paste the AI prompt.");
+                    }
+                    if (isAndroid) {
+                    } else {
+                    }
+                }
                 break;
             default:
                 eltCurrentWay.append(`ERROR: no instructions yet for "${way}"`);
