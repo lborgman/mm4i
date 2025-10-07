@@ -76,7 +76,7 @@ function _getFirebaseApp() {
 /**
  * @typedef {Object.<string, any>} aiInfo
  * @property {string} company
- * @property {string} urlCompany
+ * @property {string} urlDescription
  * @property {boolean} [qW]
  * @property {boolean} [qA]
  * @property {string} [comment]
@@ -116,6 +116,7 @@ function _getAIinfoComment(aiInfo, key) {
 const infoAIs = {
     "Gemini": mkAIinfo({
         company: "Google",
+        urlDescription: "https://gemini.google/about/",
         fun: callGeminiAPI,
         pkg: "com.google.android.apps.bard",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg",
@@ -125,6 +126,7 @@ const infoAIs = {
     }),
     "ChatGPT": mkAIinfo({
         company: "OpenAI",
+        urlDescription: "https://openai.com/index/chatgpt/",
         android: "intent://chat.openai.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.openai.chatgpt;end;",
         fun: callOpenAIapi,
         pkg: "com.openai.chatgpt",
@@ -136,6 +138,7 @@ const infoAIs = {
     }),
     "Claude": mkAIinfo({
         company: "Anthropic",
+        urlDescription: "https://www.anthropic.com/",
         pkg: "com.anthropic.claude",
         urlChat: "claude.ai",
         isPWA: true, // 2025-10-04
@@ -143,6 +146,7 @@ const infoAIs = {
     }),
     "Grok": mkAIinfo({
         company: "xAI",
+        urlDescription: "https://x.ai/grok",
         // fun: callGrokApi, // The other version seems better, but I can not test with a valid key
         fun: callOpenAIapi,
         pkg: "ai.x.grok",
@@ -153,6 +157,7 @@ const infoAIs = {
     }),
     "Perplexity": mkAIinfo({
         company: "Perplexity",
+        urlDescription: "https://www.perplexity.ai/hub/getting-started",
         android: "intent://perplexity.sng.link/A6awk/ppas?q=PLACEHOLDER#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;end;",
         qW: true,
         pkg: "ai.perplexity.app.android",
@@ -160,11 +165,6 @@ const infoAIs = {
         isPWA: false, // 2025-10-04
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Perplexity_AI_logo.svg"
     }),
-    /*
-    "Puterjs": mkAIinfo({
-        fun: callPuterjs,
-    }),
-    */
 }
 /**
  * @type {Object<string,string[][]>}
@@ -693,7 +693,7 @@ Important:
         const [k, v] = e;
         const nameAI = k;
         // @ts-ignore
-        const { company, qW, qA, android, urlImg, urlChat, isPWA, fun, urlAPIkey } = v;
+        const { company, urlDescription, qW, qA, android, urlImg, urlChat, isPWA, fun, urlAPIkey } = v;
         // const { qA, qW, android, urlImg, isPWA } = v; // "Gemini"
         const tofIsPWA = typeof isPWA;
         if (tofIsPWA != "boolean") throw Error(`typeof isPWA == "${tofIsPWA}"`);
@@ -749,16 +749,29 @@ Important:
         sumAI.classList.add("elt-ai-summary");
         const showCompany = company ? company : "unknown";
 
-        // const BADulAIdetails = mkElt("div");
-        // BADulAIdetails.style.display = "flex";
-        // BADulAIdetails.style.flexDirection = "column";
-        // BADulAIdetails.style.gap = "20px";
+        const eltLabelCurrentWay = mkElt("b", undefined, `What you must do (${way}${q}): `);
+        const eltCurrentWay = mkElt("div", undefined, eltLabelCurrentWay);
+        switch (way) {
+            case "API":
+                eltCurrentWay.append("Just wait, it is automated.");
+                break;
+            default:
+                eltCurrentWay.append(`ERROR: no instructions yet for "${way}"`);
 
-        // const BADlistAPI = mkElt("div");
-        // BADulAIdetails.appendChild(BADlistAPI);
+        }
+
+        const eltCompany = urlDescription ?
+            // mkElt("span", undefined, "HAVE urlDescription")
+            mkElt("span", { style: "opacity:0.5;" }, [
+                `(You can read about ${nameAI} at `,
+                mkElt("a", { href: urlDescription, target: "_blank" }, showCompany),
+                ")"
+            ])
+            :
+            mkElt("span", undefined, `${nameAI} (from ${showCompany})`);
         const divDetAIcontent = mkElt("div", undefined, [
-            `${nameAI} (from ${showCompany})`,
-            mkElt("div", { style: "opacity:0.5" }, `DEBUG: ${way}${q}`),
+            eltCompany,
+            eltCurrentWay,
         ]);
         divDetAIcontent.classList.add("elt-ai-det-content");
 
