@@ -704,6 +704,55 @@ Important:
             ]),
         ]);
 
+
+
+        // divPuterModels
+        const divPuterModels = mkElt("div", undefined, [
+            mkElt("h3", undefined, "AI models")
+        ]);
+
+        const modPutinModels = await importFc4i("puter-ai-models");
+        const arrModels = modPutinModels.getModels();
+        const oldModel = settingPuterAImodel.value;
+        let providerGroup = "";
+        /** @type {HTMLDivElement} */
+        let divProvider;
+        arrModels.sort().forEach( /** @param {string} fullNameModel */(fullNameModel) => {
+            const radModel = mkElt("input", { type: "radio", name: "puter-model", value: fullNameModel });
+            const longName = fullNameModel.slice(11);
+            const [provider, nameModel] = longName.split("/");
+            if (provider != providerGroup) {
+                providerGroup = provider;
+                // divPuterModels.appendChild( mkElt("div", { style: "font-size:1.3rem; font-weight:bold;" }, `${provider}:`));
+                divProvider = /** @type {HTMLDivElement} */ mkElt("div");
+                const detailsProvider = mkElt("details", undefined, [
+                    mkElt("summary", undefined, makeNiceProviderName(provider)),
+                    divProvider
+                ]);
+                divPuterModels.appendChild(detailsProvider)
+            }
+            const lblModel = mkElt("label", undefined, [radModel, " ", nameModel]);
+            // divPuterModels.appendChild(mkElt("div", undefined, lblModel));
+            divProvider.appendChild(mkElt("div", undefined, lblModel));
+            if (oldModel == fullNameModel) {
+                radModel.checked = true;
+                const eltDetails = lblModel.closest("details");
+                if (!eltDetails) throw Error("Did not find <details>");
+                eltDetails.open = true;
+            }
+        });
+        divPuterModels.addEventListener("click", evt => {
+            evt.stopPropagation();
+            evt.stopImmediatePropagation();
+            const trg = evt.target;
+            const tn = trg.tagName;
+            if (tn != "INPUT") return;
+            const nameModel = trg.value;
+            console.log({ nameModel });
+            settingPuterAImodel.value = nameModel;
+        });
+
+
         const detInfoAutomated = mkElt("details", { style: "color:lightskyblue; margin-top:20px;" }, [
             mkElt("summary", { style: "color:lightskyblue" }, "Info about these AI models"),
             eltInfoAutomated,
@@ -712,6 +761,7 @@ Important:
         const divDetAIcontent = mkElt("div", undefined, [
             "Much more to come here!",
             detInfoAutomated,
+            divPuterModels,
         ]);
         divDetAIcontent.classList.add("elt-ai-det-content");
 
@@ -1266,7 +1316,7 @@ Important:
     */
     const divSettingsAutomated = mkElt("div", undefined, [
         // detInfoAutomated,
-        divPuterModels
+        divPuterModels,
     ]);
     // divSettingsAutomated.id = "div-settings-puter";
 
@@ -1562,6 +1612,11 @@ Important:
     }
 
     const currentAIname = settingUsedAIname.value;
+    checkIsAIchoosen();
+    if (currentAIname == "") {
+        return;
+    }
+
     if (checkIsAIautomated(currentAIname)) {
         const doIitNow = confirm(`AI ${currentAIname} is automated. Make mindmap directly?`);
         if (!doIitNow) return;
@@ -1570,28 +1625,29 @@ Important:
     }
 
 
-    checkIsAIchoosen();
+
+    function tellIfAIisChoosen(b, nameAI) {
+        console.log("tellIfAIisChoosen", { b, nameAI });
+        btnGo.inert = !b;
+        if (b) {
+            document.documentElement.classList.add("ai-is-choosen");
+        } else {
+            document.documentElement.classList.remove("ai-is-choosen");
+        }
+        return b;
+    }
+
     function checkIsAIchoosen() {
         console.warn("checkIsAIchoosen: typeof btnGo", typeof btnGo);
         /** @param {boolean} b * @param {string} [nameAI] * @returns {boolean} */
-        const tellChoosen = (b, nameAI) => {
-            console.log("checkIsAIchoosen", { b, nameAI });
-            btnGo.inert = !b;
-            if (b) {
-                document.documentElement.classList.add("ai-is-choosen");
-            } else {
-                document.documentElement.classList.remove("ai-is-choosen");
-            }
-            return b;
-        }
         const eltAI = divAIhardWay.querySelector("input[type=radio][name=ai]:checked");
-        if (!eltAI) return tellChoosen(false);
+        if (!eltAI) return tellIfAIisChoosen(false);
         const nameAI = eltAI.value;
-        if (nameAI != "") return tellChoosen(true, nameAI);
-        if (nameAI != "PuterJS") return tellChoosen(true, nameAI);
+        if (nameAI == "") return tellIfAIisChoosen(false, nameAI);
+        if (nameAI != "PuterJs") return tellIfAIisChoosen(true, nameAI);
         const model = settingPuterAImodel.value;
-        if (model == "") return tellChoosen(false, nameAI);
-        return tellChoosen(true, `${nameAI}, ${model}`);
+        if (model == "") return tellIfAIisChoosen(false, nameAI);
+        return tellIfAIisChoosen(true, `${nameAI}, ${model}`);
     }
 }
 
@@ -1789,6 +1845,11 @@ export function getWayToCallAI(nameAI) {
         return { way: "API", copyQ: false, hasWebAPI: true };
     }
     const infoThisAI = infoAIs[nameAI];
+    if (!infoThisAI) {
+        // FIX-ME:
+        debugger;
+        return { way: "API", copyQ: false, hasWebAPI: true };
+    }
     // First try API
     const funAPI = infoThisAI.fun;
     const hasWebAPI = !!funAPI;
