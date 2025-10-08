@@ -674,7 +674,45 @@ Important:
         sumAI.classList.add("elt-ai-summary");
         sumAI.style.top = "20px";
 
-        const divDetAIcontent = mkElt("div", undefined, "Much more to come here!");
+        // "Automated"
+        const iconAutomated = modMdc.mkMDCicon("smart_toy");
+        iconAutomated.style.color = "goldenrod";
+        iconAutomated.style.fontSize = "1.4rem";
+        const eltInfoAutomated = mkElt("div", undefined, [
+            mkElt("p", undefined, [
+                iconAutomated,
+                ` The AI:s below are automated here. 
+            This means that when they are ready the mindmap will be created automatically.
+        `]),
+            mkElt("p", undefined, [
+                `These AI:s are handled by `,
+                mkElt("a", { href: "https://puter.com/settings", target: "_blank" }, "https://puter.com"),
+                ` - a service that helps me automate.
+            (I am not in any way involved in payments. And I do not get anything.)
+        `]),
+            mkElt("p", undefined, [
+                `Puter takes care of paying for these AI:s.
+            You will have to pay through Puter.
+            I am not involved in any way in that.
+            Click the link above to find out more.
+            `
+            ]),
+            mkElt("p", undefined, [
+                `You can probably create a few mindmaps each day for free.
+            I am not sure about that.
+            `
+            ]),
+        ]);
+
+        const detInfoAutomated = mkElt("details", { style: "color:lightskyblue; margin-top:20px;" }, [
+            mkElt("summary", { style: "color:lightskyblue" }, "Info about these AI models"),
+            eltInfoAutomated,
+        ]);
+
+        const divDetAIcontent = mkElt("div", undefined, [
+            "Much more to come here!",
+            detInfoAutomated,
+        ]);
         divDetAIcontent.classList.add("elt-ai-det-content");
 
         const detAI = mkElt("details", undefined, [
@@ -752,17 +790,49 @@ Important:
         // const eltLabelCurrentWay = mkElt("b", undefined, `What you must do (${way}${q}): `);
         const eltLabelCurrentWay = mkElt("b", undefined, `${way}${q}, what to do: `);
         const eltCurrentWay = mkElt("div", undefined, eltLabelCurrentWay);
+        eltCurrentWay.style = `
+            background: lightskyblue;
+            padding: 5px;
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            gap: 5px;
+            `;
+
+        const addWhatToDo = () => {
+            let numDo = 0;
+            /** @param {string} txt */
+            const addDo = (txt) => {
+                numDo++;
+                const bNum = mkElt("b", undefined, `${numDo}.`);
+                bNum.style.marginRight = "10px";
+                const spanDo = mkElt("span", undefined, [bNum, txt]);
+                spanDo.style = `
+                    NOpadding: 2px;
+                    NOborder: 1px solid red;
+                    `;
+                eltCurrentWay.appendChild(spanDo);
+            }
+            if (way == "API") {
+                addDo("Just wait, it is automated.");
+                return;
+            }
+            const qValue = isAndroid ? qA : qW;
+            const needPaste = (qValue == false);
+            const needStart = needPaste || (qValue != "auto");
+
+            if (needPaste) { addDo("In AI: Paste the prompt."); }
+            if (needStart) { addDo("In AI: Click send button."); }
+            addDo("In AI: Copy answer");
+            addDo("Here: Paste the answer below");
+        }
+        addWhatToDo();
         switch (way) {
             case "API":
-                eltCurrentWay.append("Just wait, it is automated.");
                 break;
             case "web":
                 {
                     const eltWeb = mkElt("span", undefined, `${nameAI} will be opened in a new tab.`);
-                    const needPaste = (isAndroid && !qA) || ((!isAndroid) && !qW);
-                    if (needPaste) {
-                        eltWeb.append(" You have to paste the AI prompt.");
-                    }
                     if (isAndroid) {
                     } else {
                     }
@@ -787,10 +857,9 @@ Important:
 
         const eltCompany = urlDescription ?
             // mkElt("span", undefined, "HAVE urlDescription")
-            mkElt("span", { style: "opacity:0.5;" }, [
-                `(You can read about ${nameAI} at `,
+            mkElt("span", { style: "opacity:0.5; display:flex; justify-content:flex-end;" }, [
+                `Read about ${nameAI} at `,
                 mkElt("a", { href: urlDescription, target: "_blank" }, showCompany),
-                ")"
             ])
             :
             mkElt("span", undefined, `${nameAI} (from ${showCompany})`);
@@ -1020,7 +1089,6 @@ Important:
         const nameAI = inpAI.value;
 
         let keyAPI = getAPIkeyForAI(nameAI);
-        // keyAPI = keyAPI || "just testing...";
         if (!keyAPI) {
             // debugger;
             const inpKey = mkElt("input", { type: "text" });
@@ -1162,6 +1230,7 @@ Important:
         settingPuterAImodel.value = nameModel;
     });
 
+    /*
     const iconAutomated = modMdc.mkMDCicon("smart_toy");
     iconAutomated.style.color = "goldenrod";
     iconAutomated.style.fontSize = "1.4rem";
@@ -1194,8 +1263,9 @@ Important:
         mkElt("summary", { style: "color:blue" }, "Info about these AI models"),
         eltInfoAutomated,
     ]);
+    */
     const divSettingsAutomated = mkElt("div", undefined, [
-        detInfoAutomated,
+        // detInfoAutomated,
         divPuterModels
     ]);
     // divSettingsAutomated.id = "div-settings-puter";
