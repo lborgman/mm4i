@@ -491,7 +491,7 @@ function alertRealError(msg, e) {
             }
         }
     } catch (e) {
-        const errMsg = e instanceof Error? e.message: e.toString();
+        const errMsg = e instanceof Error ? e.message : e.toString();
         contextStr += "\n* Error checking logged in: " + errMsg;
     }
 
@@ -1171,17 +1171,37 @@ export async function fetchReTLD() {
     return reTLD;
 }
 
-export async function copyTextToClipboard(url) {
+/**
+ * 
+ * @param {string} txt 
+ * @param {boolean} [noSnackbar]
+ */
+export async function copyTextToClipboard(txt, noSnackbar) {
+    const addSnackbar = noSnackbar == undefined ? true : !noSnackbar;
     const modMdc = await importFc4i("util-mdc");
-    navigator.clipboard.writeText(url)
-        .then(() => {
-            modMdc.mkMDCsnackbar('Copied to clipboard');
-        })
-        .catch(error => {
-            console.error('Error copying:', error);
-            debugger; // eslint-disable-line no-debugger
-            alert('Copy this link: ' + url);
-        });
+    try {
+        await navigator.clipboard.writeText(txt);
+        if (addSnackbar) modMdc.mkMDCsnackbar('Copied to clipboard');
+        return true;
+    } catch (error) {
+        const errMsg = String(error);
+        console.error('Error copying:', errMsg);
+        debugger; // eslint-disable-line no-debugger
+        alert('Error copying: ' + errMsg);
+        return false;
+    };
+}
+export async function getTextFromClipboard() {
+    try {
+        const txt = await navigator.clipboard.readText();
+        return txt;
+    } catch (error) {
+        const errMsg = String(error);
+        const msg = `Error reading text from clipboard: ${errMsg}`;
+        console.error(msg, error);
+        debugger; // eslint-disable-line no-debugger
+        alert(msg);
+    }
 }
 
 export function showInfoPermissionsClipboard() {
@@ -2735,7 +2755,7 @@ export function extractJSONparseError(errorMessage, strJson) {
 
     // Extract context
     const before = strJson.slice(Math.max(0, pos - 49), pos);
-    const errorChar = strJson[pos] || '';
+    const errorChar = strJson[pos] || '*END*';
     const after = strJson.slice(pos + 1, pos + 50);
 
     // Line and column

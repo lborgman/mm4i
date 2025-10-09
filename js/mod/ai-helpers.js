@@ -456,6 +456,10 @@ Important:
     eltAItextareaStatus.style.lineHeight = "1";
     // @ts-ignore
     let toDoIt; let eltDialog;
+    /** @type {HTMLDivElement|undefined} */
+    let divErrorLocation;
+    /** @type {HTMLDivElement|undefined} */
+    let divAIjsonError;
     function onAItextareaInput() {
         eltAItextareaStatus.style.color = "unset";
         // valid
@@ -465,25 +469,73 @@ Important:
             eltAItextareaStatus.textContent = "";
             return;
         }
+        handleAIraw(strAIraw);
+    }
+
+    /** * @param {string} strAIraw */
+    function handleAIraw(strAIraw) {
+
         // @ts-ignore
         const { strAIjson, cleaned } = getJsonFromAIstr(strAIraw);
 
         /** @param {string} txt */
         const tellError = (txt) => {
-            const divTheError = mkElt("div", undefined, txt);
-            divTheError.style.userSelect = "all";
-            divTheError.style.color = "darkred";
-            divTheError.style.userSelect = "all";
-            divTheError.style.marginTop = "10px";
-            // eltAItextareaStatus.appendChild(mkElt("div", undefined, `Tell your AI that the JSON had this error:`));
+            divAIjsonError = mkElt("div", undefined, txt);
+            if (divAIjsonError == undefined) throw Error(`divAIjsonError == undefined`);
+            divAIjsonError.classList.add("ai-json-error");
 
-            const btnInfo = modMdc.mkMDCiconButton("help", "What are search links?");
-            // btnInfo.style = `color: blue;`;
-            btnInfo.addEventListener("click", () => {
-                alert("not ready");
+            const divAIjsonTrouble = mkElt("div", undefined, "Error: AI answer format trouble");
+            if (divAIjsonTrouble == undefined) throw Error(`divAIjsonTrouble == undefined`);
+            divAIjsonTrouble.classList.add("ai-json-error");
+
+            const btnInfoTrouble = modMdc.mkMDCbutton("Explain", "raised");
+            btnInfoTrouble.title = "What happened?";
+            // btnInfoTrouble.style = `color: red;`;
+            btnInfoTrouble.addEventListener("click", () => {
+                const btnShowJson = modMdc.mkMDCbutton("Show JSON", "raised");
+                const preAIraw = mkElt("pre", undefined, strAIraw);
+                preAIraw.style = `
+                    background-color: white;
+                    padding: 5px;
+                    overflow-x: auto;
+                    border: 1px solid lightgray;
+                    `;
+                btnShowJson.addEventListener("click", () => {
+                    const body = mkElt("div", undefined, [
+                        mkElt("h3", undefined, "AI answer"),
+                        preAIraw
+                    ]);
+                    modMdc.mkMDCdialogAlert(body);
+                });
+                const btnCopyError = modMdc.mkMDCbutton("Copy AI error", "raised");
+                btnCopyError.addEventListener("click", async () => {
+                    // const de = document.getElementById("div-ai-json-error");
+                    // if (!de) throw Error(`Could not find "#div-ai-json-error"`)
+                    const de = divAIjsonError;
+                    const errorText = de.textContent;
+                    const copied = await modTools.copyTextToClipboard(errorText);
+                    if (copied) modMdc.mkMDCsnackbar(`Copied "${errorText}"`);
+                });
+                const divButtons = mkElt("div", undefined, [
+                    btnCopyError,
+                    btnShowJson,
+                ]);
+                divButtons.style.display = "flex";
+                divButtons.style.gap = "10px";
+                if (divErrorLocation == undefined) throw Error(`divErrorLocation is ${divErrorLocation}`)
+                divErrorLocation.remove();
+                if (divAIjsonError == undefined) throw Error(`divAIjsonError is ${divErrorLocation}`)
+                divAIjsonError.remove();
+                const body = mkElt("div", undefined, [
+                    mkElt("h2", undefined, "JSON was not ok"),
+                    divAIjsonError,
+                    divErrorLocation,
+                    divButtons,
+                ]);
+                modMdc.mkMDCdialogAlert(body);
             });
 
-            const divError = mkElt("div", undefined, [divTheError, btnInfo]);
+            const divError = mkElt("div", undefined, [divAIjsonTrouble, btnInfoTrouble]);
             divError.style = ` display: flex; flex-direction: row; gap: 5px; `;
             eltAItextareaStatus.appendChild(divError);
         }
@@ -525,7 +577,10 @@ Important:
             tellError(errorMsg);
             // @ts-ignore
             const objJsonErrorDetails = modTools.extractJSONparseError(errorMsg, strAIjson);
-            const divErrorLocation = mkElt("div");
+            divErrorLocation = mkElt("div");
+            if (divErrorLocation == undefined) throw Error(`divErrorLocation == undefined`);
+            divErrorLocation.id = "div-error-location";
+
             if (objJsonErrorDetails.context) {
                 const eltBefore = mkElt("span", undefined,
                     objJsonErrorDetails.context.before
@@ -545,7 +600,7 @@ Important:
                 divErrorLocation.style.marginTop = "10px";
                 divErrorLocation.style.backgroundColor = "yellow";
                 divErrorLocation.style.whiteSpace = "pre-wrap";
-                eltAItextareaStatus.append(divErrorLocation);
+                // eltAItextareaStatus.append(divErrorLocation);
             }
         }
     }
@@ -597,8 +652,21 @@ Important:
     ]);
     divAIpaste.id = "div-ai-paste";
 
+    const btnCopyCliboard = modMdc.mkMDCbutton("I've copied AI´s answer", "raised");
+    btnCopyCliboard.addEventListener("click", async () => {
+        const txt = await modTools.getTextFromClipboard();
+        console.log("btnCopyClipboad, length: ", txt.length);
+        // alert("not ready, just nearly ready");
+        // onAItextareaInput();
+        handleAIraw(txt);
+    });
+    const divCopyClipboard = mkElt("div", undefined, [
+        btnCopyCliboard,
+    ]);
+
     const eltDivAI = mkElt("p", undefined, [
         divAIpaste,
+        divCopyClipboard,
         eltAItextareaStatus,
     ]);
     eltDivAI.classList.add("VK_FOCUS");
