@@ -656,8 +656,6 @@ Important:
     btnCopyCliboard.addEventListener("click", async () => {
         const txt = await modTools.getTextFromClipboard();
         console.log("btnCopyClipboad, length: ", txt.length);
-        // alert("not ready, just nearly ready");
-        // onAItextareaInput();
         handleAIraw(txt);
     });
     const divCopyClipboard = mkElt("div", undefined, [
@@ -665,7 +663,7 @@ Important:
     ]);
 
     const eltDivAI = mkElt("p", undefined, [
-        divAIpaste,
+        // divAIpaste,
         divCopyClipboard,
         eltAItextareaStatus,
     ]);
