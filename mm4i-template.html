@@ -1543,12 +1543,19 @@
         }
 
         #div-ai-paste {
-            opacity: 1;
+            opacity: 0;
             transition: opacity 2s;
         }
 
-        .no-paste-ai #div-ai-paste {
+        #div-ai-clipboard {
+            margin-top: 20px;
+            transition: opacity 2s;
             opacity: 0;
+            visibility: hidden;
+        }
+        .have-ai-on-clipboard #div-ai-clipboard {
+            opacity: 1;
+            visibility: unset;
         }
 
         #btn-go {

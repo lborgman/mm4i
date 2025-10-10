@@ -645,12 +645,14 @@ Important:
         ]),
     ]);
 
-    const eltPasteAnswer = mkElt("div", undefined, "Paste AI´s answer here:");
+    const eltTellPasteAnswer = mkElt("div", undefined,
+        "If the button above does not work you can instead paste AI´s answer here:");
     const divAIpaste = mkElt("div", undefined, [
-        eltPasteAnswer,
+        eltTellPasteAnswer,
         eltAItextarea,
     ]);
     divAIpaste.id = "div-ai-paste";
+    divAIpaste.style.display = "none";
 
     const btnCopyCliboard = modMdc.mkMDCbutton("I've copied AI´s answer", "raised");
     btnCopyCliboard.addEventListener("click", async () => {
@@ -658,16 +660,17 @@ Important:
         console.log("btnCopyClipboad, length: ", txt.length);
         handleAIraw(txt);
     });
-    const divCopyClipboard = mkElt("div", undefined, [
+    const divBtnCopyClipboard = mkElt("div", undefined, [
         btnCopyCliboard,
     ]);
 
-    const eltDivAI = mkElt("p", undefined, [
-        // divAIpaste,
-        divCopyClipboard,
+    const eltDivAIclipboard = mkElt("div", undefined, [
+        divBtnCopyClipboard,
+        divAIpaste,
         eltAItextareaStatus,
     ]);
-    eltDivAI.classList.add("VK_FOCUS");
+    eltDivAIclipboard.id = "div-ai-clipboard";
+    // eltDivAIclipboard.classList.add("VK_FOCUS");
 
     const cardInput = mkElt("p", { class: "mdc-card display-flex" }, [
         mkElt("div", undefined, `Article or video to summarize as a mindmap: `),
@@ -1053,6 +1056,7 @@ Important:
     });
     // @ts-ignore
     divAIhardWay.addEventListener("change", evt => {
+        cantHaveAIonClipboard();
         const t = evt.target;
         if (!t) return;
         // @ts-ignore
@@ -1106,6 +1110,8 @@ Important:
             const modTools = await importFc4i("toolsJs");
             await modTools.copyTextToClipboard(promptAI);
             divGoStatus.textContent = "Copied prompt. ";
+            // document.documentElement.classList.add("have-ai-on-clipboard");
+            mayHaveAIonClipboard();
         }
 
         nameUsedAI = nameAI
@@ -1270,7 +1276,7 @@ Important:
         divAIhardWay,
         divBtnCopy,
         // mkElt("div", { style: "margin:30px;" }, aTestG),
-        mkElt("div", undefined, eltDivAI),
+        mkElt("div", undefined, eltDivAIclipboard),
     ]);
     divTabForGo.id = "hard-way";
     divTabForGo.style = styleWays;
@@ -1984,8 +1990,8 @@ async function callTheAI(nameAI, promptAI) {
         const thisAIisPWA = getAIinfoValue(infoThisAI, "isPWA");
         const tofIsPWA = typeof thisAIisPWA;
         if (tofIsPWA != "boolean") throw Error(`typeof isPWA == "${tofIsPWA}"`);
-        const pwaIndicator = thisAIisPWA ? "/PWA" : "";
-        divGoStatus.append(`Opening web${pwaIndicator} chat: ${nameAI}`);
+        const pwaIndicator = thisAIisPWA ? " (PWA)" : "";
+        divGoStatus.append(`Opening ${nameAI} web${pwaIndicator} chat.`);
         // if (thisAIisPWA) divGoStatus.append(`, PWA`);
         await modTools.waitSeconds(2);
 
@@ -2768,11 +2774,17 @@ function makeNiceProviderName(provider) {
     return provider;
 }
 
+export function showAIclipboardDiv() {
+    const div = document.getElementById("div-ai-clipboard");
+    if (div == null) throw Error("Did not get #div-ai-clipboard");
+    div.style.display = "unset";
+}
+
 export function showAIpasteDiv() {
     const div = document.getElementById("div-ai-paste");
     if (div == null) throw Error("Did not get #div-ai-paste");
-    // console.warn("showAIpasteDiv", { div });
     div.inert = false;
+    div.style.display = "unset";
 }
 export function hideAIpasteDiv() {
     const div = document.getElementById("div-ai-paste");
@@ -2788,6 +2800,7 @@ export function checkIsAIautomated(nameAI) {
     } else {
         document.body.classList.remove("no-paste-ai");
         // showAIpasteDiv();
+        // showAIclipboardDiv();
     }
     return document.body.classList.contains("no-paste-ai");
 }
@@ -2873,3 +2886,10 @@ function _testEstimateTokens() {
 
 // Run tests
 // _testEstimateTokens();
+
+function mayHaveAIonClipboard() {
+    document.documentElement.classList.add("have-ai-on-clipboard");
+}
+function cantHaveAIonClipboard() {
+    document.documentElement.classList.remove("have-ai-on-clipboard");
+}
