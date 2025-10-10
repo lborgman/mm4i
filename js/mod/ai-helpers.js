@@ -685,8 +685,8 @@ Important:
             `;
     // cardInput.classList.add("VK_FOCUS");
 
-    const divAIhardWay = mkElt("div", { class: "elts-ai" });
-    divAIhardWay.style.marginBottom = "10px";
+    const divEltsAI = mkElt("div", { class: "elts-ai" });
+    divEltsAI.style.marginBottom = "10px";
 
     /*
     {
@@ -844,7 +844,7 @@ Important:
         const eltAI = mkElt("div", undefined, [eltAIlabel, detAI]);
         eltAI.classList.add("elt-ai");
         eltAI.id = "elt-ai-puter";
-        divAIhardWay.appendChild(eltAI);
+        divEltsAI.appendChild(eltAI);
     }
     Object.entries(infoAIs).forEach(e => { // "elt-ai"
         const [k, v] = e;
@@ -1052,10 +1052,10 @@ Important:
         ]);
         const eltAI = mkElt("div", undefined, [lblAI, detAI]);
         eltAI.classList.add("elt-ai");
-        divAIhardWay.appendChild(eltAI);
+        divEltsAI.appendChild(eltAI);
     });
     // @ts-ignore
-    divAIhardWay.addEventListener("change", evt => {
+    divEltsAI.addEventListener("change", evt => {
         cantHaveAIonClipboard();
         const t = evt.target;
         if (!t) return;
@@ -1069,7 +1069,7 @@ Important:
     {
         const currentAIname = settingUsedAIname.value;
         if (currentAIname.length > 0) {
-            const radCurrentAI = divAIhardWay.querySelector(`input[type=radio][value="${currentAIname}"]`);
+            const radCurrentAI = divEltsAI.querySelector(`input[type=radio][value="${currentAIname}"]`);
             if (radCurrentAI) { radCurrentAI.checked = true; }
             checkIsAIautomated(currentAIname);
         }
@@ -1273,7 +1273,7 @@ Important:
     const divTabForGo = mkElt("div", undefined, [
         mkElt("div", undefined, cardPrompt),
         // divListAIhardWay,
-        divAIhardWay,
+        divEltsAI,
         divBtnCopy,
         // mkElt("div", { style: "margin:30px;" }, aTestG),
         mkElt("div", undefined, eltDivAIclipboard),
@@ -1502,40 +1502,24 @@ Important:
         divSettingsNotPuter.appendChild(eltDetails);
     });
 
-    const tabRecs = ["Call AI", "AIs Settings"];
-    // const contentElts = mkElt("div", undefined, [divTabForGo, divTabSettings]);
-    const contentElts = mkElt("div", undefined, [divTabForGo, divEltsAIsettingsTabs]);
-    if (tabRecs.length != contentElts.childElementCount) throw Error("Tab bar setup number mismatch");
-    const eltTabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, undefined);
+    // const tabRecs = ["Call AI", "AIs Settings"];
+    const tabRecs = ["Call AI" ];
+    // const contentElts = mkElt("div", undefined, [divTabForGo, divEltsAIsettingsTabs]);
+    const contentElts = mkElt("div", undefined, [divTabForGo]);
 
-    /*
-    puterDisplay();
-    // const chkUsePuterJs = settingUsePuterJs.getInputElement();
-    chkUsePuterJs.addEventListener("input", () => puterDisplay());
-    function puterDisplay() {
-        const usePuter = settingUsePuterJs.valueB;
-        if (usePuter) {
-            document.body.classList.add("use-puter");
-        } else {
-            document.body.classList.remove("use-puter");
-        }
-    }
-    */
+    if (tabRecs.length != contentElts.childElementCount) throw Error("Tab bar setup number mismatch");
+    const eltAItabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, undefined);
+
 
     const btnPuterUser = modMdc.mkMDCbutton("Puter user");
     btnPuterUser.addEventListener("click", () => {
         window.open("https://puter.com/settings");
     });
 
-    const divTabs = mkElt("p", undefined, [eltTabs, contentElts]);
+    const divAItabs = mkElt("p", undefined, [eltAItabs, contentElts]);
     const divWays = mkElt("div", undefined, [
-        /*
-        mkElt("p", undefined, [
-            mkElt("label", undefined, ["Use Puter.js: ", chkUsePuterJs]),
-            btnPuterUser
-        ]),
-        */
-        divTabs
+        // divAItabs
+        divTabForGo
     ]);
     divWays.id = "div-ways";
     divWays.style.display = "none";
@@ -1712,7 +1696,7 @@ Important:
     function checkIsAIchoosen() {
         console.warn("checkIsAIchoosen: typeof btnGo", typeof btnGo);
         /** @param {boolean} b * @param {string} [nameAI] * @returns {boolean} */
-        const eltAI = divAIhardWay.querySelector("input[type=radio][name=ai]:checked");
+        const eltAI = divEltsAI.querySelector("input[type=radio][name=ai]:checked");
         if (!eltAI) return tellIfAIisChoosen(false);
         const nameAI = eltAI.value;
         if (nameAI == "") return tellIfAIisChoosen(false, nameAI);
