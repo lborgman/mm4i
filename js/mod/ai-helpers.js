@@ -21,7 +21,10 @@ const importFc4i = window["importFc4i"];
 const userAgent = navigator.userAgent.toLowerCase();
 const isAndroid = userAgent.indexOf("android") > -1;
 
+// @ts-ignore
+/** @type { import('../../js/mod/local-settings.js') } */
 const modLocalSettings = await importFc4i("local-settings");
+/** @extends modLocalSettings.LocalSetting */
 class SettingsMm4iAI extends modLocalSettings.LocalSetting {
     /**
      * 
@@ -32,6 +35,7 @@ class SettingsMm4iAI extends modLocalSettings.LocalSetting {
 }
 const settingPuterAImodel = new SettingsMm4iAI("puter-ai-model", "");
 const settingUsedAIname = new SettingsMm4iAI("used-ai-name", "");
+const settingProceedAPI = new SettingsMm4iAI("proceed-api", true);
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -512,6 +516,7 @@ Important:
                     // const de = document.getElementById("div-ai-json-error");
                     // if (!de) throw Error(`Could not find "#div-ai-json-error"`)
                     const de = divAIjsonError;
+                    if (!de) throw Error(`!de`)
                     const errorText = de.textContent;
                     const copied = await modTools.copyTextToClipboard(errorText);
                     if (copied) modMdc.mkMDCsnackbar(`Copied "${errorText}"`);
@@ -654,7 +659,10 @@ Important:
     divAIpaste.id = "div-ai-paste";
     divAIpaste.style.display = "none";
 
-    const btnCopyCliboard = modMdc.mkMDCbutton("I've copied AI´s answer", "raised");
+    const txtBtnCopyCliboard = "I've copied AI answer";
+    // const btnCopyCliboard = modMdc.mkMDCbutton("I've copied AI´s answer", "raised");
+    const btnCopyCliboard = modMdc.mkMDCbutton(txtBtnCopyCliboard, "raised");
+    btnCopyCliboard.style.textTransform = "none";
     btnCopyCliboard.addEventListener("click", async () => {
         const txt = await modTools.getTextFromClipboard();
         console.log("btnCopyClipboad, length: ", txt.length);
@@ -713,7 +721,9 @@ Important:
         wayIndicator.style.color = "lightseagreen";
         const radAI = mkElt("input", { type: "radio", name: "ai", value: "PuterJs" });
 
-        const longNameModel = settingPuterAImodel.value;
+        const longNameModel = /** @type {string} */ (settingPuterAImodel.value);
+        const tofLongNM = typeof longNameModel;
+        if (tofLongNM != "string") throw Error(`typeof longNameModel = "${tofLongNM}"`);
         const nameModel = longNameModel.slice(11);
         const [provider, model] = nameModel.split("/");
         const niceProvider = makeNiceProviderName(provider);
@@ -775,7 +785,7 @@ Important:
 
 
 
-        // divPuterModels
+        /** @type {HTMLDivElement} */
         const divPuterModels = mkElt("div", undefined, [
             mkElt("h3", undefined, "AI models")
         ]);
@@ -810,13 +820,17 @@ Important:
                 eltDetails.open = true;
             }
         });
+
+        /** * @param {MouseEvent} evt - The mouse event triggered by the click.  */
         divPuterModels.addEventListener("click", evt => {
             evt.stopPropagation();
             evt.stopImmediatePropagation();
+            if (!(evt.target instanceof HTMLElement)) { return; }
             const trg = evt.target;
             const tn = trg.tagName;
             if (tn != "INPUT") return;
-            const nameModel = trg.value;
+            // const nameModel = trg.value;
+            const nameModel = (/** @type {HTMLInputElement} */ (trg)).value;
             console.log({ nameModel });
             settingPuterAImodel.value = nameModel;
         });
@@ -926,10 +940,6 @@ Important:
                 const bNum = mkElt("b", undefined, `${numDo}.`);
                 bNum.style.marginRight = "10px";
                 const spanDo = mkElt("span", undefined, [bNum, txt]);
-                spanDo.style = `
-                    NOpadding: 2px;
-                    NOborder: 1px solid red;
-                    `;
                 eltCurrentWay.appendChild(spanDo);
             }
             if (way == "API") {
@@ -942,8 +952,12 @@ Important:
 
             if (needPaste) { addDo("In AI: Paste the prompt."); }
             if (needStart) { addDo("In AI: Click send button."); }
-            addDo("In AI: Copy answer");
-            addDo("Here: Paste the answer below");
+            addDo("In AI: Copy AI answer");
+            // addDo("Here: Paste the answer below");
+            addDo(mkElt("span", undefined, [
+                "Here: ",
+                "Click ", mkElt("i", undefined, txtBtnCopyCliboard),
+            ]));
         }
         addWhatToDo();
         switch (way) {
@@ -951,7 +965,7 @@ Important:
                 break;
             case "web":
                 {
-                    const eltWeb = mkElt("span", undefined, `${nameAI} will be opened in a new tab.`);
+                    // const eltWeb = mkElt("span", undefined, `${nameAI} will be opened in a new tab.`);
                     if (isAndroid) {
                     } else {
                     }
@@ -1007,40 +1021,32 @@ Important:
             lbl.style = "display:grid; grid-template-columns: auto 1fr; gap: 10px;";
 
             const divAPIinfo = mkElt("div", undefined, [
-                "Can show the mindmap automatically, but it requires an API key.",
+                "Automated with an API key.",
             ]);
             if (urlAPIkey) {
                 const aAPIkey = mkElt("a", {
                     href: urlAPIkey,
                     target: "_blank"
-                }, `Get an API key for ${nameAI}`);
+                }, `here`);
                 // @ts-ignore
-                const spanAPIkeyInfo = mkElt("span", undefined, [" (", aAPIkey, ".)"]);
+                const spanAPIkeyInfo = mkElt("span", undefined, [" Get it ", aAPIkey, "."]);
                 divAPIinfo.appendChild(spanAPIkeyInfo);
+            } else {
+                divAPIinfo.appendChild(mkElt("span", undefined, ` (Where to get it for ${nameAI}?)`));
             }
-            // BADlistAPI.appendChild(divAPIinfo);
-            // BADulAIdetails.appendChild(divAPIinfo);
             divDetAIcontent.appendChild(divAPIinfo);
-            // BADlistAPI.appendChild(lbl);
-            // BADulAIdetails.appendChild(lbl);
             divDetAIcontent.appendChild(lbl);
         }
         if (isAndroid) {
             if (android) {
-                // const listAndroid = mkElt("list");
-                // BADulAIdetails.appendChild(listAndroid);
                 let strCan = "Can start Android app";
                 if (qA) strCan = `${strCan} with prompt`;
-                // listAndroid.appendChild(mkElt("span", undefined, strCan));
                 divDetAIcontent.appendChild(mkElt("span", undefined, strCan));
             }
         }
         if (urlChat) {
             if (qW) {
-                // const listWeb = mkElt("list");
-                // BADulAIdetails.appendChild(listWeb);
                 const strCan = `Web chat adds the prompt for you`;
-                // listWeb.appendChild(mkElt("span", undefined, strCan));
                 divDetAIcontent.appendChild(mkElt("span", undefined, strCan));
             }
         }
@@ -1056,22 +1062,23 @@ Important:
     });
     // @ts-ignore
     divEltsAI.addEventListener("change", evt => {
-        cantHaveAIonClipboard();
+        // cantHaveAIonClipboard();
+        setCSSforAIonClipboard(false);
         const t = evt.target;
         if (!t) return;
         // @ts-ignore
         const nameAI = t.value;
         settingUsedAIname.value = nameAI;
         divGoStatus.textContent = "";
-        checkIsAIautomated(nameAI);
+        isAutomatedAI(nameAI);
         checkIsAIchoosen();
     });
     {
-        const currentAIname = settingUsedAIname.value;
+        const currentAIname = /** @type {string} */ (settingUsedAIname.value);
         if (currentAIname.length > 0) {
             const radCurrentAI = divEltsAI.querySelector(`input[type=radio][value="${currentAIname}"]`);
             if (radCurrentAI) { radCurrentAI.checked = true; }
-            checkIsAIautomated(currentAIname);
+            isAutomatedAI(currentAIname);
         }
     }
 
@@ -1111,8 +1118,9 @@ Important:
             await modTools.copyTextToClipboard(promptAI);
             divGoStatus.textContent = "Copied prompt. ";
             // document.documentElement.classList.add("have-ai-on-clipboard");
-            mayHaveAIonClipboard();
+            // mayHaveAIonClipboard();
         }
+        setCSSforAIonClipboard(way != "API");
 
         nameUsedAI = nameAI
         if (nameAI == "none") {
@@ -1311,6 +1319,8 @@ Important:
     divSettingsNotPuter.id = "div-settings-not-puter";
     const modPutinModels = await importFc4i("puter-ai-models");
     const arrModels = modPutinModels.getModels();
+
+    /** @type {HTMLDivElement} */
     const divPuterModels = mkElt("div", undefined, [
         mkElt("h3", undefined, "AI models")
     ]);
@@ -1342,50 +1352,20 @@ Important:
             eltDetails.open = true;
         }
     });
+
+    /** * @param {MouseEvent} evt - The mouse event triggered by the click.  */
     divPuterModels.addEventListener("click", evt => {
         evt.stopPropagation();
+        if (!(evt.target instanceof HTMLElement)) { return; }
         const trg = evt.target;
         const tn = trg.tagName;
         if (tn != "INPUT") return;
-        const nameModel = trg.value;
+        // const nameModel = trg.value;
+        const nameModel = (/** @type {HTMLInputElement} */ (trg)).value;
         console.log({ nameModel });
         settingPuterAImodel.value = nameModel;
     });
 
-    /*
-    const iconAutomated = modMdc.mkMDCicon("smart_toy");
-    iconAutomated.style.color = "goldenrod";
-    iconAutomated.style.fontSize = "1.4rem";
-    const eltInfoAutomated = mkElt("div", undefined, [
-        mkElt("p", undefined, [
-            iconAutomated,
-            ` The AI:s below are automated here. 
-            This means that when they are ready the mindmap will be created automatically.
-        `]),
-        mkElt("p", undefined, [
-            `These AI:s are handled by `,
-            mkElt("a", { href: "https://puter.com/settings", target: "_blank" }, "https://puter.com"),
-            ` - a service that helps me automate.
-            (I am not in any way involved in payments. And I do not get anything.)
-        `]),
-        mkElt("p", undefined, [
-            `Puter takes care of paying for these AI:s.
-            You will have to pay through Puter.
-            I am not involved in any way in that.
-            Click the link above to find out more.
-            `
-        ]),
-        mkElt("p", undefined, [
-            `You can probably create a few mindmaps each day for free.
-            I am not sure about that.
-            `
-        ]),
-    ]);
-    const detInfoAutomated = mkElt("details", { style: "color:blue; margin-top:20px;" }, [
-        mkElt("summary", { style: "color:blue" }, "Info about these AI models"),
-        eltInfoAutomated,
-    ]);
-    */
     const divSettingsAutomated = mkElt("div", undefined, [
         // detInfoAutomated,
         divPuterModels,
@@ -1503,12 +1483,12 @@ Important:
     });
 
     // const tabRecs = ["Call AI", "AIs Settings"];
-    const tabRecs = ["Call AI" ];
+    const tabRecs = ["Call AI"];
     // const contentElts = mkElt("div", undefined, [divTabForGo, divEltsAIsettingsTabs]);
     const contentElts = mkElt("div", undefined, [divTabForGo]);
 
     if (tabRecs.length != contentElts.childElementCount) throw Error("Tab bar setup number mismatch");
-    const eltAItabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, undefined);
+    // const eltAItabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, undefined);
 
 
     const btnPuterUser = modMdc.mkMDCbutton("Puter user");
@@ -1516,7 +1496,7 @@ Important:
         window.open("https://puter.com/settings");
     });
 
-    const divAItabs = mkElt("p", undefined, [eltAItabs, contentElts]);
+    // const divAItabs = mkElt("p", undefined, [eltAItabs, contentElts]);
     const divWays = mkElt("div", undefined, [
         // divAItabs
         divTabForGo
@@ -1667,13 +1647,13 @@ Important:
         return { strAIjson, cleaned };
     }
 
-    const currentAIname = settingUsedAIname.value;
+    const currentAIname = /** @type {string} */ (settingUsedAIname.value);
     checkIsAIchoosen();
     if (currentAIname == "") {
         return;
     }
 
-    if (checkIsAIautomated(currentAIname)) {
+    if (isAutomatedAI(currentAIname)) {
         const doIitNow = confirm(`AI ${currentAIname} is automated. Make mindmap directly?`);
         if (!doIitNow) return;
         // "go"
@@ -1681,7 +1661,11 @@ Important:
     }
 
 
-
+    /**
+     * @param {boolean} b 
+     * @param {string} nameAI 
+     * @returns 
+     */
     function tellIfAIisChoosen(b, nameAI) {
         console.log("tellIfAIisChoosen", { b, nameAI });
         btnGo.inert = !b;
@@ -1697,7 +1681,7 @@ Important:
         console.warn("checkIsAIchoosen: typeof btnGo", typeof btnGo);
         /** @param {boolean} b * @param {string} [nameAI] * @returns {boolean} */
         const eltAI = divEltsAI.querySelector("input[type=radio][name=ai]:checked");
-        if (!eltAI) return tellIfAIisChoosen(false);
+        if (!eltAI) return tellIfAIisChoosen(false, "");
         const nameAI = eltAI.value;
         if (nameAI == "") return tellIfAIisChoosen(false, nameAI);
         if (nameAI != "PuterJs") return tellIfAIisChoosen(true, nameAI);
@@ -1903,7 +1887,7 @@ export function getWayToCallAI(nameAI) {
     const infoThisAI = infoAIs[nameAI];
     if (!infoThisAI) {
         // FIX-ME:
-        debugger;
+        // debugger;
         return { way: "API", copyQ: false, hasWebAPI: true };
     }
     // First try API
@@ -2738,7 +2722,8 @@ async function _testPerplexity() {
 
 
 
-/** @type {CallAIapi} */
+/* @type {CallAIapi} */
+/*
 async function _callPuterJs(userPrompt) {
     const res = await puter.ai.chat(userPrompt, {
         model: settingPuterAImodel.value
@@ -2746,6 +2731,7 @@ async function _callPuterJs(userPrompt) {
     console.log(res)
     return res;
 }
+*/
 
 /** @param {string} provider @returns {string} */
 function makeNiceProviderName(provider) {
@@ -2764,29 +2750,11 @@ export function showAIclipboardDiv() {
     div.style.display = "unset";
 }
 
-export function showAIpasteDiv() {
-    const div = document.getElementById("div-ai-paste");
-    if (div == null) throw Error("Did not get #div-ai-paste");
-    div.inert = false;
-    div.style.display = "unset";
-}
-export function hideAIpasteDiv() {
-    const div = document.getElementById("div-ai-paste");
-    if (div == null) throw Error("Did not get #div-ai-paste");
-    // console.warn("hideAIpasteDiv", { div });
-    div.inert = true;
-}
-export function checkIsAIautomated(nameAI) {
+/** @param {string} nameAI @returns {boolean} */
+function isAutomatedAI(nameAI) {
     const { way } = getWayToCallAI(nameAI);
-    if (way == "API") {
-        document.body.classList.add("no-paste-ai");
-        // hideAIpasteDiv();
-    } else {
-        document.body.classList.remove("no-paste-ai");
-        // showAIpasteDiv();
-        // showAIclipboardDiv();
-    }
-    return document.body.classList.contains("no-paste-ai");
+    return way == "API";
+    setCSSforAIonClipboard(way != "API");
 }
 
 
@@ -2801,6 +2769,7 @@ function estimateJsonObjectTokens(objJson) {
     const charsPerToken = 4.5;
 
     // Helper to count tokens for a value (string, number, boolean, null, object, array)
+    // @ts-ignore
     function countTokens(value) {
         if (value === null || value === undefined) {
             return 1; // null is ~1 token
@@ -2871,9 +2840,20 @@ function _testEstimateTokens() {
 // Run tests
 // _testEstimateTokens();
 
-function mayHaveAIonClipboard() {
-    document.documentElement.classList.add("have-ai-on-clipboard");
+/** @param {boolean} canBeThere */
+function setCSSforAIonClipboard(canBeThere) {
+    if (canBeThere) {
+        document.documentElement.classList.add("have-ai-on-clipboard");
+    } else {
+        document.documentElement.classList.remove("have-ai-on-clipboard");
+    }
 }
-function cantHaveAIonClipboard() {
-    document.documentElement.classList.remove("have-ai-on-clipboard");
+
+/** * * @param {boolean} isAutomated */
+function setCSSforIsAutomatedAI(isAutomated) {
+    if (isAutomated) {
+        document.documentElement.classList.add("ai-is-automated");
+    } else {
+        document.documentElement.classList.remove("ai-is-automated");
+    }
 }
