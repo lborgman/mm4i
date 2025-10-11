@@ -159,6 +159,21 @@ const infoAIs = {
         isPWA: true, // 2025-10-04
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg"
     }),
+
+    "Le Chat": mkAIinfo({
+        company: "Mistral",
+        urlDescription: "https://mistral.ai/products/le-chat",
+        // fun: callGrokApi, // The other version seems better, but I can not test with a valid key
+        // fun: callOpenAIapi,
+        // pkg: "ai.x.grok",
+        qW: false,
+        urlChat: "chat.mistral.ai/",
+        isPWA: false, // 2025-10-11
+        urlImg: "./img/mistral-ai-rainbow.svg"
+    }),
+
+
+
     "Perplexity": mkAIinfo({
         company: "Perplexity",
         urlDescription: "https://www.perplexity.ai/hub/getting-started",
@@ -416,7 +431,7 @@ Important:
     }
 
 
-    let jsonNodeArray;
+    let theValidJsonNodeArray;
 
     const divPrompt = mkDivPrompt();
     divPrompt.inert = true;
@@ -511,7 +526,7 @@ Important:
                         mkElt("h3", undefined, "AI answer"),
                         preAIraw
                     ]);
-                    modMdc.mkMDCdialogAlert(body);
+                    modMdc.mkMDCdialogAlert(body, "Close");
                 });
                 const btnCopyError = modMdc.mkMDCbutton("Copy AI error", "raised");
                 btnCopyError.addEventListener("click", async () => {
@@ -539,7 +554,7 @@ Important:
                     divErrorLocation,
                     divButtons,
                 ]);
-                modMdc.mkMDCdialogAlert(body);
+                modMdc.mkMDCdialogAlert(body, "Close");
             });
 
             const divError = mkElt("div", undefined, [divAIjsonTrouble, btnInfoTrouble]);
@@ -552,6 +567,7 @@ Important:
             const nodeArray = nodeArrayFromAI2jsmindFormat(j);
             const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
             if (res.isValid) {
+                theValidJsonNodeArray = nodeArray;
                 const msgStatus = strAIjson == strAIraw ? "OK" : `OK (cleaned: ${cleaned.join(", ")})`;
                 eltAItextareaStatus.textContent = msgStatus;
                 eltAItextareaStatus.style.backgroundColor = "greenyellow";
@@ -966,8 +982,10 @@ Important:
         const eltCompany = urlDescription ?
             // mkElt("span", undefined, "HAVE urlDescription")
             mkElt("span", { style: "opacity:0.5; display:flex; justify-content:flex-end;" }, [
-                `Read about ${nameAI} at `,
-                mkElt("a", { href: urlDescription, target: "_blank" }, showCompany),
+                mkElt("span", undefined, [
+                    `Read about ${nameAI} at `,
+                    mkElt("a", { href: urlDescription, target: "_blank" }, showCompany)
+                ])
             ])
             :
             mkElt("span", undefined, `${nameAI} (from ${showCompany})`);
@@ -1503,17 +1521,20 @@ Important:
     modMdc.mkMDCdialogAlert(body, "Close");
     checkInpLink(); // Necessary elements are connected to the DOM here
     async function doMakeGeneratedMindmap() {
+        /*
         // @ts-ignore
         const strAIraw = eltAItextarea.value;
-
-
+        // clipboard
+    
+    
         // @ts-ignore
         const { strAIjson } = getJsonFromAIstr(strAIraw);
-        jsonNodeArray = JSON.parse(strAIjson);
-        console.log({ jsonNodeArray });
+        theValidJsonNodeArray = JSON.parse(strAIjson);
+        console.log({ jsonNodeArray: theValidJsonNodeArray });
+        */
 
         // const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(jsonNodeArray);
-        const nodeArray = nodeArrayFromAI2jsmindFormat(jsonNodeArray);
+        const nodeArray = nodeArrayFromAI2jsmindFormat(theValidJsonNodeArray);
         const arrRoots = nodeArray.reduce((arr, n) => {
             // @ts-ignore
             if (!n.parentid) { arr.push(n); }
@@ -2872,7 +2893,9 @@ function getWhatToDoForUser(nameAI) {
     }
     const qValue = isAndroid ? qA : qW;
     const needPaste = (qValue == false);
-    if (needPaste != copyQ) throw Error(`needPaste (${needPaste} != copyQ (${copyQ}))`);
+    if (needPaste != copyQ) {
+        console.warn(`needPaste (${needPaste} != copyQ (${copyQ}))`);
+    }
     const needStart = needPaste || (qValue != "auto");
 
     if (needPaste) { addDo("In AI: Paste the prompt."); }
