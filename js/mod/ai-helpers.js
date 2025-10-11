@@ -233,6 +233,8 @@ const testIntentsAI = {
 }
 
 
+const txtBtnCopyCliboard = "I've copied AI answer";
+
 /** @type {function|undefined} */
 let initAItextarea;
 /**
@@ -659,7 +661,6 @@ Important:
     divAIpaste.id = "div-ai-paste";
     divAIpaste.style.display = "none";
 
-    const txtBtnCopyCliboard = "I've copied AI answer";
     // const btnCopyCliboard = modMdc.mkMDCbutton("I've copied AI´s answer", "raised");
     const btnCopyCliboard = modMdc.mkMDCbutton(txtBtnCopyCliboard, "raised");
     btnCopyCliboard.style.textTransform = "none";
@@ -932,34 +933,8 @@ Important:
             gap: 5px;
             `;
 
-        const addWhatToDo = () => {
-            let numDo = 0;
-            /** @param {string} txt */
-            const addDo = (txt) => {
-                numDo++;
-                const bNum = mkElt("b", undefined, `${numDo}.`);
-                bNum.style.marginRight = "10px";
-                const spanDo = mkElt("span", undefined, [bNum, txt]);
-                eltCurrentWay.appendChild(spanDo);
-            }
-            if (way == "API") {
-                addDo("Just wait, it is automated.");
-                return;
-            }
-            const qValue = isAndroid ? qA : qW;
-            const needPaste = (qValue == false);
-            const needStart = needPaste || (qValue != "auto");
-
-            if (needPaste) { addDo("In AI: Paste the prompt."); }
-            if (needStart) { addDo("In AI: Click send button."); }
-            addDo("In AI: Copy AI answer");
-            // addDo("Here: Paste the answer below");
-            addDo(mkElt("span", undefined, [
-                "Here: ",
-                "Click ", mkElt("i", undefined, txtBtnCopyCliboard),
-            ]));
-        }
-        addWhatToDo();
+        const arrToDo = getWhatToDoForUser(nameAI);
+        arrToDo?.forEach(td => { eltCurrentWay.appendChild(td); });
         switch (way) {
             case "API":
                 break;
@@ -1139,6 +1114,13 @@ Important:
         }
 
         callTheAI(nameAI, promptAI);
+
+        const arrToDo = getWhatToDoForUser(nameAI);
+        const divUserSteps = document.getElementById("div-user-steps");
+        arrToDo.forEach(step => {
+            const divStep = mkElt("div", undefined, step);
+            divUserSteps?.appendChild(divStep);
+        })
     });
 
 
@@ -1274,17 +1256,21 @@ Important:
             gap: 10px;
             flex - wrap: wrap;
             `;
-    const divBtnCopy = mkElt("div", undefined, [btnGo, divGoStatus]);
-    divBtnCopy.style = "display:grid; grid-template-columns: auto 1fr; gap:10px;"
+    const divGo = mkElt("div", undefined, [btnGo, divGoStatus]);
+    divGo.id = "div-go";
+    divGo.style = "display:grid; grid-template-columns: auto 1fr; gap:10px;"
+
+    const divUserSteps = mkElt("div");
+    divUserSteps.id = "div-user-steps";
 
 
     const divTabForGo = mkElt("div", undefined, [
         mkElt("div", undefined, cardPrompt),
-        // divListAIhardWay,
         divEltsAI,
-        divBtnCopy,
-        // mkElt("div", { style: "margin:30px;" }, aTestG),
-        mkElt("div", undefined, eltDivAIclipboard),
+        divGo,
+        divUserSteps,
+        // mkElt("div", undefined, eltDivAIclipboard),
+        eltDivAIclipboard,
     ]);
     divTabForGo.id = "hard-way";
     divTabForGo.style = styleWays;
@@ -1881,6 +1867,7 @@ async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
  * @returns {{way: string, copyQ: boolean, hasWebAPI: boolean}} 
  */
 export function getWayToCallAI(nameAI) {
+    if (typeof nameAI != "string") throw Error("nameAI was not string");
     if (nameAI == "PuterJs") {
         return { way: "API", copyQ: false, hasWebAPI: true };
     }
@@ -2856,4 +2843,44 @@ function setCSSforIsAutomatedAI(isAutomated) {
     } else {
         document.documentElement.classList.remove("ai-is-automated");
     }
+}
+
+/**
+ * 
+ * @param {string} nameAI 
+ * @returns {HTMLSpanElement[]}
+ */
+function getWhatToDoForUser(nameAI) {
+    let { way, copyQ } = getWayToCallAI(nameAI);
+    const infoThisAI = infoAIs[nameAI];
+    const { qW, qA, android, urlImg, urlChat, isPWA, fun, urlAPIkey } = infoThisAI;
+
+    let numDo = 0;
+    /** @type {HTMLSpanElement[]} */
+    const arrToDo = [];
+    /** @param {string} txt */
+    const addDo = (txt) => {
+        numDo++;
+        const bNum = mkElt("b", undefined, `${numDo}.`);
+        bNum.style.marginRight = "10px";
+        const spanDo = mkElt("span", undefined, [bNum, txt]);
+        arrToDo.push(spanDo);
+    }
+    if (way == "API") {
+        addDo("Just wait, it is automated.");
+        return arrToDo;
+    }
+    const qValue = isAndroid ? qA : qW;
+    const needPaste = (qValue == false);
+    if (needPaste != copyQ) throw Error(`needPaste (${needPaste} != copyQ (${copyQ}))`);
+    const needStart = needPaste || (qValue != "auto");
+
+    if (needPaste) { addDo("In AI: Paste the prompt."); }
+    if (needStart) { addDo("In AI: Click send button."); }
+    addDo("In AI: Copy AI answer");
+    addDo(mkElt("span", undefined, [
+        "Here: ",
+        "Click ", mkElt("i", undefined, txtBtnCopyCliboard),
+    ]));
+    return arrToDo;
 }
