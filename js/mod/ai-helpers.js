@@ -160,11 +160,25 @@ const infoAIs = {
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg"
     }),
 
+    "Hugging Face": mkAIinfo({
+        company: "Hugging FAce",
+        urlDescription: "https://huggingface.co/",
+        fun: callHuggingFaceAPI,
+        // pkg: "ai.x.grok",
+        // qW: true,
+        // urlChat: "grok.com/chat",
+        isPWA: false, // 2025-10-12, dummy
+        urlImg: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
+    }),
+
+
     "Le Chat": mkAIinfo({
         company: "Mistral",
         urlDescription: "https://mistral.ai/products/le-chat",
         // fun: callGrokApi, // The other version seems better, but I can not test with a valid key
         // fun: callOpenAIapi,
+        fun: callMistralAPI,
+        urlAPIkey: "https://console.mistral.ai/",
         // pkg: "ai.x.grok",
         qW: false,
         urlChat: "chat.mistral.ai/",
@@ -445,24 +459,48 @@ Important:
             padding: 5px;
             padding-right: 0px;
         `;
-        const divNewPrompt = mkElt("div", undefined, [
-            mkElt("details", undefined, [
-                mkElt("summary", undefined, "AI prompt info"),
-                mkElt("div", undefined, [
-                    mkElt("p", undefined,
-                        `I have created the AI prompt below.
+        // const btnCopyPrompt = modMdc.mkMDCbutton("Copy AI Prompt", "raised");
+        const btnCopyPrompt = modMdc.mkMDCbutton("Copy", "outlined", "content_copy");
+        btnCopyPrompt.addEventListener("click", async () => {
+            // evt.stopPropagation();
+            await modTools.copyTextToClipboard(promptAI);
+            // div-ai-paste
+            setCSSforAIonClipboard(true);
+        });
+        const eltPromptSummary = mkElt("summary", undefined, "Show");
+        eltPromptSummary.style = `
+            position: absolute;
+            top: 0px;
+            left: 220px;
+        `;
+        const eltPromptDetails = mkElt("details", undefined, [
+            eltPromptSummary,
+            mkElt("div", undefined, [
+                mkElt("p", undefined,
+                    `I have created the AI prompt below.
                         It will be given to the AI you use if possible
                         and copied to the clipboard otherwise.`),
-                    bPrompt
-                ])
+                bPrompt
             ])
+        ]);
+
+        const divNewPrompt = mkElt("div", undefined, [
+            "AI prompt:",
+            btnCopyPrompt,
         ]);
         divNewPrompt.style = `
                     display: flex;
-                    flex-direction: column;
-                    gap: 10px;
+                    flex-direction: row;
+                    gap: 20px;
+                    position: relative;
                 `;
-        return divNewPrompt;
+        const divPromptOuter = mkElt("div", undefined, [
+            divNewPrompt,
+            eltPromptDetails
+        ]);
+        divPromptOuter.id = "div-prompt-outer";
+        divPromptOuter.style.position = "relative";
+        return divPromptOuter;
     }
 
     const eltAItextarea = mkElt("textarea");
@@ -725,9 +763,150 @@ Important:
     }
     */
 
+    // Add Hugging Face first
+    await addHuggingFace();
+    async function addHuggingFace() {
+        const imgAI = mkElt("span", { class: "elt-ai-img" });
+        const urlImg = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg";
+        imgAI.style.backgroundImage = `url(${urlImg})`;
+        imgAI.style.display = "none";
+        const nameIcon = "smart_toy";
+        const iconWay = modMdc.mkMDCicon(nameIcon);
+        const wayIndicator = mkElt("i", undefined, [iconWay]);
+        wayIndicator.style.color = "lightseagreen";
+        const radAI = mkElt("input", { type: "radio", name: "ai", value: "HuggingFace" });
 
-    // Add puter alternative first
-    {
+        const longNameModel = /** @type {string} */ (settingPuterAImodel.value);
+        const tofLongNM = typeof longNameModel;
+        if (tofLongNM != "string") throw Error(`typeof longNameModel = "${tofLongNM}"`);
+        const nameModel = longNameModel.slice(11);
+        const [provider, model] = nameModel.split("/");
+        const niceProvider = makeNiceProviderName(provider);
+        const divModel = mkElt("div", undefined, [
+            mkElt("b", undefined, `${niceProvider}: `), model]);
+        wayIndicator.style.color = "lightskyblue";
+        divModel.style.fontSize = "0.8rem";
+        const divHeader = mkElt("div", undefined, [wayIndicator, "Hugging Face "]);
+        divHeader.style.display = "flex";
+        divHeader.style.gap = "10px";
+        divHeader.style.marginBottom = "-10px";
+
+        const divHuggingFace = mkElt("div", undefined, [
+            divHeader,
+            divModel,
+        ]);
+
+        const eltAIlabel = mkElt("label", undefined, [radAI, imgAI, divHuggingFace]);
+        eltAIlabel.classList.add("elt-ai-label");
+
+        // "details"
+        const sumAI = mkElt("summary", undefined, "");
+        sumAI.classList.add("elt-ai-summary");
+        sumAI.style.top = "20px";
+
+        // "Automated"
+        const iconAutomated = modMdc.mkMDCicon("smart_toy");
+        iconAutomated.style.color = "goldenrod";
+        iconAutomated.style.fontSize = "1.4rem";
+        const eltInfoAutomated = mkElt("div", undefined, [
+            mkElt("p", undefined, [
+                iconAutomated,
+                ` The AI:s below are automated here. 
+            This means that when they are ready the mindmap will be created automatically.
+        `]),
+            mkElt("p", undefined, [
+                `These AI:s are handled by `,
+                mkElt("a", { href: "https://huggingface.co/", target: "_blank" }, "https://huggingface.co/"),
+                ` - a service that helps me automate.
+            (I am not in any way involved in payments. And I do not get anything.)
+        `]),
+            mkElt("p", undefined, [
+                `TODO: describe Hugging Face
+            `
+            ])
+        ]);
+
+
+
+        /** @type {HTMLDivElement} */
+        const divHuggingFaceModels = mkElt("div", undefined, [
+            mkElt("h3", undefined, "AI models")
+        ]);
+
+        const modPutinModels = await importFc4i("puter-ai-models");
+        const arrModels = modPutinModels.getModels();
+        const oldModel = settingPuterAImodel.value;
+        let providerGroup = "";
+        /** @type {HTMLDivElement} */
+        let divProvider;
+        arrModels.sort().forEach( /** @param {string} fullNameModel */(fullNameModel) => {
+            const radModel = mkElt("input", { type: "radio", name: "puter-model", value: fullNameModel });
+            const longName = fullNameModel.slice(11);
+            const [provider, nameModel] = longName.split("/");
+            if (provider != providerGroup) {
+                providerGroup = provider;
+                // divPuterModels.appendChild( mkElt("div", { style: "font-size:1.3rem; font-weight:bold;" }, `${provider}:`));
+                divProvider = /** @type {HTMLDivElement} */ mkElt("div");
+                const detailsProvider = mkElt("details", undefined, [
+                    mkElt("summary", undefined, makeNiceProviderName(provider)),
+                    divProvider
+                ]);
+                divHuggingFaceModels.appendChild(detailsProvider)
+            }
+            const lblModel = mkElt("label", undefined, [radModel, " ", nameModel]);
+            // divPuterModels.appendChild(mkElt("div", undefined, lblModel));
+            divProvider.appendChild(mkElt("div", undefined, lblModel));
+            if (oldModel == fullNameModel) {
+                radModel.checked = true;
+                const eltDetails = lblModel.closest("details");
+                if (!eltDetails) throw Error("Did not find <details>");
+                eltDetails.open = true;
+            }
+        });
+
+        /** * @param {MouseEvent} evt - The mouse event triggered by the click.  */
+        divHuggingFaceModels.addEventListener("click", evt => {
+            evt.stopPropagation();
+            evt.stopImmediatePropagation();
+            if (!(evt.target instanceof HTMLElement)) { return; }
+            const trg = evt.target;
+            const tn = trg.tagName;
+            if (tn != "INPUT") return;
+            // const nameModel = trg.value;
+            const nameModel = (/** @type {HTMLInputElement} */ (trg)).value;
+            console.log({ nameModel });
+            settingPuterAImodel.value = nameModel;
+        });
+
+
+        const detInfoAutomated = mkElt("details", { style: "color:lightskyblue; margin-top:20px;" }, [
+            mkElt("summary", { style: "color:lightskyblue" }, "Info about these AI models"),
+            eltInfoAutomated,
+        ]);
+
+        const divDetAIcontent = mkElt("div", undefined, [
+            "Much more to come here!",
+            detInfoAutomated,
+            divHuggingFaceModels,
+        ]);
+        divDetAIcontent.classList.add("elt-ai-det-content");
+
+        const detAI = mkElt("details", undefined, [
+            sumAI,
+            // mkElt("div", undefined, [ "More to come!", ]),
+            divDetAIcontent
+        ]);
+
+
+        const eltAI = mkElt("div", undefined, [eltAIlabel, detAI]);
+        eltAI.classList.add("elt-ai");
+        eltAI.id = "elt-ai-puter";
+        divEltsAI.appendChild(eltAI);
+    }
+
+    // Add puter alternative 
+    await addPuter();
+    async function addPuter() {
         const imgAI = mkElt("span", { class: "elt-ai-img" });
         const urlImg = "./ext/puter/puter.svg";
         imgAI.style.backgroundImage = `url(${urlImg})`;
@@ -877,6 +1056,9 @@ Important:
         eltAI.id = "elt-ai-puter";
         divEltsAI.appendChild(eltAI);
     }
+
+
+
     Object.entries(infoAIs).forEach(e => { // "elt-ai"
         const [k, v] = e;
         const nameAI = k;
@@ -887,6 +1069,9 @@ Important:
         if (tofIsPWA != "boolean") throw Error(`typeof isPWA == "${tofIsPWA}"`);
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
         const imgAI = mkElt("span", { class: "elt-ai-img" });
+        if (nameAI == "Le Chat") {
+            imgAI.style.backgroundSize = "contain";
+        }
         imgAI.style.backgroundImage = `url(${urlImg})`;
         const eltAIname = mkElt("span", { class: "elt-ai-name" }, nameAI);
         let { way, hasWebAPI } = getWayToCallAI(nameAI);
@@ -2308,14 +2493,13 @@ async function callGeminiAPI(userPrompt, apiKey) {
 
 
 /**
- * Calls the Claude API with a user prompt and returns the response.
- * @callback CallAIapi2
+ * @callback CallAIapiWithOptions
  * @param {string} userPrompt The text prompt to send to the Claude model.
  * @param {string} apiKey Your Anthropic API Key.
  * @param {Object} [options] Optional parameters for the API call.
  * @returns {Promise<string|Error>} The text response from the model or an Error object.
  */
-/** @type {CallAIapi2} */
+/** @type {CallAIapiWithOptions} */
 export async function callClaudeAPI(userPrompt, apiKey, options = {}) {
     try {
         // Dynamically import the Anthropic SDK ES6 module
@@ -2364,280 +2548,11 @@ async function _testClaude() {
     }
 }
 
-// Uncomment to test in browser
-// _testClaude();
 
 
 
-/**
- * Calls the Claude API with a user prompt and returns the response.
- * @callback CallAIapi4
- * @param {string} userPrompt The text prompt to send to the Claude model.
- * @param {string} apiKey Your Anthropic API Key.
- * @param {Object} [options] Optional parameters for the API call.
- * @param {string} [options.model='claude-3-5-sonnet-20240620'] The Claude model to use.
- * @param {number} [options.maxTokens=1024] The maximum number of tokens in the response.
- * @returns {Promise<string|Error>} The text response from the model or an Error object.
- */
-/** @type {CallAIapi4} */
-export async function callClaudeAPI2(userPrompt, apiKey, options = {}) {
-    try {
-        // Extract options with defaults
-        const { model = 'claude-3-5-sonnet-20240620', maxTokens = 1024 } = options;
 
-        // Make direct HTTP request to Anthropic API
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01', // Required API version
-            },
-            body: JSON.stringify({
-                model,
-                max_tokens: maxTokens,
-                messages: [{ role: 'user', content: userPrompt }],
-            }),
-        });
-
-        // Check for HTTP errors
-        if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
-        }
-
-        // Parse response
-        const data = await response.json();
-
-        // Ensure response contains text content
-        if (!data.content || !data.content[0]?.text) {
-            throw new Error('No text content in response');
-        }
-
-        // Return the response text
-        return data.content[0].text;
-    } catch (error) {
-        const errorMsg = String(error);
-        console.error('Error calling Claude API:', errorMsg, error);
-        return new Error(`Failed to call Claude API: ${errorMsg}`);
-    }
-}
-
-// Example usage (for testing in the browser console)
-async function _testClaude2() {
-    try {
-        const response = await callClaudeAPI2(
-            'Hello, Claude! Tell me a fun fact about the ocean.',
-            'YOUR_API_KEY', // Replace with your secure method of providing the key
-            { model: 'claude-3-5-sonnet-20240620', maxTokens: 50 }
-        );
-        if (response instanceof Error) {
-            console.error(response);
-        } else {
-            console.log('Claude\'s response:', response);
-        }
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-// Uncomment to test in browser
-// _testClaude2();
-
-
-
-/**
- * Calls the Claude API with a user prompt and returns the response.
- * @callback CallAIapi3
- * @param {string} userPrompt The text prompt to send to the Claude model.
- * @param {string} apiKey Your Anthropic API Key.
- * @param {Object} [options] Optional parameters for the API call.
- * @param {string} [options.model='claude-3-5-sonnet-20240620'] The Claude model to use.
- * @param {number} [options.maxTokens=1024] The maximum number of tokens in the response.
- * @returns {Promise<string|Error>} The text response from the model or an Error object.
- */
-/** @type {CallAIapi3} */
-export async function callClaudeAPI3(userPrompt, apiKey, options = {}) {
-    try {
-        // Validate inputs
-        if (!userPrompt || typeof userPrompt !== 'string') {
-            throw new Error('userPrompt must be a non-empty string');
-        }
-        if (!apiKey || typeof apiKey !== 'string') {
-            throw new Error('apiKey must be a non-empty string');
-        }
-
-        // Extract options with defaults
-        const { model = 'claude-3-5-sonnet-20240620', maxTokens = 1024 } = options;
-
-        // Make direct HTTP request to Anthropic API
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-api-key': apiKey,
-                'anthropic-version': '2023-06-01', // Required API version
-            },
-            body: JSON.stringify({
-                model,
-                max_tokens: maxTokens,
-                messages: [{ role: 'user', content: userPrompt }],
-            }),
-        });
-
-        // Check for HTTP errors
-        if (!response.ok) {
-            const errorText = await response.text().catch(() => 'Unknown error');
-            throw new Error(`HTTP error: ${response.status} ${response.statusText} - ${errorText}`);
-        }
-
-        // Parse response
-        const data = await response.json();
-
-        // Ensure response contains text content
-        if (!data.content || !data.content[0]?.text) {
-            throw new Error('No text content in response');
-        }
-
-        // Return the response text
-        return data.content[0].text;
-    } catch (error) {
-        const errorMsg = String(error);
-        // Enhanced error logging for debugging
-        console.error('Error calling Claude API:', {
-            message: errorMsg,
-            // @ts-ignore
-            name: error.name, stack: error.stack,
-            userPrompt,
-            options,
-        });
-        return new Error(`Failed to call Claude API: ${errorMsg}`);
-    }
-}
-
-// Example usage (for testing in the browser console)
-async function _testClaude3() {
-    try {
-        const response = await callClaudeAPI3(
-            'Hello, Claude! Tell me a fun fact about the ocean.',
-            'YOUR_API_KEY', // Replace with your secure method of providing the key
-            { model: 'claude-3-5-sonnet-20240620', maxTokens: 50 }
-        );
-        if (response instanceof Error) {
-            console.error(response);
-        } else {
-            console.log('Claude\'s response:', response);
-        }
-    } catch (error) {
-        const errorMsg = String(error);
-        console.error(errorMsg, error);
-    }
-}
-
-// Uncomment to test in browser
-// _testClaude3();
-
-
-
-/**
- * Calls the Claude API via a proxy with a user prompt and returns the response.
- * @callback CallAIapi5
- * @param {string} userPrompt The text prompt to send to the Claude model.
- * @param {string} apiKey Your Anthropic API Key.
- * @param {Object} [options] Optional parameters for the API call.
- * @param {string} [options.model='claude-3-5-sonnet-20240620'] The Claude model to use.
- * @param {number} [options.maxTokens=1024] The maximum number of tokens in the response.
- * @returns {Promise<string|Error>} The text response from the model or an Error object.
- */
-/** @type {CallAIapi5} */
-export async function callClaudeAPI4(userPrompt, apiKey, options = {}) {
-    try {
-        // Validate inputs
-        if (!userPrompt || typeof userPrompt !== 'string') {
-            throw new Error('userPrompt must be a non-empty string');
-        }
-        if (!apiKey || typeof apiKey !== 'string') {
-            throw new Error('apiKey must be a non-empty string');
-        }
-
-        // Extract options with defaults
-        // FIX-ME:
-        // const { model = 'claude-3-5-sonnet-20240620', maxTokens = 1024 } = options;
-
-        // Call the backend proxy
-        const response = await fetch('http://localhost:3000/api/claude', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userPrompt, apiKey, options }),
-        });
-
-        // Check for HTTP errors
-        if (!response.ok) {
-            const errorText = await response.text().catch(() => 'Unknown error');
-            throw new Error(`Proxy error: ${response.status} ${response.statusText} - ${errorText}`);
-        }
-
-        // Parse response
-        const data = await response.json();
-        if (data.error) {
-            throw new Error(data.error);
-        }
-
-        // Ensure response contains text content
-        if (!data.response) {
-            throw new Error('No text content in proxy response');
-        }
-
-        // Return the response text
-        return data.response;
-    } catch (error) {
-        const errorMsg = String(error);
-        console.error('Error calling Claude API via proxy:', {
-            message: errorMsg,
-            // @ts-ignore
-            name: error.name, stack: error.stack,
-            userPrompt,
-            options,
-        });
-        return new Error(`Failed to call Claude API: ${errorMsg}`);
-    }
-}
-
-// Example usage (for testing in the browser console)
-async function _testClaude4() {
-    try {
-        const response = await callClaudeAPI4(
-            'Hello, Claude! Tell me a fun fact about the ocean.',
-            'YOUR_API_KEY', // Replace with your secure method of providing the key
-            { model: 'claude-3-5-sonnet-20240620', maxTokens: 50 }
-        );
-        if (response instanceof Error) {
-            console.error(response);
-        } else {
-            console.log('Claude\'s response:', response);
-        }
-    } catch (error) {
-        const errorMsg = String(error);
-        console.error(errorMsg, error);
-    }
-}
-
-// Uncomment to test in browser
-// _testClaude4();
-
-
-
-// This version needs a proxy.
-/**
- * Calls the Perplexity AI API with a user prompt and returns the response.
- * @callback CallPerplexityAPI
- * @param {string} userPrompt The text prompt to send to the Perplexity model.
- * @param {string} apiKey Your Perplexity API Key.
- * @param {Object} [options] Optional parameters for the API call.
- * @param {string} [options.model='llama-3.1-sonar-small-128k-online'] The Perplexity model to use.
- * @param {number} [options.maxTokens=1024] The maximum number of tokens in the response.
- * @returns {Promise<string|Error>} The text response from the model or an Error object.
- */
-/** @type {CallPerplexityAPI} */
+/** @type {CallAIapiWithOptions} */
 export async function callPerplexityAPIthroughProxy(userPrompt, apiKey, options = {}) {
     try {
         // Validate inputs
@@ -2706,27 +2621,6 @@ export async function callPerplexityAPIthroughProxy(userPrompt, apiKey, options 
     }
 }
 
-// Example usage (for testing in the browser console)
-async function _testPerplexity() {
-    try {
-        const response = await callPerplexityAPIthroughProxy(
-            'Hello, Perplexity! Tell me a fun fact about the ocean.',
-            'YOUR_API_KEY', // Replace with your secure method
-            { model: 'llama-3.1-sonar-small-128k-online', maxTokens: 50 }
-        );
-        if (response instanceof Error) {
-            console.error(response);
-        } else {
-            console.log('Perplexity\'s response:', response);
-        }
-    } catch (error) {
-        const errorMsg = String(error);
-        console.error(errorMsg, error);
-    }
-}
-
-// Uncomment to test in browser
-// _testPerplexity();
 
 
 
@@ -2874,7 +2768,8 @@ function setCSSforIsAutomatedAI(isAutomated) {
 function getWhatToDoForUser(nameAI) {
     let { way, copyQ } = getWayToCallAI(nameAI);
     const infoThisAI = infoAIs[nameAI];
-    const { qW, qA, android, urlImg, urlChat, isPWA, fun, urlAPIkey } = infoThisAI;
+    // const { qW, qA, android, urlImg, urlChat, isPWA, fun, urlAPIkey } = infoThisAI;
+    const { qW, qA } = infoThisAI;
 
     let numDo = 0;
     /** @type {HTMLSpanElement[]} */
@@ -2907,3 +2802,144 @@ function getWhatToDoForUser(nameAI) {
     ]));
     return arrToDo;
 }
+
+
+
+/** @type {CallAIapi} */
+async function callMistralAPI(userPrompt, apiKey) {
+    const endpoint = "https://api.mistral.ai/v1/chat/completions"; // Verify endpoint in Mistral's docs
+
+    const mistralModels = [
+        "mistral-small-3.1",
+        "mistral-medium-3",
+        "mistral-large-latest",
+        "magistral-small",
+        "pixtral-latest",    // for multimodal tasks
+        "codestral-latest"  // for code generation
+    ];
+
+    const requestBody = {
+        // model: "mistral-large-latest", // or your preferred model
+        model: mistralModels[0], // default for free users in the android app
+        messages: [
+            {
+                role: "user",
+                content: userPrompt
+            }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000,
+    };
+
+    try {
+        const response = await fetch(endpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API request failed: ${response.status} ${errorText}`);
+        }
+
+        const data = await response.json();
+        // Return the raw text response (assuming it's in choices[0].message.content)
+        return data.choices[0].message.content;
+    } catch (error) {
+        console.error("API call failed:", error);
+        return error;
+    }
+}
+
+/*
+// Example usage:
+const prompt = `
+1. If this prompt does not end with ----, consider it incomplete and notify the user that the prompt appears to be cut off.
+2. Summarize the article "https://en.wikipedia.org/wiki/Th%C3%ADch_Nh%E1%BA%A5t_H%E1%BA%A1nh" into one mind map and output a strict, parse-ready JSON node array (flat; fields: id, name, parentid, and notes).
+3. Optional field "notes": For details, markdown format.
+4. Give as much detail as in a text summary.
+5. Limit the hierarchy to max depth 4 levels.
+6. Return only valid JSON (no text before or after).
+7. Preserve escaped newlines (\n) inside string values for JSON validity; they should represent Markdown line breaks when rendered.
+8. ----
+`;
+
+callMistralAPI(prompt, "YOUR_API_KEY")
+    .then(response => {
+        if (response instanceof Error) {
+            console.error("Error:", response.message);
+        } else {
+            console.log("AI Response:", response);
+            // Parse the JSON if needed
+            try {
+                const mindmap = JSON.parse(response);
+                console.log("Parsed Mindmap:", mindmap);
+            } catch (e) {
+                console.error("Failed to parse JSON:", e);
+            }
+        }
+    });
+
+*/
+
+
+// https://huggingface.co/
+/** @type {CallAIapi} */
+async function callHuggingFaceAPI(userPrompt, apiKey) {
+    const model = "mistralai/Mistral-7B-Instruct-v0.2"; // Change to any Hugging Face model
+    const API_URL = `https://api-inference.huggingface.co/models/${model}`;
+
+    const requestBody = {
+        inputs: userPrompt,
+        parameters: {
+            max_new_tokens: 200,
+            temperature: 0.7,
+            return_full_text: false // Set to true if you want the full prompt + response
+        }
+    };
+
+    try {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${apiKey}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Hugging Face API error: ${response.status} ${errorText}`);
+        }
+
+        const data = await response.json();
+        if (!data || !data[0]?.generated_text) {
+            throw new Error("No valid response from the model.");
+        }
+
+        return data[0].generated_text;
+    } catch (error) {
+        console.error("Hugging Face API call failed:", error);
+        return error;
+    }
+}
+
+/*
+// Example usage:
+const prompt = "Summarize the key points of Thích Nhất Hạnh's teachings in 3 bullet points.";
+const hfToken = "YOUR_HUGGING_FACE_TOKEN"; // Replace with your token
+
+callHuggingFaceAPI(prompt, hfToken)
+    .then(response => {
+        if (response instanceof Error) {
+            console.error("Error:", response.message);
+        } else {
+            console.log("AI Response:", response);
+        }
+    });
+*/
