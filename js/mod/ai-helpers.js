@@ -1319,7 +1319,7 @@ Important:
             modMdc.replaceMDCicon("stop", btnGo);
         }
 
-        callTheAI(nameAI, promptAI);
+        callAIsAPI(nameAI, promptAI);
 
         const arrToDo = getWhatToDoForUser(nameAI);
         // const divUserSteps = document.getElementById("div-user-steps");
@@ -1850,7 +1850,7 @@ Important:
         const doIitNow = confirm(`AI ${currentAIname} is automated. Make mindmap directly?`);
         if (!doIitNow) return;
         // "go"
-        callTheAI(currentAIname, promptAI);
+        callAIsAPI(currentAIname, promptAI);
     }
 
 
@@ -2118,15 +2118,21 @@ export function wayToCallAIisAPI(nameAI) {
  * @param {string} nameAI 
  * @param {string} promptAI 
  */
-async function callTheAI(nameAI, promptAI) {
-    const modTools = await importFc4i("toolsJs");
-
+async function callAIsAPI(nameAI, promptAI) {
     const divGoStatus = document.getElementById("div-go-status");
     if (!divGoStatus) throw Error(`Did not find element "div-go-status"`);
 
     const divUserSteps = document.getElementById("div-user-steps");
     if (!divUserSteps) throw Error(`Did not find element "div-user-steps"`);
 
+    if (!hasInternet()) {
+        divGoStatus.textContent = `No Internet. Can't contact ${nameAI}`;
+        divGoStatus.style.color = "blue";
+        divUserSteps.textContent = "";
+        return;
+    }
+
+    const modTools = await importFc4i("toolsJs");
 
     const { way: wayToCallAI } = getWayToCallAI(nameAI);
 
@@ -2960,4 +2966,20 @@ callHuggingFaceAPI(prompt, hfToken)
 function askError(where) {
     const doIt = confirm(`Throw error at "${where}"?`);
     if (doIt) throw Error(`[askError at "${where}"]`);
+}
+
+/**
+ * 
+ * @returns {Promise<boolean>}
+ */
+async function hasInternet() {
+    // @ts-ignore
+    const funHasInternet = window["PWAhasInternet"];
+    if (!funHasInternet) {
+        throw Error("Could not find window[PWAhasInternet]");
+    }
+    const tofFun = typeof funHasInternet;
+    if (tofFun != "function") throw Error(`typeof funHasInternet == "${tofFun}"`);
+    const i = await funHasInternet();
+    return i;
 }
