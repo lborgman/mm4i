@@ -1266,6 +1266,9 @@ Important:
     divGoStatus.style.overflow = "auto";
     divGoStatus.style.overflowWrap = "anywhere";
 
+    const divUserSteps = mkElt("div");
+    divUserSteps.id = "div-user-steps";
+
     // const btnGo = modMdc.mkMDCbutton("Go", "raised", "play_circle");
     const btnGo = modMdc.mkMDCiconButton("play_arrow", "Get mindmap", 40);
     btnGo.id = "btn-go";
@@ -1319,10 +1322,10 @@ Important:
         callTheAI(nameAI, promptAI);
 
         const arrToDo = getWhatToDoForUser(nameAI);
-        const divUserSteps = document.getElementById("div-user-steps");
+        // const divUserSteps = document.getElementById("div-user-steps");
         arrToDo.forEach(step => {
             const divStep = mkElt("div", undefined, step);
-            divUserSteps?.appendChild(divStep);
+            divUserSteps.appendChild(divStep);
         })
     });
 
@@ -1463,8 +1466,6 @@ Important:
     divGo.id = "div-go";
     divGo.style = "display:grid; grid-template-columns: auto 1fr; gap:10px;"
 
-    const divUserSteps = mkElt("div");
-    divUserSteps.id = "div-user-steps";
 
 
     const divTabForGo = mkElt("div", undefined, [
@@ -2123,6 +2124,8 @@ async function callTheAI(nameAI, promptAI) {
     const divGoStatus = document.getElementById("div-go-status");
     if (!divGoStatus) throw Error(`Did not find element "div-go-status"`);
 
+    const divUserSteps = document.getElementById("div-user-steps");
+    if (!divUserSteps) throw Error(`Did not find element "div-user-steps"`);
 
 
     const { way: wayToCallAI } = getWayToCallAI(nameAI);
@@ -2197,7 +2200,10 @@ async function callTheAI(nameAI, promptAI) {
         if (res instanceof Error) {
             console.error(res);
             divGoStatus.style.color = "red";
-            divGoStatus.textContent = `Error from ${nameAI}: ${res.message}`;
+            // divGoStatus.textContent = `Error from ${nameAI}: ${res.message}`;
+            divGoStatus.append(`${res.message}`);
+            // @ts-ignore
+            divUserSteps.textContent = "";
         } else {
             divGoStatus.style.color = "green";
             divGoStatus.textContent = `Got response from ${nameAI}`;
@@ -2449,6 +2455,7 @@ async function callGeminiAPI(userPrompt, apiKey) {
     // --- Dynamic Loading and Initialization (Happens only once) ---
     if (!aiClient) {
         try {
+            askError("callGeminiAPI in !aiClient");
             // Dynamically import the Google Gen AI SDK from the CDN URL
             // const module = await import('https://unpkg.com/@google/genai/dist/index.js');
             // @ts-ignore
@@ -2462,8 +2469,9 @@ async function callGeminiAPI(userPrompt, apiKey) {
 
         } catch (error) {
             const errorMsg = String(error);
-            console.error("Failed to dynamically load or initialize Gemini SDK:", errorMsg, error);
-            return Error(`Could not load the required library, ${errorMsg}`);
+            const msg = `in Gemini !aiClient: ${errorMsg}`;
+            console.error(msg, error);
+            return Error(`${msg}`);
         }
         if (aiClient == null) {
             return Error("aiClient is null");
@@ -2473,6 +2481,7 @@ async function callGeminiAPI(userPrompt, apiKey) {
 
     // --- API Call (Happens every time) ---
     try {
+        askError("callGeminiAPI in response");
         // @ts-ignore
         const response = await aiClient.models.generateContent({
             model: "gemini-2.5-flash",
@@ -2481,8 +2490,9 @@ async function callGeminiAPI(userPrompt, apiKey) {
         return response.text;
     } catch (error) {
         const errorMsg = String(error);
-        console.error("Error calling the Gemini API:", errorMsg, error);
-        return Error(`An API error occurred: ${errorMsg}`);
+        const msg = `in Gemini response part: ${errorMsg}`;
+        console.error(msg, error);
+        return Error(`${msg}`);
     }
 }
 
@@ -2943,3 +2953,11 @@ callHuggingFaceAPI(prompt, hfToken)
         }
     });
 */
+
+/**
+ * @param {string} where 
+ */
+function askError(where) {
+    const doIt = confirm(`Throw error at "${where}"?`);
+    if (doIt) throw Error(`[askError at "${where}"]`);
+}
