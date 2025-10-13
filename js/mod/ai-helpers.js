@@ -460,7 +460,7 @@ Important:
             padding-right: 0px;
         `;
         // const btnCopyPrompt = modMdc.mkMDCbutton("Copy AI Prompt", "raised");
-        const btnCopyPrompt = modMdc.mkMDCbutton("Copy", "outlined", "content_copy");
+        const btnCopyPrompt = modMdc.mkMDCbutton("", "outlined", "content_copy");
         btnCopyPrompt.addEventListener("click", async () => {
             // evt.stopPropagation();
             await modTools.copyTextToClipboard(promptAI);
@@ -2461,7 +2461,7 @@ async function callGeminiAPI(userPrompt, apiKey) {
     // --- Dynamic Loading and Initialization (Happens only once) ---
     if (!aiClient) {
         try {
-            askError("callGeminiAPI in !aiClient");
+            // askError("callGeminiAPI in !aiClient");
             // Dynamically import the Google Gen AI SDK from the CDN URL
             // const module = await import('https://unpkg.com/@google/genai/dist/index.js');
             // @ts-ignore
@@ -2487,7 +2487,7 @@ async function callGeminiAPI(userPrompt, apiKey) {
 
     // --- API Call (Happens every time) ---
     try {
-        askError("callGeminiAPI in response");
+        // askError("callGeminiAPI in response");
         // @ts-ignore
         const response = await aiClient.models.generateContent({
             model: "gemini-2.5-flash",
@@ -2980,6 +2980,8 @@ async function hasInternet() {
     }
     const tofFun = typeof funHasInternet;
     if (tofFun != "function") throw Error(`typeof funHasInternet == "${tofFun}"`);
-    const i = await funHasInternet();
-    return i;
+    const internet = await funHasInternet();
+    const pretendNo = confirm(`internet==${internet}, pretend no internet?`);
+    if (pretendNo) return false;
+    return internet;
 }
