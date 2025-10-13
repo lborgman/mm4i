@@ -448,6 +448,7 @@ Important:
     let theValidJsonNodeArray;
 
     const divPrompt = mkDivPrompt();
+    divPrompt.id = "mk-div-prompt";
     divPrompt.inert = true;
     function mkDivPrompt() {
         const bPrompt = mkElt("div", undefined, promptAI);
@@ -460,18 +461,25 @@ Important:
             padding-right: 0px;
         `;
         // const btnCopyPrompt = modMdc.mkMDCbutton("Copy AI Prompt", "raised");
-        const btnCopyPrompt = modMdc.mkMDCbutton("", "outlined", "content_copy");
+        // const btnCopyPrompt = modMdc.mkMDCbutton("", "outlined", "content_copy");
+        const btnCopyPrompt = modMdc.mkMDCiconButton("content_copy", "Copy AI prompt");
         btnCopyPrompt.addEventListener("click", async () => {
             // evt.stopPropagation();
             await modTools.copyTextToClipboard(promptAI);
             // div-ai-paste
             setCSSforAIonClipboard(true);
+            setCliboardInert(false);
+            divUserSteps.textContent = `
+                The AI prompt has been copied to the clipboard.
+                You can use it in the AI chat you prefer.
+                Copy the AI answer and then click the button below.
+            `;
         });
         const eltPromptSummary = mkElt("summary", undefined, "Show");
         eltPromptSummary.style = `
             position: absolute;
-            top: 0px;
-            left: 220px;
+            top: 10px;
+            left: 160px;
         `;
         const eltPromptDetails = mkElt("details", undefined, [
             eltPromptSummary,
@@ -491,7 +499,7 @@ Important:
         divNewPrompt.style = `
                     display: flex;
                     flex-direction: row;
-                    gap: 20px;
+                    gap: 15px;
                     position: relative;
                 `;
         const divPromptOuter = mkElt("div", undefined, [
@@ -1134,8 +1142,7 @@ Important:
             gap: 5px;
             `;
 
-        const arrToDo = getWhatToDoForUser(nameAI);
-        arrToDo?.forEach(td => { eltCurrentWay.appendChild(td); });
+        getWhatToDoForUser(nameAI, eltCurrentWay);
         switch (way) {
             case "API":
                 break;
@@ -1240,23 +1247,30 @@ Important:
     });
     // @ts-ignore
     divEltsAI.addEventListener("change", evt => {
-        // cantHaveAIonClipboard();
-        setCSSforAIonClipboard(false);
-        const t = evt.target;
-        if (!t) return;
-        // @ts-ignore
+        const t = /** @type {HTMLInputElement} */ (evt.target);
         const nameAI = t.value;
         settingUsedAIname.value = nameAI;
         divGoStatus.textContent = "";
-        isAutomatedAI(nameAI);
-        checkIsAIchoosen();
+        setAIchoosen(nameAI);
     });
+    /** @param {string} nameAI */
+    function setAIchoosen(nameAI) {
+        btnGo.inert = false;
+        setCSSforAIonClipboard(!isAutomatedAI(nameAI));
+        setCliboardInert(true);
+        checkIsAIchoosen();
+        divUserSteps.textContent = "";
+        divUserSteps.appendChild(mkElt("div", undefined, "Steps:"));
+        getWhatToDoForUser(nameAI, divUserSteps);
+    }
     {
         const currentAIname = /** @type {string} */ (settingUsedAIname.value);
         if (currentAIname.length > 0) {
             const radCurrentAI = divEltsAI.querySelector(`input[type=radio][value="${currentAIname}"]`);
             if (radCurrentAI) { radCurrentAI.checked = true; }
-            isAutomatedAI(currentAIname);
+            // isAutomatedAI(currentAIname);
+            // FIX-ME: try
+            setTimeout(() => setAIchoosen(currentAIname), 1000);
         }
     }
 
@@ -1282,6 +1296,7 @@ Important:
     btnGo.addEventListener("click", async (evt) => {
         evt.stopPropagation();
 
+
         const divHardWay = document.getElementById("hard-way");
         if (!divHardWay) throw Error('Could not find "#hard-way"');
         divHardWay.querySelector("input[type=radio][name=ai]:checked");
@@ -1293,6 +1308,15 @@ Important:
 
         // @ts-ignore
         const nameAI = inpAI.value;
+
+        // Need this if copy prompt have been used:
+        if (!isCliboardInert()) {
+            divUserSteps.textContent = "";
+            getWhatToDoForUser(nameAI, divUserSteps);
+        }
+
+        setCliboardInert(true);
+
         const { way } = getWayToCallAI(nameAI);
         if (way != "API") {
             const modTools = await importFc4i("toolsJs");
@@ -1301,7 +1325,10 @@ Important:
             // document.documentElement.classList.add("have-ai-on-clipboard");
             // mayHaveAIonClipboard();
         }
-        setCSSforAIonClipboard(way != "API");
+
+        const isAPI = way == "API";
+        setCSSforAIonClipboard(!isAPI);
+        setCSSforAIonClipboard(true);
 
         nameUsedAI = nameAI
         if (nameAI == "none") {
@@ -1314,19 +1341,21 @@ Important:
             if (!infoThisAI) { throw Error(`Did not find info for AI "${nameAI}"`); }
         }
 
-        if (wayToCallAIisAPI(nameAI)) {
+        // getWhatToDoForUser(nameAI, divUserSteps);
+
+
+        const callingAPI = wayToCallAIisAPI(nameAI);
+        if (callingAPI) {
             document.documentElement.classList.add("ai-in-progress");
             modMdc.replaceMDCicon("stop", btnGo);
         }
-
-        callAIsAPI(nameAI, promptAI);
-
-        const arrToDo = getWhatToDoForUser(nameAI);
-        // const divUserSteps = document.getElementById("div-user-steps");
-        arrToDo.forEach(step => {
-            const divStep = mkElt("div", undefined, step);
-            divUserSteps.appendChild(divStep);
-        })
+        await callNamedAI(nameAI, promptAI);
+        if (callingAPI) {
+            document.documentElement.classList.remove("ai-in-progress");
+            modMdc.replaceMDCicon("play_arrow", btnGo);
+        } else {
+            setTimeout(() => setCliboardInert(false), 10 * 1000);
+        }
     });
 
 
@@ -1338,12 +1367,7 @@ Important:
     const cardPrompt = mkElt("p", { class: "mdc-card display-flex" }, [
         divPrompt,
     ]);
-    cardPrompt.style = `
-            NOdisplay: flex;
-            gap: 10px;
-            flex - direction: column;
-            padding: 20px;
-            `;
+    cardPrompt.style.padding = `10px`;
 
 
     const btnEasyWay = modMdc.mkMDCbutton("Make mindmap", "raised");
@@ -1850,7 +1874,7 @@ Important:
         const doIitNow = confirm(`AI ${currentAIname} is automated. Make mindmap directly?`);
         if (!doIitNow) return;
         // "go"
-        callAIsAPI(currentAIname, promptAI);
+        callNamedAI(currentAIname, promptAI);
     }
 
 
@@ -1861,7 +1885,7 @@ Important:
      */
     function tellIfAIisChoosen(b, nameAI) {
         console.log("tellIfAIisChoosen", { b, nameAI });
-        btnGo.inert = !b;
+        // btnGo.inert = !b;
         if (b) {
             document.documentElement.classList.add("ai-is-choosen");
         } else {
@@ -1871,7 +1895,7 @@ Important:
     }
 
     function checkIsAIchoosen() {
-        console.warn("checkIsAIchoosen: typeof btnGo", typeof btnGo);
+        // console.warn("checkIsAIchoosen: typeof btnGo", typeof btnGo);
         /** @param {boolean} b * @param {string} [nameAI] * @returns {boolean} */
         const eltAI = divEltsAI.querySelector("input[type=radio][name=ai]:checked");
         if (!eltAI) return tellIfAIisChoosen(false, "");
@@ -2118,24 +2142,25 @@ export function wayToCallAIisAPI(nameAI) {
  * @param {string} nameAI 
  * @param {string} promptAI 
  */
-async function callAIsAPI(nameAI, promptAI) {
+async function callNamedAI(nameAI, promptAI) {
+    const modTools = await importFc4i("toolsJs");
+
     const divGoStatus = document.getElementById("div-go-status");
     if (!divGoStatus) throw Error(`Did not find element "div-go-status"`);
+    divGoStatus.style.color = "unset";
+
+    if (!await promHasInternet()) {
+        divGoStatus.textContent = `No Internet.`;
+        divGoStatus.style.color = "blue";
+        setCSSforAIonClipboard(false);
+        return;
+    }
 
     const divUserSteps = document.getElementById("div-user-steps");
     if (!divUserSteps) throw Error(`Did not find element "div-user-steps"`);
 
-    if (!hasInternet()) {
-        divGoStatus.textContent = `No Internet. Can't contact ${nameAI}`;
-        divGoStatus.style.color = "blue";
-        divUserSteps.textContent = "";
-        return;
-    }
-
-    const modTools = await importFc4i("toolsJs");
 
     const { way: wayToCallAI } = getWayToCallAI(nameAI);
-
     switch (wayToCallAI) {
         case "API":
             callAIapi(nameAI);
@@ -2672,7 +2697,6 @@ export function showAIclipboardDiv() {
 function isAutomatedAI(nameAI) {
     const { way } = getWayToCallAI(nameAI);
     return way == "API";
-    setCSSforAIonClipboard(way != "API");
 }
 
 
@@ -2766,6 +2790,18 @@ function setCSSforAIonClipboard(canBeThere) {
         document.documentElement.classList.remove("have-ai-on-clipboard");
     }
 }
+/** @param {boolean} inert */
+function setCliboardInert(inert) {
+    const divCliboard = document.getElementById("div-ai-clipboard");
+    // if (divCliboard == null) throw Error("Did not get #div-ai-clipboard");
+    if (divCliboard == null) return;
+    divCliboard.inert = inert
+}
+function isCliboardInert() {
+    const divCliboard = document.getElementById("div-ai-clipboard");
+    if (divCliboard == null) return;
+    return divCliboard.inert;
+}
 
 /** * * @param {boolean} isAutomated */
 function setCSSforIsAutomatedAI(isAutomated) {
@@ -2779,9 +2815,9 @@ function setCSSforIsAutomatedAI(isAutomated) {
 /**
  * 
  * @param {string} nameAI 
- * @returns {HTMLSpanElement[]}
+ * @param {HTMLDivElement} eltWhere 
  */
-function getWhatToDoForUser(nameAI) {
+function getWhatToDoForUser(nameAI, eltWhere) {
     let { way, copyQ } = getWayToCallAI(nameAI);
     const infoThisAI = infoAIs[nameAI];
     // const { qW, qA, android, urlImg, urlChat, isPWA, fun, urlAPIkey } = infoThisAI;
@@ -2795,12 +2831,13 @@ function getWhatToDoForUser(nameAI) {
         numDo++;
         const bNum = mkElt("b", undefined, `${numDo}.`);
         bNum.style.marginRight = "10px";
-        const spanDo = mkElt("span", undefined, [bNum, txt]);
+        const spanDo = mkElt("div", undefined, [bNum, txt]);
         arrToDo.push(spanDo);
     }
     if (way == "API") {
         addDo("Just wait, it is automated.");
-        return arrToDo;
+        arrToDo.forEach(td => { eltWhere.appendChild(td); });
+        return;
     }
     const qValue = isAndroid ? qA : qW;
     const needPaste = (qValue == false);
@@ -2816,7 +2853,8 @@ function getWhatToDoForUser(nameAI) {
         "Here: ",
         "Click ", mkElt("i", undefined, txtBtnCopyCliboard),
     ]));
-    return arrToDo;
+    // return arrToDo;
+    arrToDo.forEach(td => { eltWhere.appendChild(td); });
 }
 
 
@@ -2972,7 +3010,7 @@ function askError(where) {
  * 
  * @returns {Promise<boolean>}
  */
-async function hasInternet() {
+async function promHasInternet() {
     // @ts-ignore
     const funHasInternet = window["PWAhasInternet"];
     if (!funHasInternet) {
@@ -2981,7 +3019,7 @@ async function hasInternet() {
     const tofFun = typeof funHasInternet;
     if (tofFun != "function") throw Error(`typeof funHasInternet == "${tofFun}"`);
     const internet = await funHasInternet();
-    const pretendNo = confirm(`internet==${internet}, pretend no internet?`);
-    if (pretendNo) return false;
+    // const pretendNo = confirm(`internet==${internet}, pretend no internet?`);
+    // if (pretendNo) return false;
     return internet;
 }
