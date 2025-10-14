@@ -2808,3 +2808,46 @@ export function mkTextareaGrowWrap(textarea) {
     textarea.addEventListener("input", () => { replicate(); });
     if (textarea.value.length > 0) replicate();
 }
+
+
+
+export async function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    console.log('Notifications not supported in this browser');
+    return false;
+  }
+  const permission = await Notification.requestPermission();
+  if (permission !== 'granted') {
+    console.log('Notification permission denied');
+    return false;
+  }
+  return true;
+}
+
+// app.js
+testNotification();
+async function testNotification() {
+  const hasPermission = await requestNotificationPermission();
+  if (!hasPermission) {
+    alert('Notifications are disabled or not supported.');
+    return;
+  }
+
+  console.log('Starting task...');
+  // Simulate a time-consuming task (e.g., 5 seconds)
+  setTimeout(() => {
+    console.log('Task completed!');
+    // Show client-side notification
+    new Notification('Task Complete', {
+      body: 'Test notification task has finished!',
+      // icon: '/icon.png', // Optional: Path to an icon
+      // icon: './mm4i/img/mm4i.svg', // Optional: Path to an icon
+      // icon: '/mm4i/img/mm4i.svg', // Optional: Path to an icon
+      // @ts-ignore
+      icon: makeAbsLink('./img/mm4i.svg'), // Optional: Path to an icon
+    });
+  }, 10 * 1000);
+}
+
+// Example: Start task when a button is clicked
+// document.getElementById('startTaskButton').addEventListener('click', startTask);

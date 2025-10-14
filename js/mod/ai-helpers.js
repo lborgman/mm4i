@@ -36,6 +36,7 @@ class SettingsMm4iAI extends modLocalSettings.LocalSetting {
 const settingPuterAImodel = new SettingsMm4iAI("puter-ai-model", "");
 const settingUsedAIname = new SettingsMm4iAI("used-ai-name", "");
 const settingProceedAPI = new SettingsMm4iAI("proceed-api", true);
+const settingNotifyReady = new SettingsMm4iAI("notify-ready-api", true);
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -466,7 +467,7 @@ Important:
         btnCopyPrompt.addEventListener("click", async () => {
             // evt.stopPropagation();
             await modTools.copyTextToClipboard(promptAI);
-            // div-ai-paste
+            setCSSforIsAutomatedAI(false);
             setCSSforAIonClipboard(true);
             setCliboardInert(false);
             divUserSteps.textContent = `
@@ -742,6 +743,32 @@ Important:
     ]);
     eltDivAIclipboard.id = "div-ai-clipboard";
     // eltDivAIclipboard.classList.add("VK_FOCUS");
+
+    const chkProceed = settingProceedAPI.getInputElement();
+    const lblProceed = mkElt("label", undefined, [
+        chkProceed,
+        "Proceed when shared to and automated"
+    ]);
+    const chkNotify = settingNotifyReady.getInputElement();
+    const lblNotify = mkElt("label", undefined, [
+        chkNotify,
+        "Notify me when API is ready"
+    ]);
+
+    const eltDivAIautomated = mkElt("div", { class: "mdc-card" }, [
+        "Automated:",
+        lblProceed,
+        lblNotify
+    ]);
+    eltDivAIautomated.id = "div-ai-automated";
+    eltDivAIautomated.style = `
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        padding: 10px;
+    `;
+
+
 
     const cardInput = mkElt("p", { class: "mdc-card display-flex" }, [
         mkElt("div", undefined, `Article or video to summarize as a mindmap: `),
@@ -1256,7 +1283,9 @@ Important:
     /** @param {string} nameAI */
     function setAIchoosen(nameAI) {
         btnGo.inert = false;
-        setCSSforAIonClipboard(!isAutomatedAI(nameAI));
+        const isAuto = isAutomatedAI(nameAI);
+        setCSSforIsAutomatedAI(isAuto);
+        setCSSforAIonClipboard(!isAuto);
         setCliboardInert(true);
         checkIsAIchoosen();
         divUserSteps.textContent = "";
@@ -1327,6 +1356,7 @@ Important:
         }
 
         const isAPI = way == "API";
+        setCSSforIsAutomatedAI(isAPI);
         setCSSforAIonClipboard(!isAPI);
         setCSSforAIonClipboard(true);
 
@@ -1499,6 +1529,7 @@ Important:
         divUserSteps,
         // mkElt("div", undefined, eltDivAIclipboard),
         eltDivAIclipboard,
+        eltDivAIautomated,
     ]);
     divTabForGo.id = "hard-way";
     divTabForGo.style = styleWays;
@@ -2152,6 +2183,7 @@ async function callNamedAI(nameAI, promptAI) {
     if (!await promHasInternet()) {
         divGoStatus.textContent = `No Internet.`;
         divGoStatus.style.color = "blue";
+        setCSSforAIautomated(false);
         setCSSforAIonClipboard(false);
         return;
     }
@@ -2782,6 +2814,16 @@ function _testEstimateTokens() {
 // Run tests
 // _testEstimateTokens();
 
+/** @param {boolean} canBeThere */
+function setCSSforAIautomated(automated) {
+    if (automated) {
+        document.documentElement.classList.add("ai-is-automated");
+    } else {
+        document.documentElement.classList.remove("ai-is-automated");
+    }
+}
+
+/** @param {boolean} inert */
 /** @param {boolean} canBeThere */
 function setCSSforAIonClipboard(canBeThere) {
     if (canBeThere) {
