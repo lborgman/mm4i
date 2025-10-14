@@ -2836,12 +2836,24 @@ export async function showNotification(msg, info) {
         return;
     }
 
-    console.warn({ msg, info });
+    console.warn("reg notification", { msg, info });
+    /*
     new Notification(msg, {
         body: info,
         // @ts-ignore
         icon: makeAbsLink('./img/mm4i.svg'),
     });
+    */
+    // try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) throw Error("!reg");
+    const options = {
+        body: "body",
+        icon: makeAbsLink('./img/mm4i.svg'),
+    }
+    reg.showNotification("reg notification", options);
+    // }
+
 }
 
 // _testNotification();
