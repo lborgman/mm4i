@@ -749,16 +749,28 @@ Important:
         chkProceed,
         "Proceed when shared to and automated"
     ]);
+    /*
     const chkNotify = settingNotifyReady.getInputElement();
     const lblNotify = mkElt("label", undefined, [
         chkNotify,
         "Notify me when API is ready"
     ]);
+    */
+    const btnNotifyTest = modMdc.mkMDCbutton("Test notification", "raised");
+    btnNotifyTest.addEventListener("click", () => {
+        const txtDelay = prompt("Test notification, delay (seconds):", "30");
+        // @ts-ignore
+        const secDelay = parseInt(txtDelay);
+        setTimeout(() => {
+            modTools.showNotification("Test notification", `Delay ${secDelay} seconds`);
+        }, secDelay * 1000);
+    });
+
 
     const eltDivAIautomated = mkElt("div", { class: "mdc-card" }, [
         "Automated:",
         lblProceed,
-        lblNotify
+        mkElt("div", undefined, btnNotifyTest)
     ]);
     eltDivAIautomated.id = "div-ai-automated";
     eltDivAIautomated.style = `
