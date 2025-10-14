@@ -1552,18 +1552,24 @@
             margin-left: 25px;
             transition: opacity 2s;
             opacity: 0;
-            visibility: hidden;
+            display: none;
         }
+
         .have-ai-on-clipboard #div-ai-clipboard {
             opacity: 1;
-            visibility: unset;
+            display: block;
         }
 
         #div-ai-automated {
             display: none;
+            flex-direction: column;
+            gap: 5px;
+            padding: 10px;
+            margin-top: 10px;
         }
+
         .ai-is-automated #div-ai-automated {
-            display: unset;
+            display: flex;
         }
 
         #btn-go {

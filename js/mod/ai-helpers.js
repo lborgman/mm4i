@@ -467,7 +467,7 @@ Important:
         btnCopyPrompt.addEventListener("click", async () => {
             // evt.stopPropagation();
             await modTools.copyTextToClipboard(promptAI);
-            setCSSforIsAutomatedAI(false);
+            setCSSforAIautomated(false);
             setCSSforAIonClipboard(true);
             setCliboardInert(false);
             divUserSteps.textContent = `
@@ -747,7 +747,7 @@ Important:
     const chkProceed = settingProceedAPI.getInputElement();
     const lblProceed = mkElt("label", undefined, [
         chkProceed,
-        "Proceed when shared to and automated"
+        "Click start button for me when shared to"
     ]);
     /*
     const chkNotify = settingNotifyReady.getInputElement();
@@ -773,12 +773,6 @@ Important:
         mkElt("div", undefined, btnNotifyTest)
     ]);
     eltDivAIautomated.id = "div-ai-automated";
-    eltDivAIautomated.style = `
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        padding: 10px;
-    `;
 
 
 
@@ -1296,7 +1290,7 @@ Important:
     function setAIchoosen(nameAI) {
         btnGo.inert = false;
         const isAuto = isAutomatedAI(nameAI);
-        setCSSforIsAutomatedAI(isAuto);
+        setCSSforAIautomated(isAuto);
         setCSSforAIonClipboard(!isAuto);
         setCliboardInert(true);
         checkIsAIchoosen();
@@ -1368,9 +1362,9 @@ Important:
         }
 
         const isAPI = way == "API";
-        setCSSforIsAutomatedAI(isAPI);
-        setCSSforAIonClipboard(!isAPI);
-        setCSSforAIonClipboard(true);
+        // setCSSforAIautomated(isAPI);
+        // setCSSforAIonClipboard(!isAPI);
+        // setCSSforAIonClipboard(true);
 
         nameUsedAI = nameAI
         if (nameAI == "none") {
@@ -2842,15 +2836,6 @@ function _testEstimateTokens() {
 // Run tests
 // _testEstimateTokens();
 
-/** @param {boolean} canBeThere */
-function setCSSforAIautomated(automated) {
-    if (automated) {
-        document.documentElement.classList.add("ai-is-automated");
-    } else {
-        document.documentElement.classList.remove("ai-is-automated");
-    }
-}
-
 /** @param {boolean} inert */
 /** @param {boolean} canBeThere */
 function setCSSforAIonClipboard(canBeThere) {
@@ -2873,8 +2858,17 @@ function isCliboardInert() {
     return divCliboard.inert;
 }
 
+
+/** @param {boolean} canBeThere */
+function setCSSforAIautomated(automated) {
+    if (automated) {
+        document.documentElement.classList.add("ai-is-automated");
+    } else {
+        document.documentElement.classList.remove("ai-is-automated");
+    }
+}
 /** * * @param {boolean} isAutomated */
-function setCSSforIsAutomatedAI(isAutomated) {
+function OLDsetCSSforIsAutomatedAI(isAutomated) {
     if (isAutomated) {
         document.documentElement.classList.add("ai-is-automated");
     } else {
