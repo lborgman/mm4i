@@ -1914,10 +1914,12 @@ Important:
     }
 
     if (isAutomatedAI(currentAIname)) {
-        const doIitNow = confirm(`AI ${currentAIname} is automated. Make mindmap directly?`);
-        if (!doIitNow) return;
-        // "go"
-        callNamedAI(currentAIname, promptAI);
+        if (settingProceedAPI.value) {
+            const doIitNow = confirm(`AI ${currentAIname} is automated. Make mindmap directly?`);
+            if (!doIitNow) return;
+            // "go"
+            callNamedAI(currentAIname, promptAI);
+        }
     }
 
 
@@ -2269,7 +2271,20 @@ async function callNamedAI(nameAI, promptAI) {
         const keyAPI = getAPIkeyForAI(nameAI);
         const funAPI = infoThisAI.fun;
         if (typeof funAPI != "function") throw Error(`typeof funAPI == "${typeof funAPI}"`);
+
+
+        // const msStart = Date.now();
+        //
         const res = await funAPI(promptAI, keyAPI);
+        //
+        const msStop = Date.now();
+        const msElapsed = msStop - msStart;
+        const secElapsed = msElapsed / 1000;
+        const minutesElapsed = Math.floor(secElapsed / 60);
+        const secondsElapsed =  Math.floor(secElapsed % 60);
+        const strElapsed = `${minutesElapsed}:${String(secondsElapsed).padStart(2, "0")}`;
+
+
         clearInterval(tmrAlive);
         console.log({ res });
         if (res instanceof Error) {
@@ -2280,6 +2295,7 @@ async function callNamedAI(nameAI, promptAI) {
             // @ts-ignore
             divUserSteps.textContent = "";
         } else {
+            modTools.showNotification(`${nameAI} is ready`, `Elapsed time: ${strElapsed}`);
             divGoStatus.style.color = "green";
             divGoStatus.textContent = `Got response from ${nameAI}`;
             const eltAItextarea =

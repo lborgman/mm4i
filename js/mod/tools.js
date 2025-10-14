@@ -2826,34 +2826,33 @@ export async function requestNotificationPermission() {
 
 /**
  * Show notification
- * @param {string} msg 
- * @param {string} info 
+ * @param {string} title 
+ * @param {string} body 
  */
-export async function showNotification(msg, info) {
+export async function showNotification(title, body) {
     const hasPermission = await requestNotificationPermission();
     if (!hasPermission) {
         alert('Notifications are disabled or not supported.');
         return;
     }
 
-    console.warn("reg notification", { msg, info });
-    /*
-    new Notification(msg, {
-        body: info,
+    console.warn("reg notification", { title, body });
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) {
+        // Works only on desktop, not on Android:
+        new Notification(title, {
+            body: body,
+            // @ts-ignore
+            icon: makeAbsLink('./img/mm4i.svg'),
+        });
+        return;
+    }
+    const options = {
+        body: body,
         // @ts-ignore
         icon: makeAbsLink('./img/mm4i.svg'),
-    });
-    */
-    // try {
-    const reg = await navigator.serviceWorker.getRegistration();
-    if (!reg) throw Error("!reg");
-    const options = {
-        body: "body",
-        icon: makeAbsLink('./img/mm4i.svg'),
     }
-    reg.showNotification("reg notification", options);
-    // }
-
+    reg.showNotification(title, options);
 }
 
 // _testNotification();
