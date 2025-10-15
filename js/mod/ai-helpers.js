@@ -34,6 +34,7 @@ class SettingsMm4iAI extends modLocalSettings.LocalSetting {
     constructor(key, defaultValue) { super("mm4i-settings-ai-", key, defaultValue); }
 }
 const settingPuterAImodel = new SettingsMm4iAI("puter-ai-model", "");
+const settingHuggingFaceAImodel = new SettingsMm4iAI("hugging-face-ai-model", "");
 const settingUsedAIname = new SettingsMm4iAI("used-ai-name", "");
 const settingProceedAPI = new SettingsMm4iAI("proceed-api", true);
 const settingNotifyReady = new SettingsMm4iAI("notify-ready-api", true);
@@ -119,6 +120,14 @@ function _getAIinfoComment(aiInfo, key) {
  * @type {Object<string,aiInfo>}
  */
 const infoAIs = {
+    "HuggingFace": mkAIinfo({
+        company: "Hugging Face",
+        urlDescription: "https://huggingface.co/",
+        // callHuggingFaceAPI
+        fun: callHuggingFaceInference,
+        urlImg: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+        urlAPIkey: "https://huggingface.co/settings/tokens",
+    }),
     "Gemini": mkAIinfo({
         company: "Google",
         urlDescription: "https://gemini.google/about/",
@@ -805,7 +814,7 @@ Important:
     */
 
     // Add Hugging Face first
-    await addHuggingFace();
+    // await addHuggingFace();
     async function addHuggingFace() {
         const imgAI = mkElt("span", { class: "elt-ai-img" });
         const urlImg = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg";
@@ -1106,8 +1115,6 @@ Important:
         // @ts-ignore
         const { company, urlDescription, qW, qA, android, urlImg, urlChat, isPWA, fun, urlAPIkey } = v;
         // const { qA, qW, android, urlImg, isPWA } = v; // "Gemini"
-        const tofIsPWA = typeof isPWA;
-        if (tofIsPWA != "boolean") throw Error(`typeof isPWA == "${tofIsPWA}"`);
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
         const imgAI = mkElt("span", { class: "elt-ai-img" });
         if (nameAI == "Le Chat") {
@@ -1263,6 +1270,8 @@ Important:
             }
         }
         if (urlChat) {
+            const tofIsPWA = typeof isPWA;
+            if (tofIsPWA != "boolean") throw Error(`typeof isPWA == "${tofIsPWA}"`);
             if (qW) {
                 const strCan = `Web chat adds the prompt for you`;
                 divDetAIcontent.appendChild(mkElt("span", undefined, strCan));
@@ -1372,6 +1381,7 @@ Important:
             return;
         }
 
+        // if (nameAI != "PuterJs" && nameAI != "HuggingFace") {
         if (nameAI != "PuterJs") {
             const infoThisAI = infoAIs[nameAI];
             if (!infoThisAI) { throw Error(`Did not find info for AI "${nameAI}"`); }
@@ -2275,7 +2285,7 @@ async function callNamedAI(nameAI, promptAI) {
         const msElapsed = msStop - msStart;
         const secElapsed = msElapsed / 1000;
         const minutesElapsed = Math.floor(secElapsed / 60);
-        const secondsElapsed =  Math.floor(secElapsed % 60);
+        const secondsElapsed = Math.floor(secElapsed % 60);
         const strElapsed = `${minutesElapsed}:${String(secondsElapsed).padStart(2, "0")}`;
 
 
@@ -2885,7 +2895,6 @@ function getWhatToDoForUser(nameAI, eltWhere) {
     let { way, copyQ } = getWayToCallAI(nameAI);
     const infoThisAI = infoAIs[nameAI];
     // const { qW, qA, android, urlImg, urlChat, isPWA, fun, urlAPIkey } = infoThisAI;
-    const { qW, qA } = infoThisAI;
 
     let numDo = 0;
     /** @type {HTMLSpanElement[]} */
@@ -2903,6 +2912,7 @@ function getWhatToDoForUser(nameAI, eltWhere) {
         arrToDo.forEach(td => { eltWhere.appendChild(td); });
         return;
     }
+    const { qW, qA } = infoThisAI;
     const qValue = isAndroid ? qA : qW;
     const needPaste = (qValue == false);
     if (needPaste != copyQ) {
@@ -3006,6 +3016,36 @@ callMistralAPI(prompt, "YOUR_API_KEY")
 
 
 // https://huggingface.co/
+// "HuggingFace"
+/** @type {CallAIapi} */
+async function callHuggingFaceInference(userPrompt, apiKey) {
+    debugger;
+    const modHuggingFace = await importFc4i("huggingface-inference");
+    const InferenceClient = modHuggingFace.InferenceClient;
+    // const InferenceClient = modHuggingFace.chatCompletion;
+    const client = new InferenceClient(apiKey);
+    // const model = "mistralai/Mistral-7B-Instruct-v0.2"; // Change to any Hugging Face model
+    // const model = "HuggingFaceH4/zephyr-7b-beta"; // (fast, conversational, great for structured outputs).
+    // const model = "microsoft/DialoGPT-large"; //  (reliable for text gen, smaller footprint).
+    // const model = "gpt2"; // (ultra-light fallback for testing).
+
+    // Grok: Use a model confirmed to work with chatCompletion on the free Inference API. Recommended:
+    const model = "HuggingFaceH4/zephyr-7b-beta"; // (optimized for conversational tasks, reliable on free tier).
+    // const model = "mistralai/Mixtral-8x7B-Instruct-v0.1"; // (if available, great for JSON tasks; check for cold starts).
+    // const model = "meta-llama/Llama-3.2-3B-Instruct"; // (newer, may require gated access approval).
+    try {
+        const strJson = await client.chatCompletion({
+            model,
+            inputs: userPrompt,
+        });
+        console.log({ strJson });
+        return strJson;
+    } catch (err) {
+        const msg = String(err);
+        return Error(msg);
+    }
+}
+
 /** @type {CallAIapi} */
 async function callHuggingFaceAPI(userPrompt, apiKey) {
     const model = "mistralai/Mistral-7B-Instruct-v0.2"; // Change to any Hugging Face model
@@ -3086,4 +3126,41 @@ async function promHasInternet() {
     // const pretendNo = confirm(`internet==${internet}, pretend no internet?`);
     // if (pretendNo) return false;
     return internet;
+}
+
+
+/** @type {CallAIapiWithOptions} */
+async function callHuggingFaceAIapi(userPrompt, apiKey, options = {}) {
+    // const endpoint = 'https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta';
+    const model = options.model || 'HuggingFaceH4/zephyr-7b-beta';
+    const endpoint = `https://api-inference.huggingface.co/models/${model}`;
+
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                inputs: userPrompt,
+                parameters: {
+                    return_full_text: false,
+                    max_new_tokens: 1000
+                }
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status} - ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        // Handle streaming or direct response
+        const generatedText = Array.isArray(data) ? data[0].generated_text : data.generated_text;
+
+        return generatedText;
+    } catch (error) {
+        throw new Error(`API call failed: ${error.message}`);
+    }
 }

@@ -187,6 +187,8 @@ const baseUrl = (() => {
         "css-specificity": "https://cdn.jsdelivr.net/npm/@bramus/specificity",
 
         "puter-ai-models": "./ext/puter/puter-ai-models.js",
+
+        "huggingface-inference": "https://cdn.jsdelivr.net/npm/@huggingface/inference@4.11.2/+esm",
     };
 
     const isImporting = {};
