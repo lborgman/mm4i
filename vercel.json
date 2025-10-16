@@ -1,5 +1,20 @@
 {
+  "version": 2,
   "rewrites": [
-    { "source": "/mm4i.html", "destination": "/api/prerender" }
+    {
+      "source": "/mm4i.html",
+      "destination": "/api/prerender"
+    }
+  ],
+  "functions": {
+    "api/test-groq.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/call-groq",
+      "dest": "/api/call-groq.js"
+    }
   ]
 }
