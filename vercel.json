@@ -4,10 +4,13 @@
     {
       "source": "/mm4i.html",
       "destination": "/api/prerender"
-    },
+    }
+  ],
+  "redirects": [
     {
       "source": "/",
-      "destination": "/api/prerender"
+      "destination": "/mm4i.html",
+      "permanent": false
     }
   ],
   "functions": {
