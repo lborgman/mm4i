@@ -7,7 +7,7 @@
     },
     {
       "source": "/",
-      "destination": "/mm4i.html"
+      "destination": "/api/prerender"
     }
   ],
   "functions": {
