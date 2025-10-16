@@ -4,6 +4,10 @@
     {
       "source": "/mm4i.html",
       "destination": "/api/prerender"
+    },
+    {
+      "source": "/",
+      "destination": "/mm4i.html",
     }
   ],
   "functions": {

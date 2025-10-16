@@ -1,7 +1,11 @@
 ////// This is for Vercel, initial code is from perplexity.ai
 // @ts-check
 
-// /api/prerender.js — Vercel Edge Function to proxy requests to Prerender.io
+/*
+    /api/prerender.js — Vercel Edge Function,
+    initially to proxy requests to Prerender.io
+    However prerender.io is not used any more!
+*/
 export const config = {
     runtime: "edge", // make it an Edge Function for lower latency
 };
@@ -91,6 +95,7 @@ export async function GET(request) {
         return new Response("Not a crawler", { status: 403 });
     }
 
+    /*
     // Extract the target URL to prerender: expect ?url=original-site-url
     // If not provided, fallback to homepage (adjust as needed)
     const targetUrl = urlRequest.searchParams.get("url");
@@ -134,4 +139,5 @@ export async function GET(request) {
         console.error("Error fetching prerender page", err);
         return new Response("Error fetching prerendered page", { status: 500 });
     }
+    */
 }
