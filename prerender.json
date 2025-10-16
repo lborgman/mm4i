@@ -1,0 +1,2380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="https://js.puter.com/v2/"></script>
+    <!--
+    <style>
+        /* For virtual keyboard */
+
+        /* Step 1: Hide all elements within the dialog's content. */
+        html.VK_ACTIVE .mdc-dialog__content:has(:focus) * {
+            display: none;
+        }
+
+        /* Step 2: Make the focused element and its ancestors visible again. */
+        /* This rule has a higher specificity to win the cascade. */
+        html.VK_ACTIVE .mdc-dialog__content:has(:focus):has(*) *:has(:focus),
+        html.VK_ACTIVE .mdc-dialog__content:has(:focus):has(*) :focus {
+            display: unset;
+        }
+    </style>
+    -->
+    <style id="style-vk">
+        /* https://polypane.app/css-specificity-calculator/ */
+        /* https://web.dev/learn/css/specificity */
+
+        /* Step 1: Hide all elements within the dialog's content. */
+
+        html.VK_ACTIVE .mdc-dialog__content:has(.VK_FOCUS:focus-within)>div>*:not(:focus-within),
+        NOhtml.VK_ACTIVE .mdc-dialog__content:has(.VK_FOCUS:focus-within)>div * {
+            display: none;
+        }
+
+        /* Step 2: Make the focused element's chain of parents visible. */
+        /* This rule has a higher specificity to win the cascade. */
+
+        NOhtml.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within *:has(:focus-within),
+        NOhtml.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within :focus,
+        NOhtml.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within .VK_FOCUS:has(:focus),
+        NOhtml.VK_ACTIVE .mdc-dialog__content .VK_FOCUS:focus-within .VK_FOCUS:has(:focus) * {
+            display: unset;
+        }
+
+
+        /* Virtual keyboard layoutchanges */
+        html.VK_ACTIVE #body .fixed-at-bottom {
+            display: none;
+        }
+
+        #shared-marker.fixed-at-bottom {
+            display: flex;
+        }
+
+        #generated-marker.fixed-at-bottom {
+            display: flex;
+        }
+
+        /* #div-bottom-debug.fixed-at-bottom { */
+        #div-bottom-debug {
+            display: grid;
+        }
+    </style>
+    <script type="module">
+        // debugger;
+        const eltVk = document.getElementById("style-vk");
+        const strVk = eltVk.textContent;
+        const arrSel = strVk.split("\n")
+            .map(l => l.trim())
+            .filter(l => l.startsWith("html."))
+            .map(l => l.slice(0, -1));
+        // debugger;
+        window["vkLogSpecifity"] = vkLogSpecifityLocal;
+        await vkLogSpecifityLocal();
+        async function vkLogSpecifityLocal() {
+            const modTools = await importFc4i("toolsJs");
+            const arrProm =
+                arrSel.map(async r => {
+                    return new Promise(async (resolve) => {
+                        const spec = await modTools.cssSpecificity(r);
+                        resolve({ spec, r });
+                    });
+                });
+            const arrSettled = await Promise.allSettled(arrProm);
+            // console.log({ arrSettled });
+            const arrSpec = arrSettled.map(s => {
+                const v = s.value;
+                return `${v.spec} ${v.r}`;
+            });
+            const resSpec = arrSpec.join("\n");
+            // console.log(`Virtual keyboard CSS rules:\n${resSpec}`);
+        }
+        window["vkTestRule"] = vkTestRuleLocal;
+        function vkTestRuleLocal(num) {
+            // const strNum = prompt(`Rule number 0-${arrSel.length - 1}:`);
+            // const num = parseInt(strNum)
+            const strSelRule = arrSel[num];
+            console.log(`vkTestRule ${num}`, strSelRule);
+            const qs = document.querySelectorAll(strSelRule);
+            console.log({ qs });
+        }
+    </script>
+
+
+
+
+
+
+    <script id="domain-active">
+        // Check if domain is active through https
+        // FIX-ME:
+        window.isSecure = window.location.hostname == "localhost" || window.location.protocol == "https:"
+        if (!window.isSecure) {
+            const scripts = document.querySelectorAll('script');
+            scripts.forEach(script => script.remove());
+            setTimeout(() => {
+                document.documentElement.innerHTML = `
+                <h1>MM4I is not available at the moment</h1>
+                Waiting for internet domain activation.
+                `;
+                document.close();
+            }, 1000);
+        }
+    </script>
+    <!-- https://blog.pixelfreestudio.com/how-to-implement-lazy-loading-in-pwas/ -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- This page © Copyright 2023, Lennart Borgman -->
+    <meta name="author" content="Lennart Borgman">
+    <meta name="description" content="Mindmaps web page that you can manipulate on your phone">
+
+    <meta property="og:url" content="https://some4i.eu/mm4i/mm4i.html">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://some4i.eu/mm4i/img/mm4i.png">
+    <meta property="og:image:alt" content="Example screenshot of mm4i">
+    <meta property="og:image:width" content="404">
+    <meta property="og:image:height" content="186">
+
+
+    <!-- OGDYN -->
+    <meta property="og:title" content="mm4i (Mindmaps 4 Internet)">
+    <meta property="og:description" content="
+        Mindmaps editor in your web browser.
+        (Note: If you want to share a mindmap then use the share button inside mm4i.)
+        ">
+    <!-- OGDYN -->
+
+    <!-- See index.html -->
+    <base href=".">
+
+    <script src="./init-error.js"></script>
+
+    <script id="add-og">
+        /* Add OG: */
+
+        const searchParams = new URLSearchParams(location.search);
+        let uacf = "NOUACF";
+        uacf = searchParams.get("uacf");
+        if (uacf) { window.detectedBot = true; } else { uacf = "NOUACF"; }
+
+
+        const addMeta = (which, content) => {
+            const oldMeta = document.querySelector(`meta[property="og:${which}"]`);
+            oldMeta?.remove();
+            const eltMeta = document.createElement("meta");
+            eltMeta.setAttribute("property", `og:${which}`);
+            eltMeta.setAttribute("content", content);
+            // document.head.appendChild(eltMeta);
+            document.currentScript.insertAdjacentElement('afterend', eltMeta);
+        }
+
+        const sharepostParam = searchParams.get("sharepost");
+        // console.log({ sharepostParam });
+        if (sharepostParam != null) {
+            ////// See shareLinkWithPostContent in mm4i-share-links.js
+            // There are 4 parts: sharepost, title, text and token.
+            // Token is not used here (it is for accessing the post part, which is the mindmap).
+            // Title and text are used for og meta tags.
+
+            const spTitle = searchParams.get("title");
+            // addMeta("title", spTitle);
+            addMeta("title", `${spTitle} (${uacf})`);
+
+            const spText = searchParams.get("text");
+            addMeta("description", spText);
+
+            addMeta("url", location.href);
+            console.log({ spTitle, spText });
+        }
+    </script>
+    <!-- OG -->
+
+    <script id="load-script-style">
+        /**
+        * Dynamically loads a JavaScript file and waits for it to be executed.
+        *
+        * @param {string} src - The URL of the script to load.
+        * @param {Object} [options] - Optional settings.
+        * @param {boolean} [options.async=true] - Whether to load the script asynchronously.
+        * @param {boolean} [options.defer=false] - Whether to defer script execution.
+        * @returns {Promise<void>} Resolves when the script is loaded and executed, rejects on error.
+        */
+        function loadScript(src, options = {}) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                script.src = src;
+                // script.async = options.async ?? true;
+                script.async = options.async ?? false;
+                // script.defer = options.defer ?? false;
+                script.defer = options.defer ?? true;
+
+                script.onload = () => {
+                    console.log(`Script loaded: ${src}`);
+                    resolve();
+                };
+
+                script.onerror = () => {
+                    console.error(`Failed to load script: ${src}`);
+                    reject(new Error(`Script load error for ${src}`));
+                };
+
+                // document.head.appendChild(script);
+                document.body.appendChild(script);
+            });
+        }
+        function loadStylesheet(href) {
+            return new Promise((resolve, reject) => {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = href;
+
+                link.onload = () => {
+                    console.log(`Stylesheet loaded: ${href}`);
+                    resolve();
+                };
+
+                link.onerror = () => {
+                    console.error(`Failed to load stylesheet: ${href}`);
+                    reject(new Error(`Stylesheet load error for ${href}`));
+                };
+
+                document.head.appendChild(link);
+            });
+        }
+
+    </script>
+
+
+    <script type="module" src="./pwa.js"></script>
+    <script type="module" src="./anchors-with-base.js"></script>
+    <script src="./mm4i-importmaps.js"></script>
+
+
+    <script id="share-target">
+        /*
+        window.addEventListener('DOMContentLoaded', async () => {
+            const modMdc = await importFc4i("util-mdc");
+            const modTools = await importFc4i("toolsJs");
+            const sharedTo = modTools.getSharedToParams();
+            const logStr = sharedTo ? JSON.stringify(sharedTo) : "NO SHARED PARAMS";
+            modMdc.mkMDCdialogAlert(logStr);
+        });
+        */
+    </script>
+
+
+    <script id="setup-virtual-keyboard" type="module">
+        const modTools = await importFc4i("toolsJs");
+        modTools.setupVirtualKeyboardDetection();
+    </script>
+
+
+    <link rel="manifest" href="./manifest-mm4i.json">
+    <meta name="theme-color" content="#c0ca33">
+
+    <title>Mindmaps 4 Internet</title>
+    <link rel="icon" type="image/svg+xml" href="./img/mm4i.svg">
+
+
+    <!-- for MWC, https://github.com/material-components/material-web -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+
+    <!-- <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet"> -->
+    <!-- 
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="preload" as="style"
+        onload="this.onload=null; this.rel='stylesheet'">
+    -->
+
+    <!-- <link href="https://fonts.googleapis.com/css?family=Material+Icons&amp;display=block" rel="stylesheet"> -->
+    <!-- <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> -->
+    <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" /> -->
+    <!-- href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=search_check_2" /> -->
+
+
+    <!-- Try to make mdc symbols available offline: -->
+    <link rel="stylesheet" href="./ext/mdc-fonts/symbols.css" />
+    <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=adb,clear,close,delete_forever,enhanced_encryption,info_i,menu,p2p,passkey,phone_android,qr_code_2,route,search,shield_with_heart,visibility" /> -->
+
+
+
+
+    <!-- Required styles for Material Web -->
+    <!-- <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.css"> -->
+    <link rel="stylesheet" href="./ext/mdc/14.0.0/material-components-web.css">
+
+    <link rel="stylesheet" href="./css/mm4i.css">
+    <link id="jsmind-my-colors" rel="stylesheet" href="./css/var-colors.css">
+
+
+
+    <script src="./js/umd/idb.js"></script>
+
+
+    <link rel="stylesheet" href="./ext/jsmind/jsmind-mm4i.css" />
+    <link rel="stylesheet" href="./css/jsmind-edit.css">
+
+    <!-- <link rel="stylesheet" href="./ext/no-ui-slider/nouislider.css" /> -->
+    <link rel="preload" href="./ext/no-ui-slider/nouislider.css" as="style"
+        onload="this.onload=null; this.rel='stylesheet'" />
+
+    <!-- <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" /> -->
+    <!-- <link rel="stylesheet" href="./ext/toast-ui/editor/3.2.2.css" /> -->
+    <link rel="preload" href="./ext/toast-ui/editor/3.2.2.css" as="style"
+        onload="this.onload=null; this.rel='stylesheet'" />
+
+    <style>
+        .mdc-tab {
+            text-transform: none ! important;
+        }
+
+        .mdc-tab-scroller {
+            background-color: #8080000f;
+        }
+
+        .display-flex {
+            display: flex;
+        }
+
+        .flex-center {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        #jsmind-search-div {
+            position: fixed;
+            top: 0px;
+            left: 40px;
+            height: 40px;
+            background-color: yellow;
+            background-color: var(--mdc-theme-primary);
+            /* outline: 1px dotted red; */
+            display: flex;
+            width: fit-content;
+            display: none;
+        }
+
+        body:has(jmnodes) #jsmind-search-div {
+            display: flex;
+        }
+
+        #jsmind-stair-button {
+            display: none;
+        }
+
+        #jsmind-search-button {
+            left: unset;
+            background-color: unset;
+            position: relative;
+        }
+
+        .show-stair-button #jsmind-stair-button {
+            display: block;
+        }
+
+        .display-jsmind-search #jsmind-search-button {
+            background-color: var(--search-color);
+        }
+
+        #jsmind-search-inputs {
+            position: fixed;
+            left: 80px;
+            top: 0;
+            /* height: 40px; */
+            min-height: 40px;
+            /* margin-top: unset; */
+            padding: 8px;
+            gap: 8px;
+            margin-top: 0px;
+            background-color: blueviolet;
+            background-color: var(--search-color);
+            box-shadow: gray 3px 0px 7px 0px;
+            display: none;
+        }
+
+        .show-stair-button #jsmind-search-inputs {
+            left: 120px;
+        }
+
+        #jsmind-div-hits>div {
+            position: static;
+            background: transparent;
+            color: black;
+            display: flex;
+            flex-direction: row;
+            align-content: center;
+            flex-wrap: wrap;
+            gap: 5px;
+            padding: 2px;
+            min-height: 36px;
+        }
+
+        #jsmind-div-hits button {
+            min-width: 32px;
+            color: black;
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .display-jsmind-search #jsmind-search-inputs {
+            display: flex;
+        }
+
+
+
+        #jsmind_container {
+            height: 100vh;
+            width: 100vw;
+            pointer-events: all;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            touch-action: none;
+        }
+
+
+
+        /* jmnodes #jsmindtest-point-handle { */
+        html #jsmindtest-point-handle {
+            position: fixed;
+            background: gray;
+            border: 1px solid black;
+            outline: 1px solid white;
+        }
+
+        /* jmnodes.pointhandle-state-idle #jsmindtest-point-handle { */
+        html.pointhandle-state-idle #jsmindtest-point-handle {
+            background: black;
+        }
+
+        /* jmnodes.pointhandle-state-init #jsmindtest-point-handle { */
+        html.pointhandle-state-init #jsmindtest-point-handle {
+            background: yellow;
+        }
+
+        /* jmnodes.pointhandle-state-dist #jsmindtest-point-handle { */
+        html.pointhandle-state-dist #jsmindtest-point-handle {
+            background: greenyellow;
+        }
+
+        /* jmnodes.pointhandle-state-move #jsmindtest-point-handle { */
+        html.pointhandle-state-move #jsmindtest-point-handle {
+            background: red;
+        }
+
+        jmnodes {
+            touch-action: none !important;
+        }
+
+        div.jsmind-inner {
+            touch-action: pinch-zoom !important;
+            scrollbar-width: none;
+        }
+
+
+        /*********************/
+        /***** jmnode */
+        jmnode {
+            touch-action: none;
+        }
+
+        jmnodes jmnode.selected {
+            outline: 4px dotted yellowgreen;
+        }
+
+        .jsmind_container jmnodes jmnode {
+            transition-duration: 1s;
+            transition-property: left, top, width, height, transform 0.3s;
+        }
+
+        .jsmind_container jmnodes jmnode .jmnode-text {
+            overflow: hidden;
+        }
+
+
+        /* jmnode has notes */
+        .has-notes-mark {
+            position: absolute;
+            bottom: -15px;
+            left: -4px;
+        }
+
+        .left-side .has-notes-mark {
+            left: unset;
+            right: -4px;
+        }
+
+        .has-notes-mark>button {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-content: center;
+            font-size: 22px;
+            color: darkviolet;
+            color: white;
+            color: wheat;
+            border-radius: 50%;
+            background: rgba(135, 206, 235, 0.3);
+            background: rgba(17, 83, 160, 0.8);
+            /* border: 1px solid blue; */
+            border: 1px solid rgba(0, 0, 255, 0.5);
+        }
+
+
+        /* jmnode hit! */
+        .hit-mark {
+            display: none;
+            position: absolute;
+            top: -15px;
+            left: -4px;
+            filter: none !important;
+            background-color: var(--search-color) !important;
+            color: black !important;
+            font-size: 32px;
+            padding: 3px;
+            border-radius: 8px;
+        }
+
+        .hit-mark-path {
+            /* display: none; */
+            position: absolute;
+            top: -15px;
+            left: -4px;
+            filter: none !important;
+            /* background-color: var(--search-color) !important; */
+            color: black !important;
+            font-size: 32px;
+            padding: 3px;
+            border-radius: 8px;
+            zoom: 0.5;
+            background-color: color-mix(in hsl, var(--search-color) 40%, gray) !important;
+        }
+
+
+        jmnode.jsmind-hit .hit-mark {
+            display: unset;
+        }
+
+        .left-side .hit-mark {
+            left: unset;
+            right: -4px;
+        }
+
+
+
+        /*********************/
+        /***** Expanding jmnode */
+
+        jmnodes jmexpander {
+            height: 32px;
+            width: 32px;
+            font-size: 32px;
+            font-weight: 900;
+            line-height: 32px;
+            border-radius: 50%;
+            background: green;
+            color: black;
+        }
+
+        /* This does not display if I have set overflow:hidden on jmnode. */
+        NOjmnode.has-children::after {
+            content: "+";
+            overflow: visible;
+            position: absolute;
+            font-size: 28px;
+            top: calc(50% - 32px / 2);
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid green;
+            background: rgba(0, 255, 0, 0.8);
+            background: rgba(0, 255, 0, 0.9);
+            background: green;
+            color: white;
+            z-index: 100;
+            display: flex;
+            align-content: center;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        jmnode.has-children.is-expanded::after {
+            content: "-";
+        }
+
+        jmnode.has-children.left-side::after {
+            left: -30px;
+        }
+
+        jmnode.has-children.right-side::after {
+            right: -30px;
+        }
+
+        #jsmind_container jmnodes jmexpander {
+            visibility: hidden;
+        }
+
+
+
+        /*********************/
+        /***** Moving jmnode */
+
+        jmnodes>jmnode.jsmind-drag-dragged {
+            outline: 5px inset white !important;
+            opacity: 0.5 !important;
+            filter: grayscale(0.8) !important;
+        }
+
+        jmnodes>jmnode.jsmind-drag-dragged:hover {
+            box-shadow: 0 var(--shup) calc(1.5 * var(--shsize)) calc(1.5 * var(--shsize)) yellow !important;
+        }
+
+        .jsmind-inner {
+            --shside: 0px;
+        }
+
+        jmnodes>jmnode[nodeid=root].jsmind-drag-target.jsmind-drag-root-leftside {
+            --shside: -20px;
+        }
+
+        jmnodes>jmnode[nodeid=root].jsmind-drag-target.jsmind-drag-root-rightside {
+            --shside: 20px;
+        }
+
+        jmnodes>jmnode[nodeid=root].jsmind-drag-target.jsmind-drag-root-leftside::before {
+            content: "";
+            height: 100%;
+            background-color: red;
+            position: absolute;
+            left: -20px;
+            border-top-left-radius: 50%;
+            border-bottom-left-radius: 50%;
+            width: 20px;
+            height: 20px;
+        }
+
+        jmnodes>jmnode[nodeid=root].jsmind-drag-target.jsmind-drag-root-rightside::after {
+            content: "";
+            height: 100%;
+            background-color: red;
+            position: absolute;
+            right: -20px;
+            border-top-right-radius: 50%;
+            border-bottom-right-radius: 50%;
+            width: 20px;
+            height: 20px;
+        }
+
+        jmnodes>jmnode.jsmind-drag-target {
+            outline: 5px dotted red !important;
+            box-shadow: 0 var(--shup) var(--shsize) var(--shsize) red !important;
+            box-shadow: var(--shside) var(--shup) var(--shsize) var(--shsize) blue !important;
+        }
+
+        jmnodes>jmnode.jsmind-drag-tparent {
+            outline: 5px dotted orange !important;
+        }
+
+        jmnodes>jmnode.jsmind-drag-tparent {
+            box-shadow: 0 var(--shup) calc(1.5 * var(--shsize)) calc(1.5 * var(--shsize)) orange !important;
+        }
+
+        /* .NOjsmind-drag-near-child { outline: 2px dashed red !important; } */
+
+        jmnodes>jmnode.jsmind-drag-upper-child {
+            outline: 3px dashed red !important;
+            transform: translate(0, -15px) !important;
+            transform-origin: top left !important;
+        }
+
+        jmnodes>jmnode.jsmind-drag-lower-child {
+            outline: 3px dashed red !important;
+            transform: translate(0, 15px) !important;
+            transform-origin: bottom left !important;
+        }
+
+        jmnodes>jmnode.jsmind-drag-dropped-at {
+            outline: 7px dotted lawngreen !important;
+        }
+
+
+        jmnodes>jmnodejmnode.jsmind-drag-target.jsmind-drag-root-leftside {
+            border-left: 8px dotted red !important;
+        }
+
+        jmnodes>jmnodejmnode.jsmind-drag-target.jsmind-drag-root-rightside {
+            border-right: 8px dotted red !important;
+        }
+
+
+
+        /*********************/
+        /***** jmnode wrapping and clipping */
+        /*
+          https://css-tricks.com/recreating-mdns-truncated-text-effect/
+          https://codepen.io/t_afif/pen/jOzamEB
+        */
+        jmnodes jmnode {
+            max-height: unset;
+        }
+
+        jmnodes jmnode.root {
+            max-height: unset;
+        }
+
+
+
+        /*********************/
+        /***** Zoom */
+        #mm4i-zoom-buttons {
+            background-color: olive;
+            background-color: #9c9c00;
+            position: fixed;
+            top: 0px;
+            right: 0px;
+            height: 40px;
+            display: flex;
+            z-index: 5;
+        }
+
+        #mm4i-zoom-buttons>button {
+            aspect-ratio: 1 / 1;
+            border: none;
+            background-color: transparent;
+            font-size: 24px;
+        }
+
+        #mm4i-zoom-buttons>button.display-zoomed {
+            border: 1px solid gray;
+            font-size: 1em;
+        }
+
+
+        /*********************/
+        /***** Toast UI */
+        /* Custom button styles */
+        .toastui-editor-toolbar-icons.search-button {
+            background: url('img/search.svg') no-repeat center center;
+            background-size: contain;
+        }
+
+        /*
+        .toastui-editor-toolbar-icons.tag-button {
+            background: url('img/tag.svg') no-repeat center center;
+            color: red;
+            background-size: contain;
+        }
+        */
+    </style>
+
+    <style>
+        :root {
+            background-color: darkolivegreen;
+            position: fixed;
+            --search-color: blue;
+            --search-color: blueviolet;
+        }
+
+        [inert] {
+            filter: grayscale(1) opacity(0.5);
+        }
+
+        body {
+            margin: 0;
+            /** For DOCTYPE: */
+            height: 100vh;
+        }
+
+        #both-versions {
+            position: fixed;
+            top: 44px;
+            left: 2px;
+            z-index: 5;
+            height: 40px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding-left: 8px;
+            padding-right: 8px;
+            background-color: rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            border-radius: 10px;
+        }
+
+        .mm4i-context-menu {
+            width: max-content;
+        }
+
+        #mm4i-page-menu li.mdc-list-divider {
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+
+
+
+        #mm4i-page-menu {
+            position: fixed;
+            display: block;
+            z-index: 6;
+            transition: opacity 0.3s;
+            background-color: var(--mdc-theme-primary);
+            /* https://www.smashingmagazine.com/2022/06/simplify-color-palette-css-color-mix/ */
+            background-color: color-mix(in srgb, var(--mdc-theme-primary) 70%, white);
+        }
+
+        #mm4i-page-menu span.mdc-list-item__text {
+            width: 100%;
+        }
+
+        #mm4i-page-menu span.mdc-list-item__text div.text-and-key {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        /*
+        #mm4i-page-menu li.menu-text-and-key {
+            NObackground-color: red;
+        }
+        */
+
+        #mm4i-page-menu li.menu-text-and-key span.menu-item-key {
+            font-weight: bold;
+            opacity: 0.3;
+            font-style: italic;
+        }
+
+        #mm4i-page-menu li.menu-text-and-key[inert] span.menu-item-key {
+            visibility: hidden;
+        }
+
+
+        #mm4i-menu-button {
+            left: 0;
+        }
+
+
+        .toastui-editor-tabs {
+            display: none;
+        }
+
+        .toastui-editor-ww-container {
+            background-color: transparent;
+        }
+
+        .toastui-editor-md-container {
+            background-color: white;
+        }
+
+        /* Custom cursor color */
+        .toastui-editor-main * {
+            caret-color: red !important;
+            /* caret-shape: NOT YET SUPPORTED */
+            font-size: 18px;
+        }
+
+        /* .toastui-editor-main.faked-viewer * { font-size: 16px; } */
+
+        div.faked-viewer div.toastui-editor-ww-container [contenteditable] {
+            pointer-events: none;
+            padding: 0;
+        }
+
+        div.faked-viewer div.toastui-editor-ww-container [contenteditable] a {
+            pointer-events: all;
+        }
+
+        #edit-my-notes {
+            position: absolute;
+            right: -20px;
+            top: -15px;
+            border-radius: 50%;
+            color: red;
+            background: color-mix(in srgb, var(--mdc-theme-primary) 30%, transparent);
+            z-index: 999;
+        }
+
+        div.faked-viewer #edit-my-notes {
+            color: green;
+        }
+
+
+        div.faked-viewer-edit-shield {
+            background: red;
+            opacity: 0.1;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            position: absolute;
+            border: none;
+            pointer-events: none;
+            z-index: 30;
+            display: none;
+        }
+
+        div.faked-viewer div.faked-viewer-edit-shield {
+            display: block;
+        }
+
+        div.faked-viewer div.toastui-editor-toolbar {
+            display: none;
+        }
+
+        div.toastui-editor-mode-switch {
+            display: block;
+        }
+
+        div.faked-viewer div.toastui-editor-mode-switch {
+            display: none;
+        }
+
+        div.faked-viewer div.toastui-editor-defaultUI,
+        NOdiv.toastui-editor-defaultUI.faked-viewer {
+            border: red 2px dotted;
+            border: none;
+            /* max-width: 300px; */
+        }
+
+        div.faked-viewer div.toastui-editor-defaultUI *,
+        NOdiv.toastui-editor-defaultUI.faked-viewer * {
+            font-size: 16px;
+        }
+
+        div.faked-viewer div.toastui-editor-defaultUI a,
+        NOdiv.toastui-editor-defaultUI.faked-viewer a {
+            cursor: pointer;
+        }
+
+        a[href^="mm4i-search:"] {
+            color: black;
+            background: lightgrey;
+            padding-right: 2px;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+
+        div.faked-viewer a[href^="mm4i-search:"] {
+            background: orange;
+        }
+
+        div.faked-viewer a[href^="mm4i-search:"]:hover {
+            background: darkgoldenrod;
+        }
+
+        a[href^="mm4i-search:"]:hover {
+            color: darkgreen;
+        }
+
+
+        a[href^="mm4i-search:"]::before {
+            content: url(img/search14px.svg);
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            padding: 0;
+            padding-left: 2px;
+            padding-right: 2px;
+            margin-right: 4px;
+            padding-top: 2px;
+            margin-top: 2px;
+        }
+
+
+
+        #jsmind-ednode-debug-button {
+            right: 48px;
+        }
+
+        #div-ednode-copied {
+            outline: 5px inset olive;
+            position: relative;
+            width: 100%;
+            border-radius: 8px;
+        }
+
+        #div-ednode-copied::after {
+            content: " Preview ";
+
+            z-index: 9999;
+            position: absolute;
+            right: -10px;
+            top: -10px;
+            width: fit-content;
+            height: fit-content;
+            padding: 2px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+
+            background-color: olive;
+            color: black;
+            border: 1px solid gray;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        jmnodes jmnode {
+            color: red;
+        }
+
+        jmnodes jmnode.node-theme-light {
+            color: black;
+        }
+
+        jmnodes jmnode.node-theme-dark {
+            color: white;
+        }
+
+        jmnodes jmnode.node-theme-mixed {
+            color: black;
+            -webkit-text-stroke: 0.5px white;
+        }
+
+
+        #div-clipboard-image {
+            width: 100px;
+            aspect-ratio: 1 / 1;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+            background-color: black;
+            border: 4px inset gray;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        #div-from-clipboard-blur {
+            /* NOmax-width: 100%; */
+            /* NOwidth: 100%; */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            /* NObackground: yellow; */
+            /* NOoverflow-x: auto; */
+        }
+
+        /*
+        #div-from-clipboard-blur>* {
+            flex-shrink: 1;
+            flex-grow: 1;
+            max-width: 100%;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #div-from-clipboard-blur>.mdc-slider {
+            max-width: unset;
+            width: unset;
+        }
+        */
+    </style>
+    <style id="style-stairs">
+        /* Mindmap Stairs */
+        div.stair-mark {
+            position: absolute;
+            top: -20px;
+            left: -20px;
+            background: blue;
+            background: midnightskyblue;
+            background-color: deepskyblue;
+            color: white;
+            color: darkblue;
+            color: midnightblue;
+            border: 1px solid currentColor;
+            border: 1px solid currentColor;
+            border-radius: 4px;
+            padding: 4px;
+            font-size: 16px;
+            display: flex;
+            gap: 5px;
+        }
+
+        body.editing-stair div.stair-mark {
+            background-color: orange;
+            color: black;
+        }
+
+        div.stair-mark-first {
+            font-size: 30px !important;
+        }
+
+        #stair-view-edit-control {
+            position: fixed;
+            right: 0px;
+            top: 50px;
+            background-color: deepskyblue;
+            color: midnightblue;
+            border-radius: 6px;
+            border: 1px solid currentColor;
+            display: flex;
+
+            display: flex;
+            flex-wrap: wrap;
+            align-content: center;
+            padding: 0px 4px 0px 8px;
+        }
+
+        body.editing-stair #stair-view-edit-control {
+            background-color: orange;
+            color: black;
+        }
+
+        #stair-view-edit-control>span {
+            /* background: red; */
+            /* margin: 0px; */
+            padding-right: 10px;
+            height: inherit;
+            display: flex;
+            align-content: center;
+            flex-wrap: wrap;
+        }
+
+        #stair-view-edit-shield {
+            position: fixed;
+            top: 0px;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            z-index: 998;
+            background-color: rgba(25, 25, 112, 0.4);
+            pointer-events: none;
+        }
+    </style>
+    <style id="style-sync">
+        /* sync  */
+        .mindmap-is-shareable #btn-sync {
+            background: #add8e652;
+            color: darkviolet;
+        }
+
+        #sync-dialog-body p {
+            line-height: 1em;
+        }
+
+        #mm4i-sumkeys-valid {
+            display: none;
+        }
+
+        #mm4i-sumkeys-invalid {
+            display: inline;
+        }
+
+        .sync-keys-valid #mm4i-sumkeys-valid {
+            display: inline;
+        }
+
+        .sync-keys-valid #mm4i-sumkeys-invalid {
+            display: none;
+        }
+
+        #sum-sync-keys {
+            border-radius: 5px;
+            padding-left: 7px;
+            background-color: red;
+            color: yellow;
+
+        }
+
+        .sync-keys-valid #sum-sync-keys {
+            background-color: unset;
+            color: unset;
+        }
+
+
+        /* Browser supports interpolate-size */
+        @supports (interpolate-size: allow-keywords) {
+            ::details-content {
+                transition: height 0.9s ease, content-visibility 0.9s ease allow-discrete;
+                height: 0;
+                overflow: clip;
+            }
+
+            :root {
+                interpolate-size: allow-keywords;
+            }
+
+            [open]::details-content {
+                height: auto;
+            }
+        }
+    </style>
+    <style id="style-collapsible">
+        /* Collapsible height divs */
+        /*
+        div.collapsible {
+            height: 0;
+            overflow: hidden;
+            transition: height 3s ease-in-out;
+        }
+
+        div.collapsible-content {
+            content-visibility: hidden;
+            transition: height 3s ease-in-out;
+        }
+
+        div.collapsible.expanded {
+            height: auto;
+        }
+
+        div.collapsible.expanded div.collapsible-content {
+            content-visibility: visible;
+        }
+        */
+
+
+        .height-expander {
+            display: grid;
+            grid-template-rows: 0fr;
+            overflow: hidden;
+            transition: grid-template-rows 1s;
+        }
+
+        .height-expander-content {
+            min-height: 0;
+            transition: visibility 1s;
+            visibility: hidden;
+        }
+
+        .height-expander.expanded {
+            grid-template-rows: 1fr;
+        }
+
+        .height-expander.expanded .height-expander-content {
+            visibility: visible;
+        }
+    </style>
+    <style id="style-history">
+        /* History */
+        #mm4i-btn-history {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            z-index: 1000;
+            background-color: #c0ca33;
+            background-color: lightseagreen;
+            color: black;
+        }
+
+        #mm4i-undo-redo-div {
+            opacity: 1;
+            display: block;
+            position: fixed;
+            bottom: 0;
+            left: 50px;
+            z-index: 1000;
+            user-select: none;
+            background-color: #c0ca33;
+            background-color: lightseagreen;
+            color: black;
+        }
+
+
+        .mm4i-history-node {
+            min-height: 32px;
+            padding: 4px;
+            display: flex;
+            flex-direction: row;
+            gap: 4px;
+            align-items: center;
+            background-color: lightseagreen;
+            color: black;
+        }
+
+        .persistent-bookmark {
+            min-height: 32px;
+            padding: 4px;
+            display: flex;
+            flex-direction: row;
+            gap: 4px;
+            align-items: center;
+            color: black;
+        }
+
+
+        #btn-bookmark.bookmarked {
+            color: red;
+        }
+
+        span.bookmark-topic {
+            display: none;
+            background-color: black;
+            color: red;
+            color: orange;
+            padding: 2px 4px;
+            border-radius: 4px;
+            gap: 5px;
+            align-items: center;
+        }
+
+        span.auto-topic {
+            display: inline;
+        }
+
+        /* label.bookmarked:not(.bookmark-is-named) span.bookmark-topic :last-child::after { */
+        label.bookmarked span.bookmark-topic :last-child:empty::after {
+            content: "Bookmarked!";
+            font-style: italic;
+            color: yellow;
+        }
+
+        .bookmarked span.bookmark-topic {
+            display: inline-flex;
+        }
+
+        /* .bookmarked span.auto-topic { NOdisplay: none; } */
+
+        span.icon-bookmark {
+            display: none;
+            color: yellow;
+        }
+
+        span.icon-bookmark-named {
+            display: none;
+        }
+
+        /* .icon-bookmark-named { */
+        label.bookmarked span.bookmark-topic:has(:last-child:not(:empty)) span.icon-bookmark-named {
+            display: inline;
+        }
+
+        /* .bookmark-is-named .icon-bookmark-named { */
+        label.bookmarked span.bookmark-topic:has(:last-child:empty) span.icon-bookmark {
+            display: inline;
+        }
+
+        /* .bookmark-is-named .icon-bookmark { */
+        label.bookmarked span.bookmark-topic:has(:last-child:empty) span.icon-bookmark {
+            display: inline;
+        }
+
+        .button-linear-tree {
+            padding: 2px 4px;
+            border-style: outset;
+            border-radius: 8px;
+            border-width: 2px;
+            border-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+        }
+
+        .button-linear-tree input {
+            display: none;
+        }
+
+        .button-linear-tree:has(input:checked) {
+            outline: 0.5px dashed greenyellow;
+            color: greenyellow;
+            border-style: inset;
+            font-weight: 900;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+
+        #mm4i-history-panel {
+            position: fixed;
+            z-index: 1001;
+            background: gray;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            left: 50px;
+            bottom: 3px;
+            user-select: none;
+
+            width: var(--width, 215px);
+            /* Use CSS variable for width */
+            height: var(--height, 140px);
+            /* Use CSS variable for height */
+            min-width: 215px !important;
+            min-height: 140px !important;
+        }
+
+        #mm4i-history-panel>* {
+            min-width: 0;
+        }
+
+        #icon-history {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            zoom: 0.9;
+        }
+
+        #span-history-left {
+            margin-left: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        #span-linear-tree {
+            display: flex;
+            gap: 5px;
+            margin-right: 5px;
+        }
+
+        #mm4i-history-panel.resizing {
+            outline: 5px dotted red;
+            touch-action: none;
+        }
+
+        #mm4i-history-panel.resizing * {
+            pointer-events: none;
+            user-select: none;
+        }
+
+        #mm4i-history-no-changes {
+            padding: 15px;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        #mm4i-history-header {
+            background: darkblue;
+            color: white;
+            position: relative;
+            white-space: nowrap;
+        }
+
+        #mm4i-history-resizer {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            margin: 2px;
+            aspect-ratio: 1 / 1;
+            height: calc(100% - 4px);
+            height: 32px;
+            cursor: move;
+            touch-action: none;
+            user-select: none;
+        }
+
+        #mm4i-history-resizer-img {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+            aspect-ratio: 1 / 1;
+            height: 20px;
+            background-image: url(./img/top-right-resizer.svg);
+            background-size: cover;
+        }
+
+        #mm4i-history-list {
+            overflow-y: auto;
+            user-select: none;
+        }
+    </style>
+    <style id="style-ai">
+        #div-ai-settings {
+            margin-top: 20px;
+        }
+
+
+
+        .elts-ai {
+            display: flex;
+            flex-direction: row;
+            flex-flow: wrap;
+            gap: 10px;
+        }
+
+        .elt-ai {
+            background-color: #e0ffffbd;
+            padding: 2px;
+            border-radius: 18px 4px 4px 18px;
+            border: 2px solid transparent;
+            position: relative;
+            width: 100%;
+        }
+
+        .elt-ai-label {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 5px;
+            margin-right: 30px;
+        }
+
+        .elt-ai-summary {
+            position: absolute;
+            top: 0px;
+            right: 0px;
+        }
+
+        .elt-ai-det-content {
+            margin-left: 25px;
+            margin-top: 10px;
+            border-top: 0.5px solid;
+            display: flex;
+            gap: 15px;
+            flex-direction: column;
+            line-height: normal;
+        }
+
+        #elt-ai-puter {
+            color: gold;
+            background-color: darkgreen;
+            border-radius: 60px 4px 4px 60px;
+        }
+
+        .elt-ai-name {
+            opacity: 0.5;
+        }
+
+        .elt-ai-img {
+            border-radius: 50%;
+            height: 20px;
+            width: 20px;
+            background-size: cover;
+            background-position: top left;
+        }
+
+
+        .elt-ai:has(input:checked) {
+            outline: 1px solid olive;
+        }
+
+        .elt-ai:has(input:checked) .elt-ai-name {
+            opacity: unset;
+        }
+
+        #div-ai-paste {
+            opacity: 0;
+            transition: opacity 2s;
+        }
+
+        #div-ai-clipboard {
+            margin-top: 5px;
+            margin-left: 25px;
+            transition: opacity 2s;
+            opacity: 0;
+            display: none;
+        }
+
+        .have-ai-on-clipboard #div-ai-clipboard {
+            opacity: 1;
+            display: block;
+        }
+
+        #div-ai-automated {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            padding: 10px;
+            margin-top: 10px;
+        }
+
+        .ai-is-automated #div-ai-automated {
+            display: flex;
+        }
+
+        #btn-go {
+            color: greenyellow;
+        }
+
+        .ai-in-progress {
+            #btn-go {
+                color: red;
+            }
+        }
+
+        .ai-json-error {
+            user-select: all;
+            color: darkred;
+            margin-top: 10px;
+        }
+    </style>
+    <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind@0.5/es6/jsmind.js"></script> -->
+    <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind/es6/jsmind.js"></script> -->
+    <!-- <script src="./ext/jsmind/jsmind-dbg.js"></script> -->
+
+    <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind@0.5/es6/jsmind.draggable-node.js"></script> -->
+    <!-- <script src="./ext/jsmind/230406-jsmind.draggable-node.js"></script> -->
+
+</head>
+
+<body id="body" class="NOno-test-items show-stair-button">
+    <div id="both-versions">
+        <span id="PWA-version"></span>
+        <span style="color:rgb(80,0,0);">0.0B</span>
+        <!-- 
+        -->
+    </div>
+
+    <!-- <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script> -->
+    <!-- <script src="https://uicdn.toast.com/editor/3.2.2/toastui-editor-all.js"></script> -->
+
+    <!-- <script defer src="./ext/toast-ui/editor/3.2.2.js"></script> -->
+
+    <script src="./ext/mdc/material-components-web.js"></script>
+    <!-- <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script> -->
+
+    <script src="./ext/dmp/diff_match_patch_uncompressed.js"></script>
+
+    <div id="jsmind_container" class="jsmind_container"></div>
+
+    <script>
+        if (location.hostname == "localhost") { document.documentElement.classList.add("is-localhost"); }
+        function debugAddFollowPointer() {
+            if (/Android|iPhone/.test(navigator.userAgent)) return;
+            document.addEventListener("pointermove", evt => {
+                sx = evt.screenX.toFixed();
+                sy = evt.screenY.toFixed();
+
+                px = evt.pageX.toFixed();
+                py = evt.pageY.toFixed();
+
+                const target = evt.target;
+                const bcr = target.getBoundingClientRect();
+                const cx = evt.clientX;
+                const cy = evt.clientY;
+                const cbx = cx + bcr.left;
+                const cby = cy + bcr.top;
+                const cxs = cx.toFixed();
+                const cys = cy.toFixed();
+                const cbxs = cbx.toFixed();
+                const cbys = cby.toFixed();
+
+                const tn = target.tagName;
+                const tnp = target.parentElement?.tagName;
+
+                const st = getComputedStyle(target);
+                const stp = st.position;
+
+                self["tempPos"] =
+                    `s${sx},${sy} p${px},${py} c${cxs},${cys} cb${cbxs},${cbys} ${tn}-${tnp}+${stp}`;
+            }, { passive: true });
+            console.log("%cExpression for pointermove: tempPos", "font-size:18px; color:red;");
+            self["tempPos"] = "Waiting for pointermove";
+        }
+    </script>
+    <script type="module">
+        if (!window.isSecure) { throw Error("not secure"); }
+        if (!window.detectedBot) {
+            window["logConsoleHereIs"]("here is mm4i.html");
+            // console.log("here is mm4i.html");
+            // https://michaelwornow.net/2024/01/02/display-x-y-coords-chrome-debugger
+            debugAddFollowPointer();
+
+            const modTools = await importFc4i("toolsJs");
+
+            const modLocalSettings = await importFc4i("local-settings");
+            class SettingsMm4i extends modLocalSettings.LocalSetting {
+                constructor(key, defaultValue) { super("mm4i-settings-", key, defaultValue); }
+            }
+            const settingPointHandle = new SettingsMm4i("pointhandle-type", "detect-touch");
+            window["settingPointHandle"] = settingPointHandle;
+            const settingHistoryPanelSize = new SettingsMm4i("history-panel-size", null);
+            const settingUndoRedoTree = new SettingsMm4i("history-undo-redo-tree", false);
+
+            function saveHistoryPanelSize() {
+                const eltPanel = document.getElementById("mm4i-history-panel");
+                const bcr = eltPanel.getBoundingClientRect();
+                if (bcr.height == 0) return;
+                console.log("saveHistoryPanelSize saving", bcr);
+                settingHistoryPanelSize.value = bcr;
+            }
+            const throttleSaveHistoryPanelSize = modTools.throttleTO(saveHistoryPanelSize, 200);
+
+            const modMdc = await importFc4i("util-mdc");
+            modMdc.setIconsFor("mm4i");
+
+            const modMMhelpers = await importFc4i("mindmap-helpers");
+
+
+            // const webbrowserInfo = await modTools.promWebBrowserInfo;
+            const webbrowserInfo = await window["promWebBrowserInfo"];
+
+            let calledCheckWebBrowser = false;
+            const hasDebug = searchParams.has("debug");
+            if (hasDebug) {
+                calledCheckWebBrowser = true;
+                modMMhelpers.checkWebBrowser();
+            }
+            if (!calledCheckWebBrowser) {
+                if (webbrowserInfo.isInApp) {
+                    modMMhelpers.checkWebBrowser();
+                }
+            }
+
+
+
+            let useOrigJsmind = false;
+            window["useOrigJsmind"] = useOrigJsmind;
+
+            let modJsmindDraggable;
+            if (useOrigJsmind) {
+                console.log("%cUsing orig jsMind", "color:red; font-size:20px;");
+                const modJsMind = await importFc4i("jsmind-es6");
+                // const modJsmindDraggable = await importFc4i("jsmind.drag-node-es6");
+                modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
+                window["modJsmindDraggable"] = modJsmindDraggable;
+                // FIX-ME:
+                modJsmindDraggable.setupNewDragging();
+            } else {
+                console.log("%cUsing mm4i jsMind", "color:green; font-size:20px;");
+                const modJsMind = await importFc4i("jsmind");
+                modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
+                window["modJsmindDraggable"] = modJsmindDraggable;
+                modJsmindDraggable.setupNewDragging();
+            }
+            const modJsEditCommon = await importFc4i("jsmind-edit-common");
+            modJsEditCommon.basicInit4jsmind();
+
+
+
+            modMMhelpers.setUndoRedoTreeStyle(settingUndoRedoTree.value);
+
+            const mindmapKey = await modJsEditCommon.pageSetup();
+            const aboutLink = "https://lborgman.github.io/mm4i/";
+            modJsEditCommon.addToPageMenu("About", aboutLink);
+
+
+            // modMMhelpers.setUndoRedoTreeStyle(settingUndoRedoTree.value);
+
+
+            const iconHistory = modMdc.mkMDCicon("history");
+            iconHistory.id = "icon-history";
+            iconHistory.inert = true;
+
+            const spanHistoryHeaderLeft = mkElt("span", undefined, [
+                // mkElt("span", undefined, "History"),
+                // iconHistory
+            ]);
+            const initButtonsLinearTree = () => {
+                const mkButtonLinearTree = (topic) => {
+                    const rad = mkElt("input", { type: "radio", name: "rad-linear-tree", value: topic });
+                    const lbl = mkElt("label", undefined, [rad, mkElt("span", undefined, topic)]);
+                    lbl.classList.add("button-linear-tree");
+                    return lbl;
+                }
+                const buttonTree = mkButtonLinearTree("tree");
+                const buttonLinear = mkButtonLinearTree("linear");
+                const spanLinearTree = mkElt("span", undefined, [buttonLinear, buttonTree]);
+                spanLinearTree.id = "span-linear-tree";
+                spanHistoryHeaderLeft.appendChild(spanLinearTree);
+                spanHistoryHeaderLeft.id = "span-history-left";
+
+                const btnBookmark = modMdc.mkMDCiconButton("bookmark", "Add/remove bookmark");
+                btnBookmark.id = "btn-bookmark";
+                btnBookmark.inert = true;
+                spanHistoryHeaderLeft.appendChild(btnBookmark);
+
+                btnBookmark.addEventListener("click", evt => {
+                    evt.stopPropagation();
+                    dialogBookmark(btnBookmark);
+                });
+                async function dialogBookmark(btnBookmark) {
+                    const divList = document.getElementById("mm4i-history-list");
+                    const radChecked = divList.querySelector("input:checked");
+                    const lblChecked = radChecked.closest("label");
+                    const isPersistentBookmark = lblChecked.classList.contains("persistent-bookmark");
+                    const isBookmarked = isPersistentBookmark || lblChecked.classList.contains("bookmarked");
+                    // lblChecked.classList.toggle("bookmarked");
+                    if (!isBookmarked) {
+                        lblChecked.classList.add("bookmarked");
+                        btnBookmark.classList.add("bookmarked");
+                    } else {
+                        if (isPersistentBookmark) {
+                            await handlePersistentBookmark();
+                            async function handlePersistentBookmark() {
+                                const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                                iconBookmarkHeart.style = `
+                                color: darkorange;
+                                margin-right: 5px;
+                            `;
+                                const iconDelete = modMdc.mkMDCicon("delete_forever")
+                                const btnDeleteNamed = modMdc.mkMDCbutton("Delete named bookmark", undefined, iconDelete);
+                                const bookmarkName = lblChecked.textContent.trim();
+                                const spanBookmarkName = mkElt("span", undefined, bookmarkName);
+                                spanBookmarkName.style = `
+                                background-color: orange;
+                                padding: 0px 4px;
+                                border-radius: 2px;
+                            `;
+                                const body = mkElt("div", undefined, [
+                                    mkElt("h2", undefined, [
+                                        "Named bookmark: ",
+                                        iconBookmarkHeart,
+                                        spanBookmarkName
+                                    ]),
+                                    mkElt("p", undefined, `
+                                    This is a named bookmark.
+                                    You can not change it, but you can delete it.
+                                    `),
+                                    mkElt("p", undefined, btnDeleteNamed),
+                                ]);
+                                // const res = await modMdc.mkMDCdialogConfirm(body, "Delete", "Close");
+                                // if (res) { deleteNamedBookmark(); }
+                                const dlg = await modMdc.mkMDCdialogAlert(body, "Close");
+                                dlg.dom.style.zIndex = "9999";
+                                btnDeleteNamed.addEventListener("click", evt => {
+                                    evt.stopPropagation();
+                                    dlg.mdc.close();
+                                    deleteNamedBookmark();
+                                })
+                                async function deleteNamedBookmark() {
+                                    const keyBookmark = radChecked.value;
+                                    const msDelete = 1.2 * 1000;
+                                    const ctrls = modTools.animateZoom(lblChecked, 1, 0.1, msDelete, 300);
+                                    ctrls.start();
+
+                                    const bookmarkName = lblChecked.dataset.bookmarkName;
+                                    setTimeout(() => {
+                                        lblChecked.remove();
+                                        const rad = document.getElementById(idInitialState);
+                                        rad.checked = true;
+                                        applyUndoRedoState(rad);
+                                    }, msDelete);
+                                    const dbMindmaps = await importFc4i("db-mindmaps");
+                                    return await dbMindmaps.DBremoveMindmapBookmark(keyBookmark);
+                                }
+                            }
+                        } else {
+                            await handleTempBookmark();
+                            async function handleTempBookmark() {
+                                const iconRemoveBookmark = modMdc.mkMDCicon("bookmark_remove");
+                                const btnRemove = modMdc.mkMDCbutton("Remove bookmark", undefined, iconRemoveBookmark);
+                                // const btnRename = modMdc.mkMDCbutton("rename");
+                                const inpName = modMdc.mkMDCtextFieldInput();
+                                inpName.value = getCheckedBookmarkName();
+                                const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                                iconBookmarkHeart.style = `
+                                color: darkorange;
+                                margin-right: 5px;
+                            `;
+
+                                const divNamedInfo = mkElt("div", undefined, [
+                                    iconBookmarkHeart,
+                                    "Named bookmarks are persistent."
+                                ]);
+                                const tfName = modMdc.mkMDCtextFieldOutlined("Bookmark name", inpName);
+                                const btnSaveNamedBookmark = modMdc.mkMDCbutton("Save");
+                                const divNaming = mkElt("p", undefined, [
+                                    tfName,
+                                    btnSaveNamedBookmark,
+                                ])
+                                const divRename = mkElt("div", undefined, [
+                                    divNaming,
+                                    divNamedInfo,
+                                ]);
+                                divNaming.style = `
+                                display: flex;
+                                flex-direction: row;
+                                gap: 5px;
+                            `;
+                                divRename.style = `
+                                padding: 10px;
+                            `;
+                                divRename.classList.add("mdc-card");
+
+                                const strAutoTopic = lblChecked.querySelector("span.auto-topic").textContent.trim()
+                                const spanAutoTopic = mkElt("span", undefined, strAutoTopic);
+                                spanAutoTopic.style = `
+                                background-color: lightseagreen;
+                                padding: 4px;
+                                border-radius: 2px;
+                            `;
+                                const spanWhich = mkElt("span", undefined, [
+                                    // "(on ",
+                                    "from ",
+                                    spanAutoTopic,
+                                    // ")"
+                                ]);
+                                spanWhich.style = `
+                                margin-left: 10px;
+                            `;
+                                const divRemove = mkElt("div", undefined, [
+                                    btnRemove,
+                                    spanWhich
+                                ]);
+                                const divActions = mkElt("div", undefined, [
+                                    divRemove,
+                                    divRename,
+                                ]);
+                                divActions.style = `
+                                display: flex;
+                                flex-direction: column;
+                                gap: 20px;
+                            `;
+                                const iconBookmark = modMdc.mkMDCicon("bookmark");
+                                iconBookmark.style = `
+                                color: red;
+                                margin-right: 10px;
+                            `;
+                                const divInfoBookmarks = mkElt("p", undefined, [
+                                    `
+                                    Mindmap bookmarks are snapshots of bookmark state.
+                                    They disappear when you close the mindmap.
+                                    (You can however make a bookmark persistent by giving it a name.)
+                                `,
+                                ])
+                                const body = mkElt("div", undefined, [
+                                    mkElt("h2", undefined, [
+                                        iconBookmark,
+                                        "Bookmark"
+                                    ]),
+                                    divInfoBookmarks,
+                                    divActions,
+                                ]);
+                                let dlg;
+                                btnRemove.addEventListener("click", evt => {
+                                    evt.stopPropagation();
+                                    lblChecked.classList.remove("bookmarked");
+                                    btnBookmark.classList.remove("bookmarked");
+                                    modMdc.mkMDCsnackbar("Removed bookmark");
+                                    dlg.mdc.close();
+                                });
+                                btnSaveNamedBookmark.inert = true;
+                                inpName.addEventListener("input", evt => {
+                                    const val = inpName.value.trim();
+
+                                    if (val.length > 0) {
+                                        const oldNames = getBookmarkNames();
+                                        if (oldNames.includes(val)) {
+                                            btnSaveNamedBookmark.inert = true;
+                                            modMdc.setValidityMDC(inpName, `Name "${val}" already in use`);
+                                            return;
+                                        }
+                                    }
+                                    modMdc.setValidityMDC(inpName, "");
+                                    // btnSaveName.inert = val.length == 0;
+                                    btnSaveNamedBookmark.inert = false;
+                                });
+                                function setBookmarkName(newName) {
+                                    const spanBookmarkTopic = lblChecked.querySelector("span.bookmark-topic");
+                                    const spanName = spanBookmarkTopic.lastElementChild;
+                                    spanName.textContent = newName;
+                                    // lblChecked.classList.add("bookmark-is-named");
+                                }
+                                function getCheckedBookmarkName() {
+                                    return getBookmarkName(lblChecked);
+                                }
+                                function getBookmarkName(lblState) {
+                                    const spanBookmarkTopic = lblState.querySelector("span.bookmark-topic");
+                                    const spanName = spanBookmarkTopic.lastElementChild;
+                                    return spanName.textContent;
+                                }
+                                function getBookmarkNames() {
+                                    const arr = [...document.querySelectorAll("label.mm4i-history-node")];
+                                    return arr.map(lbl => {
+                                        const spanBookmarkTopic = lbl.querySelector("span.bookmark-topic");
+                                        const spanName = spanBookmarkTopic.lastElementChild;
+                                        return spanName.textContent;
+                                    });
+                                }
+                                btnSaveNamedBookmark.addEventListener("click", async evt => {
+                                    evt.stopPropagation();
+                                    // const eltNotYet = mkElt("span", { style: "color:red" }, "Handling named bookmarks is not fully implemented yet");
+                                    // modMdc.mkMDCsnackbar(eltNotYet);
+                                    setBookmarkName(inpName.value.trim());
+
+                                    const divList = document.getElementById("mm4i-history-list");
+                                    const radChecked = divList.querySelector("input:checked");
+                                    const lblChecked = radChecked.closest("label");
+                                    const isBookmarked = lblChecked.classList.contains("bookmarked");
+                                    const bookmarkName = getCheckedBookmarkName();
+
+                                    // debugger;
+                                    const modUndo = await importFc4i("undo-redo-tree");
+                                    // if (target.name == "undo-redo-state") {
+                                    const historyNode = radChecked.valueAsObject;
+                                    const fullDisplayState = historyNode.fullState;
+                                    modMMhelpers.checkIsFullMindmapDisplayState(fullDisplayState);
+                                    // const objMindData = fullDisplayState.objDataMind;
+
+                                    // saveMindmapBookmark(mindmapKey, bookmarkName, objMindData);
+                                    saveMindmapBookmark(mindmapKey, bookmarkName, fullDisplayState);
+                                    dlg.mdc.close();
+                                });
+                                dlg = await modMdc.mkMDCdialogAlert(body, "Close");
+                                dlg.dom.style.zIndex = "9999";
+                            }
+                        }
+                    }
+                }
+
+                const valCurrent = settingUndoRedoTree.value ? "tree" : "linear";
+                const inpCurrent = spanHistoryHeaderLeft.querySelector(`input[value=${valCurrent}]`);
+                inpCurrent.checked = true;
+
+                spanLinearTree.addEventListener("change", async evt => {
+                    evt.stopPropagation();
+                    const target = evt.target;
+                    const value = target.value;
+                    // console.log({ target, value });
+                    if (value == "tree") {
+                        const inpLinear = document.querySelector("input[value=linear]");
+                        console.log({ inpLinear });
+                        // setTimeout(() => { inpLinear.checked = true }, 2000);
+                    }
+                    switch (value) {
+                        case "tree":
+                            modMMhelpers.setUndoRedoTreeStyle(true);
+                            settingUndoRedoTree.value = true;
+                            break;
+                        case "linear":
+                            modMMhelpers.setUndoRedoTreeStyle(false);
+                            settingUndoRedoTree.value = false;
+                            break;
+                        default:
+                    }
+                    const modUndo = await importFc4i("undo-redo-tree");
+                    const hasUndo = modUndo.hasUndoRedo(mindmapKey);
+                    if (hasUndo) {
+                        modUndo.resetHistory(mindmapKey);
+                        updateHistoryPanel();
+                    }
+                });
+            }
+            initButtonsLinearTree();
+
+
+            const eltBoth = document.getElementById("both-versions");
+            eltBoth.addEventListener("click", evt => { evt.stopPropagation(); });
+            const btnCloseBV = modMdc.mkMDCiconButton("close", "Remove version info");
+            eltBoth.appendChild(btnCloseBV);
+            btnCloseBV.addEventListener("click", evt => { evt.stopPropagation(); eltBoth.remove(); });
+
+
+
+            const idInitialState = "initial-state-undo-redo";
+            async function updateHistoryPanel() {
+                divHistoryList.textContent = "";
+                let dummyVal = 0;
+                let isInitialState = true;
+                const funAddStateRow = (node, depth, current) => {
+                    const markCurrent = (node === current) ? ">" : "";
+                    const radNode = mkElt("input", {
+                        type: "radio", name: "undo-redo-state",
+                        value: dummyVal++
+                    });
+                    radNode.valueAsObject = node;
+                    radNode.checked = node === current;
+                    const autoTopic = `${node.actionTopic || "N/A"} `;
+                    const spanAutoTopic = mkElt("span", undefined, autoTopic);
+                    spanAutoTopic.classList.add("auto-topic");
+                    const spanBookmarkName = mkElt("span");
+                    const iconBookmark = modMdc.mkMDCicon("bookmark");
+                    iconBookmark.classList.add("icon-bookmark");
+                    iconBookmark.style.zoom = 0.7;
+                    const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                    iconBookmarkHeart.classList.add("icon-bookmark-named");
+                    iconBookmarkHeart.style.zoom = 0.7;
+                    const spanBookmarkedTopic = mkElt("span", undefined, [
+                        iconBookmark,
+                        iconBookmarkHeart,
+                        spanBookmarkName
+                    ]);
+                    spanBookmarkedTopic.classList.add("bookmark-topic");
+                    const spanTopic = mkElt("span", undefined, [spanAutoTopic, spanBookmarkedTopic]);
+                    const eltNode = mkElt("label", undefined, [radNode, spanTopic]);
+                    if (isInitialState) {
+                        isInitialState = false;
+                        radNode.id = idInitialState;
+                    }
+                    // spanTopic.mm4iAutoTopic = autoTopic;
+                    eltNode.classList.add("mm4i-history-node");
+                    eltNode.style.paddingLeft = `${4 + depth * 20}px`;
+                    // divHistoryList.appendChild(eltNode);
+                    divHistoryList.insertBefore(eltNode, divHistoryList.children[0]);
+                }
+                const modUndo = await importFc4i("undo-redo-tree");
+                const hasHistory = modUndo.hasUndoRedo(mindmapKey);
+                if (!hasHistory) {
+                    const eltNoChanges = mkElt("div", undefined, "No mindmap changes yet");
+                    eltNoChanges.id = "mm4i-history-no-changes";
+                    divHistoryList.appendChild(eltNoChanges);
+                } else {
+                    const btnBookmark = document.getElementById("btn-bookmark");
+                    btnBookmark.inert = false;
+                    modUndo.mapHistoryTree(mindmapKey, funAddStateRow);
+                }
+                const dbMindmaps = await importFc4i("db-mindmaps");
+                const arrBm = await dbMindmaps.DBgetAllMindmapBookmarks(mindmapKey);
+                // console.log({ arrBm });
+                if (arrBm.length > 0) {
+                    const divPersistent = mkElt("div", { class: "mdc-card" });
+                    divPersistent.style = `
+                    padding: 10px;
+                    margin: 0 10px;
+                    background-color: orange;
+                `;
+                    const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                    const eltPersistenHeader = mkElt("div", undefined, [
+                        iconBookmarkHeart,
+                        " Named bookmarks"
+                    ]);
+                    eltPersistenHeader.style = `
+                    display: flex;
+                `;
+                    divPersistent.appendChild(eltPersistenHeader);
+                    divHistoryList.appendChild(divPersistent);
+                    arrBm.forEach(bm => {
+                        // console.log({ bm });
+                        const { bmName, jsmindmap, keyBookmark } = bm;
+                        // console.log({ bmName, jsmindmap });
+                        const radNode = mkElt("input", {
+                            type: "radio",
+                            name: "undo-redo-state",
+                            value: keyBookmark
+                        });
+                        radNode.valueAsObject = jsmindmap;
+                        const eltBm = mkElt("label", undefined, [radNode, bmName]);
+                        eltBm.dataset.bookmarkName = bmName;
+                        eltBm.classList.add("persistent-bookmark");
+                        divPersistent.appendChild(eltBm);
+                    });
+                }
+            }
+
+            const imgHistoryResizer = mkElt("div");
+            imgHistoryResizer.id = "mm4i-history-resizer-img";
+            const divHistoryResizer = mkElt("span", undefined, imgHistoryResizer);
+            divHistoryResizer.title = "Resize";
+            divHistoryResizer.id = "mm4i-history-resizer";
+
+            const divHistoryHeader = mkElt("div", undefined, [iconHistory, spanHistoryHeaderLeft, divHistoryResizer]);
+            divHistoryHeader.id = "mm4i-history-header";
+
+            const divHistoryList = mkElt("div");
+            divHistoryList.id = "mm4i-history-list";
+
+            const eltHistory = mkElt("div", undefined, [
+                divHistoryHeader,
+                divHistoryList
+            ]);
+            eltHistory.id = "mm4i-history-panel";
+            eltHistory.classList.add("display-none");
+
+            document.body.appendChild(eltHistory);
+
+            divHistoryList.addEventListener("change", evt => {
+                const target = evt.target;
+                console.log({ target });
+                const lblTarget = target.closest("label");
+                const isBookmarked = lblTarget.classList.contains("bookmarked");
+                const btnBookmark = document.getElementById("btn-bookmark");
+                if (isBookmarked) {
+                    btnBookmark.classList.add("bookmarked");
+                } else {
+                    btnBookmark.classList.remove("bookmarked");
+                }
+            })
+            updateHistoryPanel();
+
+            const resizingHistory = { bcr: undefined, client: undefined };
+            let historyResizerPointerId;
+            function resizeHistory() {
+                if (!divHistoryResizer.hasPointerCapture(historyResizerPointerId)) return;
+                try {
+                    const objSizes = modTools.getSavedPointerPos();
+                    const { clientX, clientY } = objSizes;
+                    const startX = resizingHistory.client.startX;
+                    const startY = resizingHistory.client.startY;
+                    const dX = startX - clientX;
+                    const dY = startY - clientY;
+                    // console.log("resizeHistory, dX, dY", dX, dY);
+                    if (Number.isNaN(dX) || Number.isNaN(dY)) {
+                        const msg = `isNaN, dX:${dX}, dY:${dY}`;
+                        throw Error(msg);
+                    }
+                    // console.log("resizeHistory", dX, dY, JSON.parse(JSON.stringify(objSizes)));
+                    const oldWidth = resizingHistory.bcr.width;
+                    let newX = oldWidth - dX;
+                    const oldHeight = resizingHistory.bcr.height;
+                    let newY = oldHeight + dY;
+                    if (Number.isNaN(newX) || Number.isNaN(newY)) {
+                        const msg = `isNaN, newX:${newX}, newY:${newY}`;
+                        throw Error(msg);
+                    }
+                    if ((newX < 0) || (newY < 0)) {
+                        console.log(`${newX}<0, ${newY}<0`, { clientX, clientY, resizingHistory });
+                    } else {
+                        // Use --width/--height to get help from CSS
+                        eltHistory.style.setProperty('--width', `${newX}px`);
+                        eltHistory.style.setProperty('--height', `${newY}px`);
+                    }
+                    throttleSaveHistoryPanelSize();
+                } catch (err) {
+                    const errMsg = err instanceof Error ? err.message : err.toString();
+                    console.error("resizeHistory", errMsg);
+                }
+                requestAnimationFrame(resizeHistory);
+            }
+            divHistoryResizer.addEventListener("pointerdown", async evt => {
+                // This will be handled before the handler on the document.
+                // So get clientX/clientY here!
+                evt.stopPropagation();
+                historyResizerPointerId = evt.pointerId;
+                divHistoryResizer.setPointerCapture(historyResizerPointerId);
+                eltHistory.classList.add("resizing");
+
+                if (true) {
+                    const clientX = evt.clientX;
+                    const clientY = evt.clientY;
+                    if (Number.isNaN(clientX) || Number.isNaN(clientY)) { debugger; }
+
+                    modTools.savePointerdownPos(evt);
+
+                    resizingHistory.bcr = eltHistory.getBoundingClientRect();
+
+                    resizingHistory.client = {};
+                    resizingHistory.client.startX = clientX;
+                    resizingHistory.client.startY = clientY;
+                    resizingHistory.currentPos = {};
+                    resizingHistory.currentPos.clientX = clientX;
+                    resizingHistory.currentPos.clientY = clientY;
+                }
+                divHistoryResizer.addEventListener("pointermove", funPointermove);
+                function funPointermove(evt) {
+                    if (!divHistoryResizer.hasPointerCapture(evt.pointerId)) {
+                        divHistoryResizer.removeEventListener("pointermove", funPointermove);
+                    }
+                    modTools.savePointerPos(evt);
+                }
+                divHistoryResizer.addEventListener("pointerup", evt => {
+                    // afterCaptureResizer();
+                });
+                resizeHistory();
+            });
+            divHistoryResizer.addEventListener("pointercancel", evt => {
+                console.log("<<<<<< HR pointercancel, preventDefault()", evt);
+                evt.preventDefault();
+            });
+            divHistoryResizer.addEventListener("lostpointercapture", evt => {
+                console.log("<<<<<< HR lostpointercapture, preventDefault()", evt);
+                evt.preventDefault();
+                afterCaptureResizer();
+            });
+            divHistoryResizer.addEventListener("pointerleave", evt => {
+                console.log("<<<<<< HR pointerleave, preventDefault()");
+                evt.preventDefault();
+                // afterCaptureResizer();
+            });
+            function afterCaptureResizer() {
+                // https://javascript.info/pointer-events
+                divHistoryResizer.onpointerup = null;
+                divHistoryResizer.onpointermove = null;
+
+                resizingHistory.bcr = undefined;
+                resizingHistory.client = undefined;
+                eltHistory.classList.remove("resizing");
+            }
+
+            async function applyUndoRedoState(radUndoRedo) {
+                const undisplayPrevMindmap = async () => {
+                    const tnRad = radUndoRedo.tagName;
+                    if (tnRad != "INPUT") throw Error(`radUndoRedo is not INPUT: "${tnRad}"`);
+                    if (radUndoRedo.name != "undo-redo-state") throw Error("radUndoRedo.name != undo-redo-state");
+                    const jmN = document.querySelector("jmnodes");
+                    const divZM = jmN.closest(".zoom-move");
+                    const divFilter = divZM || jmN
+                    divFilter.style.filter = "grayScale(0.5)";
+                    divFilter.style.transition = "opacity 0.5s";
+                    divFilter.style.opacity = 0;
+                    await modTools.waitSeconds(0.5);
+                    if (!divZM) {
+                        const divInner = jmN.closest(".jsmind-inner");
+                        divInner.remove();
+                    } else {
+                        divZM.remove();
+                    }
+                }
+
+                const lblPersistent = radUndoRedo.closest(".persistent-bookmark");
+                // let objMindData;
+                let objHistoryFullDisplay;
+                if (lblPersistent) {
+                    objHistoryFullDisplay = radUndoRedo.valueAsObject;
+                } else {
+                    const modUndo = await importFc4i("undo-redo-tree");
+                    const historyNode = radUndoRedo.valueAsObject;
+                    const history = modUndo.getHistory(mindmapKey);
+                    objHistoryFullDisplay = history.navigateToNode(historyNode);
+                }
+                const isSavedBookmark = objHistoryFullDisplay.isSavedBookmark;
+                const objMindStored = objHistoryFullDisplay.objMindStored;
+                if (!objMindStored) {
+                    // debugger;
+                    modMdc.mkMDCsnackbar("Old format naned bookmark, please delete");
+                    return;
+                }
+
+                undisplayPrevMindmap();
+
+                modMMhelpers.checkIsMMformatStored(objMindStored, "event listener change");
+                const dbMindmaps = await importFc4i("db-mindmaps");
+                if (!isSavedBookmark) {
+                    await dbMindmaps.DBsetMindmap(mindmapKey, objMindStored);
+                } else {
+                    delete objHistoryFullDisplay.isSavedBookmark;
+                }
+                delete objHistoryFullDisplay.key;
+
+                modMMhelpers.checkIsFullMindmapDisplayState(objHistoryFullDisplay);
+                // modMMhelpers.checkIsFullMindmapDisplayState(objMindData);
+
+
+                const jm = await modJsEditCommon.displayOurMindmap(objMindStored);
+                if (isSavedBookmark) jm.isSavedBookmark = true;
+                modJsmindDraggable.setOurJm(jm);
+                const modStairs = await importFc4i("stairs");
+                modStairs.exitEditOrView();
+                if (objHistoryFullDisplay) {
+                    modMMhelpers.applyDisplayStateOther(objHistoryFullDisplay.other, jm);
+                }
+            }
+
+
+            eltHistory.addEventListener("change", evt => {
+                const target = evt.target;
+                if (target.name == "undo-redo-state") {
+                    applyUndoRedoState(target);
+                }
+            });
+
+
+            // const btnHistory = modMdc.mkMDCiconButton("deployed_code_history", "Undo/Redo");
+            const btnHistory = modMdc.mkMDCiconButton("history", "Undo/Redo");
+            btnHistory.id = "mm4i-btn-history";
+            btnHistory.classList.add("fixed-at-bottom");
+            let undoIsSetup = false;
+            btnHistory.addEventListener("click", async evt => {
+                evt.stopPropagation();
+                eltHistory.classList.toggle("display-none");
+                if (!eltHistory.classList.contains("display-none")) {
+                    const oldBcr = settingHistoryPanelSize.value;
+                    if (oldBcr == null) return;
+                    const { width, height } = oldBcr;
+                    eltHistory.style.setProperty('--width', `${width}px`);
+                    eltHistory.style.setProperty('--height', `${height}px`);
+                }
+            });
+            document.body.appendChild(btnHistory);
+
+            const modUndo = await importFc4i("undo-redo-tree");
+            document.addEventListener(modUndo.getRecordEventName(), evt => {
+                if (evt.detail.key == mindmapKey) {
+                    updateHistoryPanel();
+                }
+            });
+
+
+
+            async function saveMindmapBookmark(keyName, bookmarkName, objMindData) {
+                // modMMhelpers.checkIsMMformatStored(objMindData, "saveMindmapBookmark");
+                modMMhelpers.checkIsFullMindmapDisplayState(objMindData, "saveMindmapBookmark");
+                const dbMindmaps = await importFc4i("db-mindmaps");
+                return await dbMindmaps.DBsetMindmapBookmark(keyName, bookmarkName, objMindData);
+            }
+        }
+    </script>
+
+</body>
+
+</html>
