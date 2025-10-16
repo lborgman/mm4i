@@ -7,7 +7,7 @@
     }
   ],
   "functions": {
-    "api/test-groq.js": {
+    "api/call-groq.js": {
       "runtime": "nodejs18.x"
     }
   },
