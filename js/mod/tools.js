@@ -984,11 +984,8 @@ export function affixScriptToHead(url, onloadFunction) {
 ////////////////////////////////////
 ///// Helper functions. Throttle, debounce, etc
 
-/**
- * 
- * @param {number} sec 
- * @returns 
- */
+// await new Promise(resolve => setTimeout(resolve, delay));
+/** * @param {number} sec * @returns */
 export function waitSeconds(sec) {
     // console.log("start wait", sec)
     return new Promise(resolve => {

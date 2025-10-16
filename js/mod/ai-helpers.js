@@ -170,6 +170,19 @@ const infoAIs = {
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg"
     }),
 
+    "Groq": mkAIinfo({
+        company: "Groq",
+        urlDescription: "https://console.groq.com/",
+        // fun: callGrokApi, // The other version seems better, but I can not test with a valid key
+        fun: callGroqAPI,
+        urlAPIkey: "https://console.groq.com/keys",
+        // pkg: "ai.x.grok",
+        // qW: true,
+        // urlChat: "grok.com/chat",
+        // isPWA: true, // 2025-10-04
+        urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg"
+    }),
+
     "Hugging Face": mkAIinfo({
         company: "Hugging FAce",
         urlDescription: "https://huggingface.co/",
@@ -815,7 +828,7 @@ Important:
 
     // Add Hugging Face first
     // await addHuggingFace();
-    async function addHuggingFace() {
+    async function _addHuggingFace() {
         const imgAI = mkElt("span", { class: "elt-ai-img" });
         const urlImg = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg";
         imgAI.style.backgroundImage = `url(${urlImg})`;
@@ -1226,6 +1239,10 @@ Important:
             eltCurrentWay,
         ]);
         divDetAIcontent.classList.add("elt-ai-det-content");
+        if (nameAI == "HuggingFace") {
+            divDetAIcontent.appendChild(mkElt("span", undefined, nameAI));
+            // https://huggingface.co/settings/billing
+        }
 
         if (fun) {
             // const listAPI = mkElt("div");
@@ -1246,14 +1263,13 @@ Important:
             lbl.style = "display:grid; grid-template-columns: auto 1fr; gap: 10px;";
 
             const divAPIinfo = mkElt("div", undefined, [
-                "Automated with an API key.",
+                "Automation needs an API key.",
             ]);
             if (urlAPIkey) {
                 const aAPIkey = mkElt("a", {
                     href: urlAPIkey,
                     target: "_blank"
                 }, `here`);
-                // @ts-ignore
                 const spanAPIkeyInfo = mkElt("span", undefined, [" Get it ", aAPIkey, "."]);
                 divAPIinfo.appendChild(spanAPIkeyInfo);
             } else {
@@ -3030,9 +3046,12 @@ async function callHuggingFaceInference(userPrompt, apiKey) {
     // const model = "gpt2"; // (ultra-light fallback for testing).
 
     // Grok: Use a model confirmed to work with chatCompletion on the free Inference API. Recommended:
-    const model = "HuggingFaceH4/zephyr-7b-beta"; // (optimized for conversational tasks, reliable on free tier).
+    // const model = "HuggingFaceH4/zephyr-7b-beta"; // (optimized for conversational tasks, reliable on free tier).
     // const model = "mistralai/Mixtral-8x7B-Instruct-v0.1"; // (if available, great for JSON tasks; check for cold starts).
     // const model = "meta-llama/Llama-3.2-3B-Instruct"; // (newer, may require gated access approval).
+
+    // const model = "facebook/bart-large";
+    const model = "gpt2"; // (ultra-light fallback for testing).
     try {
         const strJson = await client.chatCompletion({
             model,
@@ -3041,6 +3060,9 @@ async function callHuggingFaceInference(userPrompt, apiKey) {
         console.log({ strJson });
         return strJson;
     } catch (err) {
+        if (err instanceof modHuggingFace.InferenceClientProviderApiError) {
+            debugger;
+        }
         const msg = String(err);
         return Error(msg);
     }
@@ -3164,3 +3186,48 @@ async function callHuggingFaceAIapi(userPrompt, apiKey, options = {}) {
         throw new Error(`API call failed: ${error.message}`);
     }
 }
+
+
+/** @type {CallAIapiWithOptions} */
+async function callGroqAPI(userPrompt, apiKey, options = {}) {
+    const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
+
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${apiKey.trim()}`,
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            model: 'llama-3.1-8b-instant',
+            messages: [{ role: 'user', content: userPrompt }],
+            max_tokens: 3000,
+            temperature: 0.1,
+        }),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        if (errorText.includes('invalid_api_key')) {
+            return Error('Invalid API key. Regenerate in Groq Console and ensure no spaces.');
+        }
+        if (errorText.includes('rate_limit_exceeded')) {
+            return Error('Rate limit exceeded. Wait and retry or check Groq Console for quota.');
+        }
+        return Error(`HTTP ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    const strJson = data.choices[0].message.content;
+    const total_tokens = data.usage.total_tokens;
+    console.log("callGroqAPI", { total_tokens });
+    return strJson;
+}
+
+/*
+// Usage
+const apiKey = 'gsk_your_actual_key_here';
+callGroqAPI('Generate a valid JSON mindmap (no extra text) for an article about AI in healthcare:\n{\n  "root": {\n    "title": "AI in Healthcare",\n    "children": []\n  }\n}', apiKey)
+  .then(json => console.log(JSON.stringify(json, null, 2)))
+  .catch(error => console.error('Error:', error));
+*/
