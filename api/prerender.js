@@ -17,7 +17,7 @@ export async function GET(request) {
     }
     const url = new URL(request.url);
     const pathname = url.pathname;
-    if (!pathname.endsWith("/mm4i.html")) {
+    if (pathname != "/" && !pathname.endsWith("/mm4i.html")) {
         return new Response("Not mm4i.html", { status: 403 });
     }
 
