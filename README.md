@@ -1,4 +1,5 @@
 ![my image](./img/mm4i.png)
+Temp: trigger redeploy at Vercel
 
 # Mindmaps 4 Internet
 
