@@ -6,13 +6,6 @@
       "destination": "/api/prerender"
     }
   ],
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/mm4i.html",
-      "permanent": false
-    }
-  ],
   "functions": {
     "api/call-groq.js": {
       "runtime": "nodejs18.x"
