@@ -1,20 +1,19 @@
 {
   "version": 2,
-  "rewrites": [
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/mm4i.html",
+      "permanent": false
+    },
     {
       "source": "/mm4i.html",
-      "destination": "/api/prerender"
+      "destination": "/api/prerender",
+      "permanent": false
     }
   ],
   "functions": {
-    "api/call-groq.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
-  "routes": [
-    {
-      "src": "/api/call-groq",
-      "dest": "/api/call-groq.js"
-    }
-  ]
+    "api/call-groq.js": { "runtime": "nodejs18.x" },
+    "api/prerender.js": { "runtime": "nodejs18.x" }
+  }
 }
