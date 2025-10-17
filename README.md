@@ -1,5 +1,5 @@
 ![my image](./img/mm4i.png)
-Temp: Deployment sync - October 17, 2025, 10:48 PM CEST
+Temp: Deployment sync - October 18, 2025, 10:48 PM CEST
 
 # Mindmaps 4 Internet
 
