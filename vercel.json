@@ -13,7 +13,7 @@
     }
   ],
   "functions": {
-    "api/call-groq.js": { "runtime": "nodejs18.x" },
-    "api/prerender.js": { "runtime": "nodejs18.x" }
+    "api/call-groq.js": { "runtime": "nodejs@18" },
+    "api/prerender.js": { "runtime": "nodejs@18" }
   }
 }
