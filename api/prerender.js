@@ -1,10 +1,7 @@
-////// This is for Vercel, initial code is from perplexity.ai
 // @ts-check
 
 /*
-    /api/prerender.js — Vercel Edge Function,
-    initially to proxy requests to Prerender.io
-    However prerender.io is not used any more!
+  /api/prerender.js — Vercel Edge Function,
 */
 export const config = {
     runtime: "edge", // make it an Edge Function for lower latency
@@ -13,7 +10,7 @@ export const config = {
 
 
 export async function GET(request) {
-    console.log("starting prerende.js GET", request.url);
+    console.warn("starting prerende.js GET", request.url);
     const mkErrResponse = (msg) => {
         console.error(`prerender GET: ${msg}`);
         return new Response(`Error prerender GET: ${msg}`, { status: 500 });
@@ -95,49 +92,4 @@ export async function GET(request) {
         return new Response("Not a crawler", { status: 403 });
     }
 
-    /*
-    // Extract the target URL to prerender: expect ?url=original-site-url
-    // If not provided, fallback to homepage (adjust as needed)
-    const targetUrl = urlRequest.searchParams.get("url");
-    console.log("targetUrl", targetUrl);
-    if (!targetUrl) {
-        return new Response("Missing url parameter", { status: 400 });
-    }
-
-    const urlTarget = new URL(targetUrl);
-    if (urlTarget.pathname.endsWith("mm4i.html")) {
-        urlTarget.pathname = urlTarget.pathname.slice(0, -5) + "-prerender.html";
-    }
-
-    // Construct prerender.io service request URL
-    const prerenderUrl = `https://service.prerender.io/${urlTarget.href}&uacf=${encodeURI(userAgent)}`;
-    console.log("prerenderUrl", prerenderUrl);
-
-
-    try {
-        // Call prerender.io API with the token header
-        const prerenderRes = await fetch(prerenderUrl, {
-            headers: {
-                // @ts-ignore
-                "X-Prerender-Token": PRERENDER_TOKEN,
-            },
-        });
-
-        // Return prerendered content back with status and headers from prerender.io
-        const body = await prerenderRes.arrayBuffer();
-        const responseHeaders = new Headers(prerenderRes.headers);
-
-        // Optionally override cache-control
-        responseHeaders.set("Cache-Control", "no-cache");
-
-        return new Response(body, {
-            status: prerenderRes.status,
-            statusText: prerenderRes.statusText,
-            headers: responseHeaders,
-        });
-    } catch (err) {
-        console.error("Error fetching prerender page", err);
-        return new Response("Error fetching prerendered page", { status: 500 });
-    }
-    */
 }
