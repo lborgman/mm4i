@@ -1,7 +1,21 @@
 {
   "version": 2,
+  "rewrites": [
+    {
+      "source": "/mm4i.html",
+      "destination": "/api/prerender"
+    },
+    {
+      "source": "/",
+      "destination": "/api/prerender"
+    }
+  ],
   "functions": {
-    "api/call-groq.js": { "runtime": "@vercel/node@2.0.0" },
-    "api/prerender.js": { "runtime": "@vercel/node@2.0.0" }
+    "api/call-groq.js": {
+      "runtime": "@vercel/node@2.0.0"
+    },
+    "api/prerender.js": {
+      "runtime": "@vercel/node@2.0.0"
+    }
   }
 }
