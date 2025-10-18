@@ -1,17 +1,5 @@
 {
   "version": 2,
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/mm4i.html",
-      "permanent": false
-    },
-    {
-      "source": "/mm4i.html",
-      "destination": "/api/prerender",
-      "permanent": false
-    }
-  ],
   "functions": {
     "api/call-groq.js": { "runtime": "@vercel/node@2.0.0" },
     "api/prerender.js": { "runtime": "@vercel/node@2.0.0" }

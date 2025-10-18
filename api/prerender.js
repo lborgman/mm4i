@@ -1,13 +1,8 @@
 // @ts-check
 
-/*
-  /api/prerender.js — Vercel Edge Function,
-*/
 export const config = {
-    runtime: "edge", // make it an Edge Function for lower latency
+    runtime: "edge", // make it an Edge Function in Vercel for lower latency
 };
-
-
 
 export async function GET(request) {
     console.warn("starting prerende.js GET", request.url);
