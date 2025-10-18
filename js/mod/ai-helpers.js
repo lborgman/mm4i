@@ -820,7 +820,21 @@ Important:
     // cardInput.classList.add("VK_FOCUS");
 
     const divEltsAI = mkElt("div", { class: "elts-ai" });
+    divEltsAI.id = "elts-ai";
     divEltsAI.style.marginBottom = "10px";
+
+    const btnShowAllAIs = modMdc.mkMDCbutton("Show all AI:s", "outlined");
+    btnShowAllAIs.addEventListener("click", evt => {
+        evt.stopPropagation();
+        const e = document.getElementById("elts-ai");
+        if (!e) throw Error("Could not find #elts-ai");
+        e.classList.remove("show-only-selected-ai");
+    });
+    const divShowAllAIs = mkElt("div", undefined, [
+        btnShowAllAIs
+    ]);
+    divShowAllAIs.id = "div-show-all-ais"
+    divEltsAI.appendChild(divShowAllAIs);
 
     /*
     {
@@ -1330,6 +1344,7 @@ Important:
         divUserSteps.textContent = "";
         divUserSteps.appendChild(mkElt("div", undefined, "Steps:"));
         getWhatToDoForUser(nameAI, divUserSteps);
+        divEltsAI.classList.add("show-only-selected-ai");
     }
     {
         const currentAIname = /** @type {string} */ (settingUsedAIname.value);
