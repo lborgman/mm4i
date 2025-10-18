@@ -20,6 +20,7 @@ module.exports = {
 		'temp.html',
 		'temp.js',
 		'temp.json',
+		'test.json',
 	],
 	swSrc: 'sw-input.js',
 	swDest: 'sw-workbox.js',
