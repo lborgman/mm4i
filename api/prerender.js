@@ -18,7 +18,7 @@ export async function GET(request) {
     const url = new URL(request.url);
     const pathname = url.pathname;
     if (pathname != "/" && !pathname.endsWith("/mm4i.html")) {
-        return new Response("Not mm4i.html", { status: 403 });
+        return new Response(`pathname == "${pathname}"`, { status: 403 });
     }
 
     const origin = url.origin;  // base URL like https://your-domain.vercel.app
