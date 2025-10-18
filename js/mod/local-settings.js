@@ -197,15 +197,16 @@ export class LocalSetting {
             }
             return;
         }
+        const typeofCV = typeof this.#cachedValue;
         switch (this.#input.type) {
             case "checkbox":
-                if (typeof this.#cachedValue !== "boolean") throw Error("expected boolean");
+                if (typeofCV !== "boolean") throw Error("expected boolean");
                 this.#input.checked = this.#cachedValue;
                 break;
             default:
-                if (typeof this.#cachedValue !== "string") {
+                if (typeofCV !== "string" && typeofCV != "number") {
                     debugger;
-                    throw Error("expected string");
+                    throw Error("expected string or number");
                 }
                 this.#input.value = this.#cachedValue;
         }

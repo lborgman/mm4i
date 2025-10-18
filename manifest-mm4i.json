@@ -21,7 +21,7 @@
             "sizes": "512x512"
         }
     ],
-    "id": "https://mm4i.vercel.app/mm4i.html",
+    "id": "/",
     "start_url": "./mm4i.html",
     "scope": "./",
     "display": "standalone",
@@ -37,6 +37,7 @@
     "orientation": "portrait",
     "share_target": {
         "action": "./mm4i.html",
+        "enctype": "application/x-www-form-urlencoded",
         "method": "GET",
         "params": {
             "title": "title",

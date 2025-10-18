@@ -37,7 +37,7 @@ const settingPuterAImodel = new SettingsMm4iAI("puter-ai-model", "");
 const settingHuggingFaceAImodel = new SettingsMm4iAI("hugging-face-ai-model", "");
 const settingUsedAIname = new SettingsMm4iAI("used-ai-name", "");
 const settingProceedAPI = new SettingsMm4iAI("proceed-api", true);
-const settingNotifyReady = new SettingsMm4iAI("notify-ready-api", true);
+const settingNotifyReadySec = new SettingsMm4iAI("notify-ready-api", 10);
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -778,6 +778,13 @@ Important:
         "Notify me when API is ready"
     ]);
     */
+    const inpNotify = settingNotifyReadySec.getInputElement();
+    inpNotify.style.width = "4ch";
+    const lblNotify = mkElt("label", undefined, [
+        "Notify me if it took > ",
+        inpNotify,
+        " seconds"
+    ]);
     const btnNotifyTest = modMdc.mkMDCbutton("Test notification", "raised");
     btnNotifyTest.addEventListener("click", () => {
         const txtDelay = prompt("Test notification, delay (seconds):", "30");
@@ -792,7 +799,8 @@ Important:
     const eltDivAIautomated = mkElt("div", { class: "mdc-card" }, [
         "Automated:",
         lblProceed,
-        mkElt("div", undefined, btnNotifyTest)
+        // mkElt("div", undefined, btnNotifyTest)
+        mkElt("div", undefined, lblNotify)
     ]);
     eltDivAIautomated.id = "div-ai-automated";
 
@@ -2315,7 +2323,9 @@ async function callNamedAI(nameAI, promptAI) {
             // @ts-ignore
             divUserSteps.textContent = "";
         } else {
-            modTools.showNotification(`${nameAI} is ready`, `Elapsed time: ${strElapsed}`);
+            if (secElapsed > settingNotifyReadySec.valueN) {
+                modTools.showNotification(`${nameAI} is ready`, `Elapsed time: ${strElapsed}`);
+            }
             divGoStatus.style.color = "green";
             divGoStatus.textContent = `Got response from ${nameAI}`;
             const eltAItextarea =
