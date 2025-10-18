@@ -16,6 +16,7 @@ module.exports = {
 		'**/api/call-groq.js',
 		'package.json',
 		'vercel.json',
+		'response.json',
 	],
 	swSrc: 'sw-input.js',
 	swDest: 'sw-workbox.js',
