@@ -13,6 +13,7 @@ module.exports = {
 		'temp.json',
 		'woff-codepoints.js',
 		'**/api/prerender.js',
+		'**/api/call-groq.js',
 		'package.json',
 		'vercel.json',
 	],

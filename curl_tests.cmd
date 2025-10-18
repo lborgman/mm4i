@@ -22,8 +22,12 @@
 
 
 @echo API Key: KEY_GROQ=%KEY_GROQ%
-curl -X POST "https://api.groq.com/openai/v1/chat/completions" ^
-  -H "Authorization: Bearer %KEY_GROQ%" ^
+@rem curl -X POST "https://api.groq.com/openai/v1/chat/completions" ^
+@rem  -H "Authorization: Bearer %KEY_GROQ%" ^
+@rem  -H "Content-Type: application/json" ^
+@rem  -d "{\"model\": \"llama-3.1-8b-instant\", \"messages\": [{\"role\": \"user\", \"content\": \"Generate a valid JSON mindmap (no extra text) for an article about AI in healthcare:\\n{\\n  \\\"root\\\": {\\n    \\\"title\\\": \\\"AI in Healthcare\\\",\\n    \\\"children\\\": []\\n  }\\n}\"}], \"max_tokens\": 300, \"temperature\": 0.1}" ^
+@rem  -o response.txt > curl_debug.txt 2>&1
+
+curl -X POST "https://mm4i.vercel.app/api/call-groq" ^
   -H "Content-Type: application/json" ^
-  -d "{\"model\": \"llama-3.1-8b-instant\", \"messages\": [{\"role\": \"user\", \"content\": \"Generate a valid JSON mindmap (no extra text) for an article about AI in healthcare:\\n{\\n  \\\"root\\\": {\\n    \\\"title\\\": \\\"AI in Healthcare\\\",\\n    \\\"children\\\": []\\n  }\\n}\"}], \"max_tokens\": 300, \"temperature\": 0.1}" ^
-  -o response.txt > curl_debug.txt 2>&1
+  -d "{\"userPrompt\":\"1. If this prompt does not end with ----, consider it incomplete and notify the user that the prompt appears to be cut off.;\\n2. Summarize the article (or video) \\\"https://en.wikipedia.org/wiki/Self-compassion\\\" into one mind map and output a strict, parse-ready JSON node array (flat; fields: id, name, parentid, and notes).;\\n3. Optional field \\\"notes\\\": For details, markdown format.;\\n4. Give as much details as in a text summary.;\\n5. Limit the hierarchy to max depth 4 levels.;\\n6. Return only valid JSON (no text before or after).;\\n7. Preserve escaped newlines (\\n) inside string values for JSON validity; they should represent Markdown line breaks when rendered.;\\n8. ----\",\"max_tokens\":3000,\"temperature\":0.1}" > response.json
