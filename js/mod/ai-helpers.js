@@ -39,6 +39,9 @@ const settingUsedAIname = new SettingsMm4iAI("used-ai-name", "");
 const settingProceedAPI = new SettingsMm4iAI("proceed-api", true);
 const settingNotifyReadySec = new SettingsMm4iAI("notify-ready-api", 10);
 
+/** @type {string|Object} resAI */ let lastResAI;
+/** @type {string} */ let tofLastResAI;
+
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -542,6 +545,64 @@ Important:
                 resize: vertical;
             `;
 
+    const divAIjsonErrorInResult = mkElt("div");
+    divAIjsonErrorInResult.classList.add("ai-json-error");
+    divAIjsonErrorInResult.id = "ai-json-error-in-result";
+
+    const btnInfoTrouble = modMdc.mkMDCbutton("Explain", "raised");
+    btnInfoTrouble.title = "What happened?";
+    btnInfoTrouble.addEventListener("click", () => {
+        const btnShowJson = modMdc.mkMDCbutton("Show JSON", "raised");
+        // const tofResAI = typeof lastResAI;
+        // const tofResAI = tofLastResAI;
+        const strBad = tofLastResAI == "string" ? lastResAI : JSON.stringify(lastResAI, undefined, 4);
+        const preAIraw = mkElt("pre", undefined, strBad);
+        preAIraw.style = `
+                    background-color: white;
+                    padding: 5px;
+                    overflow-x: auto;
+                    border: 1px solid lightgray;
+                    `;
+        btnShowJson.addEventListener("click", () => {
+            const body = mkElt("div", undefined, [
+                mkElt("h3", undefined, `AI answer (${tofLastResAI})`),
+                preAIraw
+            ]);
+            modMdc.mkMDCdialogAlert(body, "Close");
+        });
+        const btnCopyError = modMdc.mkMDCbutton("Copy AI error", "raised");
+        btnCopyError.addEventListener("click", async () => {
+            // const de = document.getElementById("div-ai-json-error");
+            // if (!de) throw Error(`Could not find "#div-ai-json-error"`)
+            const de = divAIjsonError;
+            if (!de) throw Error(`!de`)
+            const errorText = de.textContent;
+            const copied = await modTools.copyTextToClipboard(errorText);
+            if (copied) modMdc.mkMDCsnackbar(`Copied "${errorText}"`);
+        });
+        const divButtons = mkElt("div", undefined, [
+            btnCopyError,
+            btnShowJson,
+        ]);
+        divButtons.style.display = "flex";
+        divButtons.style.gap = "10px";
+        if (divErrorLocation == undefined) throw Error(`divErrorLocation is ${divErrorLocation}`)
+        divErrorLocation.remove();
+        if (divAIjsonError == undefined) throw Error(`divAIjsonError is ${divErrorLocation}`)
+        divAIjsonError.remove();
+        const body = mkElt("div", undefined, [
+            mkElt("h2", undefined, "JSON was not ok"),
+            divAIjsonError,
+            divErrorLocation,
+            divButtons,
+        ]);
+        modMdc.mkMDCdialogAlert(body, "Close");
+    });
+
+    const divError = mkElt("div", undefined, [divAIjsonErrorInResult, btnInfoTrouble]);
+    divError.id = "div-error";
+    divError.style.display = "none";
+
     const eltAItextareaStatus = mkElt("div");
     eltAItextareaStatus.style.lineHeight = "1";
     // @ts-ignore
@@ -559,85 +620,48 @@ Important:
             eltAItextareaStatus.textContent = "";
             return;
         }
-        handleAIraw(strAIraw);
+        handleAIres(strAIraw);
     }
 
-    /** * @param {string} strAIraw */
-    function handleAIraw(strAIraw) {
+    /** * @param {string|Object} resAI */
+    function handleAIres(resAI) {
 
-        // @ts-ignore
-        const { strAIjson, cleaned } = getJsonFromAIstr(strAIraw);
+        lastResAI = resAI;
+        tofLastResAI = typeof lastResAI;
 
         /** @param {string} txt */
         const tellError = (txt) => {
+            divGoStatus.style.color = "red";
+            divGoStatus.append(" -- *ERROR*");
             divAIjsonError = mkElt("div", undefined, txt);
             if (divAIjsonError == undefined) throw Error(`divAIjsonError == undefined`);
             divAIjsonError.classList.add("ai-json-error");
+            divAIjsonError.id = "ai-json-error-in-popup";
 
-            const divAIjsonTrouble = mkElt("div", undefined, "Error: AI answer format trouble");
-            if (divAIjsonTrouble == undefined) throw Error(`divAIjsonTrouble == undefined`);
-            divAIjsonTrouble.classList.add("ai-json-error");
+            divAIjsonErrorInResult.textContent = "Error: AI answer format trouble";
 
-            const btnInfoTrouble = modMdc.mkMDCbutton("Explain", "raised");
-            btnInfoTrouble.title = "What happened?";
-            // btnInfoTrouble.style = `color: red;`;
-            btnInfoTrouble.addEventListener("click", () => {
-                const btnShowJson = modMdc.mkMDCbutton("Show JSON", "raised");
-                const preAIraw = mkElt("pre", undefined, strAIraw);
-                preAIraw.style = `
-                    background-color: white;
-                    padding: 5px;
-                    overflow-x: auto;
-                    border: 1px solid lightgray;
-                    `;
-                btnShowJson.addEventListener("click", () => {
-                    const body = mkElt("div", undefined, [
-                        mkElt("h3", undefined, "AI answer"),
-                        preAIraw
-                    ]);
-                    modMdc.mkMDCdialogAlert(body, "Close");
-                });
-                const btnCopyError = modMdc.mkMDCbutton("Copy AI error", "raised");
-                btnCopyError.addEventListener("click", async () => {
-                    // const de = document.getElementById("div-ai-json-error");
-                    // if (!de) throw Error(`Could not find "#div-ai-json-error"`)
-                    const de = divAIjsonError;
-                    if (!de) throw Error(`!de`)
-                    const errorText = de.textContent;
-                    const copied = await modTools.copyTextToClipboard(errorText);
-                    if (copied) modMdc.mkMDCsnackbar(`Copied "${errorText}"`);
-                });
-                const divButtons = mkElt("div", undefined, [
-                    btnCopyError,
-                    btnShowJson,
-                ]);
-                divButtons.style.display = "flex";
-                divButtons.style.gap = "10px";
-                if (divErrorLocation == undefined) throw Error(`divErrorLocation is ${divErrorLocation}`)
-                divErrorLocation.remove();
-                if (divAIjsonError == undefined) throw Error(`divAIjsonError is ${divErrorLocation}`)
-                divAIjsonError.remove();
-                const body = mkElt("div", undefined, [
-                    mkElt("h2", undefined, "JSON was not ok"),
-                    divAIjsonError,
-                    divErrorLocation,
-                    divButtons,
-                ]);
-                modMdc.mkMDCdialogAlert(body, "Close");
-            });
-
-            const divError = mkElt("div", undefined, [divAIjsonTrouble, btnInfoTrouble]);
-            divError.style = ` display: flex; flex-direction: row; gap: 5px; `;
-            eltAItextareaStatus.appendChild(divError);
+            divError.style.display = "";
         }
+        // @ts-ignore
         try {
-            const j = JSON.parse(strAIjson);
-            // const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(j);
-            const nodeArray = nodeArrayFromAI2jsmindFormat(j);
+            throw "TEST ERROR";
+            let cleaned, jsonAI;
+            if (tofLastResAI == "string") {
+                const res = getJsonFromAIstr(resAI);
+                const strAIonlyJson = res.strAIjson;
+                cleaned = res.cleaned;
+                jsonAI = JSON.parse(strAIonlyJson);
+            } else {
+                jsonAI = resAI;
+            }
+
+            // const jsonAI = tofResAI == "string" ? JSON.parse(strAIonlyJson) : resAI;
+            const nodeArray = nodeArrayFromAI2jsmindFormat(jsonAI);
             const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
             if (res.isValid) {
                 theValidJsonNodeArray = nodeArray;
-                const msgStatus = strAIjson == strAIraw ? "OK" : `OK (cleaned: ${cleaned.join(", ")})`;
+                const msgStatus = tofLastResAI !== "string" ? "OK" :
+                    (!cleaned ? "OK" : `OK (cleaned: ${cleaned.join(", ")})`);
                 eltAItextareaStatus.textContent = msgStatus;
                 eltAItextareaStatus.style.backgroundColor = "greenyellow";
 
@@ -667,32 +691,33 @@ Important:
             eltAItextareaStatus.textContent = "";
             // @ts-ignore
             tellError(errorMsg);
-            // @ts-ignore
-            const objJsonErrorDetails = modTools.extractJSONparseError(errorMsg, strAIjson);
             divErrorLocation = mkElt("div");
-            if (divErrorLocation == undefined) throw Error(`divErrorLocation == undefined`);
-            divErrorLocation.id = "div-error-location";
+            if (tofLastResAI == "string") {
+                const objJsonErrorDetails = modTools.extractJSONparseError(errorMsg, strAIonlyJson);
+                if (divErrorLocation == undefined) throw Error(`divErrorLocation == undefined`);
+                divErrorLocation.id = "div-error-location";
 
-            if (objJsonErrorDetails.context) {
-                const eltBefore = mkElt("span", undefined,
-                    objJsonErrorDetails.context.before
-                );
-                const eltAfter = mkElt("span", undefined,
-                    objJsonErrorDetails.context.after
-                );
-                const eltErrorChar = mkElt("span", undefined,
-                    objJsonErrorDetails.context.errorChar
-                );
-                eltErrorChar.style.color = "red";
-                divErrorLocation.textContent = "";
-                divErrorLocation.appendChild(eltBefore);
-                divErrorLocation.appendChild(eltErrorChar);
-                divErrorLocation.appendChild(eltAfter);
-                divErrorLocation.style.padding = "10px";
-                divErrorLocation.style.marginTop = "10px";
-                divErrorLocation.style.backgroundColor = "yellow";
-                divErrorLocation.style.whiteSpace = "pre-wrap";
-                // eltAItextareaStatus.append(divErrorLocation);
+                if (objJsonErrorDetails.context) {
+                    const eltBefore = mkElt("span", undefined,
+                        objJsonErrorDetails.context.before
+                    );
+                    const eltAfter = mkElt("span", undefined,
+                        objJsonErrorDetails.context.after
+                    );
+                    const eltErrorChar = mkElt("span", undefined,
+                        objJsonErrorDetails.context.errorChar
+                    );
+                    eltErrorChar.style.color = "red";
+                    divErrorLocation.textContent = "";
+                    divErrorLocation.appendChild(eltBefore);
+                    divErrorLocation.appendChild(eltErrorChar);
+                    divErrorLocation.appendChild(eltAfter);
+                    divErrorLocation.style.padding = "10px";
+                    divErrorLocation.style.marginTop = "10px";
+                    divErrorLocation.style.backgroundColor = "yellow";
+                    divErrorLocation.style.whiteSpace = "pre-wrap";
+                    // eltAItextareaStatus.append(divErrorLocation);
+                }
             }
         }
     }
@@ -752,7 +777,7 @@ Important:
     btnCopyCliboard.addEventListener("click", async () => {
         const txt = await modTools.getTextFromClipboard();
         console.log("btnCopyClipboad, length: ", txt.length);
-        handleAIraw(txt);
+        handleAIres(txt);
     });
     const divBtnCopyClipboard = mkElt("div", undefined, [
         btnCopyCliboard,
@@ -796,6 +821,7 @@ Important:
     });
 
 
+
     const eltDivAIautomated = mkElt("div", { class: "mdc-card" }, [
         "Automated:",
         lblProceed,
@@ -803,8 +829,6 @@ Important:
         mkElt("div", undefined, lblNotify)
     ]);
     eltDivAIautomated.id = "div-ai-automated";
-
-
 
     const cardInput = mkElt("p", { class: "mdc-card display-flex" }, [
         mkElt("div", undefined, `Article or video to summarize as a mindmap: `),
@@ -1380,8 +1404,8 @@ Important:
         evt.stopPropagation();
 
 
-        const divHardWay = document.getElementById("hard-way");
-        if (!divHardWay) throw Error('Could not find "#hard-way"');
+        const divHardWay = document.getElementById("div-for-go");
+        if (!divHardWay) throw Error('Could not find "#div-for-go"');
         divHardWay.querySelector("input[type=radio][name=ai]:checked");
         const inpAI = divHardWay.querySelector("input[type=radio][name=ai]:checked");
         if (!inpAI) {
@@ -1434,7 +1458,8 @@ Important:
             document.documentElement.classList.add("ai-in-progress");
             modMdc.replaceMDCicon("stop", btnGo);
         }
-        await callNamedAI(nameAI, promptAI);
+        await callNamedAI(nameAI, promptAI, handleAIres);
+
         if (callingAPI) {
             document.documentElement.classList.remove("ai-in-progress");
             modMdc.replaceMDCicon("play_arrow", btnGo);
@@ -1577,16 +1602,20 @@ Important:
 
 
 
+    // const divError = mkElt("div", undefined, [divAIjsonErrorInResult, btnInfoTrouble]);
+    // divError.id = "div-error";
+    // divError.style = ` display: flex; flex-direction: row; gap: 5px; `;
+
     const divTabForGo = mkElt("div", undefined, [
         mkElt("div", undefined, cardPrompt),
         divEltsAI,
         divGo,
+        divError,
         divUserSteps,
-        // mkElt("div", undefined, eltDivAIclipboard),
         eltDivAIclipboard,
         eltDivAIautomated,
     ]);
-    divTabForGo.id = "hard-way";
+    divTabForGo.id = "div-for-go";
     divTabForGo.style = styleWays;
 
     {
@@ -2187,6 +2216,9 @@ async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
  */
 export function getWayToCallAI(nameAI) {
     if (typeof nameAI != "string") throw Error("nameAI was not string");
+    if (nameAI == "Groq") {
+        return { way: "API", copyQ: false, hasWebAPI: false }
+    }
     if (nameAI == "PuterJs") {
         return { way: "API", copyQ: false, hasWebAPI: true };
     }
@@ -2230,7 +2262,7 @@ export function wayToCallAIisAPI(nameAI) {
  * @param {string} nameAI 
  * @param {string} promptAI 
  */
-async function callNamedAI(nameAI, promptAI) {
+async function callNamedAI(nameAI, promptAI, handleRes) {
     const modTools = await importFc4i("toolsJs");
 
     const divGoStatus = document.getElementById("div-go-status");
@@ -2343,16 +2375,18 @@ async function callNamedAI(nameAI, promptAI) {
             }
             divGoStatus.style.color = "green";
             divGoStatus.textContent = `Got response from ${nameAI}`;
-            const eltAItextarea =
-                /** @type {HTMLTextAreaElement|null} */
-                (document.getElementById("textarea-response"));
-            if (!eltAItextarea) throw Error(`Did not find "textarea-respones"`);
-            eltAItextarea.value = res;
-            // @ts-ignore
-            if (typeof initAItextarea != "function") {
-                throw Error(`tofInitAItextarea == "${typeof initAItextarea}"`);
-            }
-            initAItextarea();
+            handleRes(res);
+            /*
+                const eltAItextarea =
+                    (document.getElementById("textarea-response"));
+                if (!eltAItextarea) throw Error(`Did not find "textarea-respones"`);
+                eltAItextarea.value = res;
+                // @ts-ignore
+                if (typeof initAItextarea != "function") {
+                    throw Error(`tofInitAItextarea == "${typeof initAItextarea}"`);
+                }
+                initAItextarea();
+            */
         }
     }
 
@@ -3215,21 +3249,38 @@ async function callHuggingFaceAIapi(userPrompt, apiKey, options = {}) {
 
 /** @type {CallAIapiWithOptions} */
 async function callGroqAPI(userPrompt, apiKey, options = {}) {
-    const endpoint = 'https://api.groq.com/openai/v1/chat/completions';
+    const temp = '{"nodes":[{"id":1,"name":"Self-Compassion","parentid":null,"notes":""},{"id":2,"name":"Definition","parentid":1,"notes":"Self-compassion is the practice of treating oneself with kindness, understanding, and acceptance, especially during difficult times."},{"id":3,"name":"Key Components","parentid":1,"notes":""},{"id":4,"name":"Self-kindness","parentid":3,"notes":"Being gentle and understanding towards oneself, rather than judgmental or critical."},{"id":5,"name":"Common humanity","parentid":3,"notes":"Recognizing that everyone makes mistakes and experiences difficulties, and that this is a shared human experience."},{"id":6,"name":"Mindfulness","parentid":3,"notes":"Paying attention to the present moment, without judgment or attachment."},{"id":7,"name":"Benefits","parentid":1,"notes":""},{"id":8,"name":"Reduced stress and anxiety","parentid":7,"notes":"Practicing self-compassion has been shown to reduce symptoms of stress and anxiety."},{"id":9,"name":"Improved mental health","parentid":7,"notes":"Self-compassion has been linked to improved mental health outcomes, including reduced depression and anxiety."},{"id":10,"name":"Increased resilience","parentid":7,"notes":"Practicing self-compassion can help individuals develop greater resilience in the face of adversity."},{"id":11,"name":"Practicing Self-Compassion","parentid":1,"notes":""},{"id":12,"name":"Mindfulness meditation","parentid":11,"notes":"A mindfulness meditation practice can help individuals cultivate self-compassion and reduce stress and anxiety."},{"id":13,"name":"Self-compassion exercises","parentid":11,"notes":"Engaging in self-compassion exercises, such as writing oneself a kind letter or practicing self-kindness, can help individuals develop greater self-compassion."},{"id":14,"name":"Self-care","parentid":11,"notes":"Engaging in self-care activities, such as getting enough sleep, exercising regularly, and eating a healthy diet, can help individuals cultivate self-compassion."}]}'
+    const tempJson = JSON.parse(temp);
+    let modMdc = await importFc4i("util-mdc");
+    modMdc.mkMDCsnackbar(mkElt("span", { style: "color:red;" }, "TEMP TEST ANSER from Groq"));
+    return tempJson.nodes;
 
-    const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${apiKey.trim()}`,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            model: 'llama-3.1-8b-instant',
-            messages: [{ role: 'user', content: userPrompt }],
-            max_tokens: 3000,
-            temperature: 0.1,
-        }),
-    });
+    const endpointGroq = 'https://api.groq.com/openai/v1/chat/completions';
+    const endpointVercel = "https://mm4i.vercel.app/api/call-groq";
+    const endpointLocalhostVercel = "http://localhost:8090/api/call-groq";
+    const useLocalhostVercel = await confirm("Use localhost Vercel api/call-groq?");
+    const endpoint = useLocalhostVercel ? endpointLocalhostVercel : endpointVercel;
+
+    let response;
+    try {
+        const useKey = apiKey ? apiKey : "";
+        response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${useKey.trim()}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: 'llama-3.1-8b-instant',
+                messages: [{ role: 'user', userPrompt: userPrompt }],
+                max_tokens: 3000,
+                temperature: 0.3,
+            }),
+        });
+    } catch (err) {
+        console.log(err);
+        debugger;
+    }
 
     if (!response.ok) {
         const errorText = await response.text();
@@ -3243,10 +3294,18 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
     }
 
     const data = await response.json();
-    const strJson = data.choices[0].message.content;
-    const total_tokens = data.usage.total_tokens;
-    console.log("callGroqAPI", { total_tokens });
-    return strJson;
+
+    let resJson;
+    let total_tokens;
+    if (useLocalhostVercel) {
+        resJson = data.json;
+        total_tokens = data.tokens.total_tokens;
+    } else {
+        resJson = data.choices[0].message.content;
+        total_tokens = data.usage.total_tokens;
+    }
+    console.log("callGroqAPI", { useVercel: useLocalhostVercel, total_tokens });
+    return resJson;
 }
 
 /*

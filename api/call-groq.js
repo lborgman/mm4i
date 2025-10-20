@@ -5,14 +5,25 @@ module.exports = async (req, res) => {
         return res.end(JSON.stringify({ error: `Method "${req.method}" not allowed` }));
     }
 
-    const { userPrompt, max_tokens = 3000, temperature = 0.1 } = req.body;
+    const reqBody = req.body;
+    console.log({ reqBody });
+    const { max_tokens = 3000, temperature = 0.1 } = reqBody;
+
+    const bodyMessages = reqBody.messages;
+    console.log({ bodyMessages });
+    const bodyMessages0 = bodyMessages[0];
+    // console.log({ bodyMessages0 });
+    const { userPrompt } = bodyMessages0;
+    // const userPrompt = bodyMessages.userPrompt;
+    // console.log({ userPrompt });
     if (!userPrompt) {
         res.statusCode = 400;
         res.setHeader('Content-Type', 'application/json');
         return res.end(JSON.stringify({ error: 'userPrompt is required' }));
     }
 
-    const apiKey = process.env.GROQ_API_KEY;
+    const apiKey = process.env.GROQ_API_KEY || "BAD_KEY";
+    console.log("Groq", { apiKey });
     if (!apiKey) {
         res.statusCode = 500;
         res.setHeader('Content-Type', 'application/json');
