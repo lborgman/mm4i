@@ -631,7 +631,8 @@ Important:
 
         /** @param {string} txt */
         const tellError = (txt) => {
-            divGoStatus.style.color = "red";
+            document.documentElement.classList.add("ai-response-error");
+            // divGoStatus.style.color = "red";
             divGoStatus.append(" -- *ERROR*");
             divAIjsonError = mkElt("div", undefined, txt);
             if (divAIjsonError == undefined) throw Error(`divAIjsonError == undefined`);
@@ -791,25 +792,8 @@ Important:
     eltDivAIclipboard.id = "div-ai-clipboard";
     // eltDivAIclipboard.classList.add("VK_FOCUS");
 
-    const chkProceed = settingProceedAPI.getInputElement();
-    const lblProceed = mkElt("label", undefined, [
-        chkProceed,
-        "Click start button for me when shared to"
-    ]);
-    /*
-    const chkNotify = settingNotifyReady.getInputElement();
-    const lblNotify = mkElt("label", undefined, [
-        chkNotify,
-        "Notify me when API is ready"
-    ]);
-    */
-    const inpNotify = settingNotifyReadySec.getInputElement();
-    inpNotify.style.width = "4ch";
-    const lblNotify = mkElt("label", undefined, [
-        "Notify me if it took > ",
-        inpNotify,
-        " seconds"
-    ]);
+
+
     const btnNotifyTest = modMdc.mkMDCbutton("Test notification", "raised");
     btnNotifyTest.addEventListener("click", () => {
         const txtDelay = prompt("Test notification, delay (seconds):", "30");
@@ -822,13 +806,7 @@ Important:
 
 
 
-    const eltDivAIautomated = mkElt("div", { class: "mdc-card" }, [
-        "Automated:",
-        lblProceed,
-        // mkElt("div", undefined, btnNotifyTest)
-        mkElt("div", undefined, lblNotify)
-    ]);
-    eltDivAIautomated.id = "div-ai-automated";
+
 
     const cardInput = mkElt("p", { class: "mdc-card display-flex" }, [
         mkElt("div", undefined, `Article or video to summarize as a mindmap: `),
@@ -848,15 +826,59 @@ Important:
     divEltsAI.style.marginBottom = "10px";
 
     const btnShowAllAIs = modMdc.mkMDCbutton("Show all AI:s", "outlined");
+    btnShowAllAIs.id = "btn-show-all-ais";
     btnShowAllAIs.addEventListener("click", evt => {
         evt.stopPropagation();
         const e = document.getElementById("elts-ai");
         if (!e) throw Error("Could not find #elts-ai");
         e.classList.remove("show-only-selected-ai");
     });
-    const divShowAllAIs = mkElt("div", undefined, [
-        btnShowAllAIs
+
+
+    // the ai options
+    const chkProceed = settingProceedAPI.getInputElement();
+    const lblProceed = mkElt("label", undefined, [
+        chkProceed,
+        "Click start button for me when shared to"
     ]);
+    const inpNotify = settingNotifyReadySec.getInputElement();
+    inpNotify.style.width = "4ch";
+    const lblNotify = mkElt("label", undefined, [
+        "Notify me if it took > ",
+        inpNotify,
+        " seconds"
+    ]);
+    const eltDivAIautomated = mkElt("div", { class: "mdc-card" }, [
+        "For Automated AIs:",
+        lblProceed,
+        // mkElt("div", undefined, btnNotifyTest)
+        mkElt("div", undefined, lblNotify)
+    ]);
+    eltDivAIautomated.id = "div-ai-automated";
+
+    const divOptions = mkElt("div", undefined, [eltDivAIautomated]);
+    divOptions.style.marginLeft = "20px";
+    divOptions.style.paddingBottom = "20px";
+    const sumOptions = mkElt("summary", undefined, "Options");
+    sumOptions.style = "position:absolute; right:0; top:0";
+    const detOptions = mkElt("details", undefined, [
+        sumOptions,
+        divOptions,
+    ]);
+    const spanH = mkElt("span");
+    spanH.style = "width:0px;height:40px;background:red;display:inline-block;";
+    const divB = mkElt("div", undefined, [
+        spanH,
+        btnShowAllAIs,
+    ]);
+    divB.style.display = "flex";
+    const divShowAllAIs = mkElt("div", undefined, [
+        divB,
+        detOptions
+    ]);
+    divShowAllAIs.style =
+        // "width:100%; display:flex; flex-direction:row; justify-content:space-between; align-items:center; position:relative;";
+        "width:100%; position:relative;";
     divShowAllAIs.id = "div-show-all-ais"
     divEltsAI.appendChild(divShowAllAIs);
 
@@ -1403,6 +1425,8 @@ Important:
     btnGo.addEventListener("click", async (evt) => {
         evt.stopPropagation();
 
+        document.documentElement.classList.remove("ai-response-error");
+        document.documentElement.classList.remove("has-ai-response");
 
         const divHardWay = document.getElementById("div-for-go");
         if (!divHardWay) throw Error('Could not find "#div-for-go"');
@@ -1613,7 +1637,7 @@ Important:
         divError,
         divUserSteps,
         eltDivAIclipboard,
-        eltDivAIautomated,
+        // eltDivAIautomated,
     ]);
     divTabForGo.id = "div-for-go";
     divTabForGo.style = styleWays;
@@ -2267,11 +2291,13 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
 
     const divGoStatus = document.getElementById("div-go-status");
     if (!divGoStatus) throw Error(`Did not find element "div-go-status"`);
-    divGoStatus.style.color = "unset";
+    // divGoStatus.style.color = "unset";
 
+    document.documentElement.classList.remove("no-internet");
     if (!await promHasInternet()) {
         divGoStatus.textContent = `No Internet.`;
-        divGoStatus.style.color = "blue";
+        document.documentElement.classList.add("no-internet");
+        // divGoStatus.style.color = "blue";
         setCSSforAIautomated(false);
         setCSSforAIonClipboard(false);
         return;
@@ -2329,7 +2355,7 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
     /** @param {string} nameAI */
     async function callAIapi(nameAI) {
         if (divGoStatus == null) throw Error("divGoStatus == null");
-        divGoStatus.style.color = "unset";
+        // divGoStatus.style.color = "unset";
         divGoStatus.textContent = `Waiting for ${nameAI} . . .`;
         let s10 = 0;
         let msStart = Date.now();
@@ -2364,7 +2390,8 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
         console.log({ res });
         if (res instanceof Error) {
             console.error(res);
-            divGoStatus.style.color = "red";
+            document.documentElement.classList.add("ai-response-error");
+            // divGoStatus.style.color = "red";
             // divGoStatus.textContent = `Error from ${nameAI}: ${res.message}`;
             divGoStatus.append(`${res.message}`);
             // @ts-ignore
@@ -2373,7 +2400,8 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
             if (secElapsed > settingNotifyReadySec.valueN) {
                 modTools.showNotification(`${nameAI} is ready`, `Elapsed time: ${strElapsed}`);
             }
-            divGoStatus.style.color = "green";
+            // divGoStatus.style.color = "green";
+            document.documentElement.classList.add("has-ai-response");
             divGoStatus.textContent = `Got response from ${nameAI}`;
             handleRes(res);
             /*

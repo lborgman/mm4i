@@ -1489,6 +1489,10 @@
         }
 
         #div-show-all-ais {
+            NOdisplay: none;
+        }
+
+        #btn-show-all-ais {
             display: none;
         }
 
@@ -1502,6 +1506,10 @@
             }
 
             #div-show-all-ais {
+                NOdisplay: unset;
+            }
+
+            #btn-show-all-ais {
                 display: unset;
             }
         }
@@ -1614,9 +1622,35 @@
 
         #div-error {
             margin-top: 10px;
-            display: flex;
+            display: none;
             flex-direction: row;
             gap: 5px;
+        }
+
+        .ai-response-error {
+            #div-error {
+                display: flex;
+            }
+
+            #div-user-steps {
+                display: none;
+            }
+
+            #div-go-status {
+                color: red !important;
+            }
+        }
+
+        .no-internet {
+            #div-go-status {
+                color: blue;
+            }
+        }
+
+        .has-ai-response {
+            #div-go-status {
+                color: green;
+            }
         }
     </style>
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind@0.5/es6/jsmind.js"></script> -->
