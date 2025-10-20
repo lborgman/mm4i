@@ -21,6 +21,7 @@ module.exports = {
 		'temp.js',
 		'temp.json',
 		'test.json',
+		'my-prerender.js',
 	],
 	swSrc: 'sw-input.js',
 	swDest: 'sw-workbox.js',
