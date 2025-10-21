@@ -552,9 +552,19 @@ Important:
     const btnInfoTrouble = modMdc.mkMDCbutton("Explain", "raised");
     btnInfoTrouble.title = "What happened?";
     btnInfoTrouble.addEventListener("click", () => {
+        const currentAIname = /** @type {string} */ (settingUsedAIname.value);
+        // getWhatToDoForUser(nameAI, divUserSteps);
+        let { way } = getWayToCallAI(currentAIname);
+        const isAPI = (way == "API");
+        const infoThisAI = infoAIs[currentAIname];
+        const { qA, qW } = infoThisAI;
+        const qValue = isAndroid ? qA : qW;
+        const needPaste = (isAndroid && !qA) || ((!isAndroid) && !qW);
+        const needStart = needPaste || (qValue != "auto");
+        console.log({ isAPI, needPaste, needStart });
+        // json was not
+
         const btnShowJson = modMdc.mkMDCbutton("Show JSON", "raised");
-        // const tofResAI = typeof lastResAI;
-        // const tofResAI = tofLastResAI;
         const strBad = tofLastResAI == "string" ? lastResAI : JSON.stringify(lastResAI, undefined, 4);
         const preAIraw = mkElt("pre", undefined, strBad);
         preAIraw.style = `
@@ -570,7 +580,7 @@ Important:
             ]);
             modMdc.mkMDCdialogAlert(body, "Close");
         });
-        const btnCopyError = modMdc.mkMDCbutton("Copy AI error", "raised");
+        const btnCopyError = modMdc.mkMDCbutton("Copy", "raised", "content_copy");
         btnCopyError.addEventListener("click", async () => {
             // const de = document.getElementById("div-ai-json-error");
             // if (!de) throw Error(`Could not find "#div-ai-json-error"`)
@@ -590,8 +600,35 @@ Important:
         divErrorLocation.remove();
         if (divAIjsonError == undefined) throw Error(`divAIjsonError is ${divErrorLocation}`)
         divAIjsonError.remove();
+        const divWhatUserCanDo = mkElt("div");
+        divWhatUserCanDo.style.lineHeight = "normal";
+        divWhatUserCanDo.appendChild(
+            mkElt("p", { style: "font-style:italic;" },
+                `
+                We have tested this AI but not seen this error.
+                We will log the error and try to find out what to do.
+                `
+            ));
+        if (isAPI) {
+            divWhatUserCanDo.appendChild(
+                mkElt("p", undefined, "This AI is automated so there is nothing you can do."));
+        } else {
+            if (needStart) {
+                divWhatUserCanDo.appendChild(
+                    mkElt("p", undefined,
+                        `
+                        You may try to copy the error and add it to the prompt with 
+                        "Avoid this problem: " before.
+                    `
+                    ));
+            } else {
+                divWhatUserCanDo.appendChild(
+                    mkElt("p", undefined, "There is nothing you can do."));
+            }
+        }
         const body = mkElt("div", undefined, [
             mkElt("h2", undefined, "JSON was not ok"),
+            divWhatUserCanDo,
             divAIjsonError,
             divErrorLocation,
             divButtons,
@@ -643,9 +680,8 @@ Important:
 
             divError.style.display = "";
         }
-        // @ts-ignore
         try {
-            throw "TEST ERROR";
+            // throw "TEST MY ERROR";
             let cleaned, jsonAI;
             if (tofLastResAI == "string") {
                 const res = getJsonFromAIstr(resAI);
@@ -660,6 +696,7 @@ Important:
             const nodeArray = nodeArrayFromAI2jsmindFormat(jsonAI);
             const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
             if (res.isValid) {
+                // throw "TEST RES NOT VALID ERROR";
                 theValidJsonNodeArray = nodeArray;
                 const msgStatus = tofLastResAI !== "string" ? "OK" :
                     (!cleaned ? "OK" : `OK (cleaned: ${cleaned.join(", ")})`);
@@ -669,15 +706,11 @@ Important:
                 eltDialog = eltAItextareaStatus.closest("div.mdc-dialog");
                 if (!eltDialog) throw Error('Could not find .closest("div.mdc-dialg")');
 
-                // @ts-ignore
                 eltDialog.style.opacity = "1";
                 const secOpacity = 0.7;
-                // @ts-ignore
                 eltDialog.style.transition = `opacity ${secOpacity}s`;
                 const secDelay = 1.6 + 2;
-                // @ts-ignore
                 eltDialog.style.transitionDelay = `${secDelay}s`;
-                // @ts-ignore
                 eltDialog.style.opacity = "0";
                 toDoIt = setTimeout(() => {
                     // @ts-ignore
@@ -1404,7 +1437,7 @@ Important:
 
     const divGoStatus = mkElt("div");
     divGoStatus.id = "div-go-status";
-    divGoStatus.style.outline = "1px dotted red";
+    // divGoStatus.style.outline = "1px dotted red";
     divGoStatus.style.overflow = "auto";
     divGoStatus.style.overflowWrap = "anywhere";
 
@@ -1624,10 +1657,6 @@ Important:
     divGo.style = "display:grid; grid-template-columns: auto 1fr; gap:10px;"
 
 
-
-    // const divError = mkElt("div", undefined, [divAIjsonErrorInResult, btnInfoTrouble]);
-    // divError.id = "div-error";
-    // divError.style = ` display: flex; flex-direction: row; gap: 5px; `;
 
     const divTabForGo = mkElt("div", undefined, [
         mkElt("div", undefined, cardPrompt),
