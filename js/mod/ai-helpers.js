@@ -837,19 +837,18 @@ Important:
 
     // the ai options
     const chkProceed = settingProceedAPI.getInputElement();
+    chkProceed.style.marginRight = "7px";
     const lblProceed = mkElt("label", undefined, [
         chkProceed,
-        "Click start button for me when shared to"
+        "No stop when shared to"
     ]);
     const inpNotify = settingNotifyReadySec.getInputElement();
     inpNotify.style.width = "4ch";
     const lblNotify = mkElt("label", undefined, [
-        "Notify me if it took > ",
-        inpNotify,
-        " seconds"
+        "Notify if took > ", inpNotify, " seconds"
     ]);
     const eltDivAIautomated = mkElt("div", { class: "mdc-card" }, [
-        "For Automated AIs:",
+        mkElt("b", undefined, "For Automated AIs:"),
         lblProceed,
         // mkElt("div", undefined, btnNotifyTest)
         mkElt("div", undefined, lblNotify)
