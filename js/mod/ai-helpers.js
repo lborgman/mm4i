@@ -3330,7 +3330,9 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
     console.log({ isVercelDev });
 
     if (isVercelDev) {
-        if (confirm("vercel dev. Return fixed json?")) {
+        // const returnFixed =  (confirm("vercel dev. Return fixed json?");
+        const returnFixed = false;
+        if (returnFixed) {
             // debugger;
             const temp = '{"nodes":[{"id":1,"name":"Self-Compassion","parentid":null,"notes":""},{"id":2,"name":"Definition","parentid":1,"notes":"Self-compassion is the practice of treating oneself with kindness, understanding, and acceptance, especially during difficult times."},{"id":3,"name":"Key Components","parentid":1,"notes":""},{"id":4,"name":"Self-kindness","parentid":3,"notes":"Being gentle and understanding towards oneself, rather than judgmental or critical."},{"id":5,"name":"Common humanity","parentid":3,"notes":"Recognizing that everyone makes mistakes and experiences difficulties, and that this is a shared human experience."},{"id":6,"name":"Mindfulness","parentid":3,"notes":"Paying attention to the present moment, without judgment or attachment."},{"id":7,"name":"Benefits","parentid":1,"notes":""},{"id":8,"name":"Reduced stress and anxiety","parentid":7,"notes":"Practicing self-compassion has been shown to reduce symptoms of stress and anxiety."},{"id":9,"name":"Improved mental health","parentid":7,"notes":"Self-compassion has been linked to improved mental health outcomes, including reduced depression and anxiety."},{"id":10,"name":"Increased resilience","parentid":7,"notes":"Practicing self-compassion can help individuals develop greater resilience in the face of adversity."},{"id":11,"name":"Practicing Self-Compassion","parentid":1,"notes":""},{"id":12,"name":"Mindfulness meditation","parentid":11,"notes":"A mindfulness meditation practice can help individuals cultivate self-compassion and reduce stress and anxiety."},{"id":13,"name":"Self-compassion exercises","parentid":11,"notes":"Engaging in self-compassion exercises, such as writing oneself a kind letter or practicing self-kindness, can help individuals develop greater self-compassion."},{"id":14,"name":"Self-care","parentid":11,"notes":"Engaging in self-care activities, such as getting enough sleep, exercising regularly, and eating a healthy diet, can help individuals cultivate self-compassion."}]}'
             const tempJson = JSON.parse(temp);
@@ -3342,22 +3344,24 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
     /*
     */
 
-    const endpointGroq = 'https://api.groq.com/openai/v1/chat/completions';
+    // const endpointGroq = 'https://api.groq.com/openai/v1/chat/completions';
     const endpointVercel = "https://mm4i.vercel.app/api/call-groq";
     let endpoint = endpointVercel;
-    let useLocalhostVercel;
-    if (isVercelDev) {
+    // if (isVercelDev) {
+    async function dialogChooseEndpoint() {
+        const endpointGroq = 'https://api.groq.com/openai/v1/chat/completions';
+        const endpointVercel = "https://mm4i.vercel.app/api/call-groq";
         const endpointLocalhostVercel = "http://localhost:8090/api/call-groq";
-        useLocalhostVercel = confirm("Use localhost Vercel api/call-groq?");
-        if (useLocalhostVercel) {
-            endpoint = endpointLocalhostVercel;
-        } else {
-            const useNetVercel = confirm("Use vercel net endpoint");
-            endpoint = useNetVercel ? endpointVercel : endpointGroq;
-        }
-        debugger;
+        const choices = [];
+        if (isVercelDev) choices.push(endpointLocalhostVercel);
+        choices.push(endpointVercel);
+        choices.push(endpointGroq);
+        return MDCdialogQuickChoices("Choose endpoint", choices, "Test endpoints:");
     }
+    endpoint = await dialogChooseEndpoint();
+    // }
     console.log({ endpoint });
+    debugger;
 
     let response;
     try {
@@ -3371,7 +3375,12 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
             },
             body: JSON.stringify({
                 model: 'llama-3.1-8b-instant',
-                messages: [{ role: 'user', content: userPrompt }],
+                messages: [{
+                    role: 'user',
+                    // FIX-ME:
+                    content: userPrompt,
+                    userPrompt
+                }],
                 max_tokens: 3000,
                 temperature: 0.3,
             }),
@@ -3380,6 +3389,7 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
         console.log(err);
         debugger;
     }
+    if (!response) return Error("response is undefined");
 
     if (!response.ok) {
         const errorText = await response.text();
@@ -3401,14 +3411,15 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
 
     let resJson;
     let total_tokens;
-    if (useLocalhostVercel) {
+    // if (useLocalhostVercel) {
+    if (data.json) {
         resJson = cleanOfNodes(data.json);
         total_tokens = data.tokens.total_tokens;
     } else {
         resJson = data.choices[0].message.content;
         total_tokens = data.usage.total_tokens;
     }
-    console.log("callGroqAPI", { useLocalhostVercel, total_tokens });
+    console.log("callGroqAPI", { total_tokens });
     return resJson;
 }
 
@@ -3436,4 +3447,59 @@ function getNeedPaste(nameAI) {
     const needPaste = (qValue == false);
     // const needStart = needPaste || (qValue != "auto");
     return needPaste;
+}
+
+
+/**
+ * 
+ * @param {string} title 
+ * @param {string[]} choices 
+ * @param {undefined|string|HTMLElement} info 
+ * @returns 
+ */
+async function MDCdialogQuickChoices(title, choices, info) {
+    const nameChoice = "name-choice";
+    const divChoices = mkElt("div");
+    divChoices.style.display = "flex";
+    divChoices.style.flexDirection = "column";
+    divChoices.style.gap = "15px";
+
+    const body = mkElt("div", undefined, [
+        mkElt("h2", undefined, title)
+    ]);
+    if (typeof info == "string") {
+        body.appendChild(mkElt("p", undefined, info));
+    } else if (info instanceof HTMLElement) {
+        body.appendChild(info);
+    } else {
+        const badInfo = mkElt("p", undefined, `Bad parameter info: "${String(info)}"`);
+        badInfo.style.color = "red";
+        body.appendChild(badInfo);
+    }
+    body.appendChild(divChoices);
+    let checked = false;
+    choices.forEach(c => {
+        const rad = mkElt("input", { type: "radio", name: nameChoice, value: c }, c);
+        if (!checked) {
+            checked = true;
+            rad.checked = true;
+        }
+        const lbl = mkElt("label", undefined, [
+            rad, " ", c
+        ]);
+
+        lbl.style.width = "100%";
+        lbl.style.overflowWrap = "anywhere";
+        lbl.style.display = "grid";
+        lbl.style.gridTemplateColumns = "auto 1fr";
+        lbl.style.gap = "10px";
+        lbl.style.lineHeight = "normal";
+
+        divChoices.appendChild(lbl);
+    });
+    const modMdc = await importFc4i("util-mdc");
+    await modMdc.mkMDCdialogConfirm(body, "Continue");
+    // debugger;
+    const checkedRad = body.querySelector(":checked");
+    return checkedRad.value;
 }
