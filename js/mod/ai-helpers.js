@@ -1459,6 +1459,7 @@ Important:
 
         document.documentElement.classList.remove("ai-response-error");
         document.documentElement.classList.remove("has-ai-response");
+        divGoStatus.textContent = "";
 
         const divHardWay = document.getElementById("div-for-go");
         if (!divHardWay) throw Error('Could not find "#div-for-go"');
@@ -1929,7 +1930,9 @@ Important:
                 `## Source etc\n\n*AI name:* ${nameUsedAI}\n\n## Notes\n\n${rootNotes}`;
             rootNode.shapeEtc.notes = rootNotesWithSource;
         } else {
-            alert("no root notes, handling not implemented yet");
+            // alert("no root notes, handling not implemented yet");
+            const notes = `## Source etc\n\n*AI name:* ${nameUsedAI}\n\n## Notes\n\nNo notes found`;
+            rootNode.shapeEtc = { notes };
         }
 
 
@@ -2266,7 +2269,7 @@ async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
  * @param {string} nameAI - AI name
  * @returns {{way: string, copyQ: boolean, hasWebAPI: boolean}} 
  */
-export function getWayToCallAI(nameAI) {
+function getWayToCallAI(nameAI) {
     if (typeof nameAI != "string") throw Error("nameAI was not string");
     if (nameAI == "Groq") {
         return { way: "API", copyQ: false, hasWebAPI: false }
@@ -2421,7 +2424,7 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
             document.documentElement.classList.add("ai-response-error");
             // divGoStatus.style.color = "red";
             // divGoStatus.textContent = `Error from ${nameAI}: ${res.message}`;
-            divGoStatus.append(`${res.message}`);
+            divGoStatus.appendChild(mkElt("div", undefined, ` -- ${res.message}`));
             // @ts-ignore
             divUserSteps.textContent = "";
         } else {
@@ -2733,7 +2736,7 @@ async function callGeminiAPI(userPrompt, apiKey) {
  * @param {string} userPrompt The text prompt to send to the Claude model.
  * @param {string} apiKey Your Anthropic API Key.
  * @param {Object} [options] Optional parameters for the API call.
- * @returns {Promise<string|Error>} The text response from the model or an Error object.
+ * @returns {Promise<string|Object|Error>} The text response from the model or an Error object.
  */
 /** @type {CallAIapiWithOptions} */
 export async function callClaudeAPI(userPrompt, apiKey, options = {}) {
@@ -3305,21 +3308,61 @@ async function callHuggingFaceAIapi(userPrompt, apiKey, options = {}) {
 
 /** @type {CallAIapiWithOptions} */
 async function callGroqAPI(userPrompt, apiKey, options = {}) {
-    const temp = '{"nodes":[{"id":1,"name":"Self-Compassion","parentid":null,"notes":""},{"id":2,"name":"Definition","parentid":1,"notes":"Self-compassion is the practice of treating oneself with kindness, understanding, and acceptance, especially during difficult times."},{"id":3,"name":"Key Components","parentid":1,"notes":""},{"id":4,"name":"Self-kindness","parentid":3,"notes":"Being gentle and understanding towards oneself, rather than judgmental or critical."},{"id":5,"name":"Common humanity","parentid":3,"notes":"Recognizing that everyone makes mistakes and experiences difficulties, and that this is a shared human experience."},{"id":6,"name":"Mindfulness","parentid":3,"notes":"Paying attention to the present moment, without judgment or attachment."},{"id":7,"name":"Benefits","parentid":1,"notes":""},{"id":8,"name":"Reduced stress and anxiety","parentid":7,"notes":"Practicing self-compassion has been shown to reduce symptoms of stress and anxiety."},{"id":9,"name":"Improved mental health","parentid":7,"notes":"Self-compassion has been linked to improved mental health outcomes, including reduced depression and anxiety."},{"id":10,"name":"Increased resilience","parentid":7,"notes":"Practicing self-compassion can help individuals develop greater resilience in the face of adversity."},{"id":11,"name":"Practicing Self-Compassion","parentid":1,"notes":""},{"id":12,"name":"Mindfulness meditation","parentid":11,"notes":"A mindfulness meditation practice can help individuals cultivate self-compassion and reduce stress and anxiety."},{"id":13,"name":"Self-compassion exercises","parentid":11,"notes":"Engaging in self-compassion exercises, such as writing oneself a kind letter or practicing self-kindness, can help individuals develop greater self-compassion."},{"id":14,"name":"Self-care","parentid":11,"notes":"Engaging in self-care activities, such as getting enough sleep, exercising regularly, and eating a healthy diet, can help individuals cultivate self-compassion."}]}'
-    const tempJson = JSON.parse(temp);
-    let modMdc = await importFc4i("util-mdc");
-    modMdc.mkMDCsnackbar(mkElt("span", { style: "color:red;" }, "TEMP TEST ANSER from Groq"));
-    return tempJson.nodes;
+    /**
+     * 
+     * @param {Object} json 
+     * @returns {Object}
+     */
+    function cleanOfNodes(json) {
+        if (json.nodes) {
+            // debugger;
+            return json.nodes;
+        }
+        return json;
+    }
+    const isVercelDev = (() => {
+        const hostname = location.hostname;
+        if (hostname != "localhost") return false;
+        const port = location.port;
+        if (port != "8090") return false;
+        return true;
+    })();
+    console.log({ isVercelDev });
+
+    if (isVercelDev) {
+        if (confirm("vercel dev. Return fixed json?")) {
+            // debugger;
+            const temp = '{"nodes":[{"id":1,"name":"Self-Compassion","parentid":null,"notes":""},{"id":2,"name":"Definition","parentid":1,"notes":"Self-compassion is the practice of treating oneself with kindness, understanding, and acceptance, especially during difficult times."},{"id":3,"name":"Key Components","parentid":1,"notes":""},{"id":4,"name":"Self-kindness","parentid":3,"notes":"Being gentle and understanding towards oneself, rather than judgmental or critical."},{"id":5,"name":"Common humanity","parentid":3,"notes":"Recognizing that everyone makes mistakes and experiences difficulties, and that this is a shared human experience."},{"id":6,"name":"Mindfulness","parentid":3,"notes":"Paying attention to the present moment, without judgment or attachment."},{"id":7,"name":"Benefits","parentid":1,"notes":""},{"id":8,"name":"Reduced stress and anxiety","parentid":7,"notes":"Practicing self-compassion has been shown to reduce symptoms of stress and anxiety."},{"id":9,"name":"Improved mental health","parentid":7,"notes":"Self-compassion has been linked to improved mental health outcomes, including reduced depression and anxiety."},{"id":10,"name":"Increased resilience","parentid":7,"notes":"Practicing self-compassion can help individuals develop greater resilience in the face of adversity."},{"id":11,"name":"Practicing Self-Compassion","parentid":1,"notes":""},{"id":12,"name":"Mindfulness meditation","parentid":11,"notes":"A mindfulness meditation practice can help individuals cultivate self-compassion and reduce stress and anxiety."},{"id":13,"name":"Self-compassion exercises","parentid":11,"notes":"Engaging in self-compassion exercises, such as writing oneself a kind letter or practicing self-kindness, can help individuals develop greater self-compassion."},{"id":14,"name":"Self-care","parentid":11,"notes":"Engaging in self-care activities, such as getting enough sleep, exercising regularly, and eating a healthy diet, can help individuals cultivate self-compassion."}]}'
+            const tempJson = JSON.parse(temp);
+            let modMdc = await importFc4i("util-mdc");
+            modMdc.mkMDCsnackbar(mkElt("span", { style: "color:red;" }, "TEMP TEST ANSER from Groq"));
+            return cleanOfNodes(tempJson);
+        }
+    }
+    /*
+    */
 
     const endpointGroq = 'https://api.groq.com/openai/v1/chat/completions';
     const endpointVercel = "https://mm4i.vercel.app/api/call-groq";
-    const endpointLocalhostVercel = "http://localhost:8090/api/call-groq";
-    const useLocalhostVercel = await confirm("Use localhost Vercel api/call-groq?");
-    const endpoint = useLocalhostVercel ? endpointLocalhostVercel : endpointVercel;
+    let endpoint = endpointVercel;
+    let useLocalhostVercel;
+    if (isVercelDev) {
+        const endpointLocalhostVercel = "http://localhost:8090/api/call-groq";
+        useLocalhostVercel = confirm("Use localhost Vercel api/call-groq?");
+        if (useLocalhostVercel) {
+            endpoint = endpointLocalhostVercel;
+        } else {
+            const useNetVercel = confirm("Use vercel net endpoint");
+            endpoint = useNetVercel ? endpointVercel : endpointGroq;
+        }
+        debugger;
+    }
+    console.log({ endpoint });
 
     let response;
     try {
-        const useKey = apiKey ? apiKey : "";
+        // const useKey = apiKey ? apiKey : "";
+        const useKey = apiKey ? apiKey : "BADKEY";
         response = await fetch(endpoint, {
             method: 'POST',
             headers: {
@@ -3328,7 +3371,7 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
             },
             body: JSON.stringify({
                 model: 'llama-3.1-8b-instant',
-                messages: [{ role: 'user', userPrompt: userPrompt }],
+                messages: [{ role: 'user', content: userPrompt }],
                 max_tokens: 3000,
                 temperature: 0.3,
             }),
@@ -3340,11 +3383,16 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
 
     if (!response.ok) {
         const errorText = await response.text();
+        const errorJson = JSON.parse(errorText);
+        console.log({ errorJson });
+        debugger;
         if (errorText.includes('invalid_api_key')) {
-            return Error('Invalid API key. Regenerate in Groq Console and ensure no spaces.');
+            // return Error('Invalid API key. Regenerate in Groq Console and ensure no spaces.');
+            return Error('Invalid Groq API key.');
         }
         if (errorText.includes('rate_limit_exceeded')) {
-            return Error('Rate limit exceeded. Wait and retry or check Groq Console for quota.');
+            // return Error('Rate limit exceeded. Wait and retry or check Groq Console for quota.');
+            return Error('Groq rate limit exceeded. Wait and retry.');
         }
         return Error(`HTTP ${response.status}: ${errorText}`);
     }
@@ -3354,13 +3402,13 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
     let resJson;
     let total_tokens;
     if (useLocalhostVercel) {
-        resJson = data.json;
+        resJson = cleanOfNodes(data.json);
         total_tokens = data.tokens.total_tokens;
     } else {
         resJson = data.choices[0].message.content;
         total_tokens = data.usage.total_tokens;
     }
-    console.log("callGroqAPI", { useVercel: useLocalhostVercel, total_tokens });
+    console.log("callGroqAPI", { useLocalhostVercel, total_tokens });
     return resJson;
 }
 
@@ -3371,3 +3419,21 @@ callGroqAPI('Generate a valid JSON mindmap (no extra text) for an article about 
   .then(json => console.log(JSON.stringify(json, null, 2)))
   .catch(error => console.error('Error:', error));
 */
+
+/**
+ * 
+ * @param {string} nameAI 
+ * @returns {boolean}
+ */
+function getNeedPaste(nameAI) {
+    const { way } = getWayToCallAI(nameAI);
+    const isAPI = (way == "API");
+    if (isAPI) return false;
+    const infoThisAI = infoAIs[nameAI];
+    const { qA, qW } = infoThisAI;
+    // const needPaste = (isAndroid && !qA) || ((!isAndroid) && !qW);
+    const qValue = isAndroid ? qA : qW;
+    const needPaste = (qValue == false);
+    // const needStart = needPaste || (qValue != "auto");
+    return needPaste;
+}
