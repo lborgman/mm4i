@@ -25,14 +25,31 @@ module.exports = async (req, res) => {
 
     const reqBody = req.body;
     console.log(">>>>>>>>>>>>>>> call-groq.js", { reqBody });
-    const { max_tokens = 3000, temperature = 0.1, model } = reqBody;
-    console.log({ max_tokens, temperature, model });
 
-    const bodyMessages = reqBody.messages;
+
+    // Validate required fields
+    if (!reqBody || typeof reqBody !== 'object') {
+        return res.status(400).json({ error: 'Invalid or missing request body' });
+    }
+
+
+    const { max_tokens = 3000, temperature = 0.1, model, messages } = reqBody;
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
+        return res.status(400).json({ error: 'Missing or invalid messages array' });
+    }
+
+
+
+    console.log({ max_tokens, temperature, model });
+    console.log({ messages });
+
+
+
+    // const bodyMessages = reqBody.messages;
     // console.log({ bodyMessages });
-    const bodyMessages0 = bodyMessages[0];
+    const firstMessage = messages[0];
     // console.log({ bodyMessages0 });
-    const { content } = bodyMessages0;
+    const { content } = firstMessage;
     if (!content) {
         res.statusCode = 400;
         res.setHeader('Content-Type', 'application/json');
