@@ -9,13 +9,5 @@
       "source": "/",
       "destination": "/api/prerender"
     }
-  ],
-  "functions": {
-    "api/call-groq.js": {
-      "runtime": "@vercel/node@3.0.0"
-    },
-    "api/prerender.js": {
-      "runtime": "@vercel/node@3.0.0"
-    }
-  }
+  ]
 }

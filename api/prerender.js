@@ -1,6 +1,6 @@
 // @ts-check
 
-export const config = { runtime: "nodejs" };
+// export const config = { runtime: "nodejs" };
 
 export default async function handler(req, res) {
   console.warn("starting prerender.js GET", req.url);
