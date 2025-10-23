@@ -3370,35 +3370,16 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
             role: 'user',
             content: userPrompt,
         };
-        /*
-        if (endpoint == endpointGroq) {
-            // @ts-ignore
-            message0["content"] = userPrompt;
-        }
-        if (endpoint == endpointLocalhostVercel) {
-            // @ts-ignore
-            // message0["userPrompt"] = userPrompt;
-            message0["content"] = userPrompt;
-        }
-        */
+        debugger;
         const postBody =
         {
             model: 'llama-3.1-8b-instant',
-            messages: [
-                message0
-                /*
-                {
-                    role: 'user',
-                    // FIX-ME:
-                    content: userPrompt,
-                    userPrompt
-                }
-                */
-            ],
+            messages: [ message0 ],
             max_tokens: 3000,
             temperature: 0.3,
         }
-        console.log({ postBody });
+        console.log({ postBody, endpoint });
+        debugger;
         response = await fetch(endpoint, {
             method: 'POST',
             headers: {
