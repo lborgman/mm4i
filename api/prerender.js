@@ -3,11 +3,16 @@
 // export const config = { runtime: "nodejs" };
 
 export default async function handler(req, res) {
-  console.warn("starting prerender.js GET", req.url);
+  console.log("starting prerender.js GET", req.url);
+
+
+  /** * @param {string} msg */
   const mkErrResponse = (msg) => {
     console.error(`prerender GET: ${msg}`);
     res.status(500).send(`Error prerender GET: ${msg}`);
   }
+
+
   const url = new URL(req.url, `http://${req.headers.host}`);
   const pathname = url.pathname;
   if (pathname != "/" && !pathname.endsWith("/mm4i.html")) {
@@ -28,7 +33,7 @@ export default async function handler(req, res) {
   // Grok SMART: Works LOCAL + PRODUCTION!
   let htmlTemplate;
   const origin = url.origin;
-  console.warn({ origin }, req.headers.host);
+  console.log({ origin }, req.headers.host);
   if (!req.headers.host.startsWith("127.0.0.1")) {
     // PRODUCTION: Use fetch
     const templateResponse = await fetch(`${origin}/mm4i-template.html`);
