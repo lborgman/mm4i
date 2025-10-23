@@ -1,4 +1,8 @@
 module.exports = async (req, res) => {
+
+    console.log('Function invoked. Raw req:', req ? 'exists' : 'undefined');
+    console.log('Method:', req.method || 'unknown');
+
     if (req.method !== 'POST') {
         res.statusCode = 405;
         res.setHeader('Content-Type', 'application/json');
