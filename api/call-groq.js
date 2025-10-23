@@ -5,24 +5,38 @@ module.exports = async (req, res) => {
         return res.end(JSON.stringify({ error: `Method "${req.method}" not allowed` }));
     }
 
-    const reqBody = req.body;
-    console.log({ reqBody });
-    const { max_tokens = 3000, temperature = 0.1 } = reqBody;
 
-    const bodyMessages = reqBody.messages;
-    console.log({ bodyMessages });
-    const bodyMessages0 = bodyMessages[0];
-    // console.log({ bodyMessages0 });
-    const { userPrompt } = bodyMessages0;
-    // const userPrompt = bodyMessages.userPrompt;
-    // console.log({ userPrompt });
-    if (!userPrompt) {
-        res.statusCode = 400;
-        res.setHeader('Content-Type', 'application/json');
-        return res.end(JSON.stringify({ error: 'userPrompt is required' }));
+    //////// CORS problem, fix suggesed by Grok:
+    // Set CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*'); // Allow all origins (or specify 'http://localhost:3000' for dev)
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    // Handle preflight OPTIONS request
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
     }
 
-    const apiKey = process.env.GROQ_API_KEY || "BAD_KEY";
+
+
+    const reqBody = req.body;
+    console.log(">>>>>>>>>>>>>>> call-groq.js", { reqBody });
+    const { max_tokens = 3000, temperature = 0.1, model } = reqBody;
+    console.log({ max_tokens, temperature, model });
+
+    const bodyMessages = reqBody.messages;
+    // console.log({ bodyMessages });
+    const bodyMessages0 = bodyMessages[0];
+    // console.log({ bodyMessages0 });
+    const { content } = bodyMessages0;
+    if (!content) {
+        res.statusCode = 400;
+        res.setHeader('Content-Type', 'application/json');
+        return res.end(JSON.stringify({ error: 'content is required' }));
+    }
+
+    const apiKey = process.env.GROQ_API_KEY || "NO_BAD_KEY";
+    // const apiKey = "TEST_BAD_KEY";
     console.log("Groq", { apiKey });
     if (!apiKey) {
         res.statusCode = 500;
@@ -38,8 +52,9 @@ module.exports = async (req, res) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'llama-3.1-8b-instant',
-                messages: [{ role: 'user', content: userPrompt }],
+                // model: 'llama-3.1-8b-instant',
+                model: model,
+                messages: [{ role: 'user', content: content }],
                 max_tokens: parseInt(max_tokens, 10), // Ensure integer
                 temperature: parseFloat(temperature), // Ensure float
                 response_format: { type: 'json_object' }, // Enforce JSON output

@@ -668,6 +668,7 @@ Important:
 
         /** @param {string} txt */
         const tellError = (txt) => {
+            debugger;
             document.documentElement.classList.add("ai-response-error");
             // divGoStatus.style.color = "red";
             divGoStatus.append(" -- *ERROR*");
@@ -2422,9 +2423,7 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
         if (res instanceof Error) {
             console.error(res);
             document.documentElement.classList.add("ai-response-error");
-            // divGoStatus.style.color = "red";
-            // divGoStatus.textContent = `Error from ${nameAI}: ${res.message}`;
-            divGoStatus.appendChild(mkElt("div", undefined, ` -- ${res.message}`));
+            divGoStatus.textContent = `${nameAI}: ${res.message}`;
             // @ts-ignore
             divUserSteps.textContent = "";
         } else {
@@ -2571,7 +2570,10 @@ function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
             root_node = n;
         }
     });
-    if (!root_node) { throw Error("Did not find mindmap root"); }
+    if (!root_node) {
+        debugger;
+        throw Error("Did not find mindmap root");
+    }
 
     ////// find root children
     // @ts-ignore
@@ -3344,14 +3346,12 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
     /*
     */
 
-    // const endpointGroq = 'https://api.groq.com/openai/v1/chat/completions';
     const endpointVercel = "https://mm4i.vercel.app/api/call-groq";
+    const endpointGroq = 'https://api.groq.com/openai/v1/chat/completions';
+    const endpointLocalhostVercel = "http://localhost:8090/api/call-groq";
     let endpoint = endpointVercel;
     // if (isVercelDev) {
     async function dialogChooseEndpoint() {
-        const endpointGroq = 'https://api.groq.com/openai/v1/chat/completions';
-        const endpointVercel = "https://mm4i.vercel.app/api/call-groq";
-        const endpointLocalhostVercel = "http://localhost:8090/api/call-groq";
         const choices = [];
         if (isVercelDev) choices.push(endpointLocalhostVercel);
         choices.push(endpointVercel);
@@ -3361,29 +3361,51 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
     endpoint = await dialogChooseEndpoint();
     // }
     console.log({ endpoint });
-    debugger;
 
     let response;
     try {
         // const useKey = apiKey ? apiKey : "";
         const useKey = apiKey ? apiKey : "BADKEY";
+        const message0 = {
+            role: 'user',
+            content: userPrompt,
+        };
+        /*
+        if (endpoint == endpointGroq) {
+            // @ts-ignore
+            message0["content"] = userPrompt;
+        }
+        if (endpoint == endpointLocalhostVercel) {
+            // @ts-ignore
+            // message0["userPrompt"] = userPrompt;
+            message0["content"] = userPrompt;
+        }
+        */
+        const postBody =
+        {
+            model: 'llama-3.1-8b-instant',
+            messages: [
+                message0
+                /*
+                {
+                    role: 'user',
+                    // FIX-ME:
+                    content: userPrompt,
+                    userPrompt
+                }
+                */
+            ],
+            max_tokens: 3000,
+            temperature: 0.3,
+        }
+        console.log({ postBody });
         response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${useKey.trim()}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                model: 'llama-3.1-8b-instant',
-                messages: [{
-                    role: 'user',
-                    // FIX-ME:
-                    content: userPrompt,
-                    userPrompt
-                }],
-                max_tokens: 3000,
-                temperature: 0.3,
-            }),
+            body: JSON.stringify(postBody),
         });
     } catch (err) {
         console.log(err);
@@ -3398,11 +3420,11 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
         debugger;
         if (errorText.includes('invalid_api_key')) {
             // return Error('Invalid API key. Regenerate in Groq Console and ensure no spaces.');
-            return Error('Invalid Groq API key.');
+            return Error('Invalid API key.');
         }
         if (errorText.includes('rate_limit_exceeded')) {
             // return Error('Rate limit exceeded. Wait and retry or check Groq Console for quota.');
-            return Error('Groq rate limit exceeded. Wait and retry.');
+            return Error('Rate limit exceeded. Wait and retry.');
         }
         return Error(`HTTP ${response.status}: ${errorText}`);
     }
