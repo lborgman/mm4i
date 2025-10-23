@@ -1,15 +1,10 @@
-module.exports = async (req, res) => {
+// @ts-check
+
+// module.exports = async (req, res) => {
+export default async function (req, res) {
 
     console.log('Function invoked. Raw req:', req ? 'exists' : 'undefined');
     console.log('Method:', req.method || 'unknown');
-
-    /*
-    if (req.method !== 'POST') {
-        res.statusCode = 405;
-        res.setHeader('Content-Type', 'application/json');
-        return res.end(JSON.stringify({ error: `Method "${req.method}" not allowed` }));
-    }
-    */
 
 
     //////// CORS problem, fix suggesed by Grok:
