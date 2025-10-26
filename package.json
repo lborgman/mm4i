@@ -4,10 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "ajv": "^8.17.1",
-    "ajv-formats": "^3.0.1",
     "chalk": "^5.4.1",
-    "etag": "^1.8.1",
-    "rxdb": "^16.9.0"
+    "etag": "^1.8.1"
   }
 }

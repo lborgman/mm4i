@@ -1069,8 +1069,8 @@ Important:
     }
 
     // Add puter alternative 
-    await addPuter();
-    async function addPuter() {
+    // await _addPuter();
+    async function _addPuter() {
         const imgAI = mkElt("span", { class: "elt-ai-img" });
         const urlImg = "./ext/puter/puter.svg";
         imgAI.style.backgroundImage = `url(${urlImg})`;

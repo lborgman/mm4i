@@ -2622,7 +2622,7 @@ export async function setupVirtualKeyboardDetection() {
                     vkActiveLocal(false);
                 }
             };
-            modMdc.mkMDCsnackbar("Added geometrychange listener");
+            // modMdc.mkMDCsnackbar("Added geometrychange listener");
 
 
 

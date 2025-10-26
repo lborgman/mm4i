@@ -40,7 +40,8 @@ let ourUrlSW;
 const urlModule = new URL(import.meta.url);
 const params = [...urlModule.searchParams.keys()];
 const parNc = "PWAnocacheRand"
-if (params.length != 1 || params[0] != parNc) { console.error(`Should be only 1 parameter, "${parNc}"`); }
+if (params.length != 1) { console.error(`There hould be only 1 parameter, got ${params.length}`); }
+if (params[0] != parNc) { console.error(`The parameter name should be "${parNc}", not "${params[0]}"`); }
 
 
 
@@ -252,11 +253,11 @@ async function setupServiceWorker() {
         /*
         if (navigator.serviceWorker.controller !== null) {
             navigator.serviceWorker.controller.postMessage({ type: "TELL_SW_NAME", SW_NAME: ourUrlSW });
-
+ 
             // const messageChannelVersion = new MessageChannel();
             // messageChannelVersion.port1.onmessage = (event) => { saveVersion(event.data); };
             // navigator.serviceWorker.controller.postMessage({ type: "GET_VERSION" }, [messageChannelVersion.port2]);
-
+ 
         } else {
             addScreenDebugRow(`Service Worker version: controller is null`);
         }
@@ -270,86 +271,6 @@ async function setupServiceWorker() {
 }
 
 
-/*
-function OLDsetupForInstall() {
-    // FIX-ME: leave this here (instead of moving it to pwa.js)
-    //    for now because it does not seem to be stable in Chromium.
-    // Maybe have a close look on these?
-    // https://love2dev.com/pwa/add-to-homescreen-library/
-    // https://web.dev/learn/pwa/detection
-
-    logStrongConsole("setupForInstall");
-    const getDisplayMode = pwaFuns["getDisplayMode"];
-    logConsole({ getDisplayMode });
-    const displayMode = getDisplayMode ? getDisplayMode() : undefined;
-    logConsole({ displayMode });
-    if (displayMode != "standalone") { logConsole("using default install!"); return; }
-
-    // https://web.dev/customize-install/#criteria
-    // Initialize deferredPrompt for use later to show browser install prompt.
-    let deferredPrompt;
-
-    window.addEventListener('beforeinstallprompt', (evt) => {
-        logStrongConsole(`**** beforeinstallprompt' event was fired.`);
-        // Prevent the mini-infobar from appearing on mobile
-        evt.preventDefault();
-        // Stash the event so it can be triggered later.
-        deferredPrompt = evt;
-
-        // Update UI notify the user they can install the PWA
-        // This is only nessacary if standalone!
-        // Otherwise the builtin browser install prompt can be used.
-        if (getDisplayMode() != "browser") { createEltInstallPromotion(); }
-    });
-
-    window.addEventListener('appinstalled', () => {
-        hideInstallPromotion();
-        // Clear the deferredPrompt so it can be garbage collected
-        deferredPrompt = null;
-        logConsole('PWA was installed');
-    });
-
-    const dialogInstallPromotion = mkElt("dialog", { id: "pwa2-dialog-install", class: "pwa2-dialog" }, [
-        mkElt("h2", undefined, "Please install this app"),
-        mkElt("p", undefined, [
-            `This will add an icon to your home screen (or desktop).
-            If relevant it also make it possible to share from other apps to this app.`,
-        ]),
-        mkElt("p", undefined, ["navigator.userAgentData.platform: ", navigator.userAgentData?.platform]),
-    ]);
-    const btnInstall = mkElt("button", undefined, "Install");
-    btnInstall.addEventListener("click", async (evt) => {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        logConsole(`User response to the install prompt: ${outcome}`);
-        deferredPrompt = null;
-    });
-
-    const btnLater = mkElt("button", undefined, "Later");
-    btnLater.addEventListener("click", (evt) => {
-        logInstallEvent("dialog .remove");
-        dialogInstallPromotion.remove();
-    });
-
-    dialogInstallPromotion.appendChild(btnInstall);
-    dialogInstallPromotion.appendChild(btnLater);
-    function showInstallPromotion() {
-        logInstallEvent("showInstallPromotion");
-        document.body.appendChild(dialogInstallPromotion);
-        dialogInstallPromotion.showModal();
-    }
-    function hideInstallPromotion() {
-        logInstallEvent("hideInstallPromotion");
-    }
-    async function createEltInstallPromotion() {
-        logInstallEvent("createEltInstallPromotion START");
-        await promiseDOMready();
-        logInstallEvent("createEltInstallPromotion END, display = null");
-        showInstallPromotion();
-    }
-
-}
-*/
 
 function mkSnackbar(msg, color, bgColor, left, bottom, msTime) {
     const snackbar = mkElt("aside");
