@@ -55,12 +55,6 @@ function errorHandlerAsyncEvent(asyncFun) {
 const workbox = globalThis.workbox;
 
 
-// 🔑 THE FIX: Completely disable Workbox's internal lifecycle listeners
-// This prevents the late registration error by removing Workbox's internal timing constraints.
-// workbox.disableDevtoolsReporting(); // A good practice for custom handlers
-// workbox.core.enableLifecycleMonitoring = false; // <-- This is the key change!
-
-
 
 workbox.setConfig({ debug: false });
 
