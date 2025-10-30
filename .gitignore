@@ -5,3 +5,4 @@ response.txt
 response.json
 test.json
 .vercel
+sw-workbox-ai.js

@@ -773,6 +773,8 @@ function setupForInstall() {
     // logConsole({ getDisplayMode });
     const displayMode = getDisplayMode ? getDisplayMode() : undefined;
     logConsole({ displayMode });
+
+    ///// 
     if (displayMode != "standalone") { logConsole("using default install!"); return; }
 
     // https://web.dev/customize-install/#criteria
@@ -787,9 +789,10 @@ function setupForInstall() {
         deferredPrompt = evt;
 
         // Update UI notify the user they can install the PWA
-        // This is only nessacary if standalone!
+        // This is only necessary if standalone!
         // Otherwise the builtin browser install prompt can be used.
-        if (getDisplayMode() != "browser") { createEltInstallPromotion(); }
+        // if (getDisplayMode() != "browser") { createEltInstallPromotion(); }
+        createEltInstallPromotion();
     });
 
     window.addEventListener('appinstalled', () => {
@@ -835,7 +838,16 @@ function setupForInstall() {
     async function createEltInstallPromotion() {
         debugger; // eslint-disable-line no-debugger
         logInstallEvent("createEltInstallPromotion START");
-        await promiseDOMready();
+
+        // await promiseDOMready();
+        await  new Promise(function (resolve) {
+            const rs = document.readyState;
+            if (!["loading", "interactive", "complete"].includes(rs)) throw Error(`Unknown readystate: ${rs}`);
+            if (document.readyState === "complete") return resolve(true);
+            if (document.readyState === "interactive") return resolve(true);
+            document.addEventListener("DOMContentLoaded", resolve);
+        });
+
         logInstallEvent("createEltInstallPromotion END, display = null");
         showInstallPromotion();
     }
