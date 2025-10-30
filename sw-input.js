@@ -1,6 +1,6 @@
 // @ts-check
 
-const SW_VERSION = "0.2.319-chatGPT-V"; // Changed version to verify new SW is running
+const SW_VERSION = "0.2.319-chatGPT-W"; // Changed version to verify new SW is running
 
 // Load Workbox from CDN
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
