@@ -240,8 +240,56 @@ async function setupServiceWorker() {
         console.log("%cError getSW addEventlistener", "color:red; background: yellow", { err });
     });
 
+    // Suggested by Gemini: Listen for the 'redundant' event on the workbox instance
+    wb.addEventListener('Xredundant', (event) => {
+        debugger;
+        // This is the clean way to detect failure from workbox-window!
+        console.error('🚨 PWA Update Failed (Workbox): The Service Worker became redundant.');
+
+        // Log details if available
+        if (event.error) {
+            console.error('Failure Details:', event.error);
+        }
+        // You can use analytics to track this failure.
+    });
+
     try {
-        const _swRegistration = await wb.register(); //notice the file name
+        // debugger;
+        const reg = await wb.register(); //notice the file name
+        // debugger;
+        reg.Xonupdatefound = () => {
+            debugger;
+            const newSW = reg.installing;
+            if (!newSW) {
+                const msg = '[SW] New service worker is not installing';
+                console.error(msg);
+                alert(msg);
+                return;
+            }
+            console.log('[SW] New service worker found:', newSW);
+
+            // Track state changes of the installing worker
+            newSW.onstatechange = () => {
+                console.log('[SW] State changed:', newSW.state);
+
+                if (newSW.state === 'installed') {
+                    console.log('[SW] Installed successfully.');
+                }
+
+                if (newSW.state === 'redundant') {
+                    // 🚨 This means the new SW failed to install or activate
+                    showServiceWorkerInstallError();
+                }
+            };
+        };
+        // } catch (err) {
+        // console.error({ err });
+        // showServiceWorkerInstallError();
+        // debugger;
+        // }
+        function showServiceWorkerInstallError() {
+            alert("app update failed");
+        }
         // https://web.dev/two-way-communication-guide/
 
         // Can't use wb.messageSW because this goes to the latest registered version, not the active

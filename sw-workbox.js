@@ -1,6 +1,6 @@
 // @ts-check
 
-const SW_VERSION = "0.2.319-chatGPT-X"; // Changed version to verify new SW is running
+const SW_VERSION = "0.2.319-chatGPT-Xg"; // Changed version to verify new SW is running
 
 // Load Workbox from CDN
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
@@ -51,6 +51,27 @@ function errorHandlerAsyncEvent(asyncFun) {
 }
 
 
+
+// Suggested by Gemini: GLOBAL ERROR CATCHER: This is often triggered when Workbox fails installation.
+self.addEventListener('error', (event) => {
+    // Check if the error is due to a failing resource load (which causes redundancy)
+    if (event.filename) {
+        // Send the error message to all open client windows
+        self.clients.matchAll().then(clients => {
+            clients.forEach(client => {
+                client.postMessage({
+                    type: 'PWA_UPDATE_FAILED_DETAILS',
+                    error: `SW Error: ${event.message} in ${event.filename}`,
+                    source: 'global_error_event'
+                });
+            });
+        });
+    }
+    // Note: No need to throw here; the browser is already discarding the worker.
+});
+
+
+
 // Access Workbox
 const workbox = globalThis.workbox;
 
@@ -74,31 +95,6 @@ try {
 // --- 1. INSTALL HANDLER (Must be registered first) ---
 self.addEventListener("install", (event) => {
     logStrongConsole('Service Worker installing custom handler (with error catch)...');
-
-    // 🔑 FIX: Import precache INSIDE the install handler.
-    // const { precache } = workbox.precaching;
-
-    /*
-    event.waitUntil(
-        (async () => {
-            try {
-                logStrongConsole('In waitUntil');
-                await precache(PRECACHE_MANIFEST, {
-                    ignoreURLParametersMatching: [.*] ),
-                });
-
-            } catch (error) {
-                logStrongConsole("install event", { error });
-                if (error.name === 'bad-precaching-response') {
-                    console.warn('Skipping bad precache response, installation continuing:', error);
-                    return;
-                }
-                throw error;
-            }
-        })()
-    );
-    */
-
     // Call skipWaiting inside the install handler.
     workbox.core.skipWaiting();
 });

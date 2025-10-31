@@ -61,44 +61,32 @@ workbox.setConfig({ debug: false });
 // PRECACHE MANIFEST (Data is safe to be synchronous)
 const PRECACHE_MANIFEST = self.__WB_MANIFEST;
 
-// ✅ Move Workbox precache setup to the top level (synchronous)
 ///// Temp try-catch fix (from ChatGPT) for my bad precaching:
-try {
-    workbox.precaching.precache(PRECACHE_MANIFEST, {
-        ignoreURLParametersMatching: [/.*/],
-    });
-} catch (err) {
-    console.warn('⚠️ Workbox precache failed — continuing install anyway:', err);
-}
+// --- Bad ChatGPT FIX: Safe prefiltering of precache manifest (Workbox 7+ compatible) ---
+/*
+const safeManifest = await (async () => {
+  const result = [];
+  for (const entry of self.__WB_MANIFEST || PRECACHE_MANIFEST) {
+    try {
+      const response = await fetch(entry.url, { method: 'HEAD' });
+      if (response.ok) result.push(entry);
+      else console.warn(`⚠️ Skipping ${entry.url}: ${response.status}`);
+    } catch (err) {
+      console.warn(`⚠️ Skipping ${entry.url} due to network error:`, err);
+    }
+  }
+  return result;
+})();
+*/
+
+// ✅ Move Workbox precache setup to the top level (synchronous)
+workbox.precaching.precache(PRECACHE_MANIFEST, {
+    ignoreURLParametersMatching: [/.*/],
+});
 
 // --- 1. INSTALL HANDLER (Must be registered first) ---
 self.addEventListener("install", (event) => {
     logStrongConsole('Service Worker installing custom handler (with error catch)...');
-
-    // 🔑 FIX: Import precache INSIDE the install handler.
-    // const { precache } = workbox.precaching;
-
-    /*
-    event.waitUntil(
-        (async () => {
-            try {
-                logStrongConsole('In waitUntil');
-                await precache(PRECACHE_MANIFEST, {
-                    ignoreURLParametersMatching: [.*] ),
-                });
-
-            } catch (error) {
-                logStrongConsole("install event", { error });
-                if (error.name === 'bad-precaching-response') {
-                    console.warn('Skipping bad precache response, installation continuing:', error);
-                    return;
-                }
-                throw error;
-            }
-        })()
-    );
-    */
-
     // Call skipWaiting inside the install handler.
     workbox.core.skipWaiting();
 });
