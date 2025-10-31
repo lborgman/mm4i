@@ -1,6 +1,6 @@
 // @ts-check
 
-const SW_VERSION = "0.2.319-chatGPT-W"; // Changed version to verify new SW is running
+const SW_VERSION = "0.2.319-chatGPT-X"; // Changed version to verify new SW is running
 
 // Load Workbox from CDN
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
@@ -62,14 +62,19 @@ workbox.setConfig({ debug: false });
 const PRECACHE_MANIFEST = self.__WB_MANIFEST;
 
 // ✅ Move Workbox precache setup to the top level (synchronous)
-workbox.precaching.precache(PRECACHE_MANIFEST, {
-    ignoreURLParametersMatching: [/.*/],
-});
+///// Temp try-catch fix (from ChatGPT) for my bad precaching:
+try {
+    workbox.precaching.precache(PRECACHE_MANIFEST, {
+        ignoreURLParametersMatching: [/.*/],
+    });
+} catch (err) {
+    console.warn('⚠️ Workbox precache failed — continuing install anyway:', err);
+}
 
 // --- 1. INSTALL HANDLER (Must be registered first) ---
 self.addEventListener("install", (event) => {
     logStrongConsole('Service Worker installing custom handler (with error catch)...');
-    
+
     // 🔑 FIX: Import precache INSIDE the install handler.
     // const { precache } = workbox.precaching;
 
@@ -93,9 +98,9 @@ self.addEventListener("install", (event) => {
         })()
     );
     */
-    
+
     // Call skipWaiting inside the install handler.
-    workbox.core.skipWaiting(); 
+    workbox.core.skipWaiting();
 });
 
 
@@ -126,7 +131,7 @@ self.addEventListener("message", errorHandlerAsyncEvent(async evt => {
 // --- 3. ACTIVATE HANDLER (Must be registered synchronously early) ---
 self.addEventListener("activate", (evt) => {
     logStrongConsole("service-worker activate event");
-    evt.waitUntil(self.clients.claim()); 
+    evt.waitUntil(self.clients.claim());
 });
 
 
