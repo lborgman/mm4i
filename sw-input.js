@@ -1,6 +1,6 @@
 // @ts-check
 
-const SW_VERSION = "0.2.319-chatGPT-X"; // Changed version to verify new SW is running
+const SW_VERSION = "0.2.319-chatGPT-Y"; // Changed version to verify new SW is running
 
 // Load Workbox from CDN
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
@@ -14,19 +14,20 @@ importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox
 const _swLifecycleLoger = () => {
     console.log('[SW Lifecycle Diagnostic] Script evaluation started');
 
-const originalAddEventListener = self.addEventListener;
-self.addEventListener = function (type, listener, ...rest) {
-    console.warn(`[SW Diagnostic] addEventListener("${type}") called`);
-    return originalAddEventListener.call(this, type, listener, ...rest);
-};
+    const originalAddEventListener = self.addEventListener;
+    self.addEventListener = function (type, listener, ...rest) {
+        console.warn(`[SW Diagnostic] addEventListener("${type}") called`);
+        return originalAddEventListener.call(this, type, listener, ...rest);
+    };
 
-Promise.resolve().then(() => {
+    Promise.resolve().then(() => {
         console.warn('[SW Lifecycle Diagnostic] Microtask checkpoint reached (end of sync evaluation)');
-});
+    });
 
-setTimeout(() => {
+    setTimeout(() => {
         console.warn('[SW Lifecycle Diagnostic] setTimeout(0) tick reached');
-}, 0);
+    }, 0);
+}
 
 
 
@@ -70,7 +71,7 @@ const PRECACHE_MANIFEST = self.__WB_MANIFEST;
 /*
 const safeManifest = await (async () => {
   const result = [];
-  for (const entry of self.__WB_MANIFEST || PRECACHE_MANIFEST) {
+  for (const entry of self.X__WB_MANIFEST || PRECACHE_MANIFEST) {
     try {
       const response = await fetch(entry.url, { method: 'HEAD' });
       if (response.ok) result.push(entry);
