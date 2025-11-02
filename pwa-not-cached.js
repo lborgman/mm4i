@@ -4,7 +4,7 @@
 const PWA_NOT_CACHED_VERSION = "1.2.00";
 export function getVersion() { return PWA_NOT_CACHED_VERSION; }
 
-const mkElt = window["mkElt"];
+const mkElt = window.mkElt;
 
 const doSwReset = false;
 let pwaFuns;
@@ -33,8 +33,8 @@ export function getSecPleaseWaitUpdating() { return secPleaseWaitUpdating; }
 
 
 
-let instWorkbox;
-let ourUrlSW;
+/** @type {Object} */ let instWorkbox;
+/** @type {string} */ let ourUrlSW;
 
 
 const urlModule = new URL(import.meta.url);
@@ -45,7 +45,11 @@ if (params[0] != parNc) { console.error(`The parameter name should be "${parNc}"
 
 
 
-
+/**
+ * 
+ * @param {string} urlSW 
+ * @returns 
+ */
 export async function startSW(urlSW) {
     if (doSwReset) {
         await (async function () {
@@ -254,11 +258,8 @@ async function setupServiceWorker() {
     });
 
     try {
-        // debugger;
         const reg = await wb.register(); //notice the file name
-        // debugger;
-        reg.Xonupdatefound = () => {
-            debugger;
+        reg.onupdatefound = () => {
             const newSW = reg.installing;
             if (!newSW) {
                 const msg = '[SW] New service worker is not installing';

@@ -7,8 +7,12 @@ importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox
 
 
 
-// --- Diagnostic: Service Worker lifecycle timing logger ---
-console.log('[SW Diagnostic] Script evaluation started');
+/**
+ * Diagnostic: Service Worker lifecycle timing logger
+ * This is for debugging Google Workbox and custom event listeners.
+ * */
+const _swLifecycleLoger = () => {
+    console.log('[SW Lifecycle Diagnostic] Script evaluation started');
 
 const originalAddEventListener = self.addEventListener;
 self.addEventListener = function (type, listener, ...rest) {
@@ -17,11 +21,11 @@ self.addEventListener = function (type, listener, ...rest) {
 };
 
 Promise.resolve().then(() => {
-    console.log('[SW Diagnostic] Microtask checkpoint reached (end of sync evaluation)');
+        console.warn('[SW Lifecycle Diagnostic] Microtask checkpoint reached (end of sync evaluation)');
 });
 
 setTimeout(() => {
-    console.log('[SW Diagnostic] setTimeout(0) tick reached');
+        console.warn('[SW Lifecycle Diagnostic] setTimeout(0) tick reached');
 }, 0);
 
 

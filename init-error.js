@@ -1,10 +1,19 @@
 // @ts-check
 const INIT_ERROR_VER = "0.1.7";
-/** @param {string} _msg */
-function logConsoleHereIs(_msg) {
-    // console.log(`%c${_msg}`, "color:white; background-color:blue; padding: 0px 5px;");
-}
-logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
+
+/** @global */
+window.logConsoleHereIs = (() => {
+    /**
+     * @param {string} _msg
+     * @returns {void}
+     */
+    function logConsoleHereIs(_msg) {
+        console.log(`%c${_msg}`, "color:white; background-color:blue; padding: 0px 5px;");
+    }
+    return logConsoleHereIs;
+});
+
+window.logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
 
 {
     let numErrors = 0;
@@ -152,56 +161,66 @@ const _dynamicObject = {
 
 
 
-/**
- * 
- * @param {string} type 
- * @param {DynamicStringObject} [attrib]
- * @param {string|string[]|HTMLElement|HTMLElement[]} [inner]
- * @returns {HTMLElement}
- */
-// oxlint-disable-next-line no-unused-vars
-function mkElt(type, attrib, inner) {
-    const elt = document.createElement(type);
-
+/** @global */
+window.mkElt = (() => {
     /**
-     * 
-     * @param {HTMLElement | HTMLElement[] | string | string[]} inr 
+     * @param {string} type 
+     * @param {DynamicStringObject} [attrib]
+     * @param {string|string[]|HTMLElement|HTMLElement[]} [inner]
+     * @returns {HTMLElement}
      */
-    function addInner(inr) {
-        if (inr instanceof Element) {
-            elt.appendChild(inr);
-        } else {
-            const txt = document.createTextNode(inr.toString());
-            elt.appendChild(txt);
+    function mkElt(type, attrib, inner) {
+        const elt = document.createElement(type);
+
+        /**
+         * 
+         * @param {HTMLElement | HTMLElement[] | string | string[]} inr 
+         */
+        function addInner(inr) {
+            if (inr instanceof Element) {
+                elt.appendChild(inr);
+            } else {
+                const txt = document.createTextNode(inr.toString());
+                elt.appendChild(txt);
+            }
         }
+        if (inner) {
+            if (Array.isArray(inner) && inner.length && typeof inner != "string") {
+                for (var i = 0; i < inner.length; i++)
+                    if (inner[i])
+                        addInner(inner[i]);
+            } else
+                addInner(inner);
+        }
+        for (var x in attrib) {
+            elt.setAttribute(x, attrib[x]);
+        }
+        return elt;
     }
-    if (inner) {
-        if (Array.isArray(inner) && inner.length && typeof inner != "string") {
-            for (var i = 0; i < inner.length; i++)
-                if (inner[i])
-                    addInner(inner[i]);
-        } else
-            addInner(inner);
-    }
-    for (var x in attrib) {
-        elt.setAttribute(x, attrib[x]);
-    }
-    return elt;
-}
+    return mkElt;
+})();
 
 
 // https://stackoverflow.com/questions/61080783/handling-errors-in-async-event-handlers-in-javascript-in-the-web-browser
-// Error handling with Async/Await in JS - ITNEXT
-// https://itnext.io/error-handling-with-async-await-in-js-26c3f20bc06a
-// eslint-disable-next-line no-unused-vars
-function errorHandlerAsyncEvent(asyncFun) {
-    return function (evt) {
-        asyncFun(evt).catch(err => {
-            console.log("handler", err);
-            throw err;
-        })
+/** @global */
+window.errorHandlerAsyncEvent = (() => {
+    // Error handling with Async/Await in JS - ITNEXT
+    // https://itnext.io/error-handling-with-async-await-in-js-26c3f20bc06a
+    /**
+     * 
+     * @param {function} asyncFun 
+     * @returns 
+     */
+    function errorHandlerAsyncEvent(asyncFun) {
+        return function (evt) {
+            asyncFun(evt).catch(err => {
+                console.log("handler", err);
+                throw err;
+            })
+        }
     }
-}
+    return errorHandlerAsyncEvent;
+})();
 
 /**
  * 
