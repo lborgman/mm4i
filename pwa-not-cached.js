@@ -289,7 +289,16 @@ async function setupServiceWorker() {
         // debugger;
         // }
         function showServiceWorkerInstallError() {
-            alert("app update failed");
+            alert(
+                `
+App update failed
+=================
+This is probably a temporay problem
+on our side.
+
+You can not do anything about it,
+but everything will work as before.
+                `);
         }
         // https://web.dev/two-way-communication-guide/
 

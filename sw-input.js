@@ -1,5 +1,6 @@
 // @ts-check
 
+// @ts-ignore
 const SW_VERSION = "0.2.319-chatGPT-c"; // Changed version to verify new SW is running
 
 // Load Workbox from CDN
