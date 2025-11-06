@@ -12,6 +12,7 @@ module.exports = {
 		'woff-codepoints.js',
 		'**/api/prerender.js',
 		'**/api/call-groq.js',
+		'**/api/myOLD-prerender.js',
 		'package.json',
 		'vercel.json',
 		// temporary files:
@@ -21,7 +22,6 @@ module.exports = {
 		'temp.js',
 		'temp.json',
 		'test.json',
-		'NOmy-prerender.js',
 	],
 	swSrc: 'sw-input.js',
 	swDest: 'sw-workbox.js',

@@ -699,6 +699,23 @@ Important:
             if (res.isValid) {
                 // throw "TEST RES NOT VALID ERROR";
                 theValidJsonNodeArray = nodeArray;
+                const root_node = res.root;
+                placeNodeChildren(root_node);
+                function placeNodeChildren(root_node) {
+                    root_node.isroot = true;
+                    // @ts-ignore
+                    const rootId = root_node.id;
+                    // @ts-ignore
+                    const rootChildren = [];
+                    // @ts-ignore
+                    nodeArray.forEach(n => { if (n.parentid == rootId) rootChildren.push(n); });
+                    // @ts-ignore
+                    rootChildren.forEach(n => n.direction = 1);
+                }
+
+
+
+
                 const msgStatus = tofLastResAI !== "string" ? "OK" :
                     (!cleaned ? "OK" : `OK (cleaned: ${cleaned.join(", ")})`);
                 eltAItextareaStatus.textContent = msgStatus;
@@ -1912,7 +1929,6 @@ Important:
         console.log({ jsonNodeArray: theValidJsonNodeArray });
         */
 
-        // const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(jsonNodeArray);
         const nodeArray = nodeArrayFromAI2jsmindFormat(theValidJsonNodeArray);
         const arrRoots = nodeArray.reduce((arr, n) => {
             // @ts-ignore
@@ -2559,21 +2575,10 @@ function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
     });
 
 
+    /*
     /////// find root
     // @ts-ignore
     let root_node;
-    nodeArray.forEach(n => {
-        // @ts-ignore
-        if (!n.parentid) {
-            // @ts-ignore
-            if (root_node) { throw Error("Found second node with no parent"); }
-            root_node = n;
-        }
-    });
-    if (!root_node) {
-        debugger;
-        throw Error("Did not find mindmap root");
-    }
 
     ////// find root children
     // @ts-ignore
@@ -2586,6 +2591,7 @@ function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
     nodeArray.forEach(n => { if (n.parentid == rootId) rootChildren.push(n); });
     // @ts-ignore
     rootChildren.forEach(n => n.direction = 1);
+    */
 
     return nodeArray;
 }
@@ -3370,16 +3376,14 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
             role: 'user',
             content: userPrompt,
         };
-        debugger;
         const postBody =
         {
             model: 'llama-3.1-8b-instant',
-            messages: [ message0 ],
+            messages: [message0],
             max_tokens: 3000,
             temperature: 0.3,
         }
         console.log({ postBody, endpoint });
-        debugger;
         response = await fetch(endpoint, {
             method: 'POST',
             headers: {

@@ -3,8 +3,7 @@
 // module.exports = async (req, res) => {
 export default async function (req, res) {
 
-    console.log('Function invoked. Raw req:', req ? 'exists' : 'undefined');
-    console.log('Method:', req.method || 'unknown');
+    console.log('Function invoked. req URL:', req.url, ' Method:', req.method);
 
 
     //////// CORS problem, fix suggesed by Grok:
@@ -17,6 +16,32 @@ export default async function (req, res) {
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
+
+
+    // Grok: Read the Authorization header
+    const authHeader = req.headers.authorization;
+    // console.log('Authorization Header:', authHeader); // e.g., "Bearer your_token_here"
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Unauthorized: Missing or invalid Authorization header' });
+    }
+    // Extract the token
+    const token = authHeader.split(' ')[1]; // Gets the token after "Bearer "
+
+
+    let apiGroqKey = token;
+    const doorKey = process.env.GROQ_DOOR_KEY;
+    console.log("env:", { token, doorKey });
+    if (token == doorKey) {
+        const apiMm4iGroqKey = process.env.GROQ_API_KEY;
+        console.log("Groq", { apiMm4iGroqKey });
+        if (!apiMm4iGroqKey) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+            return res.end(JSON.stringify({ error: 'API key not configured' }));
+        }
+        apiGroqKey = apiMm4iGroqKey;
+    }
+    console.log("used:", { apiGroqKey });
 
 
 
@@ -38,14 +63,11 @@ export default async function (req, res) {
 
 
     console.log({ max_tokens, temperature, model });
-    console.log({ messages });
+    // console.log({ messages });
 
 
 
-    // const bodyMessages = reqBody.messages;
-    // console.log({ bodyMessages });
     const firstMessage = messages[0];
-    // console.log({ bodyMessages0 });
     const { content } = firstMessage;
     if (!content) {
         res.statusCode = 400;
@@ -53,20 +75,12 @@ export default async function (req, res) {
         return res.end(JSON.stringify({ error: 'content is required' }));
     }
 
-    const apiKey = process.env.GROQ_API_KEY || "NO_BAD_KEY";
-    // const apiKey = "TEST_BAD_KEY";
-    console.log("Groq", { apiKey });
-    if (!apiKey) {
-        res.statusCode = 500;
-        res.setHeader('Content-Type', 'application/json');
-        return res.end(JSON.stringify({ error: 'API key not configured' }));
-    }
 
     try {
         const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${apiKey.trim()}`,
+                'Authorization': `Bearer ${apiGroqKey.trim()}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({

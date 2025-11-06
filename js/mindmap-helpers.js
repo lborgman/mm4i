@@ -1003,6 +1003,7 @@ export async function checkWebBrowser() {
  * @returns {Object} An object containing:
  *   - `isValid` {boolean}: `true` if the mindmap is valid, `false` otherwise.
  *   - `error` {string|null}: Error message if the mindmap is invalid, or `null` if valid.
+ *   - `root` {Object|undefined}
  */
 export function isValidMindmapNodeArray(nodeArray) {
     // Check if the array is non-empty
@@ -1022,12 +1023,27 @@ export function isValidMindmapNodeArray(nodeArray) {
         idSet.add(node.id);
     }
 
-    // Count root nodes (nodes with no parentId or parentId: null)
-    // const rootNodes = nodeArray.filter(node => node.parentId === null || node.parentId === undefined);
-    const rootNodes = nodeArray.filter(node => node.parentid === null || node.parentid === undefined);
-    if (rootNodes.length !== 1) {
-        return { isValid: false, error: `Expected exactly one root node, found ${rootNodes.length}` };
-    }
+
+    const setNodeIds = new Set();
+    nodeArray.forEach(n => {
+        const id = n.id;
+        setNodeIds.add(id);
+    });
+    let root_node;
+    // Groq: Inconsistent, root can have .parentid==0
+    nodeArray.forEach(n => {
+        const parentid = n.parentid;
+        if (!setNodeIds.has(parentid)) {
+            if (root_node != undefined) throw Error(`Second root found: ${n.id}, prev: ${root_node.id}`);
+            root_node = n;
+            root_node.isRoot = true;
+            console.log({root_node});
+        }
+    });
+    if (!root_node) throw Error("Could not find root node");
+
+
+
 
     // Check for valid parent references and collect parentIds
     // const parentIds = new Set(nodeArray.map(node => node.parentId).filter(id => id !== null && id !== undefined));
@@ -1066,7 +1082,8 @@ export function isValidMindmapNodeArray(nodeArray) {
     }
 
     // Start cycle detection from the root
-    const rootNode = rootNodes[0];
+    // const rootNode = root_nodes[0];
+    const rootNode = root_node;
     if (detectCycle(rootNode.id)) {
         return { isValid: false, error: "Cycle detected in the mindmap" };
     }
@@ -1088,7 +1105,7 @@ export function isValidMindmapNodeArray(nodeArray) {
         return { isValid: false, error: "Some nodes are unreachable (orphaned)" };
     }
 
-    return { isValid: true, error: null };
+    return { isValid: true, error: null, root: root_node };
 }
 export function checkValidMindmapNodeArray(nodeArray) {
     const res = isValidMindmapNodeArray(nodeArray);
