@@ -313,6 +313,9 @@ export async function generateMindMap(fromLink) {
     inpLink.addEventListener("input", async () => {
         checkInpLink();
     });
+    inpLink.addEventListener("change", async () => {
+        checkInpLink();
+    });
     async function checkInpLink() {
         // @ts-ignore
         // const funHasInternet = window["PWAhasInternet"];
