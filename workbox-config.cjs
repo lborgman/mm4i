@@ -22,6 +22,7 @@ module.exports = {
 		'temp.js',
 		'temp.json',
 		'test.json',
+		'sw-workbox-ai.js',
 	],
 	swSrc: 'sw-input.js',
 	swDest: 'sw-workbox.js',

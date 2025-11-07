@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "chalk": "^5.4.1",
-    "etag": "^1.8.1"
+    "etag": "^1.8.1",
+    "ignore": "^7.0.5"
   }
 }

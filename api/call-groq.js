@@ -7,7 +7,11 @@ export default async function (req, res) {
 
 
     //////// CORS problem, fix suggesed by Grok:
+    // 
     // Set CORS headers
+    // 
+    // Note: Any custom header (like Authorization, X-API-Key, etc.)
+    // in a cross-origin fetch() must be explicitly allowed in Access-Control-Allow-Headers.
     res.setHeader('Access-Control-Allow-Origin', '*'); // Allow all origins (or specify 'http://localhost:3000' for dev)
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
