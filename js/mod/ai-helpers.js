@@ -671,7 +671,6 @@ Important:
 
         /** @param {string} txt */
         const tellError = (txt) => {
-            debugger;
             document.documentElement.classList.add("ai-response-error");
             // divGoStatus.style.color = "red";
             divGoStatus.append(" -- *ERROR*");
@@ -683,6 +682,8 @@ Important:
             divAIjsonErrorInResult.textContent = "Error: AI answer format trouble";
 
             divError.style.display = "";
+            console.error("tellError", txt);
+            debugger;
         }
         try {
             // throw "TEST MY ERROR";

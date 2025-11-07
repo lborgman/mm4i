@@ -3,14 +3,14 @@
 // module.exports = async (req, res) => {
 export default async function (req, res) {
 
-    console.log('Function invoked. req URL:', req.url, ' Method:', req.method);
+    console.log('\n--------------- call-groq.js function invoked. req URL:', req.url, ' Method:', req.method);
 
 
     //////// CORS problem, fix suggesed by Grok:
     // Set CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*'); // Allow all origins (or specify 'http://localhost:3000' for dev)
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
     // Handle preflight OPTIONS request
     if (req.method === 'OPTIONS') {
