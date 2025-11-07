@@ -851,7 +851,9 @@ export async function replicationDialog() {
 const modDbMindmaps = await importFc4i("db-mindmaps");
 const modMMhelpers = await importFc4i("mindmap-helpers");
 
-const funHasInternet = window["PWAhasInternet"];
+// const funHasInternet = window["PWAhasInternet"];
+const modPWA = await importFc4i("pwa");
+const funHasInternet = modPWA.PWAhasInternet;
 
 
 function getMindmapsKeysAndUpdated(arrMm) {

@@ -315,7 +315,10 @@ export async function generateMindMap(fromLink) {
     });
     async function checkInpLink() {
         // @ts-ignore
-        const funHasInternet = window["PWAhasInternet"];
+        // const funHasInternet = window["PWAhasInternet"];
+        const modPWA = await importFc4i("pwa");
+        const funHasInternet = modPWA.PWAhasInternet;
+        // FIX-ME:
         if (funHasInternet) {
             const tofFun = typeof funHasInternet;
             if (tofFun != "function") throw Error(`typeof funHasInternet == "${tofFun}"`);
@@ -3264,7 +3267,10 @@ function askError(where) {
  */
 async function promHasInternet() {
     // @ts-ignore
-    const funHasInternet = window["PWAhasInternet"];
+    // const funHasInternet = window["PWAhasInternet"];
+    const modPWA = await importFc4i("pwa");
+    const funHasInternet = modPWA.PWAhasInternet;
+    // FIX-ME:
     if (!funHasInternet) {
         throw Error("Could not find window[PWAhasInternet]");
     }

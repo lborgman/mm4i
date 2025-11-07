@@ -68,6 +68,24 @@ const baseUrl = (() => {
 // console.log({ baseUrl });
 // debugger;
 
+
+/*
+*/
+/**
+ * Tip from Grok. Using a cache for import().
+ * Grok initually thought that this may save 200-250 ms on a modern laptop.
+ * But actually it will only save a couple of ms.
+ * However I do not think it can harm.
+ * 
+ * Cache of dynamically imported modules.
+ * Keys: importFc4i keys (strings)
+ * Values: Promises that resolve to the module namespace object
+ * @type {Map<string, Promise<Object>}
+ */
+const cacheImportFc4i = new Map();
+
+
+
 // https://github.com/WICG/import-maps/issues/92
 {
     // https://www.npmjs.com/package/three?activeTab=versions, Current Tags
@@ -139,6 +157,7 @@ const baseUrl = (() => {
         "webrtc-2-peers": "./js/mod/webrtc-2-peers.js",
 
         // Tests:
+        "pwa": "./pwa.js",
         // "jssm": "https://cdn.jsdelivr.net/npm/jssm@latest/dist/jssm.es6.mjs",
         "jssm": "./ext/jssm/jssm.es6.mjs",
         // "jssm": "https://esm.sh/jssm",
@@ -196,7 +215,9 @@ const baseUrl = (() => {
 
     /** @param {string} idOrLink @returns {Promise<Object>} */
     async function importFc4i(idOrLink) {
-        if (window["in-app-screen"]) return;
+        const oldModule = cacheImportFc4i.get(idOrLink);
+        if (oldModule) return oldModule;
+        // if (window["in-app-screen"]) return;
         const webBrowserInfo = await window["promWebBrowserInfo"];
         const isInApp = webBrowserInfo.isInApp;
         const tofIsInApp = typeof isInApp;
@@ -304,7 +325,13 @@ const baseUrl = (() => {
             return objNotCached.mod;
         }
         isImporting[idOrLink] = getStackTrace();
-        const mod = await import(ourImportLink);
+
+
+        const prom = import(ourImportLink);
+        cacheImportFc4i.set(idOrLink, prom);
+        const mod = await prom;
+
+
         isImporting[idOrLink] = false;
         {
             const objCached = { mod };
