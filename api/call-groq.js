@@ -37,7 +37,7 @@ export default async function (req, res) {
     console.log("env:", { token, doorKey });
     if (token == doorKey) {
         const apiMm4iGroqKey = process.env.GROQ_API_KEY;
-        console.log("Groq", { apiMm4iGroqKey });
+        console.log("groq", { apiMm4iGroqKey });
         if (!apiMm4iGroqKey) {
             res.statusCode = 500;
             res.setHeader('Content-Type', 'application/json');

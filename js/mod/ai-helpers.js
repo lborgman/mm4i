@@ -35,7 +35,7 @@ class SettingsMm4iAI extends modLocalSettings.LocalSetting {
 }
 const settingPuterAImodel = new SettingsMm4iAI("puter-ai-model", "");
 const settingHuggingFaceAImodel = new SettingsMm4iAI("hugging-face-ai-model", "");
-const settingUsedAIname = new SettingsMm4iAI("used-ai-name", "");
+const settingUsedAIname = new SettingsMm4iAI("used-ai-name", "groq");
 const settingProceedAPI = new SettingsMm4iAI("proceed-api", true);
 const settingNotifyReadySec = new SettingsMm4iAI("notify-ready-api", 10);
 
@@ -173,17 +173,12 @@ const infoAIs = {
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg"
     }),
 
-    "Groq": mkAIinfo({
-        company: "Groq",
+    "groq": mkAIinfo({
+        company: "groq",
         urlDescription: "https://console.groq.com/",
-        // fun: callGrokApi, // The other version seems better, but I can not test with a valid key
         fun: callGroqAPI,
         urlAPIkey: "https://console.groq.com/keys",
-        // pkg: "ai.x.grok",
-        // qW: true,
-        // urlChat: "grok.com/chat",
-        // isPWA: true, // 2025-10-04
-        urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg"
+        urlImg: "./img/groq-image.svg"
     }),
 
     "Hugging Face": mkAIinfo({
@@ -404,7 +399,7 @@ export async function generateMindMap(fromLink) {
               that the prompt appears to be cut off.`,
             `*Summarize the article (or video)
                 "${link}"
-              into one mind map and
+              into 1 mind map and
               output a strict, parse-ready JSON node array
               (flat; fields: id, name, parentid, and notes).`,
             `*Optional field "notes": For details, markdown format.`,
@@ -1426,6 +1421,10 @@ Important:
         ]);
         const eltAI = mkElt("div", undefined, [lblAI, detAI]);
         eltAI.classList.add("elt-ai");
+        if (nameAI == settingUsedAIname.defaultValue()) {
+            eltAI.classList.add("ai-default");
+            // lblAI.style.fontSize = "2rem";
+        }
         divEltsAI.appendChild(eltAI);
     });
     // @ts-ignore
@@ -1451,13 +1450,21 @@ Important:
     }
     {
         const currentAIname = /** @type {string} */ (settingUsedAIname.value);
-        if (currentAIname.length > 0) {
+        // const currentAIname = "BAD";
+        if (currentAIname.length == 0) { throw Error("currentAIname.length == 0"); }
+        const radCurrentAI = divEltsAI.querySelector(`input[type=radio][value="${currentAIname}"]`);
+        if (!radCurrentAI) {
+            settingUsedAIname.reset();
+            const currentAIname = /** @type {string} */ (settingUsedAIname.value);
             const radCurrentAI = divEltsAI.querySelector(`input[type=radio][value="${currentAIname}"]`);
-            if (radCurrentAI) { radCurrentAI.checked = true; }
-            // isAutomatedAI(currentAIname);
-            // FIX-ME: try
-            setTimeout(() => setAIchoosen(currentAIname), 1000);
+            radCurrentAI.checked = true;
+        } else {
+            radCurrentAI.checked = true;
         }
+        // isAutomatedAI(currentAIname);
+        // FIX-ME: try
+        setTimeout(() => setAIchoosen(currentAIname), 1000);
+        // }
     }
 
     const divGoStatus = mkElt("div");
@@ -1928,8 +1935,8 @@ Important:
         // @ts-ignore
         const strAIraw = eltAItextarea.value;
         // clipboard
-    
-    
+     
+     
         // @ts-ignore
         const { strAIjson } = getJsonFromAIstr(strAIraw);
         theValidJsonNodeArray = JSON.parse(strAIjson);
@@ -2060,9 +2067,7 @@ Important:
 
     const currentAIname = /** @type {string} */ (settingUsedAIname.value);
     checkIsAIchoosen();
-    if (currentAIname == "") {
-        return;
-    }
+    // if (currentAIname == "") { return; }
 
     if (isAutomatedAI(currentAIname)) {
         if (settingProceedAPI.value) {
@@ -2295,7 +2300,7 @@ async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
  */
 function getWayToCallAI(nameAI) {
     if (typeof nameAI != "string") throw Error("nameAI was not string");
-    if (nameAI == "Groq") {
+    if (nameAI == "groq") {
         return { way: "API", copyQ: false, hasWebAPI: false }
     }
     if (nameAI == "PuterJs") {
