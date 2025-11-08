@@ -2629,7 +2629,16 @@ function keyNameAI(nameAI) {
  */
 function getAPIkeyForAI(nameAI) {
     const key = keyNameAI(nameAI);
-    return localStorage.getItem(key);
+    // return localStorage.getItem(key);
+    const userAPIkey = localStorage.getItem(key);
+    const getCommonAPIkey = () => {
+        switch (nameAI) {
+            case "groq": return "grook-door";
+        }
+        return "";
+    }
+    const APIkey = userAPIkey || getCommonAPIkey();
+    return APIkey;
 }
 
 /**

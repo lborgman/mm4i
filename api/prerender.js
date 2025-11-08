@@ -3,7 +3,7 @@
 // export const config = { runtime: "nodejs" };
 
 export default async function handler(req, res) {
-  console.log("starting prerender.js GET", req.url);
+  // console.log("starting prerender.js GET", req.url);
 
 
   /** * @param {string} msg */
@@ -33,7 +33,7 @@ export default async function handler(req, res) {
   // Grok SMART: Works LOCAL + PRODUCTION!
   let htmlTemplate;
   const origin = url.origin;
-  console.log({ origin }, req.headers.host);
+  // console.log({ origin }, req.headers.host);
   if (!req.headers.host.startsWith("127.0.0.1")) {
     // PRODUCTION: Use fetch
     const templateResponse = await fetch(`${origin}/mm4i-template.html`);
