@@ -2472,7 +2472,7 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
             }
             // divGoStatus.style.color = "green";
             document.documentElement.classList.add("has-ai-response");
-            divGoStatus.textContent = `Got response from ${nameAI}`;
+            divGoStatus.textContent = `${nameAI} answered (${parseFloat(secElapsed).toFixed(0)}s)`;
             handleRes(res);
             /*
                 const eltAItextarea =
@@ -3409,16 +3409,15 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
     const endpointGroq = 'https://api.groq.com/openai/v1/chat/completions';
     const endpointLocalhostVercel = "http://localhost:8090/api/call-groq";
     let endpoint = endpointVercel;
-    // if (isVercelDev) {
-    async function dialogChooseEndpoint() {
+    async function _dialogChooseEndpoint() {
         const choices = [];
         if (isVercelDev) choices.push(endpointLocalhostVercel);
         choices.push(endpointVercel);
         choices.push(endpointGroq);
-        return MDCdialogQuickChoices("Choose endpoint", choices, "Test endpoints:");
+        // return MDCdialogQuickChoices("Choose endpoint", choices, "Test endpoints:");
+        return MDCdialogQuickChoices("Choose croq endpoint", choices, "Endpoints:");
     }
-    endpoint = await dialogChooseEndpoint();
-    // }
+    // endpoint = await _dialogChooseEndpoint();
     console.log({ endpoint });
 
     let response;

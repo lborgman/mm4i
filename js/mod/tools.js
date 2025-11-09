@@ -2605,7 +2605,7 @@ export async function setupVirtualKeyboardDetection() {
 
     if ('virtualKeyboard' in navigator) {
         setTimeout(() => {
-            modMdc.mkMDCsnackbar("has virtualKeyboard API");
+            // modMdc.mkMDCsnackbar("has virtualKeyboard API");
             // Listen for geometry changes
             // https://gomakethings.com/checking-for-focus-in-an-element-using-css-in-your-javascript/
             // @ts-ignore
