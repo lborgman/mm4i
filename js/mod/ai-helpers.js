@@ -597,10 +597,10 @@ Important:
         ]);
         divButtons.style.display = "flex";
         divButtons.style.gap = "10px";
-        if (divErrorLocation == undefined) throw Error(`divErrorLocation is ${divErrorLocation}`)
-        divErrorLocation.remove();
-        if (divAIjsonError == undefined) throw Error(`divAIjsonError is ${divErrorLocation}`)
-        divAIjsonError.remove();
+        // if (divErrorLocation == undefined) throw Error(`divErrorLocation is ${divErrorLocation}`)
+        divErrorLocation?.remove();
+        // if (divAIjsonError == undefined) throw Error(`divAIjsonError is ${divErrorLocation}`)
+        divAIjsonError?.remove();
         const divWhatUserCanDo = mkElt("div");
         divWhatUserCanDo.style.lineHeight = "normal";
         divWhatUserCanDo.appendChild(
@@ -1368,7 +1368,7 @@ Important:
             // const listAPI = mkElt("div");
             // ulAIdetails.appendChild(listAPI);
             const inpAPIkey = mkElt("input", { type: "text" });
-            const key = getAPIkeyForAI(nameAI);
+            const key = getUserAPIkeyForAI(nameAI);
             // @ts-ignore
             if (key) inpAPIkey.value = key;
             // @ts-ignore
@@ -1379,8 +1379,8 @@ Important:
                 saveAPIkeyInput();
             });
             // @ts-ignore
-            const lbl = mkElt("label", undefined, ["API key: ", inpAPIkey]);
-            lbl.style = "display:grid; grid-template-columns: auto 1fr; gap: 10px;";
+            const lblYourAPIkey = mkElt("label", undefined, ["Your own API key: ", inpAPIkey]);
+            inpAPIkey.style.width = "100%";
 
             const divAPIinfo = mkElt("div", undefined, [
                 "Automation needs an API key.",
@@ -1390,13 +1390,24 @@ Important:
                     href: urlAPIkey,
                     target: "_blank"
                 }, `here`);
-                const spanAPIkeyInfo = mkElt("span", undefined, [" Get it ", aAPIkey, "."]);
+                if (nameAI == "groq") {
+                    const commonKey = getCommonAPIkey("groq");
+                    const divGroqExtra = mkElt("p", undefined, [
+                        "For groq we try to provide free use. ",
+                        commonKey == "" ?
+                            `However at the moment you must get your own API key.`
+                            :
+                            "Right now you do not need your own API key."
+                    ]);
+                    divAPIinfo.appendChild(divGroqExtra);
+                }
+                const spanAPIkeyInfo = mkElt("span", undefined, [" You can get your own API key ", aAPIkey, "."]);
                 divAPIinfo.appendChild(spanAPIkeyInfo);
             } else {
                 divAPIinfo.appendChild(mkElt("span", undefined, ` (Where to get it for ${nameAI}?)`));
             }
             divDetAIcontent.appendChild(divAPIinfo);
-            divDetAIcontent.appendChild(lbl);
+            divDetAIcontent.appendChild(lblYourAPIkey);
         }
         if (isAndroid) {
             if (android) {
@@ -1431,6 +1442,7 @@ Important:
     divEltsAI.addEventListener("change", evt => {
         const t = /** @type {HTMLInputElement} */ (evt.target);
         const nameAI = t.value;
+        if (nameAI.trim() == "") throw Error(`nameAI == "${nameAI}"`);
         settingUsedAIname.value = nameAI;
         divGoStatus.textContent = "";
         setAIchoosen(nameAI);
@@ -2624,20 +2636,37 @@ function keyNameAI(nameAI) {
 }
 
 /**
+ * 
  * @param {string} nameAI 
- * @return {string|null}
+ * @returns {string}
+ */
+function getCommonAPIkey(nameAI) {
+    switch (nameAI) {
+        case "groq": return "grook-door";
+    }
+    return "";
+}
+
+/**
+ * 
+ * @param {string} nameAI 
+ * @returns {string}
+ */
+function getUserAPIkeyForAI(nameAI) {
+    const key = keyNameAI(nameAI);
+    const userAPIkey = localStorage.getItem(key);
+    return userAPIkey || "";
+}
+
+/**
+ * @param {string} nameAI 
+ * @return {string}
  */
 function getAPIkeyForAI(nameAI) {
-    const key = keyNameAI(nameAI);
-    // return localStorage.getItem(key);
-    const userAPIkey = localStorage.getItem(key);
-    const getCommonAPIkey = () => {
-        switch (nameAI) {
-            case "groq": return "grook-door";
-        }
-        return "";
-    }
-    const APIkey = userAPIkey || getCommonAPIkey();
+    // const key = keyNameAI(nameAI);
+    // const userAPIkey = localStorage.getItem(key);
+    const userAPIkey = getUserAPIkeyForAI(nameAI);
+    const APIkey = userAPIkey || getCommonAPIkey(nameAI);
     return APIkey;
 }
 
