@@ -485,6 +485,7 @@ Important:
 
 
     let theValidJsonNodeArray;
+    let theValidRoot;
 
     const divPrompt = mkDivPrompt();
     divPrompt.id = "mk-div-prompt";
@@ -713,8 +714,8 @@ Important:
             if (res.isValid) {
                 // throw "TEST RES NOT VALID ERROR";
                 theValidJsonNodeArray = nodeArray;
-                const root_node = res.root;
-                placeNodeChildren(root_node);
+                theValidRoot = res.root;
+                placeNodeChildren(theValidRoot);
                 function placeNodeChildren(root_node) {
                     root_node.isroot = true;
                     // @ts-ignore
@@ -1993,6 +1994,7 @@ Important:
      */
     async function doMakeGeneratedMindmap(strSourceLink) {
         const nodeArray = nodeArrayFromAI2jsmindFormat(theValidJsonNodeArray);
+        /*
         const arrRoots = nodeArray.reduce((arr, n) => {
             // @ts-ignore
             if (!n.parentid) { arr.push(n); }
@@ -2000,8 +2002,10 @@ Important:
         }, []);
         // @ts-ignore
         if (arrRoots.length != 1) throw Error(`Expected 1 root: ${arrRoots.length} `);
+        */
         // @ts-ignore
-        const rootNode = arrRoots[0];
+        // const rootNode = arrRoots[0];
+        const rootNode = theValidRoot;
         console.log(rootNode);
         const rootNotes = rootNode.shapeEtc?.notes;
         // Insert source data
@@ -2013,7 +2017,7 @@ Important:
         if (typeof rootNotes == "string") {
             arrMdRootNotes.push(`\n## Notes\n\n${rootNotes}`);
         } else {
-            arrMdRootNotes.push(`\n## Notes\n\nNo AI notes found`);
+            arrMdRootNotes.push(`\n## Notes\n\nNo AI notes found for this node`);
         }
         const mdRootNotes = arrMdRootNotes.join("\n");
         if (typeof rootNotes == "string") {
@@ -3466,8 +3470,7 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
         // return MDCdialogQuickChoices("Choose endpoint", choices, "Test endpoints:");
         return MDCdialogQuickChoices("Choose croq endpoint", choices, "Endpoints:");
     }
-    // endpoint = await _dialogChooseEndpoint();
-    console.log({ endpoint });
+    // endpoint = await _dialogChooseEndpoint(); console.log({ endpoint });
 
     let response;
     try {
