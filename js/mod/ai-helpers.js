@@ -742,7 +742,8 @@ Important:
                 eltDialog.style.opacity = "1";
                 const secOpacity = 0.7;
                 eltDialog.style.transition = `opacity ${secOpacity}s`;
-                const secDelay = 1.6 + 2;
+                // const secDelay = 1.6 + 2;
+                const secDelay = 1.6 + 0;
                 eltDialog.style.transitionDelay = `${secDelay}s`;
                 eltDialog.style.opacity = "0";
                 toDoIt = setTimeout(() => {
@@ -2527,17 +2528,6 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
             document.documentElement.classList.add("has-ai-response");
             divGoStatus.textContent = `${nameAI} answered (${parseFloat(secElapsed).toFixed(0)}s)`;
             handleRes(res);
-            /*
-                const eltAItextarea =
-                    (document.getElementById("textarea-response"));
-                if (!eltAItextarea) throw Error(`Did not find "textarea-respones"`);
-                eltAItextarea.value = res;
-                // @ts-ignore
-                if (typeof initAItextarea != "function") {
-                    throw Error(`tofInitAItextarea == "${typeof initAItextarea}"`);
-                }
-                initAItextarea();
-            */
         }
     }
 

@@ -36,6 +36,8 @@ export default async function (req, res) {
     const doorKey = process.env.GROQ_DOOR_KEY;
     console.log("env:", { token, doorKey });
     if (token == doorKey) {
+        ///// Check our common key here:
+        // https://console.groq.com/dashboard/metrics
         const apiMm4iGroqKey = process.env.GROQ_API_KEY;
         console.log("groq", { apiMm4iGroqKey });
         if (!apiMm4iGroqKey) {
