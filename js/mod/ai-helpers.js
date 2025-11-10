@@ -409,8 +409,9 @@ export async function generateMindMap(fromLink) {
         const rules = [
             `*If this prompt does not end with ${endMark}, consider it incomplete and notify the user
               that the prompt appears to be cut off.`,
+            `*Open and read the actual web page at "${link}"
+              using the web tool (do not rely on memory or guesses).`,
             `*Summarize the article (or video)
-                "${link}"
               into 1 mind map and
               output a strict, parse-ready JSON node array
               (flat; fields: id, name, parentid, and notes).`,
@@ -419,12 +420,14 @@ export async function generateMindMap(fromLink) {
             `*Limit the hiearchy to max depth ${maxDepth} levels.`,
             `*Return only valid JSON (no text before or after).`,
             // `*Validate that the JSON is parseable in Chromium browsers.`,
-            `*Preserve escaped newlines (\\n) inside string values for JSON validity; they should represent Markdown line breaks when rendered.`,
+            `*Preserve escaped newlines (\\n) inside string values for JSON validity;
+              they should represent Markdown line breaks when rendered.`,
             `*${endMark}`
         ];
         let n = 0;
         const arr = rules
             .map(m => { return m.trim(); })
+            .map(m => { return m.replaceAll(/\n/g, " "); })
             .map(m => { return m.replaceAll(/ +/g, " "); })
             .map(m => { return modTools.normalizeLineEndings(m); })
             .map(m => {
@@ -1995,19 +1998,19 @@ Important:
      */
     async function doMakeGeneratedMindmap(strSourceLink) {
         const nodeArray = nodeArrayFromAI2jsmindFormat(theValidJsonNodeArray);
-        /*
-        const arrRoots = nodeArray.reduce((arr, n) => {
-            // @ts-ignore
-            if (!n.parentid) { arr.push(n); }
-            return arr;
-        }, []);
-        // @ts-ignore
-        if (arrRoots.length != 1) throw Error(`Expected 1 root: ${arrRoots.length} `);
-        */
-        // @ts-ignore
-        // const rootNode = arrRoots[0];
         const rootNode = theValidRoot;
-        console.log(rootNode);
+        // console.log(rootNode);
+        nodeArray.forEach(n => {
+            if (n.isRoot) {
+                console.log("n.isRoot", n);
+                return;
+            }
+            const nNotes = n.shapeEtc?.notes;
+            if (typeof nNotes == "string") {
+                const notes = `## AI Notes:\n${nNotes}`;
+                n.shapeEtc.notes = notes;
+            }
+        });
         const rootNotes = rootNode.shapeEtc?.notes;
         // Insert source data
         let arrMdRootNotes = [
@@ -2016,18 +2019,14 @@ Important:
             `*AI name:* ${nameUsedAI}`,
         ]
         if (typeof rootNotes == "string") {
-            arrMdRootNotes.push(`\n## Notes\n\n${rootNotes}`);
+            arrMdRootNotes.push(`\n## AI Notes\n\n${rootNotes}`);
         } else {
-            arrMdRootNotes.push(`\n## Notes\n\nNo AI notes found for this node`);
+            arrMdRootNotes.push(`\n## AI Notes\n\nNo AI notes found for this node`);
         }
         const mdRootNotes = arrMdRootNotes.join("\n");
         if (typeof rootNotes == "string") {
-            // const rootNotesWithSource =
-            //     `## Source etc\n\n*AI name:* ${nameUsedAI}\n\n## Notes\n\n${rootNotes}`;
-            // rootNode.shapeEtc.notes = rootNotesWithSource;
             rootNode.shapeEtc.notes = mdRootNotes;
         } else {
-            // const notes = `## Source etc\n\n*AI name:* ${nameUsedAI}\n\n## Notes\n\nNo notes found`;
             const notes = mdRootNotes;
             rootNode.shapeEtc = { notes };
         }
