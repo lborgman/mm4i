@@ -34,8 +34,21 @@ class SettingsMm4iAI extends modLocalSettings.LocalSetting {
     constructor(key, defaultValue) { super("mm4i-settings-ai-", key, defaultValue); }
 }
 const settingPuterAImodel = new SettingsMm4iAI("puter-ai-model", "");
-const settingHuggingFaceAImodel = new SettingsMm4iAI("hugging-face-ai-model", "");
+// const settingHuggingFaceAImodel = new SettingsMm4iAI("hugging-face-ai-model", "");
 const settingUsedAIname = new SettingsMm4iAI("used-ai-name", "groq");
+
+const settingTemperatureType = new SettingsMm4iAI("ai-temperature-type", "normal");
+const arrTemperatureTypes = ["scientific", "normal", "creative"];
+const tempType2temperature = (tempType) => {
+    switch (tempType) {
+        case "scientific": return 0.2;
+        case "normal": return 0.5;
+        case "creative": return 1.0;
+        default:
+            throw Error(`Bad tempType: "${tempType}"`);
+    }
+}
+
 const settingProceedAPI = new SettingsMm4iAI("proceed-api", true);
 const settingNotifyReadySec = new SettingsMm4iAI("notify-ready-api", 10);
 
@@ -1379,11 +1392,12 @@ Important:
                 saveAPIkeyInput();
             });
             // @ts-ignore
-            const lblYourAPIkey = mkElt("label", undefined, ["Your own API key: ", inpAPIkey]);
+            const lblYourAPIkey = mkElt("label", undefined, [`Your API key for ${nameAI}: `, inpAPIkey]);
             inpAPIkey.style.width = "100%";
 
             const divAPIinfo = mkElt("div", undefined, [
-                "Automation needs an API key.",
+                // mkElt("div", undefined, "Automation needs an API key.")
+                "Automation needs an API key. "
             ]);
             if (urlAPIkey) {
                 const aAPIkey = mkElt("a", {
@@ -1392,22 +1406,52 @@ Important:
                 }, `here`);
                 if (nameAI == "groq") {
                     const commonKey = getCommonAPIkey("groq");
-                    const divGroqExtra = mkElt("p", undefined, [
-                        "For groq we try to provide free use. ",
-                        commonKey == "" ?
-                            `However at the moment you must get your own API key.`
-                            :
-                            "Right now you do not need your own API key."
+                    const free = commonKey != "";
+                    const divGroqExtra = mkElt("div", undefined, [
+                        mkElt("p", undefined, [
+                            `groq is our default AI because it is much faster than the others.
+                            For groq we try to provide free use. `,
+                            mkElt("i", { style: (free ? "color:green" : "color:red") },
+                                (!free) ?
+                                    `However at the moment you must get your own API key for croq.`
+                                    :
+                                    "Right now you do not need your own API key for croq."
+                            )
+                        ]),
                     ]);
-                    divAPIinfo.appendChild(divGroqExtra);
+                    divGroqExtra.id = "div-groq-extra";
+                    divAPIinfo.insertBefore(divGroqExtra, divAPIinfo.firstChild);
                 }
                 const spanAPIkeyInfo = mkElt("span", undefined, [" You can get your own API key ", aAPIkey, "."]);
                 divAPIinfo.appendChild(spanAPIkeyInfo);
+
             } else {
                 divAPIinfo.appendChild(mkElt("span", undefined, ` (Where to get it for ${nameAI}?)`));
             }
             divDetAIcontent.appendChild(divAPIinfo);
             divDetAIcontent.appendChild(lblYourAPIkey);
+            if (nameAI == "groq") {
+                const divTemperature = mkElt("p", undefined, "AI working style:");
+                divTemperature.id = "div-llm-temperature";
+                divDetAIcontent.appendChild(divTemperature);
+
+                const tempType = settingTemperatureType.valueS;
+                // check tempType
+                tempType2temperature(tempType);
+
+                arrTemperatureTypes.forEach(tt => {
+                    const rad = mkElt("input", { type: "radio", name: "llm-temperature", value: tt });
+                    if (tt == tempType) rad.checked = true;
+                    const lbl = mkElt("label", undefined, [rad, tt]);
+                    const div = mkElt("div", undefined, lbl);
+                    divTemperature.appendChild(div);
+                });
+                divTemperature.addEventListener("change", evt => {
+                    const newTemp = evt.target.value;
+                    console.log({ newTemp });
+                    settingTemperatureType.value = newTemp;
+                });
+            }
         }
         if (isAndroid) {
             if (android) {
@@ -3428,12 +3472,14 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
             role: 'user',
             content: userPrompt,
         };
+        const temperature = tempType2temperature(settingTemperatureType.valueS);
+        debugger;
         const postBody =
         {
             model: 'llama-3.1-8b-instant',
             messages: [message0],
             max_tokens: 3000,
-            temperature: 0.3,
+            temperature: temperature
         }
         console.log({ postBody, endpoint });
         response = await fetch(endpoint, {
