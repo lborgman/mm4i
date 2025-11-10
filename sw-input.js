@@ -1,7 +1,7 @@
 // @ts-check
 
 // @ts-ignore
-const SW_VERSION = "0.2.320-a"; // Changed version to verify new SW is running
+const SW_VERSION = "0.2.320-b"; // Changed version to verify new SW is running
 
 // Load Workbox from CDN
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');

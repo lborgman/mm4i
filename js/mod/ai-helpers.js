@@ -39,6 +39,11 @@ const settingUsedAIname = new SettingsMm4iAI("used-ai-name", "groq");
 
 const settingTemperatureType = new SettingsMm4iAI("ai-temperature-type", "normal");
 const arrTemperatureTypes = ["scientific", "normal", "creative"];
+/**
+ * 
+ * @param {string} tempType 
+ * @returns {number}
+ */
 const tempType2temperature = (tempType) => {
     switch (tempType) {
         case "scientific": return 0.2;
@@ -84,12 +89,6 @@ function _getFirebaseApp() {
 // Create a `GenerativeModel` instance with a model that supports your use case
 // export const modelAiGeminiThroughFirebase = modAiFirebase.getGenerativeModel(aiGeminiThroughFirebase, { model: "gemini-2.5-flash" });
 
-/**
- * @typedef {Function} OLDfunCallAI
- * @param {string} prompt 
- * @param {string} apiKey 
- * @returns {Promise<string|Error>}
- */
 
 /**
  * @typedef {(prompt: string, apiKey: string) => Promise<string | Error>} funCallAI
@@ -748,7 +747,9 @@ Important:
                 toDoIt = setTimeout(() => {
                     // @ts-ignore
                     eltDialog.remove();
-                    doMakeGeneratedMindmap();
+                    // doMakeGeneratedMindmap();
+                    // promptAI = makeAIprompt(inpLink.value.trim(), 4);
+                    doMakeGeneratedMindmap(inpLink.value.trim());
                 }, (secDelay + secOpacity) * 1000);
             } else {
                 tellError(res.error);
@@ -1986,19 +1987,11 @@ Important:
     ]);
     modMdc.mkMDCdialogAlert(body, "Close");
     checkInpLink(); // Necessary elements are connected to the DOM here
-    async function doMakeGeneratedMindmap() {
-        /*
-        // @ts-ignore
-        const strAIraw = eltAItextarea.value;
-        // clipboard
-     
-     
-        // @ts-ignore
-        const { strAIjson } = getJsonFromAIstr(strAIraw);
-        theValidJsonNodeArray = JSON.parse(strAIjson);
-        console.log({ jsonNodeArray: theValidJsonNodeArray });
-        */
-
+    /**
+     * 
+     * @param {string} strSourceLink 
+     */
+    async function doMakeGeneratedMindmap(strSourceLink) {
         const nodeArray = nodeArrayFromAI2jsmindFormat(theValidJsonNodeArray);
         const arrRoots = nodeArray.reduce((arr, n) => {
             // @ts-ignore
@@ -2012,13 +2005,25 @@ Important:
         console.log(rootNode);
         const rootNotes = rootNode.shapeEtc?.notes;
         // Insert source data
+        let arrMdRootNotes = [
+            "## Source etc\n",
+            `*Article/video:* [${strSourceLink}](${strSourceLink})`,
+            `*AI name:* ${nameUsedAI}`,
+        ]
         if (typeof rootNotes == "string") {
-            const rootNotesWithSource =
-                `## Source etc\n\n*AI name:* ${nameUsedAI}\n\n## Notes\n\n${rootNotes}`;
-            rootNode.shapeEtc.notes = rootNotesWithSource;
+            arrMdRootNotes.push(`\n## Notes\n\n${rootNotes}`);
         } else {
-            // alert("no root notes, handling not implemented yet");
-            const notes = `## Source etc\n\n*AI name:* ${nameUsedAI}\n\n## Notes\n\nNo notes found`;
+            arrMdRootNotes.push(`\n## Notes\n\nNo AI notes found`);
+        }
+        const mdRootNotes = arrMdRootNotes.join("\n");
+        if (typeof rootNotes == "string") {
+            // const rootNotesWithSource =
+            //     `## Source etc\n\n*AI name:* ${nameUsedAI}\n\n## Notes\n\n${rootNotes}`;
+            // rootNode.shapeEtc.notes = rootNotesWithSource;
+            rootNode.shapeEtc.notes = mdRootNotes;
+        } else {
+            // const notes = `## Source etc\n\n*AI name:* ${nameUsedAI}\n\n## Notes\n\nNo notes found`;
+            const notes = mdRootNotes;
             rootNode.shapeEtc = { notes };
         }
 
@@ -3473,7 +3478,6 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
             content: userPrompt,
         };
         const temperature = tempType2temperature(settingTemperatureType.valueS);
-        debugger;
         const postBody =
         {
             model: 'llama-3.1-8b-instant',
