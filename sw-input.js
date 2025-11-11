@@ -1,9 +1,59 @@
 // @ts-check
 
 // @ts-ignore
-const SW_VERSION = "0.2.320-e"; // Changed version to verify new SW is running
+const SW_VERSION = "0.2.320-f"; // Changed version to verify new SW is running
 
-// Load Workbox from CDN
+/**
+ * @module sw-init
+ * @description Service Worker initialization module.
+ * Imports and configures Workbox (v7.3.0) for caching, routing, and offline support.
+ * 
+ * ## Usage Notes
+ * - Place this at the **top** of your Service Worker file (e.g., `sw.js`).
+ * - Workbox exposes its API on `globalThis.workbox` after import.
+ * - **Version**: 7.3.0 — stable release from Google (MIT-licensed).
+ * - **CDN**: Uses Google Cloud Storage for reliability; consider `cdnjs.cloudflare.com/ajax/libs/workbox-sw/7.3.0/workbox-sw.js` as an alternative.
+ * - **Error Handling**: If import fails (e.g., network issue during SW update), the SW will fail to register — monitor via `navigator.serviceWorker.addEventListener('error')`.
+ * 
+ * @see {@link https://developers.google.com/web/tools/workbox/modules/workbox-sw|Workbox SW Module Docs}
+ * @see {@link https://developers.google.com/web/tools/workbox/reference-docs/latest/module-workbox-sw|Workbox v7.3.0 API Reference}
+ */
+
+/// <reference types="workbox-sw" />
+/**
+ * Dynamically imports the Workbox Service Worker library from CDN.
+ * 
+ * This loads `workbox-sw.js`, which bundles core modules like:
+ * - `workbox-precaching` for manifest-based caching
+ * - `workbox-routing` for request matching
+ * - `workbox-strategies` for cache-first/network-first patterns
+ * - `workbox-expiration` for cache cleanup
+ * 
+ * After import, use `workbox.setConfig()` to configure (e.g., debug mode).
+ * 
+ * @throws {TypeError} If fetch fails or script execution errors (e.g., unsupported browser).
+ * 
+ * @example
+ * // In sw.js (Service Worker)
+ * importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
+ * 
+ * // Configure Workbox (optional)
+ * workbox.setConfig({ debug: true });
+ * 
+ * // Example: Precaching (generate via workbox-webpack-plugin)
+ * workbox.precaching.precacheAndRoute(self._WB_MANIFEST);
+ * 
+ * // Example: Runtime caching for API calls
+ * workbox.routing.registerRoute(
+ *   ({ url }) => url.pathname.startsWith('/api/'),
+ *   new workbox.strategies.NetworkFirst({
+ *     cacheName: 'api-cache',
+ *     plugins: [
+ *       new workbox.expiration.ExpirationPlugin({ maxEntries: 50 })
+ *     ]
+ *   })
+ * );
+ */
 importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
 
 
@@ -16,9 +66,32 @@ const _swLifecycleLoger = () => {
     console.log('[SW Lifecycle Diagnostic] Script evaluation started');
 
     const originalAddEventListener = self.addEventListener;
-    self.addEventListener = function (type, listener, ...rest) {
+    /**
+     * @param {string} type
+     *   A case-sensitive string representing the event type to listen for (e.g., "click", "keydown").
+     *
+     * @param {EventListenerOrEventListenerObject} listener 
+     *   The object that receives a notification when an event of the specified type occurs.
+     *   This must be either:
+     *   - A function that accepts a single {@link Event} parameter, or
+     *   - An object with a `handleEvent` method that accepts a single {@link Event} parameter.
+     *
+     * @param {AddEventListenerOptions|boolean} [options=false] 
+     *   An optional options object that specifies characteristics about the event listener.
+     *   Alternatively, a boolean value can be used for backward compatibility:
+     *   - `true` is equivalent to `{ capture: true }`.
+     *   The available options are:
+     *   - `capture` {boolean} - If `true`, the listener is triggered during the capture phase instead of the bubbling phase.
+     *   - `once` {boolean} - If `true`, the listener is automatically removed after being invoked once.
+     *   - `passive` {boolean} - If `true`, indicates that the listener will never call `preventDefault()`.
+     *     Improves scrolling performance for touch/wheel events.
+     *   - `signal` {AbortSignal} - If provided, the listener is removed when the signal's `abort` method is called.
+     * 
+     * @returns {void}
+     */
+    self.addEventListener = function (type, listener, options) {
         console.warn(`[SW Diagnostic] addEventListener("${type}") called`);
-        return originalAddEventListener.call(this, type, listener, ...rest);
+        return originalAddEventListener.call(this, type, listener, options);
     };
 
     Promise.resolve().then(() => {
@@ -29,24 +102,44 @@ const _swLifecycleLoger = () => {
         console.warn('[SW Lifecycle Diagnostic] setTimeout(0) tick reached');
     }, 0);
 }
-
+// _swLifecycleLoger();
 
 
 
 const SWlogStyle = "color: green; background: yellow; padding:2px; border-radius:2px;";
 const SWlogStrongStyle = `${SWlogStyle} font-size:18px;`;
 
+/** @param  {...any} msg */
 function logConsole(...msg) {
     console.log(`%csw-workbox.js`, SWlogStyle, ...msg);
 }
 
+/** @param  {...any} msg */
 function logStrongConsole(...msg) {
     console.log(`%csw-workbox.js`, SWlogStrongStyle, ...msg);
 }
 
 logStrongConsole(`${SW_VERSION} is here`);
 
-// Error handler for async event listeners
+/**
+ * Wraps an async event handler to safely catch and log errors.
+ *
+ * Use this to prevent unhandled promise rejections in async event listeners
+ * (e.g., `fetch`, `message`, `install` handlers in Service Workers).
+ *
+ * Errors are:
+ * - Logged to `console.error` with context
+ * - Re-thrown to appear in DevTools **"Uncaught (in promise)"** panel
+ *
+ * @param {function(Event): Promise<any>} asyncFun
+ *   An async function that handles the event and returns a Promise.
+ *   Receives the raw `Event` object.
+ *
+ * @returns {function(Event): void}
+ *   A synchronous wrapper function suitable for `addEventListener`.
+ *   Safe to use where only sync handlers are expected.
+ *
+ */
 function errorHandlerAsyncEvent(asyncFun) {
     return function (evt) {
         asyncFun(evt).catch(err => {
@@ -57,11 +150,15 @@ function errorHandlerAsyncEvent(asyncFun) {
 }
 
 
-// Access Workbox
-const workbox = globalThis.workbox;
+/**
+ * Workbox global – injected by the CDN script.
+ *
+ * @type {any}
+ */
+// const workbox = globalThis.workbox;
 
 // 🔑 SAFE SYNCHRONOUS CONFIGURATION
-workbox.setConfig({ debug: false });
+self.workbox.setConfig({ debug: false });
 
 
 // PRECACHE MANIFEST (Data is safe to be synchronous)
@@ -86,7 +183,8 @@ const safeManifest = await (async () => {
 */
 
 // ✅ Move Workbox precache setup to the top level (synchronous)
-workbox.precaching.precache(PRECACHE_MANIFEST, {
+// self.workbox.precaching.precache(PRECACHE_MANIFEST, {
+self.workbox.precaching.precacheAndRoute(PRECACHE_MANIFEST, {
     ignoreURLParametersMatching: [/.*/],
 });
 

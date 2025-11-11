@@ -411,8 +411,8 @@ export async function generateMindMap(fromLink) {
               that the prompt appears to be cut off.`,
             `*Open and read the actual web page at "${link}"
               using the web tool (do not rely on memory or guesses).`,
-            `*Summarize the article (or video)
-              into 1 mind map and
+            `*Summarize the article (or video) in that web page
+              into 1 mind map (with 1 root node) and
               output a strict, parse-ready JSON node array
               (flat; fields: id, name, parentid, and notes).`,
             `*Optional field "notes": For details, markdown format.`,
