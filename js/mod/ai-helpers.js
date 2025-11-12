@@ -3834,3 +3834,90 @@ function _testFixMalformedJSON2() {
         console.error('Parse error:', e.message);
     }
 }
+
+
+function fixMalformedJSON3(str) {
+    // First, fix unquoted "notes" values
+    str = str.replace(/"notes"\s*:\s*([^"{[\d\-nft][^}]*?)(\n\s*[},])/gs, (match, value, ending) => {
+        // Clean up the value - remove trailing quotes and whitespace
+        let cleanValue = value.trim().replace(/["'\n\r]*$/, '').trim();
+
+        // Escape special characters
+        cleanValue = cleanValue
+            .replace(/\\/g, '\\\\')
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, '\\n')
+            .replace(/\r/g, '\\r')
+            .replace(/\t/g, '\\t');
+
+        // Return properly formatted
+        return `"notes": "${cleanValue}"${ending}`;
+    });
+
+    // Second, fix "notes" arrays - convert them to a single string
+    str = str.replace(/"notes"\s*:\s*\[([\s\S]*?)\]/g, (match, arrayContent) => {
+        // Extract all string values from the array
+        const stringMatches = arrayContent.match(/"([^"\\]*(\\.[^"\\]*)*)"/g) || [];
+
+        // Join all strings with newline separators
+        const combinedValue = stringMatches
+            .map(s => s.slice(1, -1)) // Remove quotes
+            .map(s => s.replace(/\\"/g, '"').replace(/\\\\/g, '\\')) // Unescape
+            .join('\\n');
+
+        return `"notes": "${combinedValue}"`;
+    });
+
+    return str;
+}
+
+_testFixMalformedJSON3();
+function _testFixMalformedJSON3() {
+    // Example usage - Test 1: Unquoted notes value
+    const malformedJSON1 = `{
+    "id": 3,
+    "name": "Mindfulness",
+    "parentid": 1,
+    "notes":**
+**Present-Moment Awareness**
+- Focusing on the body and breath
+- Observing thoughts and emotions
+- Practicing non-judgment
+## Mindfulness Techniques
+- Mindfulness meditation
+- Body scan
+- Walking meditation
+"
+}`;
+
+    console.log('Test 1(3): Unquoted notes value');
+    const fixedJSON1 = fixMalformedJSON3(malformedJSON1);
+    console.log('Fixed JSON 1(3):', fixedJSON1);
+
+    try {
+        const parsed1 = JSON.parse(fixedJSON1);
+        console.log('Successfully parsed:', parsed1);
+    } catch (e) {
+        console.error('Parse error:', e.message);
+    }
+
+    // Test 2: Array notes value
+    const malformedJSON2 = `{
+    "id": 4,
+    "name": "Acceptance",
+    "parentid": 1,
+    "notes": ["First paragraph with text", "Second paragraph with more text", "Third paragraph"]
+}`;
+
+    console.log('\nTest 2(3): Array notes value');
+    const fixedJSON2 = fixMalformedJSON3(malformedJSON2);
+    console.log('Fixed JSON 2(3):', fixedJSON2);
+
+    try {
+        const parsed2 = JSON.parse(fixedJSON2);
+        console.log('Successfully parsed:', parsed2);
+        console.log('Notes content:', parsed2.notes);
+    } catch (e) {
+        console.error('Parse error:', e.message);
+    }
+}
