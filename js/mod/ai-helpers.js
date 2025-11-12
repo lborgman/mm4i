@@ -18,6 +18,8 @@ const importFc4i = window["importFc4i"];
 // const modAiFirebase = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-ai.js");
 // import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 
+const modMMhelpers = await importFc4i("mindmap-helpers");
+
 const userAgent = navigator.userAgent.toLowerCase();
 const isAndroid = userAgent.indexOf("android") > -1;
 
@@ -47,8 +49,10 @@ const arrTemperatureTypes = ["scientific", "normal", "creative"];
 const tempType2temperature = (tempType) => {
     switch (tempType) {
         case "scientific": return 0.2;
-        case "normal": return 0.5;
-        case "creative": return 1.0;
+        case "normal": return 0.4;
+        // Too many errors with 1.0
+        // case "creative": return 1.0;
+        case "creative": return 0.7;
         default:
             throw Error(`Bad tempType: "${tempType}"`);
     }
@@ -306,7 +310,7 @@ let initAItextarea;
 export async function generateMindMap(fromLink) {
     const modMdc = await importFc4i("util-mdc");
     const modTools = await importFc4i("toolsJs");
-    const modMMhelpers = await importFc4i("mindmap-helpers");
+    // const modMMhelpers = await importFc4i("mindmap-helpers");
     const inpLink = modMdc.mkMDCtextFieldInput(undefined, "text");
     const tfLink = modMdc.mkMDCtextField("Link to article/video", inpLink);
     initAItextarea = onAItextareaInput;
@@ -1491,6 +1495,10 @@ Important:
     // @ts-ignore
     divEltsAI.addEventListener("change", evt => {
         const t = /** @type {HTMLInputElement} */ (evt.target);
+        if (t.tagName != "INPUT") return;
+        if (t.type != "radio") return;
+        if (t.name != "ai") return;
+
         const nameAI = t.value;
         if (nameAI.trim() == "") throw Error(`nameAI == "${nameAI}"`);
         settingUsedAIname.value = nameAI;
@@ -2580,12 +2588,12 @@ function mkUrlChat(nameAI, promptAI) {
 
 
 /**
- * Convert node array from AI to jsmind format.
+ * Make node array in jsmind format from AI json.
  *  
- * @param {Object[]} aiNodeArray 
+ * @param {Object[]} aiJson 
  * @returns {Object[]}
  */
-function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
+function nodeArrayFromAI2jsmindFormat(aiJson) {
     // https://chatgpt.com/share/68ab0c5c-abe8-8004-8a37-616c5a28c8ce
 
     // parentId: Grok AI
@@ -2593,7 +2601,11 @@ function nodeArrayFromAI2jsmindFormat(aiNodeArray) {
 
     ////// .parentId, .parent => .parentid, .text, .name => .topic
     ////// .notes
-    if (!Array.isArray(aiNodeArray)) throw Error("Expected JSON to be an array");
+    let aiNodeArray = aiJson;
+    // if (!Array.isArray(aiNodeArray)) throw Error("Expected JSON to be an array");
+    if (!Array.isArray(aiNodeArray)) {
+        aiNodeArray = modMMhelpers.flattenMindmapClean(aiJson);
+    }
     const nodeArray = aiNodeArray.map(n => {
         // @ts-ignore
         n.expanded = false;
@@ -3603,4 +3615,222 @@ async function MDCdialogQuickChoices(title, choices, info) {
     // debugger;
     const checkedRad = body.querySelector(":checked");
     return checkedRad.value;
+}
+
+
+
+/**
+ * From claude.ai
+ * 
+ * Some AI:s totally misses how to include a markdown string as a "notes" value.
+ * This function tries to fix this error.
+ * 
+ * @param {string} str 
+ * @returns {string}
+ */
+function fixMalformedJSON1(str) {
+    // Remove any leading/trailing whitespace
+    str = str.trim();
+
+    // Track if we're inside a string value
+    let result = '';
+    let i = 0;
+    let inValue = false;
+    let valueStart = -1;
+    let keyName = '';
+
+    while (i < str.length) {
+        const char = str[i];
+        const nextChar = str[i + 1];
+
+        // Check if we're at a property name/key
+        if (char === '"' && !inValue) {
+            // Find the closing quote of the key
+            let keyEnd = i + 1;
+            while (keyEnd < str.length && str[keyEnd] !== '"') {
+                if (str[keyEnd] === '\\') keyEnd++; // Skip escaped characters
+                keyEnd++;
+            }
+
+            // Extract key name
+            keyName = str.substring(i + 1, keyEnd);
+            result += str.substring(i, keyEnd + 1);
+            i = keyEnd + 1;
+
+            // Skip whitespace and colon
+            while (i < str.length && (str[i] === ' ' || str[i] === '\t' || str[i] === '\n' || str[i] === '\r')) {
+                result += str[i];
+                i++;
+            }
+
+            if (str[i] === ':') {
+                result += ':';
+                i++;
+
+                // Skip whitespace after colon
+                while (i < str.length && (str[i] === ' ' || str[i] === '\t' || str[i] === '\n' || str[i] === '\r')) {
+                    result += str[i];
+                    i++;
+                }
+
+                // Check what type of value follows
+                const valueChar = str[i];
+
+                if (valueChar === '"') {
+                    // Properly quoted string - just copy it
+                    result += '"';
+                    i++;
+                    while (i < str.length) {
+                        if (str[i] === '\\' && i + 1 < str.length) {
+                            result += str[i] + str[i + 1];
+                            i += 2;
+                        } else if (str[i] === '"') {
+                            result += '"';
+                            i++;
+                            break;
+                        } else {
+                            result += str[i];
+                            i++;
+                        }
+                    }
+                } else if (valueChar === '{' || valueChar === '[') {
+                    // Object or array - copy as is
+                    result += valueChar;
+                    i++;
+                } else if (valueChar >= '0' && valueChar <= '9' || valueChar === '-' || valueChar === 'n' || valueChar === 't' || valueChar === 'f') {
+                    // Number, null, true, false - copy until delimiter
+                    while (i < str.length && str[i] !== ',' && str[i] !== '}' && str[i] !== ']' && str[i] !== '\n') {
+                        result += str[i];
+                        i++;
+                    }
+                } else {
+                    // Unquoted string value - need to fix it
+                    valueStart = i;
+                    let valueEnd = i;
+                    let braceDepth = 0;
+
+                    // Find the end of the value (next comma or closing brace at same level)
+                    while (valueEnd < str.length) {
+                        const c = str[valueEnd];
+
+                        if (c === '{' || c === '[') {
+                            braceDepth++;
+                        } else if (c === '}' || c === ']') {
+                            if (braceDepth === 0) {
+                                break;
+                            }
+                            braceDepth--;
+                        } else if (c === ',' && braceDepth === 0) {
+                            break;
+                        }
+
+                        valueEnd++;
+                    }
+
+                    // Extract and clean the value
+                    let value = str.substring(valueStart, valueEnd).trim();
+
+                    // Remove trailing quotes and newlines that might be part of malformed structure
+                    value = value.replace(/["'\n\r]*$/, '');
+
+                    // Escape special characters in the value
+                    value = value
+                        .replace(/\\/g, '\\\\')
+                        .replace(/"/g, '\\"')
+                        .replace(/\n/g, '\\n')
+                        .replace(/\r/g, '\\r')
+                        .replace(/\t/g, '\\t');
+
+                    // Add properly quoted value
+                    result += '"' + value + '"';
+                    i = valueEnd;
+                }
+            }
+        } else {
+            result += char;
+            i++;
+        }
+    }
+
+    return result;
+}
+
+// _testFixMalformedJSON1();
+function _testFixMalformedJSON1() {
+    debugger; // eslint-disable-line no-debugger
+    const malformedJSON = `{
+    "id": 3,
+    "name": "Mindfulness",
+    "parentid": 1,
+    "notes":**
+**Present-Moment Awareness**
+- Focusing on the body and breath
+- Observing thoughts and emotions
+- Practicing non-judgment
+## Mindfulness Techniques
+- Mindfulness meditation
+- Body scan
+- Walking meditation
+"
+}`;
+
+    const fixedJSON = fixMalformedJSON1(malformedJSON);
+    console.log('Fixed JSON 1:', fixedJSON);
+
+    try {
+        const parsed = JSON.parse(fixedJSON);
+        console.log('Successfully parsed:', parsed);
+    } catch (e) {
+        console.error('Parse error:', e.message);
+    }
+}
+
+
+function fixMalformedJSON2(str) {
+    // Use regex to find "notes": followed by unquoted content
+    return str.replace(/"notes"\s*:\s*([^"{[\d\-nft][^}]*?)(\n\s*[},])/gs, (match, value, ending) => {
+        // Clean up the value - remove trailing quotes and whitespace
+        let cleanValue = value.trim().replace(/["'\n\r]*$/, '').trim();
+
+        // Escape special characters
+        cleanValue = cleanValue
+            .replace(/\\/g, '\\\\')
+            .replace(/"/g, '\\"')
+            .replace(/\n/g, '\\n')
+            .replace(/\r/g, '\\r')
+            .replace(/\t/g, '\\t');
+
+        // Return properly formatted
+        return `"notes": "${cleanValue}"${ending}`;
+    });
+}
+
+_testFixMalformedJSON2();
+function _testFixMalformedJSON2() {
+    // Example usage
+    const malformedJSON = `{
+    "id": 3,
+    "name": "Mindfulness",
+    "parentid": 1,
+    "notes":**
+**Present-Moment Awareness**
+- Focusing on the body and breath
+- Observing thoughts and emotions
+- Practicing non-judgment
+## Mindfulness Techniques
+- Mindfulness meditation
+- Body scan
+- Walking meditation
+"
+}`;
+
+    const fixedJSON = fixMalformedJSON2(malformedJSON);
+    console.log('Fixed JSON 2:', fixedJSON);
+
+    try {
+        const parsed = JSON.parse(fixedJSON);
+        console.log('Successfully parsed:', parsed);
+    } catch (e) {
+        console.error('Parse error:', e.message);
+    }
 }

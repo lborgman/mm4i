@@ -1037,7 +1037,7 @@ export function isValidMindmapNodeArray(nodeArray) {
             if (root_node != undefined) throw Error(`Second root found: ${n.id}, prev: ${root_node.id}`);
             root_node = n;
             root_node.isRoot = true;
-            console.log({root_node});
+            console.log({ root_node });
         }
     });
     if (!root_node) throw Error("Could not find root node");
@@ -1259,4 +1259,84 @@ export function setNewRoot(new_root_node, mindStored, mindmapKey) {
     // debugger;
     // modMMhelpers.checkValidMindmapNodeArray(mindStored.data);
     checkValidMindmapNodeArray(mindStored.data);
+}
+
+
+
+////// From Grok
+/**
+ * @typedef {Object} CleanNode
+ * @property {string} id
+ * @property {string} name
+ * @property {string} [parentid]   - Omitted on root
+ * @property {any} [notes]         - Only if present and not null/undefined
+ */
+
+/**
+ * Flatten a mind-map tree into a clean, flat array of nodes.
+ * Output contains **only**: `id`, `name`, `parentid?`, `notes?`
+ *
+ * @param {any} tree
+ * @param {{ childrenProp?: string }} [options]
+ * @returns {CleanNode[]}
+ *
+ * @example
+ * const nodes = flattenMindmapClean(myTree);
+ */
+export function flattenMindmapClean(tree, { childrenProp = 'children' } = {}) {
+    /**
+     * Accumulates flattened nodes.
+     * @type {CleanNode[]}
+     */
+    const nodes = [];
+
+    /**
+     * Counter for auto-generated IDs.
+     * @type {{ value: number }}
+     */
+    const counter = { value: 0 };
+
+    /**
+     * Recursively walks the tree and builds clean nodes.
+     *
+     * @private
+     * @param {any} node
+     * @param {string|null} parentIdValue - ID of parent; `null` for root
+     * @returns {void}
+     */
+    function walk(node, parentIdValue = null) {
+        if (!node || typeof node !== 'object') return;
+
+        // 1. Stable ID
+        const id = typeof node.id === 'string' && node.id ? node.id : `auto_${counter.value++}`;
+
+        // 2. Clean node with required fields
+        /** @type {CleanNode} */
+        const cleanNode = {
+            id,
+            name: typeof node.name === 'string' ? node.name : '(no name)'
+        };
+
+        // 3. Optional: notes (only if present and truthy)
+        if (Object.prototype.hasOwnProperty.call(node, 'notes') && node.notes != null) {
+            cleanNode.notes = node.notes;
+        }
+
+        // 4. Add parentid — **never on root**
+        if (parentIdValue !== null) {
+            cleanNode.parentid = parentIdValue;
+        }
+
+        // 5. Store
+        nodes.push(cleanNode);
+
+        // 6. Children
+        const children = Array.isArray(node[childrenProp]) ? node[childrenProp] : [];
+        for (const child of children) {
+            walk(child, id);
+        }
+    }
+
+    walk(tree);
+    return nodes;
 }
