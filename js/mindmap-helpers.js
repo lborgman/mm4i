@@ -103,6 +103,16 @@ async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUp
         const msgNS = jmDisplayed.NOT_SAVEABLE;
         if ("string" == typeof msgNS) {
             const modMdc = await importFc4i("util-mdc");
+            const body = mkElt("div", undefined, [
+                mkElt("p", undefined, msgNS),
+                mkElt("p", undefined, "Do you want to save it?")
+            ]);
+            const ans = await modMdc.mkMDCdialogConfirm(body, "Yes", "No");
+            debugger;
+            if (ans) {
+                alert("not implemented yet");
+                return;
+            }
             modMdc.mkMDCsnackbar(`Not saving: ${msgNS}`, 10 * 1000);
             jmDisplayed.NOT_SAVEABLE = true;
         }

@@ -1430,7 +1430,7 @@ export async function pageSetup() {
                 background: red;
             `;
             eltTellShared.id = "shared-marker";
-            eltTellShared.classList.add("fixed-at-bottom");
+            eltTellShared.classList.add("marker-at-bottom");
             document.body.appendChild(eltTellShared);
         }
         // debugger; // eslint-disable-line no-debugger
@@ -1465,8 +1465,7 @@ export async function pageSetup() {
             modMMhelpers.checkIsFullMindmapDisplayState(mindmapData, "SHARED");
             // const jm = await displayOurMindmap(objMindData);
             const jm = await displayOurMindmap(objMS);
-            // jm.isSavedBookmark = true; // FIX-ME:
-            jm.NOT_SAVEABLE = "This is a linked mindmap";
+            jm.NOT_SAVEABLE = "This mindmap was shared by another user";
             document.getElementById("mm4i-btn-history")?.remove();
             // modJsmindDraggable.setOurJm(jm);
 
@@ -2760,7 +2759,7 @@ function getBottomDebug() {
             `;
 
     eltBottomDebug.id = "div-bottom-debug";
-    eltBottomDebug.classList.add("fixed-at-bottom");
+    eltBottomDebug.classList.add("marker-at-bottom");
     document.body.appendChild(eltBottomDebug);
 
 }

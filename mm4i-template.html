@@ -45,21 +45,28 @@
             display: unset;
         }
 
+        .marker-at-bottom {
+            position: fixed;
+            bottom: 35px;
+            left: 2px;
+            padding: 2px;
+            background: red;
+        }
 
         /* Virtual keyboard layoutchanges */
-        html.VK_ACTIVE #body .fixed-at-bottom {
+        html.VK_ACTIVE #body .marker-at-bottom {
             display: none;
         }
 
-        #shared-marker.fixed-at-bottom {
+        #shared-marker.marker-at-bottom {
             display: flex;
         }
 
-        #generated-marker.fixed-at-bottom {
+        #generated-marker.marker-at-bottom {
             display: flex;
         }
 
-        /* #div-bottom-debug.fixed-at-bottom { */
+        /* #div-bottom-debug.marker-at-bottom { */
         #div-bottom-debug {
             display: grid;
         }
@@ -2430,7 +2437,7 @@
             // const btnHistory = modMdc.mkMDCiconButton("deployed_code_history", "Undo/Redo");
             const btnHistory = modMdc.mkMDCiconButton("history", "Undo/Redo");
             btnHistory.id = "mm4i-btn-history";
-            btnHistory.classList.add("fixed-at-bottom");
+            btnHistory.classList.add("marker-at-bottom");
             let undoIsSetup = false;
             btnHistory.addEventListener("click", async evt => {
                 evt.stopPropagation();

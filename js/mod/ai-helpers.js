@@ -2050,40 +2050,20 @@ Important:
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
         const jm = await modJsEditCommon.displayOurMindmap(mindStored);
         jm.select_node(jm.get_root());
-        jm.NOT_SAVEABLE = "This mindmap is made from a link";
+        jm.NOT_SAVEABLE = "This mindmap is made by an AI";
         document.getElementById("mm4i-btn-history")?.remove();
         // addShareMarker
         const addAIgeneratedMarker = () => {
-            // if (spTitle == null) throw Error("spTitle == null");
+            debugger;
             const divInfo = mkElt("div", undefined,
                 mkElt("b", undefined, "AI generated mindmap"),
             );
-            // divInfo.classList.add("fixed-at-bottom");
-            divInfo.style = `
-            display: flex;
-            flex - direction: column;
-            align - items: center;
-            justify - content: center;
-            `;
             const eltTellGenerated = mkElt("div", undefined, [
                 divInfo,
-                // btnInfoLinked
             ]);
-            eltTellGenerated.style = `
-            position: fixed; bottom: 0; left: 0;
-            min - height: 50px; min - width: 100px;
-            max - width: 270px;
-            NOdisplay: flex;
-            gap: 10px;
-            padding: 10px;
-            z - index: 99999;
-            color: black;
-            background - color: magenta;
-            background - color: #f068f0;
-            `;
             eltTellGenerated.id = "generated-marker";
             eltTellGenerated.classList.add("generated-marker");
-            eltTellGenerated.classList.add("fixed-at-bottom");
+            eltTellGenerated.classList.add("marker-at-bottom");
             document.body.appendChild(eltTellGenerated);
         }
         addAIgeneratedMarker();
@@ -3423,6 +3403,13 @@ async function callHuggingFaceAIapi(userPrompt, apiKey, options = {}) {
 
 /** @type {CallAIapiWithOptions} */
 async function callGroqAPI(userPrompt, apiKey, options = {}) {
+    /////////// For tests
+    const badFailedGenerate =
+        "{\"error\":\"{\\\"error\\\":{\\\"message\\\":\\\"Failed to generate JSON. Please adjust your prompt. See 'failed_generation' for more details.\\\",\\\"type\\\":\\\"invalid_request_error\\\",\\\"code\\\":\\\"json_validate_failed\\\",\\\"failed_generation\\\":\\\"{\\\\n  \\\\\\\"id\\\\\\\":1,\\\\n   \\\\\\\"name\\\\\\\":\\\\\\\"Self-compassion\\\\\\\",\\\\n   \\\\\\\"notes\\\\\\\":\\\\\\\"\\\\\\\\n**Definition**\\\\\\\\nSelf-compassion is the practice of treating oneself with kindness, understanding, and acceptance when experiencing suffering or personal failure.\\\\\\\"\\\\n   },\\\\n   \\\\\\\"id\\\\\\\":2,\\\\n   \\\\\\\"name\\\\\\\":\\\\\\\"Components\\\\\\\",\\\\n   \\\\\\\"parentid\\\\\\\":1,\\\\n   \\\\\\\"notes\\\\\\\":\\\\\\\"\\\\\\\\n**Three Main Components**\\\\\\\\n1. **Self-kindness**: treating oneself with kindness and care.\\\\\\\\n2. **Common humanity**: recognizing that all humans experience suffering and imperfection.\\\\\\\\n3. **Mindfulness**: being present and aware of one's experiences without judgment.\\\\\\\"\\\\n   },\\\\n   \\\\\\\"id\\\\\\\":3,\\\\n   \\\\\\\"name\\\\\\\":\\\\\\\"Benefits\\\\\\\",\\\\n   \\\\\\\"parentid\\\\\\\":1,\\\\n   \\\\\\\"notes\\\\\\\":\\\\\\\"\\\\\\\\n**Positive Effects**\\\\\\\\n1. **Reduced stress and anxiety**\\\\\\\\n2. **Improved emotional regulation**\\\\\\\\n3. **Increased resilience**\\\\\\\\n4. **Better relationships**\\\\\\\"\\\\n   },\\\\n   \\\\\\\"id\\\\\\\":4,\\\\n   \\\\\\\"name\\\\\\\":\\\\\\\"Techniques\\\\\\\",\\\\n   \\\\\\\"parentid\\\\\\\":1,\\\\n   \\\\\\\"notes\\\\\\\":\\\\\\\"\\\\\\\\n**Practical Strategies**\\\\\\\\n1. **Mindful breathing**\\\\\\\\n2. **Self-compassion meditation**\\\\\\\\n3. **Journaling**\\\\\\\\n4. **Physical self-care\\\\\\\"\\\\n   },\\\\n   \\\\\\\"id\\\\\\\":5,\\\\n   \\\\\\\"name\\\\\\\":\\\\\\\"Challenges\\\\\\\",\\\\n   \\\\\\\"parentid\\\\\\\":1,\\\\n   \\\\\\\"notes\\\\\\\":\\\\\\\"\\\\\\\\n**Common Obstacles**\\\\\\\\n1. **Self-criticism**\\\\\\\\n2. **Perfectionism**\\\\\\\\n3. **Difficulty with self-acceptance\\\\\\\"\\\\n   },\\\\n   \\\\\\\"id\\\\\\\":6,\\\\n   \\\\\\\"name\\\\\\\":\\\\\\\"Research\\\\\\\",\\\\n   \\\\\\\"parentid\\\\\\\":1,\\\\n   \\\\\\\"notes\\\\\\\":\\\\\\\"\\\\\\\\n**Scientific Studies**\\\\\\\\n1. **Increased self-compassion leads to improved mental health\\\\\\\"\\\\n2. **Self-compassion is linked to increased life satisfaction\\\\\\\"\\\\\\\\n3. **Mindfulness-based interventions increase self-compassion\\\\\\\"\\\\n   }\\\"}}\\n\"}";
+    // debugger; return handleErrorText(400, badFailedGenerate);
+
+
+
     /**
      * 
      * @param {Object} json 
@@ -3509,15 +3496,31 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
         const errorJson = JSON.parse(errorText);
         console.log({ errorJson });
         debugger;
+        return handleErrorText(response.status, errorText);
+    }
+    /**
+     * 
+     * @param {number} responseStatus 
+     * @param {string} errorText 
+     * @returns 
+     */
+    function handleErrorText(responseStatus, errorText) {
         if (errorText.includes('invalid_api_key')) {
             // return Error('Invalid API key. Regenerate in Groq Console and ensure no spaces.');
             return Error('Invalid API key.');
         }
         if (errorText.includes('rate_limit_exceeded')) {
-            // return Error('Rate limit exceeded. Wait and retry or check Groq Console for quota.');
             return Error('Rate limit exceeded. Wait and retry.');
         }
-        return Error(`HTTP ${response.status}: ${errorText}`);
+        if (errorText.includes("failed_generation")) {
+            debugger;
+            // I do not know exactly how this looks.
+            // Make some tests:
+            const j = JSON.parse(errorText);
+            const _j2 = JSON.parse(j.error);
+            return Error('Failed to make a JSON mindmap.');
+        }
+        return Error(`HTTP ${responseStatus}: ${errorText}`);
     }
 
     const data = await response.json();

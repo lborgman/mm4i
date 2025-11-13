@@ -1,6 +1,30 @@
 // @ts-check
 
-// module.exports = async (req, res) => {
+/**
+ * Handles proxy requests to the Groq API with authentication and CORS support.
+ *
+ * This serverless function acts as a secure proxy to the Groq chat completion endpoint.
+ * It validates the request, authenticates via a shared secret or API key, forwards the
+ * request to Groq, and returns structured JSON output.
+ *
+ * @param {import('http').IncomingMessage & { body?: any }} req - The incoming HTTP request.
+ *   Must include `Authorization: Bearer <token>` header and a JSON body with `messages`.
+ * @param {import('http').ServerResponse & {
+ *   status: (code: number) => import('http').ServerResponse;
+ *   json: (obj: any) => void;
+ * }} res
+ *   This allows for the old syntax res.status(xx) that Vercel adds
+ * @returns {Promise<void>} Resolves when the response is sent.
+ *
+ * @example
+ * // POST /api/call-groq
+ * {
+ *   "model": "llama-3.1-8b-instant",
+ *   "messages": [{ "role": "user", "content": "Hello, world!" }],
+ *   "max_tokens": 1000,
+ *   "temperature": 0.7
+ * }
+ */
 export default async function (req, res) {
 
     console.log('\n--------------- call-groq.js function invoked. req URL:', req.url, ' Method:', req.method);
