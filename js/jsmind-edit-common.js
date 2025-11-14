@@ -2538,7 +2538,7 @@ export function addScrollIntoViewOnSelect() {
         scrollSelectedNodeIntoView();
     });
 }
-function scrollSelectedNodeIntoView() {
+export function scrollSelectedNodeIntoView() {
     if (!jmDisplayed) return;
     const n = jmDisplayed.get_selected_node();
     if (!n) return;
@@ -2548,19 +2548,279 @@ const debounceScrollSelectedNodeIntoView = modTools.debounce(scrollSelectedNodeI
 window.addEventListener("resize", () => debounceScrollSelectedNodeIntoView());
 
 
-function scrollNodeIntoView(node) {
+function REALscrollNodeIntoView(node) {
     const elt = jsMind.my_get_DOM_element_from_node(node);
+    if (!elt.isConnected) {
+        debugger;
+        return;
+    }
+    const objAncestors = modTools.getScrollableAncestorInfo(elt);
+    const hasScrollableAncestor = objAncestors.hasScrollableAncestor;
+    console.log({ objAncestors, hasScrollableAncestor });
+    const tofHas = typeof hasScrollableAncestor;
+    if (tofHas != "boolean") throw Error(`scrollNodeIntoView: tofHas == "${tofHas}"`);
+    if (!hasScrollableAncestor) throw Error("scrollNodeIntoView: no scrollable ancestor");
+
+
     // FIX-ME: test .scrollIntoView - problem with vertical
     // https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView
     const scrollOpt = {
         behavior: "smooth",
-        block: "nearest"
+        // block: "nearest",
+        inline: "center"
     };
-    // console.log({scrollOpt})
-    elt.scrollIntoView(scrollOpt);
-
-
+    requestAnimationFrame(() => {
+        void elt.offsetLeft;   // tiny reflow – costs almost nothing
+        elt.scrollIntoView(scrollOpt);
+    });
 }
+
+// Debug version:
+function NOTworking_scrollNodeIntoView(node) {
+    console.clear();
+    console.log("DIAGNOSTIC: scrollNodeIntoView START");
+
+    // 1. Get DOM element
+    const elt = jsMind.my_get_DOM_element_from_node(node);
+    if (!elt) {
+        console.error("No DOM element from node");
+        return;
+    }
+    if (!elt.isConnected) {
+        console.error("Element not in DOM");
+        return;
+    }
+    console.log("Element:", elt);
+    console.log("Element visible?", elt.offsetParent !== null);
+
+    // 2. Find scrollable ancestor
+    const anc = modTools.getScrollableAncestorInfo(elt);
+    if (!anc.hasScrollableAncestor) {
+        console.error("No scrollable ancestor");
+        return;
+    }
+    const scroller = anc.firstScrollableAncestor;
+    console.log("Scroller:", scroller);
+    console.log("Scroller overflow-x:", getComputedStyle(scroller).overflowX);
+
+    // 3. Measure positions
+    const eRect = elt.getBoundingClientRect();
+    const sRect = scroller.getBoundingClientRect();
+    console.log("Element rect:", eRect);
+    console.log("Scroller rect:", sRect);
+
+    console.log("Is out of view?", eRect.left < sRect.left || eRect.right > sRect.right);
+
+    // 4. Force layout
+    requestAnimationFrame(() => {
+        console.log("Inside requestAnimationFrame");
+
+        void elt.offsetLeft;
+        void scroller.scrollLeft; // force scroller layout
+
+        // 5. Final check before scroll
+        const eRect2 = elt.getBoundingClientRect();
+        const sRect2 = scroller.getBoundingClientRect();
+        console.log("After reflow — still out of view?",
+            eRect2.left < sRect2.left || eRect2.right > sRect2.right);
+
+        // 6. MANUAL SCROLL TEST (this MUST work)
+        const targetScrollLeft = scroller.scrollLeft + (eRect2.left + eRect2.width / 2) - (sRect2.left + sRect2.width / 2);
+        console.log("Manual target scrollLeft:", targetScrollLeft, "current:", scroller.scrollLeft);
+
+        // Try manual smooth scroll
+        scroller.scrollTo({
+            left: targetScrollLeft,
+            behavior: 'smooth'
+        });
+
+        // 7. Also try scrollIntoView
+        setTimeout(() => {
+            console.log("Trying scrollIntoView...");
+            elt.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        }, 100);
+    });
+}
+
+
+
+/**
+ * Pans the `.zoom-move` container to bring a jsMind node into view.
+ *
+ * Uses screen-space coordinates via `getBoundingClientRect()` and accounts for
+ * both zoom (`transform: scale()`) and pan (`left`/`top` on `.zoom-move`).
+ *
+ * @param {Object} node - The jsMind node object to scroll into view.
+ * @param {Object} [options] - Configuration options.
+ * @param {("center"|"nearest-border")} [options.where="nearest-border"]
+ *   - `"center"`: Centers the node in the viewport.
+ *   - `"nearest-border"`: Moves the minimum distance to make the node fully visible.
+ * @param {number} [options.borderMargin=10]
+ *   - Extra margin (in **pixels**) from the viewport edge when using `"nearest-border"`.
+ *   - Applied **before** zoom scaling.
+ * @param {string} [options.timing="ease-in-out"]
+ *   - Animation easing:
+ *     - `"linear"`
+ *     - `"ease-in-out"`, `"ease-out"`, etc. (any CSS timing function)
+ *     - `"cubic-bezier(x1,y1,x2,y2)"` for custom curves
+ * @param {number} [options.duration=500]
+ *
+ * @example
+ * // Minimal scroll to make node visible with 20px margin
+ * scrollNodeIntoView(myNode, {
+ *   where: "nearest-border",
+ *   borderMargin: 20,
+ *   timing: "ease-out"
+ * });
+ *
+ * @example
+ * // Center the node with custom easing
+ * scrollNodeIntoView(myNode, {
+ *   where: "center",
+ *   timing: "cubic-bezier(0.25, 0.8, 0.25, 1)"
+ * });
+ */
+export function scrollNodeIntoView(node, options = {}) {
+    const {
+        where = "nearest-border",
+        borderMargin = 10,
+        timing = "ease-in-out",
+        duration = 500
+    } = options;
+
+    const elt = jsMind.my_get_DOM_element_from_node(node);
+    if (!elt?.isConnected) return;
+
+    // --- Find containers with .closest ---
+    const zoomMove = elt.closest('.zoom-move');
+    const inner = elt.closest('.jsmind-inner');
+    if (!zoomMove || !inner) return;
+
+    const viewport = zoomMove.parentElement;
+    if (!viewport) return;
+
+    // --- Current pan & scale ---
+    const panLeft = parseFloat(zoomMove.style.left) || 0;
+    const panTop = parseFloat(zoomMove.style.top) || 0;
+    const scaleMatch = inner.style.transform.match(/scale\(([\d.]+)\)/);
+    const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
+
+    // --- Bounding rects in SCREEN space ---
+    const nodeRect = elt.getBoundingClientRect();
+    const vpRect = viewport.getBoundingClientRect();
+
+    // --- Helper: screen to map space ---
+    const toMap = (screenX, screenY) => ({
+        x: (screenX - vpRect.left - panLeft) / scale,
+        y: (screenY - vpRect.top - panTop) / scale
+    });
+
+    // --- RENAMED: nodeMap instead of node ---
+    const nodeMap = {
+        left: toMap(nodeRect.left, nodeRect.top).x,
+        top: toMap(nodeRect.top, nodeRect.top).y,
+        right: toMap(nodeRect.right, nodeRect.bottom).x,
+        bottom: toMap(nodeRect.bottom, nodeRect.bottom).y,
+        width: (nodeRect.width / scale),
+        height: (nodeRect.height / scale)
+    };
+
+    // --- Viewport in MAP space ---
+    const vpMap = {
+        width: viewport.clientWidth / scale,
+        height: viewport.clientHeight / scale
+    };
+
+    // --- Current visible area in MAP space ---
+    const visible = {
+        left: -panLeft / scale,
+        top: -panTop / scale,
+        right: -panLeft / scale + vpMap.width,
+        bottom: -panTop / scale + vpMap.height
+    };
+
+    // --- Determine target position in MAP space ---
+    let targetMapX, targetMapY;
+
+    if (where === "center") {
+        targetMapX = nodeMap.left + nodeMap.width / 2 - vpMap.width / 2;
+        targetMapY = nodeMap.top + nodeMap.height / 2 - vpMap.height / 2;
+    } else {
+        // "nearest-border" – minimal move to make node fully visible + margin
+        const margin = borderMargin / scale;
+
+        let dx = 0;
+        let dy = 0;
+
+        if (nodeMap.left < visible.left + margin) {
+            dx = visible.left + margin - nodeMap.left;
+        } else if (nodeMap.right > visible.right - margin) {
+            dx = visible.right - margin - nodeMap.right;
+        }
+
+        if (nodeMap.top < visible.top + margin) {
+            dy = visible.top + margin - nodeMap.top;
+        } else if (nodeMap.bottom > visible.bottom - margin) {
+            dy = visible.bottom - margin - nodeMap.bottom;
+        }
+
+        targetMapX = -panLeft / scale + dx;
+        targetMapY = -panTop / scale + dy;
+    }
+
+    // --- Convert target to SCREEN space delta ---
+    const deltaScreenX = (targetMapX + panLeft / scale) * scale;
+    const deltaScreenY = (targetMapY + panTop / scale) * scale;
+
+    const finalLeft = panLeft + deltaScreenX;
+    const finalTop = panTop + deltaScreenY;
+
+    // --- Animation with custom timing ---
+    // const duration = 300;
+    let start = null;
+
+    // Parse timing
+    let easeFn;
+    if (timing === "linear") {
+        easeFn = t => t;
+    } else if (timing.startsWith("cubic-bezier")) {
+        const values = timing.match(/cubic-bezier\(([^)]+)\)/)?.[1].split(',').map(parseFloat);
+        if (values && values.length === 4) {
+            const [x1, y1, x2, y2] = values;
+            easeFn = t => {
+                const t1 = 1 - t;
+                return 3 * t1 * t1 * t * y1 + 3 * t1 * t * t * x2 + t * t * t;
+            };
+        } else {
+            easeFn = t => t;
+        }
+    } else {
+        // Use CSS transition for standard easings
+        zoomMove.style.transition = `left ${duration}ms ${timing}, top ${duration}ms ${timing}`;
+        zoomMove.style.left = `${finalLeft}px`;
+        zoomMove.style.top = `${finalTop}px`;
+        return;
+    }
+
+    function animate(time) {
+        if (!start) start = time;
+        const progress = Math.min((time - start) / duration, 1);
+        const eased = easeFn(progress);
+
+        zoomMove.style.left = `${panLeft + deltaScreenX * eased}px`;
+        zoomMove.style.top = `${panTop + deltaScreenY * eased}px`;
+
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            zoomMove.style.transition = '';
+        }
+    }
+
+    requestAnimationFrame(animate);
+}
+
+
 
 
 // async function dialogMindMaps(NOlinkMindmapsPage, info, arrMindmapsHits, provider) {

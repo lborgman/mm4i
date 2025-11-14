@@ -2878,3 +2878,61 @@ async function _testNotification() {
 
 // Example: Start task when a button is clicked
 // document.getElementById('startTaskButton').addEventListener('click', startTask);
+
+
+
+/**
+ * Checks the element and all of its ancestors for an overflow value
+ * that allows scrolling (auto | scroll).
+ *
+ * @param {Element} elt - The element to start from (must be in the DOM)
+ * @returns {{
+ *   hasScrollableAncestor: boolean,
+ *   firstScrollableAncestor: Element|null,
+ *   matchingStyle: string|null   // e.g. "auto", "scroll"
+ * }}
+ */
+export function getScrollableAncestorInfo(elt) {
+  // Guard – make sure we really have an element in the document
+  if (!elt || !(elt instanceof Element) || !document.contains(elt)) {
+    return { hasScrollableAncestor: false, firstScrollableAncestor: null, matchingStyle: null };
+  }
+
+  let current = elt;
+  const overflowProps = ['overflow', 'overflow-y', 'overflow-x'];
+
+  while (current && current !== document.documentElement) {
+    const style = window.getComputedStyle(current);
+
+    for (const prop of overflowProps) {
+      const value = style.getPropertyValue(prop).trim();
+      if (value === 'auto' || value === 'scroll') {
+        return {
+          hasScrollableAncestor: true,
+          firstScrollableAncestor: current,
+          matchingStyle: value   // the exact value that matched
+        };
+      }
+    }
+
+    // Move up – skip shadow roots for now (they need special handling)
+    current = current.parentNode;
+    // `parentNode` can be a DocumentFragment in shadow DOM; stop there.
+    if (!current || current.nodeType !== Node.ELEMENT_NODE) break;
+  }
+
+  // Finally check <html> (documentElement) – it can also be the scroller
+  const htmlStyle = window.getComputedStyle(document.documentElement);
+  for (const prop of overflowProps) {
+    const value = htmlStyle.getPropertyValue(prop).trim();
+    if (value === 'auto' || value === 'scroll') {
+      return {
+        hasScrollableAncestor: true,
+        firstScrollableAncestor: document.documentElement,
+        matchingStyle: value
+      };
+    }
+  }
+
+  return { hasScrollableAncestor: false, firstScrollableAncestor: null, matchingStyle: null };
+}

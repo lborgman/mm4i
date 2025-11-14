@@ -2049,12 +2049,14 @@ Important:
         }
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
         const jm = await modJsEditCommon.displayOurMindmap(mindStored);
+        modJsEditCommon.addScrollIntoViewOnSelect();
         jm.select_node(jm.get_root());
+        setTimeout(() => modJsEditCommon.scrollSelectedNodeIntoView(), 500);
         jm.NOT_SAVEABLE = "This mindmap is made by an AI";
         document.getElementById("mm4i-btn-history")?.remove();
         // addShareMarker
         const addAIgeneratedMarker = () => {
-            debugger;
+            // debugger;
             const divInfo = mkElt("div", undefined,
                 mkElt("b", undefined, "AI generated mindmap"),
             );
