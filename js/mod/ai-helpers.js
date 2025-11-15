@@ -526,7 +526,7 @@ Important:
         eltPromptSummary.style = `
             position: absolute;
             top: 10px;
-            left: 160px;
+            left: 140px;
         `;
         const eltPromptDetails = mkElt("details", undefined, [
             eltPromptSummary,
@@ -546,7 +546,6 @@ Important:
         divNewPrompt.style = `
                     display: flex;
                     flex-direction: row;
-                    gap: 15px;
                     position: relative;
                 `;
         const divPromptOuter = mkElt("div", undefined, [
@@ -570,7 +569,7 @@ Important:
     divAIjsonErrorInResult.classList.add("ai-json-error");
     divAIjsonErrorInResult.id = "ai-json-error-in-result";
 
-    const btnInfoTrouble = modMdc.mkMDCbutton("Explain", "raised");
+    const btnInfoTrouble = modMdc.mkMDCbutton("??", "raised");
     btnInfoTrouble.title = "What happened?";
     btnInfoTrouble.addEventListener("click", () => {
         const currentAIname = /** @type {string} */ (settingUsedAIname.value);
@@ -758,7 +757,7 @@ Important:
                     eltDialog.remove();
                     // doMakeGeneratedMindmap();
                     // promptAI = makeAIprompt(inpLink.value.trim(), 4);
-                    doMakeGeneratedMindmap(inpLink.value.trim());
+                    doMakeGeneratedMindmap(inpLink.value.trim(), nodeArray, theValidRoot);
                 }, (secDelay + secOpacity) * 1000);
             } else {
                 tellError(res.error);
@@ -901,7 +900,7 @@ Important:
     divEltsAI.id = "elts-ai";
     divEltsAI.style.marginBottom = "10px";
 
-    const btnShowAllAIs = modMdc.mkMDCbutton("Show all AI:s", "outlined");
+    const btnShowAllAIs = modMdc.mkMDCbutton("All AI:s", "outlined");
     btnShowAllAIs.id = "btn-show-all-ais";
     btnShowAllAIs.addEventListener("click", evt => {
         evt.stopPropagation();
@@ -2003,10 +2002,13 @@ Important:
     /**
      * 
      * @param {string} strSourceLink 
+     * @param {Object[]} nodeArray
+     * @param {any} rootNode
+     * 
      */
-    async function doMakeGeneratedMindmap(strSourceLink) {
-        const nodeArray = nodeArrayFromAI2jsmindFormat(theValidJsonNodeArray);
-        const rootNode = theValidRoot;
+    async function doMakeGeneratedMindmap(strSourceLink, nodeArray, rootNode) {
+        // const nodeArray = nodeArrayFromAI2jsmindFormat(theValidJsonNodeArray);
+        // const rootNode = theValidRoot;
         // console.log(rootNode);
         nodeArray.forEach(n => {
             if (n.isRoot) {
@@ -2053,6 +2055,7 @@ Important:
         jm.select_node(jm.get_root());
         setTimeout(() => modJsEditCommon.scrollSelectedNodeIntoView(), 500);
         jm.NOT_SAVEABLE = "This mindmap is made by an AI";
+        jm.MIND_STORED = mindStored;
         document.getElementById("mm4i-btn-history")?.remove();
         // addShareMarker
         const addAIgeneratedMarker = () => {

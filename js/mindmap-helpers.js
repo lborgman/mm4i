@@ -33,13 +33,22 @@ export function setUndoRedoTreeStyle(useTreeStyle) {
 export function getUndoRedoTreeStyle() { return undoRedoTreeStyle; }
 
 export async function startUndoRedo(keyName, jmDisplayed) {
+    // FIX-ME: remove par jmDisplayed
     if (!jmDisplayed.get_selected_node) {
         debugger; // eslint-disable-line no-debugger
         throw Error("!jmDisplayed.get_selected_node");
     }
     // checkisformat
     const dbMindmaps = await importFc4i("db-mindmaps");
-    const objBaseMm = (await dbMindmaps.DBgetMindmap(keyName)) || jmDisplayed;
+    // const objBaseMm = (await dbMindmaps.DBgetMindmap(keyName)) || jmDisplayed;
+    const objStored = await dbMindmaps.DBgetMindmap(keyName);
+    let objBaseMm = jmDisplayed;
+    if (objStored) {
+        objBaseMm = objStored;
+    } else {
+        debugger;
+        throw Error(`Did not find mindmap key "${keyName}"`);
+    }
     if (undoRedoTreeStyle === undefined) {
         throw Error("setUndoRedoTreeStyle(true/false) has not been called");
     }
@@ -98,7 +107,15 @@ export async function getFullMindmapDisplayState(jmDisplayed) {
     return objToSave;
 }
 
-async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
+/** @type {string} */
+let oldNOT_SAVEABLE = "";
+async function saveMindmapPlusUndoRedo(keyNamePar, jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
+    debugger;
+    let keyName = keyNamePar;
+    // jmDisplayed.NOT_SAVEABLE = jmDisplayed.NOT_SAVEABLE || oldNOT_SAVEABLE;
+    if (jmDisplayed.NOT_SAVEABLE == "") {
+        delete jmDisplayed.NOT_SAVEABLE;
+    }
     if (jmDisplayed.NOT_SAVEABLE) {
         const msgNS = jmDisplayed.NOT_SAVEABLE;
         if ("string" == typeof msgNS) {
@@ -108,15 +125,33 @@ async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUp
                 mkElt("p", undefined, "Do you want to save it?")
             ]);
             const ans = await modMdc.mkMDCdialogConfirm(body, "Yes", "No");
-            debugger;
             if (ans) {
-                alert("not implemented yet");
+                keyName = getNextMindmapKey();
+                debugger;
+                oldNOT_SAVEABLE = oldNOT_SAVEABLE || jmDisplayed.NOT_SAVEABLE;
+                delete jmDisplayed.NOT_SAVEABLE;
+
+                // const mindToStore = jmDisplayed.MIND_STORED;
+                // mindToStore.key = keyName;
+                // mindToStore.meta.name = keyName;
+                jmDisplayed.mind.name = keyName;
+                const mindToStore = jmDisplayed.get_data("node_array");
+                mindToStore.key = keyName;
+                // mindToStore.meta.name = keyName;
+
+                const marker = /** @type {HTMLDivElement} */ (document.getElementById("generated-marker"));
+                if (!marker) throw Error(`Did not find "generated-marker"`);
+                marker.style.opacity = "0.5";
+                marker.style.backgroundColor = "yellowgreen";
+
+                await checkInappAndSaveMindmap(keyName, mindToStore);
+                await startUndoRedo(keyName, jmDisplayed);
+            } else {
+                modMdc.mkMDCsnackbar(`Not saving: ${msgNS}`, 10 * 1000);
+                jmDisplayed.NOT_SAVEABLE = true;
                 return;
             }
-            modMdc.mkMDCsnackbar(`Not saving: ${msgNS}`, 10 * 1000);
-            jmDisplayed.NOT_SAVEABLE = true;
         }
-        return;
     }
     checkIsMMformatJmdisplayed(jmDisplayed, "saveMindmapPlusUndoRedo");
     // const dbMindmaps = await importFc4i("db-mindmaps");
@@ -199,6 +234,7 @@ async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     const metaName = objDataMind.meta.name;
     if (!metaName) throw Error("Current mindmap has no meta.key");
     const [keyName] = metaName.split("/");
+    // if (!isValidMindmapKey(keyName)) { debugger; return; }
 
     // await saveMindmapPlusUndoRedo(keyName, objDataMind, actionTopic, (new Date()).toISOString());
     // debugger; // eslint-disable-line no-debugger
@@ -209,6 +245,33 @@ async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
 }
 
 export function getNextMindmapKey() { return "mm-" + new Date().toISOString(); }
+export function isValidMindmapKey(str) {
+  // Regex breakdown:
+  // ^              - start of string
+  // m-             - literal "m-"
+  // (\d{4})        - year (4 digits)
+  // -(\d{2})       - month (2 digits)
+  // -(\d{2})       - day (2 digits)
+  // T              - literal T
+  // (\d{2})        - hours
+  // :(\d{2})       - minutes
+  // :(\d{2})       - seconds
+  // \.(\d{3})      - milliseconds (3 digits)
+  // Z              - literal Z (UTC)
+  // $              - end of string
+  const regex = /^m-(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/;
+
+  if (!regex.test(str)) return false;
+
+  // Extra safety: parse the date to ensure it's valid
+  const isoPart = str.slice(2); // remove "m-"
+  const date = new Date(isoPart);
+
+  // Check if date is valid and matches the string exactly
+  return date instanceof Date && 
+         !isNaN(date) && 
+         date.toISOString() === isoPart;
+}
 
 export function showMindmap(key) {
     const absLink = makeAbsLink(URL_MINDMAPS_PAGE);
