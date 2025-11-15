@@ -410,12 +410,13 @@ export async function generateMindMap(fromLink) {
     // @ts-ignore
     function makeAIprompt(link, maxDepth = 4) {
         const endMark = "----";
+        const nocacheLink = /** @type {string} */ (modTools.addCacheBuster(link));
         const rules = [
             `*If this prompt does not end with ${endMark}, consider it incomplete and notify the user
               that the prompt appears to be cut off.`,
-            `*Open and read the actual web page at "${link}"
+            `*Open and read the actual web page at "${nocacheLink}"
               using the web tool (do not rely on memory or guesses).`,
-            `*Summarize the article (or video) in that web page
+            `*Summarize the article (or video) in only that web page
               into 1 mind map (with 1 root node) and
               output a strict, parse-ready JSON node array
               (flat; fields: id, name, parentid, and notes).`,

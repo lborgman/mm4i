@@ -2936,3 +2936,18 @@ export function getScrollableAncestorInfo(elt) {
 
   return { hasScrollableAncestor: false, firstScrollableAncestor: null, matchingStyle: null };
 }
+
+
+/**
+ * (Grok's version)
+ * Returns a URL with a unique nocache parameter (ms timestamp).
+ * Works with any base URL (with or without existing query string).
+ * 
+ * @param {string} url 
+ * @returns {string}
+ */
+export function addCacheBuster(url) {
+  const ts = Date.now();                     // e.g. 1731671045123
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}nocache=${ts}`;
+}
