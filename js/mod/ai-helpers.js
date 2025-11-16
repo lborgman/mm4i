@@ -359,6 +359,7 @@ export async function generateMindMap(fromLink) {
         b.inert = false;
 
         updatePromptAi();
+
         const divWays = document.getElementById("div-ways");
         if (!divWays) throw Error(`Could not find element "div-ways"`);
         divWays.style.display = "block";
@@ -401,16 +402,35 @@ export async function generateMindMap(fromLink) {
 
 
     let promptAI = "";
+    let youTubeVideoId;
     function updatePromptAi() {
         promptAI = makeAIprompt(inpLink.value.trim(), 4);
         const bPrompt = document.getElementById("prompt-ai");
         if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
         bPrompt.textContent = promptAI;
     }
-    // @ts-ignore
+    /**
+     * 
+     * @param {string} link 
+     * @param {number} maxDepth 
+     * @returns {string}
+     */
     function makeAIprompt(link, maxDepth = 4) {
+        // Today (2025-11-16) this is how the link must be handled:
+        // A) If it is a YouTube video then Gemini must be used since
+        //    it is the only AI with access to the info on YouTube.com
+        // B) Otherwise the page linked to must be fetched since
+        //    today no AI seems to fetch the page by
+        //    themselves (they use what the already has fetched - which
+        //    might contain something very different).
+        youTubeVideoId = modTools.getYouTubeVideoId(link);
+        console.log({ youTubeVideoId });
+        if (youTubeVideoId == null) {
+            // modTools.f
+        }
+
         const endMark = "----";
-        const nocacheLink = /** @type {string} */ (modTools.addCacheBuster(link));
+        const nocacheLink = /** @type {string} */ (modTools.addSafeCacheBuster(link));
         const rules = [
             `*If this prompt does not end with ${endMark}, consider it incomplete and notify the user
               that the prompt appears to be cut off.`,
@@ -3488,6 +3508,9 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
             headers: {
                 'Authorization': `Bearer ${useKey.trim()}`,
                 'Content-Type': 'application/json',
+                // 'Cache-Control': 'no-cache, no-store, must-revalidate',
+                // 'Pragma': 'no-cache',
+                // 'Expires': '0',
             },
             body: JSON.stringify(postBody),
         });

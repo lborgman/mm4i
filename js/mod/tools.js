@@ -2893,50 +2893,58 @@ async function _testNotification() {
  * }}
  */
 export function getScrollableAncestorInfo(elt) {
-  // Guard – make sure we really have an element in the document
-  if (!elt || !(elt instanceof Element) || !document.contains(elt)) {
-    return { hasScrollableAncestor: false, firstScrollableAncestor: null, matchingStyle: null };
-  }
+    // Guard – make sure we really have an element in the document
+    if (!elt || !(elt instanceof Element) || !document.contains(elt)) {
+        return { hasScrollableAncestor: false, firstScrollableAncestor: null, matchingStyle: null };
+    }
 
-  let current = elt;
-  const overflowProps = ['overflow', 'overflow-y', 'overflow-x'];
+    let current = elt;
+    const overflowProps = ['overflow', 'overflow-y', 'overflow-x'];
 
-  while (current && current !== document.documentElement) {
-    const style = window.getComputedStyle(current);
+    while (current && current !== document.documentElement) {
+        const style = window.getComputedStyle(current);
 
+        for (const prop of overflowProps) {
+            const value = style.getPropertyValue(prop).trim();
+            if (value === 'auto' || value === 'scroll') {
+                return {
+                    hasScrollableAncestor: true,
+                    firstScrollableAncestor: current,
+                    matchingStyle: value   // the exact value that matched
+                };
+            }
+        }
+
+        // Move up – skip shadow roots for now (they need special handling)
+        current = current.parentNode;
+        // `parentNode` can be a DocumentFragment in shadow DOM; stop there.
+        if (!current || current.nodeType !== Node.ELEMENT_NODE) break;
+    }
+
+    // Finally check <html> (documentElement) – it can also be the scroller
+    const htmlStyle = window.getComputedStyle(document.documentElement);
     for (const prop of overflowProps) {
-      const value = style.getPropertyValue(prop).trim();
-      if (value === 'auto' || value === 'scroll') {
-        return {
-          hasScrollableAncestor: true,
-          firstScrollableAncestor: current,
-          matchingStyle: value   // the exact value that matched
-        };
-      }
+        const value = htmlStyle.getPropertyValue(prop).trim();
+        if (value === 'auto' || value === 'scroll') {
+            return {
+                hasScrollableAncestor: true,
+                firstScrollableAncestor: document.documentElement,
+                matchingStyle: value
+            };
+        }
     }
 
-    // Move up – skip shadow roots for now (they need special handling)
-    current = current.parentNode;
-    // `parentNode` can be a DocumentFragment in shadow DOM; stop there.
-    if (!current || current.nodeType !== Node.ELEMENT_NODE) break;
-  }
-
-  // Finally check <html> (documentElement) – it can also be the scroller
-  const htmlStyle = window.getComputedStyle(document.documentElement);
-  for (const prop of overflowProps) {
-    const value = htmlStyle.getPropertyValue(prop).trim();
-    if (value === 'auto' || value === 'scroll') {
-      return {
-        hasScrollableAncestor: true,
-        firstScrollableAncestor: document.documentElement,
-        matchingStyle: value
-      };
-    }
-  }
-
-  return { hasScrollableAncestor: false, firstScrollableAncestor: null, matchingStyle: null };
+    return { hasScrollableAncestor: false, firstScrollableAncestor: null, matchingStyle: null };
 }
 
+
+
+
+/////////////////////////////////////////////////
+// Below are some function suggestedd by Grok to
+// get around the problem that AI:s now can't access
+// web content.
+// Some suggestions are bad, other good...
 
 /**
  * (Grok's version)
@@ -2947,7 +2955,990 @@ export function getScrollableAncestorInfo(elt) {
  * @returns {string}
  */
 export function addCacheBuster(url) {
-  const ts = Date.now();                     // e.g. 1731671045123
-  const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}nocache=${ts}`;
+    const ts = Date.now();                     // e.g. 1731671045123
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}nocache=${ts}`;
+}
+
+/**
+ * Generate a URL-safe random parameter name: [a-zA-Z][a-zA-Z0-9_]{7,}
+ * e.g., "xK9pM2qR", "var_7aBcDeF"
+ * 
+ * @returns {string}
+ */
+export function generateSafeParamName() {
+    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_';
+    let name = '';
+
+    // First char: letter only
+    name += chars.charAt(Math.floor(Math.random() * 52)); // a-z or A-Z
+
+    // Next 7–12 chars: any safe char
+    const length = 7 + Math.floor(Math.random() * 6); // 7 to 12
+    for (let i = 0; i < length; i++) {
+        name += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    return name;
+}
+
+
+/**
+ * Add cache-buster with safe random param name + timestamp
+ * e.g., ?xK9pM2qR=1731671045123
+ * 
+ * @param {string} url 
+ * @returns {string}
+ */
+export function addSafeCacheBuster(url) {
+    const paramName = generateSafeParamName(url);
+    const timestamp = Date.now();
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}${paramName}=${timestamp}`;
+}
+// Example usage:
+// const safeUrl = addSafeCacheBuster('https://example.com/article');
+//  console.log(safeUrl);
+// → https://example.com/article?xK9pM2qR=1731671045123
+
+
+
+/**
+ * fetchFreshViaProxy(url, proxyName = 'allorigins')
+ * 
+ * Fetches any URL via public CORS proxy.
+ * 
+ * @param {string} url - The article URL to fetch
+ * @param {string} proxyName - 'allorigins' | 'corsproxy' | 'corssh'
+ * @returns {Promise<string>} HTML string
+ */
+export async function fetchFreshViaProxy(url, proxyName = 'allorigins') {
+    const proxies = {
+        allorigins: 'https://api.allorigins.win/get?url=',
+        corsproxy: 'https://corsproxy.io/?',
+        corssh: 'https://cors.sh/'
+    };
+
+    const proxy = proxies[proxyName];
+    if (!proxy) throw new Error(`Unknown proxy: ${proxyName}. Use: allorigins, corsproxy, corssh`);
+
+    const encoded = encodeURIComponent(url);
+    const proxyUrl = proxy + encoded;
+
+    console.log(`Fetching via ${proxyName}: ${proxyUrl}`);
+
+    const res = await fetch(proxyUrl, {
+        headers: { 'Cache-Control': 'no-cache' },
+        cache: 'no-store'
+    });
+
+    if (!res.ok) throw new Error(`Proxy ${proxyName} failed: ${res.status}`);
+
+    // allorigins returns { contents: "HTML..." }
+    if (proxyName === 'allorigins') {
+        const data = await res.json();
+        return data.contents || '';
+    }
+
+    // corsproxy.io and cors.sh return raw HTML
+    return await res.text();
+}
+
+
+/**
+ * Get text from html.
+ * It looks like a very bad suggestion (even though it works!).
+ * There is structure in the HTML that can be used.
+ *  
+ * @param {string} html 
+ * @returns {string}
+ */
+export function cleanHtml(html) {
+    return html
+        .replace(/<script[\s\S]*?<\/script>/gi, '')
+        .replace(/<style[\s\S]*?<\/style>/gi, '')
+        .replace(/<[^>]*>/g, ' ')  // Strip all tags
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+/**** START of Grok very bad suggestions for YouTube
+ * 
+ * None of those suggestions worked!
+ * I believe they came from Grok reading and depending on old, outdated material.
+ * I consider it a major flaw in the construction of Grok. Of course.
+
+
+/**
+ * Browser-only YouTube caption fetcher
+ * Works on ANY website (cross-origin)
+ * Uses corsproxy.io (supports POST)
+ * /
+export async function getYouTubeCaptionsBrowser1(urlOrId, options = {}) {
+  const { language = 'en', preferManual = true, name = null, index = null } = options;
+
+  // === 1. Extract video ID ===
+  let videoId;
+  try {
+    if (urlOrId.includes('youtube.com') || urlOrId.includes('youtu.be')) {
+      const url = new URL(urlOrId.includes('youtu.be') ? `https://youtu.be/${urlOrId}` : urlOrId);
+      videoId = url.searchParams.get('v') || urlOrId.split('/').pop().split('?')[0];
+    } else {
+      videoId = urlOrId;
+    }
+    if (!videoId || videoId.length < 11) throw new Error('Invalid video ID');
+  } catch (e) {
+    throw new Error('Parse error: ' + e.message);
+  }
+
+  console.log('Video ID:', videoId);
+
+  // === 2. Innertube API via CORS proxy (supports POST) ===
+  const endpoint = 'https://www.youtube.com/youtubei/v1/player';
+  const apiKey = 'AIzaSyAO_FJ2SlqU8Q4STEKL512S2PIv4M9r8o0';
+  const clientVersion = '2.20251115.00.00';
+
+  const body = {
+    context: { client: { clientName: 'WEB', clientVersion, hl: 'en' } },
+    videoId
+  };
+
+  // Use corsproxy.io with POST support
+  const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(`${endpoint}?key=${apiKey}`);
+
+  const res = await fetch(proxyUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Origin': 'https://example.com'  // Required by some proxies
+    },
+    body: JSON.stringify(body),
+    cache: 'no-store'
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`API failed: ${res.status} — ${err}`);
+  }
+
+  const data = await res.json();
+  const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+  if (tracks.length === 0) {
+    console.warn('No captions available');
+    return { captions: [], selected: null, transcript: '' };
+  }
+
+  const captions = tracks.map(t => ({
+    language: t.languageCode,
+    name: t.name?.simpleText || t.languageCode,
+    kind: t.kind || (t.vssId?.includes('.asr') ? 'asr' : 'standard'),
+    baseUrl: t.baseUrl
+  }));
+
+  // === 3. Select caption ===
+  let selected = null;
+  if (index !== null && index >= 0 && index < captions.length) {
+    selected = captions[index];
+  } else if (name) {
+    selected = captions.find(c => c.name.toLowerCase() === name.toLowerCase());
+  } else {
+    const matches = captions.filter(c => c.language === language);
+    selected = matches.length > 0
+      ? (preferManual ? matches.find(c => c.kind === 'standard') || matches[0] : matches[0])
+      : captions[0];
+  }
+
+  // === 4. Fetch transcript via proxy ===
+  let transcript = '';
+  if (selected) {
+    const transcriptUrl = `${selected.baseUrl}&fmt=json3`;
+    const tProxy = 'https://corsproxy.io/?' + encodeURIComponent(transcriptUrl);
+    const tRes = await fetch(tProxy, { cache: 'no-store' });
+    if (tRes.ok) {
+      const tData = await tRes.json();
+      transcript = tData.events
+        ?.map(e => e.segs?.map(s => s.utf8).join('') || '')
+        .filter(Boolean)
+        .join(' ') || '';
+    }
+  }
+
+  return { captions, selected, transcript };
+}
+/**
+ * Fixed browser YouTube caption fetcher (watch page method, CORS-safe)
+ * Works on ANY website
+ * /
+export async function getYouTubeCaptionsBrowser2(urlOrId, options = {}) {
+  const { language = 'en', preferManual = true, name = null, index = null } = options;
+
+  // Extract video ID
+  let videoId;
+  try {
+    if (urlOrId.includes('youtube.com') || urlOrId.includes('youtu.be')) {
+      const url = new URL(urlOrId.includes('youtu.be') ? `https://youtu.be/${urlOrId}` : urlOrId);
+      videoId = url.searchParams.get('v') || urlOrId.split('/').pop().split('?')[0];
+    } else {
+      videoId = urlOrId;
+    }
+    if (!videoId || videoId.length < 11) throw new Error('Invalid video ID');
+  } catch (e) {
+    throw new Error('Parse error: ' + e.message);
+  }
+
+  console.log('Video ID:', videoId);
+
+  // Fetch watch page (CORS-friendly)
+  const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  const res = await fetch(watchUrl, {
+    cache: 'no-store',
+    headers: { 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,* /*;q=0.8' }
+  });
+
+  if (!res.ok) throw new Error(`Watch page failed: ${res.status} ${res.statusText}`);
+  const html = await res.text();
+
+  // Extract player config with regex (robust for HTML)
+  const configMatch = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/s);
+  if (!configMatch) throw new Error('Player config not found in page HTML');
+  let data;
+  try {
+    data = JSON.parse(configMatch[1]);
+  } catch (e) {
+    throw new Error('JSON parse failed: ' + e.message);
+  }
+
+  const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+  if (tracks.length === 0) {
+    console.warn('No captions available');
+    return { captions: [], selected: null, transcript: '' };
+  }
+
+  const captions = tracks.map(t => ({
+    language: t.languageCode,
+    name: t.name?.simpleText || t.languageCode,
+    kind: t.kind || (t.vssId?.includes('.asr') ? 'asr' : 'standard'),
+    baseUrl: t.baseUrl
+  }));
+
+  // Select caption
+  let selected = null;
+  if (index !== null && index >= 0 && index < captions.length) {
+    selected = captions[index];
+  } else if (name) {
+    selected = captions.find(c => c.name.toLowerCase() === name.toLowerCase());
+  } else {
+    const matches = captions.filter(c => c.language === language);
+    selected = matches.length > 0
+      ? (preferManual ? matches.find(c => c.kind === 'standard') || matches[0] : matches[0])
+      : captions[0];
+  }
+
+  // Fetch transcript
+  let transcript = '';
+  if (selected) {
+    const transcriptUrl = `${selected.baseUrl}&fmt=json3`;
+    const tRes = await fetch(transcriptUrl, { cache: 'no-store' });
+    if (tRes.ok) {
+      const tData = await tRes.json();
+      transcript = tData.events
+        ?.map(e => e.segs?.map(s => s.utf8).join('') || '')
+        .filter(Boolean)
+        .join(' ') || '';
+    } else {
+      console.warn('Transcript fetch failed:', tRes.status);
+    }
+  }
+
+  return { captions, selected, transcript };
+}
+
+/**
+ * QUIC-Proof YouTube caption fetcher (uses cors.sh proxy)
+ * Works on ANY website, cross-origin
+ * Tested in Sweden, 10:41 PM CET
+ * /
+export async function getYouTubeCaptionsBrowser3(urlOrId, options = {}) {
+  const { language = 'en', preferManual = true, name = null, index = null } = options;
+
+  // Extract video ID (same)
+  let videoId;
+  try {
+    if (urlOrId.includes('youtube.com') || urlOrId.includes('youtu.be')) {
+      const url = new URL(urlOrId.includes('youtu.be') ? `https://youtu.be/${urlOrId}` : urlOrId);
+      videoId = url.searchParams.get('v') || urlOrId.split('/').pop().split('?')[0];
+    } else {
+      videoId = urlOrId;
+    }
+    if (!videoId || videoId.length < 11) throw new Error('Invalid video ID');
+  } catch (e) {
+    throw new Error('Parse error: ' + e.message);
+  }
+
+  console.log('Video ID:', videoId);
+
+  // Fetch watch page via cors.sh proxy (TCP-only, no QUIC)
+  const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  const proxyUrl = `https://cors.sh/${encodeURIComponent(watchUrl)}`;  // Simple prefix for cors.sh
+  const res = await fetch(proxyUrl, {
+    cache: 'no-store',
+    headers: { 'Accept': 'text/html,* /*;q=0.8' }
+  });
+
+  if (!res.ok) throw new Error(`Proxy failed: ${res.status} ${res.statusText}`);
+  const html = await res.text();  // cors.sh returns raw HTML
+
+  // Extract player config
+  const configMatch = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/s);
+  if (!configMatch) throw new Error('Player config not found');
+  let data;
+  try {
+    data = JSON.parse(configMatch[1]);
+  } catch (e) {
+    throw new Error('JSON parse failed: ' + e.message);
+  }
+
+  const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+  if (tracks.length === 0) {
+    console.warn('No captions available');
+    return { captions: [], selected: null, transcript: '' };
+  }
+
+  const captions = tracks.map(t => ({
+    language: t.languageCode,
+    name: t.name?.simpleText || t.languageCode,
+    kind: t.kind || (t.vssId?.includes('.asr') ? 'asr' : 'standard'),
+    baseUrl: t.baseUrl
+  }));
+
+  // Select caption
+  let selected = null;
+  if (index !== null && index >= 0 && index < captions.length) {
+    selected = captions[index];
+  } else if (name) {
+    selected = captions.find(c => c.name.toLowerCase() === name.toLowerCase());
+  } else {
+    const matches = captions.filter(c => c.language === language);
+    selected = matches.length > 0
+      ? (preferManual ? matches.find(c => c.kind === 'standard') || matches[0] : matches[0])
+      : captions[0];
+  }
+
+  // Fetch transcript via same proxy
+  let transcript = '';
+  if (selected) {
+    const transcriptUrl = `${selected.baseUrl}&fmt=json3`;
+    const tProxyUrl = `https://cors.sh/${encodeURIComponent(transcriptUrl)}`;
+    const tRes = await fetch(tProxyUrl, { cache: 'no-store' });
+    if (tRes.ok) {
+      const tText = await tRes.text();
+      const tData = JSON.parse(tText);  // Raw JSON from proxy
+      transcript = tData.events
+        ?.map(e => e.segs?.map(s => s.utf8).join('') || '')
+        .filter(Boolean)
+        .join(' ') || '';
+    }
+  }
+
+  return { captions, selected, transcript };
+}
+
+/**
+ * Fetch YouTube video content (transcript + description) for summarization.
+ * @param {string} ytUrl - YouTube URL or video ID
+ * @returns {Promise<{title: string, description: string, transcript: string, fullText: string}>}
+ * /
+export async function fetchYouTubeContent(ytUrl) {
+    // Extract video ID
+    let videoId;
+    if (ytUrl.includes('youtube.com') || ytUrl.includes('youtu.be')) {
+        const url = new URL(ytUrl.includes('youtu.be') ? `https://youtu.be/${ytUrl}` : ytUrl);
+        videoId = url.searchParams.get('v') || ytUrl.split('/').pop();
+    } else {
+        videoId = ytUrl; // Assume it's already ID
+    }
+    if (!videoId) throw new Error('Invalid YouTube URL');
+
+    console.log('Video ID:', videoId);
+
+    try {
+        // Step 1: Fetch metadata (title, description) via Innertube API
+        const metadataUrl = `https://www.youtube.com/youtubei/v1/player?key=AIzaSyAO_FJ2SlqU8Q4STEKL512S2PIv4M9r8o0&prettyPrint=false`;
+        const metadataBody = JSON.stringify({
+            context: { client: { clientName: 'WEB', clientVersion: '2.20251115.00.00', hl: 'en' } },
+            videoId: videoId,
+            params: 'eW91dHViZV9pbnRlcm5hbF9wbGF5ZXJfdG9rZW4=' // Base64 for player config
+        });
+
+        const metadataRes = await fetch(metadataUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            },
+            body: metadataBody,
+            cache: 'no-store'
+        });
+
+        if (!metadataRes.ok) throw new Error('Metadata fetch failed');
+        const metadata = await metadataRes.json();
+
+        const title = metadata.videoDetails?.title || 'No title';
+        const description = metadata.videoDetails?.shortDescription || 'No description';
+
+        // Step 2: Fetch transcript (if captions available)
+        let transcript = '';
+        const captionTracks = metadata.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+        if (captionTracks.length > 0) {
+            // Pick English or first available
+            const track = captionTracks.find(t => t.languageCode === 'en') || captionTracks[0];
+            const transcriptUrl = track.baseUrl + '&fmt=json3'; // JSON format for easy parsing
+
+            const transcriptRes = await fetch(transcriptUrl, { cache: 'no-store' });
+            if (transcriptRes.ok) {
+                const transcriptData = await transcriptRes.json();
+                transcript = transcriptData.events
+                    ?.map(event => event.segs?.map(seg => seg.utf8).join(' ') || '')
+                    .filter(t => t)
+                    .join(' ');
+            }
+        } else {
+            console.warn('No captions available');
+        }
+
+        const fullText = `${title}\n\nDescription:\n${description}\n\nTranscript:\n${transcript}`;
+
+        return { title, description, transcript, fullText };
+    } catch (error) {
+        throw new Error(`YouTube fetch failed: ${error.message}`);
+    }
+}
+
+export async function getYouTubeCaptionListAndFetch(urlOrId, options = {}) {
+    const { language = 'en', preferManual = true, name = null, index = null } = options;
+
+    // Extract video ID (same)
+    let videoId;
+    try {
+        if (urlOrId.includes('youtube.com') || urlOrId.includes('youtu.be')) {
+            const url = new URL(urlOrId.includes('youtu.be') ? `https://youtu.be/${urlOrId}` : urlOrId);
+            videoId = url.searchParams.get('v') || urlOrId.split('/').pop().split('?')[0];
+        } else {
+            videoId = urlOrId;
+        }
+        if (!videoId || videoId.length < 11) throw new Error('Invalid video ID');
+    } catch (e) {
+        throw new Error('Could not parse URL: ' + e.message);
+    }
+
+    // Innertube setup
+    const endpoint = 'https://www.youtube.com/youtubei/v1/player';
+    const apiKey = 'AIzaSyAO_FJ2SlqU8Q4STEKL512S2PIv4M9r8o0';
+    const clientVersion = '2.20251115.00.00';
+
+    const body = {
+        context: { client: { clientName: 'WEB', clientVersion, hl: 'en' } },
+        videoId
+    };
+
+    // Proxy wrapper function
+    async function proxyFetch(url, opts) {
+        const proxy = 'https://api.allorigins.win/raw?url=';
+        const proxyUrl = proxy + encodeURIComponent(url);
+        return fetch(proxyUrl, { ...opts, method: 'GET' });  // Proxy turns POST to GET internally
+    }
+
+    // Use proxy for main API call (note: body needs to be query-param for proxy, but for simplicity, use raw GET if needed)
+    // For POST, we approximate by encoding body as query (works for small payloads)
+    const queryBody = new URLSearchParams(body).toString();
+    const fullUrl = `${endpoint}?key=${apiKey}&${queryBody}`;
+    const res = await proxyFetch(fullUrl, {
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        },
+        cache: 'no-store'
+    });
+
+    if (!res.ok) throw new Error(`API failed: ${res.status}`);
+    const dataTxt = await res.text();
+    const data = JSON.parse(dataTxt);
+
+    const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+    if (tracks.length === 0) return { captions: [], selected: null, transcript: '' };
+
+    const captions = tracks.map(track => ({
+        language: track.languageCode,
+        name: track.name?.simpleText || track.languageCode,
+        kind: track.kind || (track.vssId?.includes('.asr') ? 'asr' : 'standard'),
+        baseUrl: track.baseUrl
+    }));
+
+    // Selection (same as before)
+    let selected = null;
+    if (index !== null && index >= 0 && index < captions.length) {
+        selected = captions[index];
+    } else if (name) {
+        selected = captions.find(c => c.name.toLowerCase() === name.toLowerCase());
+    } else {
+        const langMatches = captions.filter(c => c.language === language);
+        if (langMatches.length === 0) {
+            selected = captions[0];
+        } else if (preferManual) {
+            selected = langMatches.find(c => c.kind === 'standard') || langMatches[0];
+        } else {
+            selected = langMatches[0];
+        }
+    }
+
+    // Fetch transcript with proxy
+    let transcript = '';
+    if (selected) {
+        const transcriptUrl = `${selected.baseUrl}&fmt=json3`;
+        const tRes = await proxyFetch(transcriptUrl, { cache: 'no-store' });
+        if (tRes.ok) {
+            const tData = await tRes.json();
+            transcript = tData.events
+                ?.map(e => e.segs?.map(s => s.utf8).join('') || '')
+                .filter(t => t)
+                .join(' ') || '';
+        }
+    }
+
+    return { captions, selected, transcript };
+}
+
+
+
+/**
+ * Browser-only YouTube caption fetcher (GET-only, no proxy needed)
+ * Works on ANY website, cross-origin
+ * Uses /embed/ endpoint for player config
+ * /
+export async function getYouTubeCaptionsBrowser4(urlOrId, options = {}) {
+  const { language = 'en', preferManual = true, name = null, index = null } = options;
+
+  // === 1. Extract video ID ===
+  let videoId;
+  try {
+    if (urlOrId.includes('youtube.com') || urlOrId.includes('youtu.be')) {
+      const url = new URL(urlOrId.includes('youtu.be') ? `https://youtu.be/${urlOrId}` : urlOrId);
+      videoId = url.searchParams.get('v') || urlOrId.split('/').pop().split('?')[0];
+    } else {
+      videoId = urlOrId;
+    }
+    if (!videoId || videoId.length < 11) throw new Error('Invalid video ID');
+  } catch (e) {
+    throw new Error('Parse error: ' + e.message);
+  }
+
+  console.log('Video ID:', videoId);
+
+  // === 2. GET player config from /embed/ ===
+  const embedUrl = `https://www.youtube.com/embed/${videoId}?disable_polymer=1`;
+  const res = await fetch(embedUrl, {
+    cache: 'no-store'
+  });
+
+  if (!res.ok) throw new Error(`Embed fetch failed: ${res.status}`);
+
+  const html = await res.text();
+  const playerConfigMatch = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/);
+  if (!playerConfigMatch) throw new Error('Player config not found in HTML');
+
+  const playerConfig = JSON.parse(playerConfigMatch[1]);
+  const data = playerConfig;
+
+  const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+  if (tracks.length === 0) {
+    console.warn('No captions available');
+    return { captions: [], selected: null, transcript: '' };
+  }
+
+  const captions = tracks.map(t => ({
+    language: t.languageCode,
+    name: t.name?.simpleText || t.languageCode,
+    kind: t.kind || (t.vssId?.includes('.asr') ? 'asr' : 'standard'),
+    baseUrl: t.baseUrl
+  }));
+
+  // === 3. Select caption ===
+  let selected = null;
+  if (index !== null && index >= 0 && index < captions.length) {
+    selected = captions[index];
+  } else if (name) {
+    selected = captions.find(c => c.name.toLowerCase() === name.toLowerCase());
+  } else {
+    const matches = captions.filter(c => c.language === language);
+    selected = matches.length > 0
+      ? (preferManual ? matches.find(c => c.kind === 'standard') || matches[0] : matches[0])
+      : captions[0];
+  }
+
+  // === 4. Fetch transcript (GET, no proxy needed) ===
+  let transcript = '';
+  if (selected) {
+    const transcriptUrl = `${selected.baseUrl}&fmt=json3`;
+    const tRes = await fetch(transcriptUrl, { cache: 'no-store' });
+    if (tRes.ok) {
+      const tData = await tRes.json();
+      transcript = tData.events
+        ?.map(e => e.segs?.map(s => s.utf8).join('') || '')
+        .filter(Boolean)
+        .join(' ') || '';
+    } else {
+      console.warn('Transcript fetch failed:', tRes.status);
+    }
+  }
+
+  return { captions, selected, transcript };
+}
+
+
+/**
+ * Fixed cors.sh YouTube caption fetcher (with API key)
+ * Works on ANY website, cross-origin
+ * Tested in Sweden, 10:50 PM CET
+ * /
+export async function getYouTubeCaptionsBrowser5(urlOrId, options = {}) {
+  const { language = 'en', preferManual = true, name = null, index = null } = options;
+  const CORS_SH_KEY = 'YOUR_CORS_SH_KEY';  // ← Replace with your key
+
+  // Extract video ID (same)
+  let videoId;
+  try {
+    if (urlOrId.includes('youtube.com') || urlOrId.includes('youtu.be')) {
+      const url = new URL(urlOrId.includes('youtu.be') ? `https://youtu.be/${urlOrId}` : urlOrId);
+      videoId = url.searchParams.get('v') || urlOrId.split('/').pop().split('?')[0];
+    } else {
+      videoId = urlOrId;
+    }
+    if (!videoId || videoId.length < 11) throw new Error('Invalid video ID');
+  } catch (e) {
+    throw new Error('Parse error: ' + e.message);
+  }
+
+  console.log('Video ID:', videoId);
+
+  // Fetch watch page via cors.sh
+  const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  const proxyUrl = `https://proxy.cors.sh/${watchUrl}`;
+  console.log('Proxy URL:', proxyUrl);
+
+  const res = await fetch(proxyUrl, {
+    cache: 'no-store',
+    headers: {
+      'Accept': 'text/html,* /*;q=0.8',
+      'Origin': 'https://example.com',
+      'x-requested-with': 'XMLHttpRequest',
+      'x-cors-api-key': CORS_SH_KEY  // ← REQUIRED
+    }
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Proxy failed: ${res.status} — ${errText.substring(0, 200)}`);
+  }
+
+  const html = await res.text();
+
+  // Extract player config
+  const configMatch = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/s);
+  if (!configMatch) throw new Error('Player config not found');
+  let data;
+  try {
+    data = JSON.parse(configMatch[1]);
+  } catch (e) {
+    throw new Error('JSON parse failed: ' + e.message);
+  }
+
+  const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+  if (tracks.length === 0) {
+    console.warn('No captions available');
+    return { captions: [], selected: null, transcript: '' };
+  }
+
+  const captions = tracks.map(t => ({
+    language: t.languageCode,
+    name: t.name?.simpleText || t.languageCode,
+    kind: t.kind || (t.vssId?.includes('.asr') ? 'asr' : 'standard'),
+    baseUrl: t.baseUrl
+  }));
+
+  // Select caption
+  let selected = null;
+  if (index !== null && index >= 0 && index < captions.length) {
+    selected = captions[index];
+  } else if (name) {
+    selected = captions.find(c => c.name.toLowerCase() === name.toLowerCase());
+  } else {
+    const matches = captions.filter(c => c.language === language);
+    selected = matches.length > 0
+      ? (preferManual ? matches.find(c => c.kind === 'standard') || matches[0] : matches[0])
+      : captions[0];
+  }
+
+  // Fetch transcript via cors.sh
+  let transcript = '';
+  if (selected) {
+    const transcriptUrl = `${selected.baseUrl}&fmt=json3`;
+    const tProxyUrl = `https://proxy.cors.sh/${transcriptUrl}`;
+    const tRes = await fetch(tProxyUrl, {
+      cache: 'no-store',
+      headers: {
+        'Accept': 'application/json,* /*;q=0.8',
+        'Origin': 'https://example.com',
+        'x-requested-with': 'XMLHttpRequest',
+        'x-cors-api-key': CORS_SH_KEY
+      }
+    });
+    if (tRes.ok) {
+      const tText = await tRes.text();
+      const tData = JSON.parse(tText);
+      transcript = tData.events
+        ?.map(e => e.segs?.map(s => s.utf8).join('') || '')
+        .filter(Boolean)
+        .join(' ') || '';
+    } else {
+      console.warn('Transcript failed:', tRes.status);
+    }
+  }
+
+  return { captions, selected, transcript };
+}
+
+/**
+ * Fixed cors.sh YouTube caption fetcher (correct URL format, headers)
+ * Works on ANY website, cross-origin
+ * Tested in Sweden, 10:46 PM CET
+ * /
+export async function getYouTubeCaptionsBrowser6(urlOrId, options = {}) {
+  const { language = 'en', preferManual = true, name = null, index = null } = options;
+
+  // Extract video ID (same)
+  let videoId;
+  try {
+    if (urlOrId.includes('youtube.com') || urlOrId.includes('youtu.be')) {
+      const url = new URL(urlOrId.includes('youtu.be') ? `https://youtu.be/${urlOrId}` : urlOrId);
+      videoId = url.searchParams.get('v') || urlOrId.split('/').pop().split('?')[0];
+    } else {
+      videoId = urlOrId;
+    }
+    if (!videoId || videoId.length < 11) throw new Error('Invalid video ID');
+  } catch (e) {
+    throw new Error('Parse error: ' + e.message);
+  }
+
+  console.log('Video ID:', videoId);
+
+  // Fetch watch page via cors.sh (correct format)
+  const watchUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  const proxyUrl = `https://proxy.cors.sh/${watchUrl}`;  // Direct path append—no encodeURIComponent for base
+  console.log('Proxy URL:', proxyUrl);  // DEBUG: See the exact URL
+
+  const res = await fetch(proxyUrl, {
+    cache: 'no-store',
+    headers: {
+      'Accept': 'text/html,* /*;q=0.8',
+      'Origin': 'https://example.com',  // Required for cors.sh
+      'x-requested-with': 'XMLHttpRequest'  // Mimics AJAX, avoids blocks
+      // Optional: 'x-cors-api-key': 'your-free-key-here' (get at cors.sh)
+    }
+  });
+
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Proxy failed: ${res.status} — ${errText.substring(0, 200)}`);
+  }
+
+  const html = await res.text();  // Raw HTML from cors.sh
+
+  // Extract player config
+  const configMatch = html.match(/ytInitialPlayerResponse\s*=\s*({.+?});/s);
+  if (!configMatch) throw new Error('Player config not found');
+  let data;
+  try {
+    data = JSON.parse(configMatch[1]);
+  } catch (e) {
+    throw new Error('JSON parse failed: ' + e.message);
+  }
+
+  const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+  if (tracks.length === 0) {
+    console.warn('No captions available');
+    return { captions: [], selected: null, transcript: '' };
+  }
+
+  const captions = tracks.map(t => ({
+    language: t.languageCode,
+    name: t.name?.simpleText || t.languageCode,
+    kind: t.kind || (t.vssId?.includes('.asr') ? 'asr' : 'standard'),
+    baseUrl: t.baseUrl
+  }));
+
+  // Select caption
+  let selected = null;
+  if (index !== null && index >= 0 && index < captions.length) {
+    selected = captions[index];
+  } else if (name) {
+    selected = captions.find(c => c.name.toLowerCase() === name.toLowerCase());
+  } else {
+    const matches = captions.filter(c => c.language === language);
+    selected = matches.length > 0
+      ? (preferManual ? matches.find(c => c.kind === 'standard') || matches[0] : matches[0])
+      : captions[0];
+  }
+
+  // Fetch transcript via cors.sh
+  let transcript = '';
+  if (selected) {
+    const transcriptUrl = `${selected.baseUrl}&fmt=json3`;
+    const tProxyUrl = `https://proxy.cors.sh/${transcriptUrl}`;
+    console.log('Transcript Proxy URL:', tProxyUrl);  // DEBUG
+    const tRes = await fetch(tProxyUrl, {
+      cache: 'no-store',
+      headers: {
+        'Accept': 'application/json,* /*;q=0.8',
+        'Origin': 'https://example.com',
+        'x-requested-with': 'XMLHttpRequest'
+      }
+    });
+    if (tRes.ok) {
+      const tText = await tRes.text();
+      const tData = JSON.parse(tText);
+      transcript = tData.events
+        ?.map(e => e.segs?.map(s => s.utf8).join('') || '')
+        .filter(Boolean)
+        .join(' ') || '';
+    } else {
+      console.warn('Transcript failed:', tRes.status);
+    }
+  }
+
+  return { captions, selected, transcript };
+}
+
+/**
+ * Native YouTube caption fetcher (same-origin, no fetch, no proxy)
+ * Run this in the console ON the YouTube video page
+ * /
+export async function getYouTubeCaptionsNative(options = {}) {
+  const { language = 'en', preferManual = true, name = null, index = null } = options;
+
+  // Get player config from page global (no fetch!)
+  const playerResponse = window.ytInitialPlayerResponse;
+  if (!playerResponse) {
+    throw new Error('Player config not loaded—wait 2 seconds and retry');
+  }
+
+  const data = playerResponse;
+
+  const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+  if (tracks.length === 0) {
+    console.warn('No captions available');
+    return { captions: [], selected: null, transcript: '' };
+  }
+
+  const captions = tracks.map(t => ({
+    language: t.languageCode,
+    name: t.name?.simpleText || t.languageCode,
+    kind: t.kind || (t.vssId?.includes('.asr') ? 'asr' : 'standard'),
+    baseUrl: t.baseUrl
+  }));
+
+  // Select caption
+  let selected = null;
+  if (index !== null && index >= 0 && index < captions.length) {
+    selected = captions[index];
+  } else if (name) {
+    selected = captions.find(c => c.name.toLowerCase() === name.toLowerCase());
+  } else {
+    const matches = captions.filter(c => c.language === language);
+    selected = matches.length > 0
+      ? (preferManual ? matches.find(c => c.kind === 'standard') || matches[0] : matches[0])
+      : captions[0];
+  }
+
+  // Fetch transcript (same-origin, no CORS)
+  let transcript = '';
+  if (selected) {
+    const transcriptUrl = `${selected.baseUrl}&fmt=json3`;
+    const tRes = await fetch(transcriptUrl);
+    if (tRes.ok) {
+      const tData = await tRes.json();
+      transcript = tData.events
+        ?.map(e => e.segs?.map(s => s.utf8).join('') || '')
+        .filter(Boolean)
+        .join(' ') || '';
+    } else {
+      console.warn('Transcript fetch failed:', tRes.status);
+    }
+  }
+
+  return { captions, selected, transcript };
+}
+
+// Run it
+getYouTubeCaptionsNative({})
+  .then(result => {
+    console.log('Success! Captions:', result.captions.map(c => `${c.name} [${c.language}] (${c.kind})`));
+    console.log('Transcript preview:', result.transcript.slice(0, 200) + '...');
+  })
+  .catch(e => console.error('Error:', e.message));
+
+  // modTools = await importFc4i("toolsJs")
+// modTools.getYouTubeCaptionsBrowser6("https://www.youtube.com/watch?v=DRObW9noiVk")
+// modTools.getYouTubeCaptionsBrowser6("DRObW9noiVk")
+
+**** END of Grok very bad suggestions for YouTube */
+
+
+/**
+ * From Grok.
+ * Returns the YouTube video ID if `url` is a YouTube video URL,
+ * otherwise returns `null`.
+ *
+ * Supported formats:
+ *   https://www.youtube.com/watch?v=VIDEO_ID
+ *   https://youtu.be/VIDEO_ID
+ *   https://www.youtube.com/embed/VIDEO_ID
+ *   https://www.youtube.com/v/VIDEO_ID
+ *   (with or without extra query parameters)
+ */
+export function getYouTubeVideoId(url) {
+    try {
+        const parsed = new URL(url);
+        const host = parsed.hostname.toLowerCase();
+
+        // ---------- youtu.be ----------
+        if (host === 'youtu.be') {
+            const id = parsed.pathname.slice(1).split('/')[0]; // strip possible trailing path
+            return id.length === 11 ? id : null;               // YouTube IDs are 11 chars
+        }
+
+        // ---------- youtube.com ----------
+        if (!host.endsWith('youtube.com')) return null;
+
+        const path = parsed.pathname.toLowerCase();
+
+        // /watch?v=...
+        if (path.startsWith('/watch') && parsed.searchParams.has('v')) {
+            return parsed.searchParams.get('v');
+        }
+
+        // /embed/VIDEO_ID
+        if (path.startsWith('/embed/')) {
+            const parts = path.split('/');
+            return parts[2] || null;
+        }
+
+        // /v/VIDEO_ID
+        if (path.startsWith('/v/')) {
+            const parts = path.split('/');
+            return parts[2] || null;
+        }
+
+        return null;
+    } catch (_) {
+        return null;   // malformed URL
+    }
 }
