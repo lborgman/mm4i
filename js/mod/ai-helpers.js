@@ -3837,7 +3837,7 @@ function fixMalformedJSON2(str) {
     });
 }
 
-_testFixMalformedJSON2();
+// _testFixMalformedJSON2();
 function _testFixMalformedJSON2() {
     // Example usage
     const malformedJSON = `{
@@ -3903,7 +3903,7 @@ function fixMalformedJSON3(str) {
     return str;
 }
 
-_testFixMalformedJSON3();
+// _testFixMalformedJSON3();
 function _testFixMalformedJSON3() {
     // Example usage - Test 1: Unquoted notes value
     const malformedJSON1 = `{
