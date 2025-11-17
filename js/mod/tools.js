@@ -3012,9 +3012,15 @@ export function addSafeCacheBuster(url) {
  * @property {string} corssh
  */
 const urlProxies = {
-    allorigins: 'https://api.allorigins.win/get?url=',
+    // allorigins: 'https://api.allorigins.win/get?url=', // rejected 2025-11-17
     corsproxy: 'https://corsproxy.io/?',
-    corssh: 'https://cors.sh/'
+    // corssh: 'https://cors.sh/', // rejected 2025-11-17
+
+    // CORS_Anywhere: "https://cors-anywhere.herokuapp.com/",
+    // Codetabs: "https://api.codetabs.com/v1/proxy?quest=",
+    // Corsfix: "https://corsproxy.io/?",
+    // Thebugging: "https://thebugging.com/cors-proxy/",
+    // Corsx2u: "https://corsx2u.in/",
 };
 
 /**
@@ -3026,7 +3032,7 @@ const urlProxies = {
  * @param {string} proxyName - 'allorigins' | 'corsproxy' | 'corssh'
  * @returns {Promise<string>} HTML string
  */
-export async function fetchFreshViaProxy(url, proxyName = 'allorigins') {
+export async function fetchFreshViaProxy(url, proxyName = 'corsproxy') {
 
     const proxy = urlProxies[proxyName];
     if (!proxy) throw new Error(`Unknown proxy: ${proxyName}. Use: allorigins, corsproxy, corssh`);
@@ -3053,14 +3059,32 @@ export async function fetchFreshViaProxy(url, proxyName = 'allorigins') {
     return await res.text();
 }
 export async function testFetchProxy(url = "https://sr.se") {
+    console.log("%ctestFetchProxy", "font-size:24px", url);
     /** @type {Record<string, Promise<string>>} */
     const prom = {};
     // Populate prom with promises for each proxy
-    for (const k of Object.keys(urlProxies)) {
+    const keys = Object.keys(urlProxies);
+    // for (const k of Object.keys(urlProxies)) {
+    for (const k of keys) {
         prom[k] = fetchFreshViaProxy(url, k);
     }
+    prom["DEFAULT"] = fetchFreshViaProxy(url);
     // Promise.allSettled expects an iterable (array) of promises
     const res = await Promise.allSettled(Object.values(prom));
+    console.log({ res });
+    for (let i = 0; i < res.length; i++) {
+        const key = keys[i] || "DEFAULT";
+        const result = res[i];
+        const status = result.status;
+        const value = result.value;
+        // const html = "none yet"; // cleanHtml(value);
+        const isRejected = status == "rejected";
+        const html = isRejected ? "REJECTED-html" : cleanHtml(value).slice(0, 1000);
+        const title = isRejected ? "REJECTED-title": value.match(/<title[^>]*>([^<]+)<\/title>/)[1];
+
+        console.log("---> ", key, status, `\n"${title}"\n`, html);
+        console.log({ result });
+    }
     return res;
 }
 
@@ -3074,11 +3098,18 @@ export function cleanHtml(html) {
     return html
         .replace(/<script[\s\S]*?<\/script>/gi, '')
         .replace(/<style[\s\S]*?<\/style>/gi, '')
+        .replace(/<link[\s\S]*?<\/link>/gi, '')
+        .replace(/<link[\s\S]*?\/>/gi, '')
+
+        .replace(/\s+/g, ' ')
+
+        // .replace(/<meta[\s\S]*?<\/meta>/gi, '')
+        // .replace(/<meta[\s\S]*?\/>/gi, '')
+
         // It looks like a very bad suggestion to remove the tags
         // before giving the content to an AI.
         // There is structure in the HTML that can be used.
         // .replace(/<[^>]*>/g, ' ')  // Strip all tags
-        .replace(/\s+/g, ' ')
         .trim();
 }
 
