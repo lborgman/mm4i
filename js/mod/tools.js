@@ -3001,7 +3001,21 @@ export function addSafeCacheBuster(url) {
 //  console.log(safeUrl);
 // → https://example.com/article?xK9pM2qR=1731671045123
 
+/**
+ * @typedef {Object<string, string>} ShallowJsonObject
+ */
 
+/**
+ * @typedef {Object} UrlProxies
+ * @property {string} allorigins
+ * @property {string} corsproxy
+ * @property {string} corssh
+ */
+const urlProxies = {
+    allorigins: 'https://api.allorigins.win/get?url=',
+    corsproxy: 'https://corsproxy.io/?',
+    corssh: 'https://cors.sh/'
+};
 
 /**
  * fetchFreshViaProxy(url, proxyName = 'allorigins')
@@ -3013,13 +3027,8 @@ export function addSafeCacheBuster(url) {
  * @returns {Promise<string>} HTML string
  */
 export async function fetchFreshViaProxy(url, proxyName = 'allorigins') {
-    const proxies = {
-        allorigins: 'https://api.allorigins.win/get?url=',
-        corsproxy: 'https://corsproxy.io/?',
-        corssh: 'https://cors.sh/'
-    };
 
-    const proxy = proxies[proxyName];
+    const proxy = urlProxies[proxyName];
     if (!proxy) throw new Error(`Unknown proxy: ${proxyName}. Use: allorigins, corsproxy, corssh`);
 
     const encoded = encodeURIComponent(url);
@@ -3043,12 +3052,20 @@ export async function fetchFreshViaProxy(url, proxyName = 'allorigins') {
     // corsproxy.io and cors.sh return raw HTML
     return await res.text();
 }
-
+export async function testFetchProxy(url = "https://sr.se") {
+    /** @type {Record<string, Promise<string>>} */
+    const prom = {};
+    // Populate prom with promises for each proxy
+    for (const k of Object.keys(urlProxies)) {
+        prom[k] = fetchFreshViaProxy(url, k);
+    }
+    // Promise.allSettled expects an iterable (array) of promises
+    const res = await Promise.allSettled(Object.values(prom));
+    return res;
+}
 
 /**
  * Get text from html.
- * It looks like a very bad suggestion (even though it works!).
- * There is structure in the HTML that can be used.
  *  
  * @param {string} html 
  * @returns {string}
@@ -3057,7 +3074,10 @@ export function cleanHtml(html) {
     return html
         .replace(/<script[\s\S]*?<\/script>/gi, '')
         .replace(/<style[\s\S]*?<\/style>/gi, '')
-        .replace(/<[^>]*>/g, ' ')  // Strip all tags
+        // It looks like a very bad suggestion to remove the tags
+        // before giving the content to an AI.
+        // There is structure in the HTML that can be used.
+        // .replace(/<[^>]*>/g, ' ')  // Strip all tags
         .replace(/\s+/g, ' ')
         .trim();
 }
