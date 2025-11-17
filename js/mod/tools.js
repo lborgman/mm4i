@@ -3080,7 +3080,7 @@ export async function testFetchProxy(url = "https://sr.se") {
         // const html = "none yet"; // cleanHtml(value);
         const isRejected = status == "rejected";
         const html = isRejected ? "REJECTED-html" : cleanHtml(value).slice(0, 1000);
-        const title = isRejected ? "REJECTED-title": value.match(/<title[^>]*>([^<]+)<\/title>/)[1];
+        const title = isRejected ? "REJECTED-title" : value.match(/<title[^>]*>([^<]+)<\/title>/)[1];
 
         console.log("---> ", key, status, `\n"${title}"\n`, html);
         console.log({ result });
@@ -3095,13 +3095,13 @@ export async function testFetchProxy(url = "https://sr.se") {
  * @returns {string}
  */
 export function cleanHtml(html) {
-    return html
+    const html1space = html.replace(/\s+/g, ' ');
+    debugger;
+    return html1space
         .replace(/<script[\s\S]*?<\/script>/gi, '')
         .replace(/<style[\s\S]*?<\/style>/gi, '')
         .replace(/<link[\s\S]*?<\/link>/gi, '')
         .replace(/<link[\s\S]*?\/>/gi, '')
-
-        .replace(/\s+/g, ' ')
 
         // .replace(/<meta[\s\S]*?<\/meta>/gi, '')
         // .replace(/<meta[\s\S]*?\/>/gi, '')
@@ -3992,4 +3992,75 @@ export function getYouTubeVideoId(url) {
     } catch (_) {
         return null;   // malformed URL
     }
+}
+
+
+// Grok. Saving test here:
+export function splitHeadBody(html) {
+    let pos = 0;
+    const headTags = ['meta', 'link', 'style', 'title', 'script', 'base', 'template', 'noscript'];
+
+    while (pos < html.length) {
+        // Skip whitespace (including Windows \r\n)
+        const ws = html.slice(pos).match(/^[\s\r\n]+/);
+        if (ws) { pos += ws[0].length; continue; }
+
+        // Skip comments
+        const comm = html.slice(pos).match(/^<!--[\s\S]*?-->/);
+        if (comm) { pos += comm[0].length; continue; }
+
+        // Skip DOCTYPE
+        const doc = html.slice(pos).match(/^<!DOCTYPE[^>]*>/i);
+        if (doc) { pos += doc[0].length; continue; }
+
+        // Look for opening tag
+        const open = html.slice(pos).match(/^<([a-z0-9-]+)\b/i);
+        if (!open) break;
+
+        const tagName = open[1].toLowerCase();
+        if (!headTags.includes(tagName)) break;
+
+        // Find the end of the whole element
+        const rest = html.slice(pos);
+        let endIndex;
+
+        if (['meta', 'link', 'base'].includes(tagName)) {
+            const m = rest.match(/^<[^>]*>/i);
+            endIndex = m ? m[0].length : 0;
+        } else {
+            const close = new RegExp(`</${tagName}\\s*>`, 'i');
+            const m = close.exec(rest);
+            endIndex = m ? m.index + m[0].length : 0;
+        }
+
+        if (!endIndex) break;
+        pos += endIndex;
+    }
+
+    return { head: html.slice(0, pos), body: html.slice(pos), at: pos };
+}
+
+
+// _testSplitHeadBody();
+export function _testSplitHeadBody() {
+    console.log("===== _testSplitHeadBody()");
+    // ——— YOUR TEST HTML ———
+    const html = `<!DOCTYPE html>
+<title>Hello Sweden</title>
+<meta charset="utf-8">
+<style>body{font-family:Arial}</style>
+<!-- still head -->
+<h1>Now we are in body</h1>
+<p>Yes!</p>`;
+
+    const result = splitHeadBody(html);
+
+    // This line is the important one — it will ALWAYS print something
+    console.log('RESULT →', result);
+    console.log('Head length →', result.head.length);
+    console.log('First 120 chars of head →', result.head.slice(0, 120));
+    console.log('Body starts with →', result.body.slice(0, 50));
+
+    // Also return it so you can inspect it by clicking the arrow
+    return result;
 }
