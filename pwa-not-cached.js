@@ -37,11 +37,20 @@ export function getSecPleaseWaitUpdating() { return secPleaseWaitUpdating; }
 /** @type {string} */ let ourUrlSW;
 
 
+/*
+This was meant to be a check for that this module was loaded correctly.
+However it does not work because query params are only used for the module 
+fecth, but not for the module identity.
+
 const urlModule = new URL(import.meta.url);
 const params = [...urlModule.searchParams.keys()];
 const parNc = "PWAnocacheRand"
-if (params.length != 1) { console.error(`There hould be only 1 parameter, got ${params.length}`); }
+if (params.length != 1) {
+    console.log({ params });
+    console.error(`There hould be only 1 parameter, got ${params.length}`);
+}
 if (params[0] != parNc) { console.error(`The parameter name should be "${parNc}", not "${params[0]}"`); }
+*/
 
 
 

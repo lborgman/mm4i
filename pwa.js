@@ -256,6 +256,10 @@ async function loadNotCached() {
     if (modNotCached) return;
     const isOnLine = true;
     if (isOnLine) {
+        /*
+            This work because fetch uses the full url.
+            Module id (as in import.meta.url) strips query strings and hash.
+        */
         urlPWA.pathname = urlPWA.pathname.replace("pwa.js", "pwa-not-cached.js");
         urlPWA.searchParams.set("PWAnocacheRand", getRandomString());
         let hrefNotCached = urlPWA.href;
