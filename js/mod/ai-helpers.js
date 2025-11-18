@@ -155,6 +155,7 @@ const infoAIs = {
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg",
         urlChat: "gemini.google.com/app",
         isPWA: false, // 2025-10-04
+        canReadYouTube: true,
         urlAPIkey: "https://support.gemini.com/hc/en-us/articles/360031080191-How-do-I-create-an-API-key"
     }),
     "ChatGPT": mkAIinfo({
@@ -320,6 +321,7 @@ export async function generateMindMap(fromLink) {
     if (fromLink) {
         inpLink.value = fromLink;
         // setTimeout(() => { checkInpLink(); }, 1000);
+        checkInpLink();
     }
     inpLink.addEventListener("input", async () => {
         checkInpLink();
@@ -328,22 +330,34 @@ export async function generateMindMap(fromLink) {
         checkInpLink();
     });
     async function checkInpLink() {
-        // @ts-ignore
-        // const funHasInternet = window["PWAhasInternet"];
         const modPWA = await importFc4i("pwa");
-        const funHasInternet = modPWA.PWAhasInternet;
+        // const funHasInternet = modPWA.PWAhasInternet;
         // FIX-ME:
-        if (funHasInternet) {
-            const tofFun = typeof funHasInternet;
-            if (tofFun != "function") throw Error(`typeof funHasInternet == "${tofFun}"`);
-            const i = await funHasInternet();
-            if (!i) {
-                eltStatus.textContent = "No internet connection";
-                return;
-            }
+        // if (funHasInternet) {
+        // const tofFun = typeof funHasInternet;
+        // if (tofFun != "function") throw Error(`typeof funHasInternet == "${tofFun}"`);
+        // const i = await funHasInternet();
+        // if (!i) {
+        if (!modPWA.PWAhasInternet()) {
+            eltStatus.textContent = "No internet connection";
+            return;
         }
-        const b = divPrompt;
+
         const u = inpLink.value.trim();
+        youTubeVideoId = modTools.isValidYouTubeID(u) ? u : modTools.getYouTubeVideoId(u);
+        console.log({ youTubeVideoId });
+        const eltDialogContent = inpLink.closest("div.mdc-dialog__content");
+        eltStatus.textContent = "";
+        if (youTubeVideoId) {
+            eltDialogContent.classList.add("is-youtube-video");
+
+            const eltLogo = mkEltYouTubeLogo("18px");
+            eltStatus.appendChild(eltLogo);
+            return;
+        }
+        eltDialogContent.classList.remove("is-youtube-video");
+
+        const b = divPrompt;
         // console.log({ u });
         if (u.length < 13) {
             eltStatus.textContent = `Url too short: ${u.length} < 13`;
@@ -399,10 +413,29 @@ export async function generateMindMap(fromLink) {
         return reachable;
     }
 
+    /**
+     * 
+     * @param {string} height 
+     * @returns {HTMLDivElement}
+     */
+    function mkEltYouTubeLogo(height) {
+        const eltLogo = mkElt("div");
+        eltLogo.style.aspectRatio = "502 / 210.65";
+        eltLogo.style.height = height;
+        eltLogo.style.display = "inline-block";
+
+        eltLogo.style.backgroundColor = "red";
+        const urlYouTubeLogo = "https://upload.wikimedia.org/wikipedia/commons/e/e1/Logo_of_YouTube_%282015-2017%29.svg";
+        eltLogo.style.backgroundImage = `url("${urlYouTubeLogo}")`;
+        eltLogo.style.backgroundSize = "contain";
+        return eltLogo;
+    }
+
 
 
     let promptAI = "";
-    let youTubeVideoId;
+    /** @type {string|null} */
+    let youTubeVideoId = null;
     function updatePromptAi() {
         promptAI = makeAIprompt(inpLink.value.trim(), 4);
         const bPrompt = document.getElementById("prompt-ai");
@@ -423,8 +456,9 @@ export async function generateMindMap(fromLink) {
         //    today no AI seems to fetch the page by
         //    themselves (they use what the already has fetched - which
         //    might contain something very different).
-        youTubeVideoId = modTools.getYouTubeVideoId(link);
-        console.log({ youTubeVideoId });
+
+        // youTubeVideoId = modTools.getYouTubeVideoId(link); // inpLink
+        // console.log({ youTubeVideoId });
         if (youTubeVideoId == null) {
             // modTools.f
         }
@@ -479,35 +513,35 @@ export async function generateMindMap(fromLink) {
                 `
         /*
         return `
-You are an assistant that summarizes content into a structured mind map.
-
-Task:
-1. Read and process the content at this link: "${link}"
-- If it's an article: extract and summarize the text. 
-- If it's a video: use the transcript or main spoken content for the summary.
-2. Summarize the content into hierarchical key points:
-- Main idea
-- Major subtopics
-- Supporting details
-3. Limit the hierarchy to a maximum depth of ${maxDepth} levels.
-4. Output the result as a flat node array in **valid JSON syntax**, where:
-- "id": unique number for each node
-- "name": text for the node
-- "parentId": id of the parent node (null for the main topic)
-- "notes": additional context or supporting detail (empty string if not available)
-
-Output format example:
-[
-{ "id": 1, "name": "Main Topic", "parentId": null, "notes": "Overall summary" },
-{ "id": 2, "name": "Subtopic A", "parentId": 1, "notes": "Key points about A" },
-{ "id": 3, "name": "Subtopic B", "parentId": 1, "notes": "Key points about B" },
-{ "id": 4, "name": "Detail A1", "parentId": 2, "notes": "Supporting detail for A" }
-]
-
-Important:
-- Give my strict JSON, parser-ready.
-- Your answer must contain only the JSON.
-`;
+    You are an assistant that summarizes content into a structured mind map.
+    
+    Task:
+    1. Read and process the content at this link: "${link}"
+    - If it's an article: extract and summarize the text. 
+    - If it's a video: use the transcript or main spoken content for the summary.
+    2. Summarize the content into hierarchical key points:
+    - Main idea
+    - Major subtopics
+    - Supporting details
+    3. Limit the hierarchy to a maximum depth of ${maxDepth} levels.
+    4. Output the result as a flat node array in **valid JSON syntax**, where:
+    - "id": unique number for each node
+    - "name": text for the node
+    - "parentId": id of the parent node (null for the main topic)
+    - "notes": additional context or supporting detail (empty string if not available)
+    
+    Output format example:
+    [
+    { "id": 1, "name": "Main Topic", "parentId": null, "notes": "Overall summary" },
+    { "id": 2, "name": "Subtopic A", "parentId": 1, "notes": "Key points about A" },
+    { "id": 3, "name": "Subtopic B", "parentId": 1, "notes": "Key points about B" },
+    { "id": 4, "name": "Detail A1", "parentId": 2, "notes": "Supporting detail for A" }
+    ]
+    
+    Important:
+    - Give my strict JSON, parser-ready.
+    - Your answer must contain only the JSON.
+    `;
         */
     }
 
@@ -960,8 +994,12 @@ Important:
         sumOptions,
         divOptions,
     ]);
-    const spanH = mkElt("span");
+
+
+
+    const spanH = mkElt("span"); // This is just for the height!
     spanH.style = "width:0px;height:40px;background:red;display:inline-block;";
+
     const divB = mkElt("div", undefined, [
         spanH,
         btnShowAllAIs,
@@ -975,313 +1013,311 @@ Important:
         // "width:100%; display:flex; flex-direction:row; justify-content:space-between; align-items:center; position:relative;";
         "width:100%; position:relative;";
     divShowAllAIs.id = "div-show-all-ais"
+    divShowAllAIs.classList.add("youtube-hide");
     divEltsAI.appendChild(divShowAllAIs);
 
-    /*
-    {
-        // @ts-ignore
-        const radAI = mkElt("input", { type: "radio", name: "ai", value: "none", checked: true });
-        // @ts-ignore
-        const eltAI = mkElt("label", undefined, [radAI, "none"]);
-        eltAI.classList.add("elt-ai");
-        eltAI.style.background = "lightgray";
-        divAIhardWay.appendChild(eltAI);
-    }
-    */
+    const divInfoYouTubeAIs = mkElt("div", undefined, [
+        mkEltYouTubeLogo("20px"),
+        mkElt("div", undefined, "AIs: that can read YouTube")
+    ]);
+    divInfoYouTubeAIs.id = "div-youtube-info-ais";
+    divInfoYouTubeAIs.classList.add("youtube-show");
+    divEltsAI.appendChild(divInfoYouTubeAIs);
 
-    // Add Hugging Face first
+
+    // Add Hugging Face first - no, I can not get it to work here???
     // await addHuggingFace();
-    async function _addHuggingFace() {
-        const imgAI = mkElt("span", { class: "elt-ai-img" });
-        const urlImg = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg";
-        imgAI.style.backgroundImage = `url(${urlImg})`;
-        imgAI.style.display = "none";
-        const nameIcon = "smart_toy";
-        const iconWay = modMdc.mkMDCicon(nameIcon);
-        const wayIndicator = mkElt("i", undefined, [iconWay]);
-        wayIndicator.style.color = "lightseagreen";
-        const radAI = mkElt("input", { type: "radio", name: "ai", value: "HuggingFace" });
+    // async function addHuggingFace() {
+    //     const imgAI = mkElt("span", { class: "elt-ai-img" });
+    //     const urlImg = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg";
+    //     imgAI.style.backgroundImage = `url(${urlImg})`;
+    //     imgAI.style.display = "none";
+    //     const nameIcon = "smart_toy";
+    //     const iconWay = modMdc.mkMDCicon(nameIcon);
+    //     const wayIndicator = mkElt("i", undefined, [iconWay]);
+    //     wayIndicator.style.color = "lightseagreen";
+    //     const radAI = mkElt("input", { type: "radio", name: "ai", value: "HuggingFace" });
 
-        const longNameModel = /** @type {string} */ (settingPuterAImodel.value);
-        const tofLongNM = typeof longNameModel;
-        if (tofLongNM != "string") throw Error(`typeof longNameModel = "${tofLongNM}"`);
-        const nameModel = longNameModel.slice(11);
-        const [provider, model] = nameModel.split("/");
-        const niceProvider = makeNiceProviderName(provider);
-        const divModel = mkElt("div", undefined, [
-            mkElt("b", undefined, `${niceProvider}: `), model]);
-        wayIndicator.style.color = "lightskyblue";
-        divModel.style.fontSize = "0.8rem";
-        const divHeader = mkElt("div", undefined, [wayIndicator, "Hugging Face "]);
-        divHeader.style.display = "flex";
-        divHeader.style.gap = "10px";
-        divHeader.style.marginBottom = "-10px";
+    //     const longNameModel = /** @type {string} */ (settingPuterAImodel.value);
+    //     const tofLongNM = typeof longNameModel;
+    //     if (tofLongNM != "string") throw Error(`typeof longNameModel = "${tofLongNM}"`);
+    //     const nameModel = longNameModel.slice(11);
+    //     const [provider, model] = nameModel.split("/");
+    //     const niceProvider = makeNiceProviderName(provider);
+    //     const divModel = mkElt("div", undefined, [
+    //         mkElt("b", undefined, `${niceProvider}: `), model]);
+    //     wayIndicator.style.color = "lightskyblue";
+    //     divModel.style.fontSize = "0.8rem";
+    //     const divHeader = mkElt("div", undefined, [wayIndicator, "Hugging Face "]);
+    //     divHeader.style.display = "flex";
+    //     divHeader.style.gap = "10px";
+    //     divHeader.style.marginBottom = "-10px";
 
-        const divHuggingFace = mkElt("div", undefined, [
-            divHeader,
-            divModel,
-        ]);
+    //     const divHuggingFace = mkElt("div", undefined, [
+    //         divHeader,
+    //         divModel,
+    //     ]);
 
-        const eltAIlabel = mkElt("label", undefined, [radAI, imgAI, divHuggingFace]);
-        eltAIlabel.classList.add("elt-ai-label");
+    //     const eltAIlabel = mkElt("label", undefined, [radAI, imgAI, divHuggingFace]);
+    //     eltAIlabel.classList.add("elt-ai-label");
 
-        // "details"
-        const sumAI = mkElt("summary", undefined, "");
-        sumAI.classList.add("elt-ai-summary");
-        sumAI.style.top = "20px";
+    //     // "details"
+    //     const sumAI = mkElt("summary", undefined, "");
+    //     sumAI.classList.add("elt-ai-summary");
+    //     sumAI.style.top = "20px";
 
-        // "Automated"
-        const iconAutomated = modMdc.mkMDCicon("smart_toy");
-        iconAutomated.style.color = "goldenrod";
-        iconAutomated.style.fontSize = "1.4rem";
-        const eltInfoAutomated = mkElt("div", undefined, [
-            mkElt("p", undefined, [
-                iconAutomated,
-                ` The AI:s below are automated here. 
-            This means that when they are ready the mindmap will be created automatically.
-        `]),
-            mkElt("p", undefined, [
-                `These AI:s are handled by `,
-                mkElt("a", { href: "https://huggingface.co/", target: "_blank" }, "https://huggingface.co/"),
-                ` - a service that helps me automate.
-            (I am not in any way involved in payments. And I do not get anything.)
-        `]),
-            mkElt("p", undefined, [
-                `TODO: describe Hugging Face
-            `
-            ])
-        ]);
-
-
-
-        /** @type {HTMLDivElement} */
-        const divHuggingFaceModels = mkElt("div", undefined, [
-            mkElt("h3", undefined, "AI models")
-        ]);
-
-        const modPutinModels = await importFc4i("puter-ai-models");
-        const arrModels = modPutinModels.getModels();
-        const oldModel = settingPuterAImodel.value;
-        let providerGroup = "";
-        /** @type {HTMLDivElement} */
-        let divProvider;
-        arrModels.sort().forEach( /** @param {string} fullNameModel */(fullNameModel) => {
-            const radModel = mkElt("input", { type: "radio", name: "puter-model", value: fullNameModel });
-            const longName = fullNameModel.slice(11);
-            const [provider, nameModel] = longName.split("/");
-            if (provider != providerGroup) {
-                providerGroup = provider;
-                // divPuterModels.appendChild( mkElt("div", { style: "font-size:1.3rem; font-weight:bold;" }, `${provider}:`));
-                divProvider = /** @type {HTMLDivElement} */ mkElt("div");
-                const detailsProvider = mkElt("details", undefined, [
-                    mkElt("summary", undefined, makeNiceProviderName(provider)),
-                    divProvider
-                ]);
-                divHuggingFaceModels.appendChild(detailsProvider)
-            }
-            const lblModel = mkElt("label", undefined, [radModel, " ", nameModel]);
-            // divPuterModels.appendChild(mkElt("div", undefined, lblModel));
-            divProvider.appendChild(mkElt("div", undefined, lblModel));
-            if (oldModel == fullNameModel) {
-                radModel.checked = true;
-                const eltDetails = lblModel.closest("details");
-                if (!eltDetails) throw Error("Did not find <details>");
-                eltDetails.open = true;
-            }
-        });
-
-        /** * @param {MouseEvent} evt - The mouse event triggered by the click.  */
-        divHuggingFaceModels.addEventListener("click", evt => {
-            evt.stopPropagation();
-            evt.stopImmediatePropagation();
-            if (!(evt.target instanceof HTMLElement)) { return; }
-            const trg = evt.target;
-            const tn = trg.tagName;
-            if (tn != "INPUT") return;
-            // const nameModel = trg.value;
-            const nameModel = (/** @type {HTMLInputElement} */ (trg)).value;
-            console.log({ nameModel });
-            settingPuterAImodel.value = nameModel;
-        });
+    //     // "Automated"
+    //     const iconAutomated = modMdc.mkMDCicon("smart_toy");
+    //     iconAutomated.style.color = "goldenrod";
+    //     iconAutomated.style.fontSize = "1.4rem";
+    //     const eltInfoAutomated = mkElt("div", undefined, [
+    //         mkElt("p", undefined, [
+    //             iconAutomated,
+    //             ` The AI:s below are automated here. 
+    //         This means that when they are ready the mindmap will be created automatically.
+    //     `]),
+    //         mkElt("p", undefined, [
+    //             `These AI:s are handled by `,
+    //             mkElt("a", { href: "https://huggingface.co/", target: "_blank" }, "https://huggingface.co/"),
+    //             ` - a service that helps me automate.
+    //         (I am not in any way involved in payments. And I do not get anything.)
+    //     `]),
+    //         mkElt("p", undefined, [
+    //             `TODO: describe Hugging Face
+    //         `
+    //         ])
+    //     ]);
 
 
-        const detInfoAutomated = mkElt("details", { style: "color:lightskyblue; margin-top:20px;" }, [
-            mkElt("summary", { style: "color:lightskyblue" }, "Info about these AI models"),
-            eltInfoAutomated,
-        ]);
 
-        const divDetAIcontent = mkElt("div", undefined, [
-            "Much more to come here!",
-            detInfoAutomated,
-            divHuggingFaceModels,
-        ]);
-        divDetAIcontent.classList.add("elt-ai-det-content");
+    //     /** @type {HTMLDivElement} */
+    //     const divHuggingFaceModels = mkElt("div", undefined, [
+    //         mkElt("h3", undefined, "AI models")
+    //     ]);
 
-        const detAI = mkElt("details", undefined, [
-            sumAI,
-            // mkElt("div", undefined, [ "More to come!", ]),
-            divDetAIcontent
-        ]);
+    //     const modPutinModels = await importFc4i("puter-ai-models");
+    //     const arrModels = modPutinModels.getModels();
+    //     const oldModel = settingPuterAImodel.value;
+    //     let providerGroup = "";
+    //     /** @type {HTMLDivElement} */
+    //     let divProvider;
+    //     arrModels.sort().forEach( /** @param {string} fullNameModel */(fullNameModel) => {
+    //         const radModel = mkElt("input", { type: "radio", name: "puter-model", value: fullNameModel });
+    //         const longName = fullNameModel.slice(11);
+    //         const [provider, nameModel] = longName.split("/");
+    //         if (provider != providerGroup) {
+    //             providerGroup = provider;
+    //             // divPuterModels.appendChild( mkElt("div", { style: "font-size:1.3rem; font-weight:bold;" }, `${provider}:`));
+    //             divProvider = /** @type {HTMLDivElement} */ mkElt("div");
+    //             const detailsProvider = mkElt("details", undefined, [
+    //                 mkElt("summary", undefined, makeNiceProviderName(provider)),
+    //                 divProvider
+    //             ]);
+    //             divHuggingFaceModels.appendChild(detailsProvider)
+    //         }
+    //         const lblModel = mkElt("label", undefined, [radModel, " ", nameModel]);
+    //         // divPuterModels.appendChild(mkElt("div", undefined, lblModel));
+    //         divProvider.appendChild(mkElt("div", undefined, lblModel));
+    //         if (oldModel == fullNameModel) {
+    //             radModel.checked = true;
+    //             const eltDetails = lblModel.closest("details");
+    //             if (!eltDetails) throw Error("Did not find <details>");
+    //             eltDetails.open = true;
+    //         }
+    //     });
+
+    //     /** * @param {MouseEvent} evt - The mouse event triggered by the click.  */
+    //     divHuggingFaceModels.addEventListener("click", evt => {
+    //         evt.stopPropagation();
+    //         evt.stopImmediatePropagation();
+    //         if (!(evt.target instanceof HTMLElement)) { return; }
+    //         const trg = evt.target;
+    //         const tn = trg.tagName;
+    //         if (tn != "INPUT") return;
+    //         // const nameModel = trg.value;
+    //         const nameModel = (/** @type {HTMLInputElement} */ (trg)).value;
+    //         console.log({ nameModel });
+    //         settingPuterAImodel.value = nameModel;
+    //     });
 
 
-        const eltAI = mkElt("div", undefined, [eltAIlabel, detAI]);
-        eltAI.classList.add("elt-ai");
-        eltAI.id = "elt-ai-puter";
-        divEltsAI.appendChild(eltAI);
-    }
+    //     const detInfoAutomated = mkElt("details", { style: "color:lightskyblue; margin-top:20px;" }, [
+    //         mkElt("summary", { style: "color:lightskyblue" }, "Info about these AI models"),
+    //         eltInfoAutomated,
+    //     ]);
 
-    // Add puter alternative 
+    //     const divDetAIcontent = mkElt("div", undefined, [
+    //         "Much more to come here!",
+    //         detInfoAutomated,
+    //         divHuggingFaceModels,
+    //     ]);
+    //     divDetAIcontent.classList.add("elt-ai-det-content");
+
+    //     const detAI = mkElt("details", undefined, [
+    //         sumAI,
+    //         // mkElt("div", undefined, [ "More to come!", ]),
+    //         divDetAIcontent
+    //     ]);
+
+
+    //     const eltAI = mkElt("div", undefined, [eltAIlabel, detAI]);
+    //     eltAI.classList.add("elt-ai");
+    //     eltAI.id = "elt-ai-puter";
+    //     divEltsAI.appendChild(eltAI);
+    // }
+
+    // Add puter alternative - unfortunately to slow to be usable here 
     // await _addPuter();
-    async function _addPuter() {
-        const imgAI = mkElt("span", { class: "elt-ai-img" });
-        const urlImg = "./ext/puter/puter.svg";
-        imgAI.style.backgroundImage = `url(${urlImg})`;
-        imgAI.style.display = "none";
-        const nameIcon = "smart_toy";
-        const iconWay = modMdc.mkMDCicon(nameIcon);
-        const wayIndicator = mkElt("i", undefined, [iconWay]);
-        wayIndicator.style.color = "lightseagreen";
-        const radAI = mkElt("input", { type: "radio", name: "ai", value: "PuterJs" });
+    // async function _addPuter() {
+    //     const imgAI = mkElt("span", { class: "elt-ai-img" });
+    //     const urlImg = "./ext/puter/puter.svg";
+    //     imgAI.style.backgroundImage = `url(${urlImg})`;
+    //     imgAI.style.display = "none";
+    //     const nameIcon = "smart_toy";
+    //     const iconWay = modMdc.mkMDCicon(nameIcon);
+    //     const wayIndicator = mkElt("i", undefined, [iconWay]);
+    //     wayIndicator.style.color = "lightseagreen";
+    //     const radAI = mkElt("input", { type: "radio", name: "ai", value: "PuterJs" });
 
-        const longNameModel = /** @type {string} */ (settingPuterAImodel.value);
-        const tofLongNM = typeof longNameModel;
-        if (tofLongNM != "string") throw Error(`typeof longNameModel = "${tofLongNM}"`);
-        const nameModel = longNameModel.slice(11);
-        const [provider, model] = nameModel.split("/");
-        const niceProvider = makeNiceProviderName(provider);
-        const divModel = mkElt("div", undefined, [
-            mkElt("b", undefined, `${niceProvider}: `), model]);
-        wayIndicator.style.color = "cyan";
-        wayIndicator.style.color = "lightseagreen";
-        wayIndicator.style.color = "lightskyblue";
-        // divModel.marginLeft = "10px";
-        divModel.style.fontSize = "0.8rem";
-        const divHeader = mkElt("div", undefined, [wayIndicator, "Automated "]);
-        divHeader.style.display = "flex";
-        // divHeader.style.justifyContent = "space-between";
-        divHeader.style.gap = "10px";
-        divHeader.style.marginBottom = "-10px";
+    //     const longNameModel = /** @type {string} */ (settingPuterAImodel.value);
+    //     const tofLongNM = typeof longNameModel;
+    //     if (tofLongNM != "string") throw Error(`typeof longNameModel = "${tofLongNM}"`);
+    //     const nameModel = longNameModel.slice(11);
+    //     const [provider, model] = nameModel.split("/");
+    //     const niceProvider = makeNiceProviderName(provider);
+    //     const divModel = mkElt("div", undefined, [
+    //         mkElt("b", undefined, `${niceProvider}: `), model]);
+    //     wayIndicator.style.color = "cyan";
+    //     wayIndicator.style.color = "lightseagreen";
+    //     wayIndicator.style.color = "lightskyblue";
+    //     // divModel.marginLeft = "10px";
+    //     divModel.style.fontSize = "0.8rem";
+    //     const divHeader = mkElt("div", undefined, [wayIndicator, "Automated "]);
+    //     divHeader.style.display = "flex";
+    //     // divHeader.style.justifyContent = "space-between";
+    //     divHeader.style.gap = "10px";
+    //     divHeader.style.marginBottom = "-10px";
 
-        const divPuter = mkElt("div", undefined, [
-            divHeader,
-            divModel,
-        ]);
+    //     const divPuter = mkElt("div", undefined, [
+    //         divHeader,
+    //         divModel,
+    //     ]);
 
-        const eltAIlabel = mkElt("label", undefined, [radAI, imgAI, divPuter]);
-        eltAIlabel.classList.add("elt-ai-label");
+    //     const eltAIlabel = mkElt("label", undefined, [radAI, imgAI, divPuter]);
+    //     eltAIlabel.classList.add("elt-ai-label");
 
-        // "details"
-        const sumAI = mkElt("summary", undefined, "");
-        sumAI.classList.add("elt-ai-summary");
-        sumAI.style.top = "20px";
+    //     // "details"
+    //     const sumAI = mkElt("summary", undefined, "");
+    //     sumAI.classList.add("elt-ai-summary");
+    //     sumAI.style.top = "20px";
 
-        // "Automated"
-        const iconAutomated = modMdc.mkMDCicon("smart_toy");
-        iconAutomated.style.color = "goldenrod";
-        iconAutomated.style.fontSize = "1.4rem";
-        const eltInfoAutomated = mkElt("div", undefined, [
-            mkElt("p", undefined, [
-                iconAutomated,
-                ` The AI:s below are automated here. 
-            This means that when they are ready the mindmap will be created automatically.
-        `]),
-            mkElt("p", undefined, [
-                `These AI:s are handled by `,
-                mkElt("a", { href: "https://puter.com/settings", target: "_blank" }, "https://puter.com"),
-                ` - a service that helps me automate.
-            (I am not in any way involved in payments. And I do not get anything.)
-        `]),
-            mkElt("p", undefined, [
-                `Puter takes care of paying for these AI:s.
-            You will have to pay through Puter.
-            I am not involved in any way in that.
-            Click the link above to find out more.
-            `
-            ]),
-            mkElt("p", undefined, [
-                `You can probably create a few mindmaps each day for free.
-            I am not sure about that.
-            `
-            ]),
-        ]);
-
-
-
-        /** @type {HTMLDivElement} */
-        const divPuterModels = mkElt("div", undefined, [
-            mkElt("h3", undefined, "AI models")
-        ]);
-
-        const modPutinModels = await importFc4i("puter-ai-models");
-        const arrModels = modPutinModels.getModels();
-        const oldModel = settingPuterAImodel.value;
-        let providerGroup = "";
-        /** @type {HTMLDivElement} */
-        let divProvider;
-        arrModels.sort().forEach( /** @param {string} fullNameModel */(fullNameModel) => {
-            const radModel = mkElt("input", { type: "radio", name: "puter-model", value: fullNameModel });
-            const longName = fullNameModel.slice(11);
-            const [provider, nameModel] = longName.split("/");
-            if (provider != providerGroup) {
-                providerGroup = provider;
-                // divPuterModels.appendChild( mkElt("div", { style: "font-size:1.3rem; font-weight:bold;" }, `${provider}:`));
-                divProvider = /** @type {HTMLDivElement} */ mkElt("div");
-                const detailsProvider = mkElt("details", undefined, [
-                    mkElt("summary", undefined, makeNiceProviderName(provider)),
-                    divProvider
-                ]);
-                divPuterModels.appendChild(detailsProvider)
-            }
-            const lblModel = mkElt("label", undefined, [radModel, " ", nameModel]);
-            // divPuterModels.appendChild(mkElt("div", undefined, lblModel));
-            divProvider.appendChild(mkElt("div", undefined, lblModel));
-            if (oldModel == fullNameModel) {
-                radModel.checked = true;
-                const eltDetails = lblModel.closest("details");
-                if (!eltDetails) throw Error("Did not find <details>");
-                eltDetails.open = true;
-            }
-        });
-
-        /** * @param {MouseEvent} evt - The mouse event triggered by the click.  */
-        divPuterModels.addEventListener("click", evt => {
-            evt.stopPropagation();
-            evt.stopImmediatePropagation();
-            if (!(evt.target instanceof HTMLElement)) { return; }
-            const trg = evt.target;
-            const tn = trg.tagName;
-            if (tn != "INPUT") return;
-            // const nameModel = trg.value;
-            const nameModel = (/** @type {HTMLInputElement} */ (trg)).value;
-            console.log({ nameModel });
-            settingPuterAImodel.value = nameModel;
-        });
+    //     // "Automated"
+    //     const iconAutomated = modMdc.mkMDCicon("smart_toy");
+    //     iconAutomated.style.color = "goldenrod";
+    //     iconAutomated.style.fontSize = "1.4rem";
+    //     const eltInfoAutomated = mkElt("div", undefined, [
+    //         mkElt("p", undefined, [
+    //             iconAutomated,
+    //             ` The AI:s below are automated here. 
+    //         This means that when they are ready the mindmap will be created automatically.
+    //     `]),
+    //         mkElt("p", undefined, [
+    //             `These AI:s are handled by `,
+    //             mkElt("a", { href: "https://puter.com/settings", target: "_blank" }, "https://puter.com"),
+    //             ` - a service that helps me automate.
+    //         (I am not in any way involved in payments. And I do not get anything.)
+    //     `]),
+    //         mkElt("p", undefined, [
+    //             `Puter takes care of paying for these AI:s.
+    //         You will have to pay through Puter.
+    //         I am not involved in any way in that.
+    //         Click the link above to find out more.
+    //         `
+    //         ]),
+    //         mkElt("p", undefined, [
+    //             `You can probably create a few mindmaps each day for free.
+    //         I am not sure about that.
+    //         `
+    //         ]),
+    //     ]);
 
 
-        const detInfoAutomated = mkElt("details", { style: "color:lightskyblue; margin-top:20px;" }, [
-            mkElt("summary", { style: "color:lightskyblue" }, "Info about these AI models"),
-            eltInfoAutomated,
-        ]);
 
-        const divDetAIcontent = mkElt("div", undefined, [
-            "Much more to come here!",
-            detInfoAutomated,
-            divPuterModels,
-        ]);
-        divDetAIcontent.classList.add("elt-ai-det-content");
+    //     /** @type {HTMLDivElement} */
+    //     const divPuterModels = mkElt("div", undefined, [
+    //         mkElt("h3", undefined, "AI models")
+    //     ]);
 
-        const detAI = mkElt("details", undefined, [
-            sumAI,
-            // mkElt("div", undefined, [ "More to come!", ]),
-            divDetAIcontent
-        ]);
+    //     const modPutinModels = await importFc4i("puter-ai-models");
+    //     const arrModels = modPutinModels.getModels();
+    //     const oldModel = settingPuterAImodel.value;
+    //     let providerGroup = "";
+    //     /** @type {HTMLDivElement} */
+    //     let divProvider;
+    //     arrModels.sort().forEach( /** @param {string} fullNameModel */(fullNameModel) => {
+    //         const radModel = mkElt("input", { type: "radio", name: "puter-model", value: fullNameModel });
+    //         const longName = fullNameModel.slice(11);
+    //         const [provider, nameModel] = longName.split("/");
+    //         if (provider != providerGroup) {
+    //             providerGroup = provider;
+    //             // divPuterModels.appendChild( mkElt("div", { style: "font-size:1.3rem; font-weight:bold;" }, `${provider}:`));
+    //             divProvider = /** @type {HTMLDivElement} */ mkElt("div");
+    //             const detailsProvider = mkElt("details", undefined, [
+    //                 mkElt("summary", undefined, makeNiceProviderName(provider)),
+    //                 divProvider
+    //             ]);
+    //             divPuterModels.appendChild(detailsProvider)
+    //         }
+    //         const lblModel = mkElt("label", undefined, [radModel, " ", nameModel]);
+    //         // divPuterModels.appendChild(mkElt("div", undefined, lblModel));
+    //         divProvider.appendChild(mkElt("div", undefined, lblModel));
+    //         if (oldModel == fullNameModel) {
+    //             radModel.checked = true;
+    //             const eltDetails = lblModel.closest("details");
+    //             if (!eltDetails) throw Error("Did not find <details>");
+    //             eltDetails.open = true;
+    //         }
+    //     });
+
+    //     /** * @param {MouseEvent} evt - The mouse event triggered by the click.  */
+    //     divPuterModels.addEventListener("click", evt => {
+    //         evt.stopPropagation();
+    //         evt.stopImmediatePropagation();
+    //         if (!(evt.target instanceof HTMLElement)) { return; }
+    //         const trg = evt.target;
+    //         const tn = trg.tagName;
+    //         if (tn != "INPUT") return;
+    //         // const nameModel = trg.value;
+    //         const nameModel = (/** @type {HTMLInputElement} */ (trg)).value;
+    //         console.log({ nameModel });
+    //         settingPuterAImodel.value = nameModel;
+    //     });
 
 
-        const eltAI = mkElt("div", undefined, [eltAIlabel, detAI]);
-        eltAI.classList.add("elt-ai");
-        eltAI.id = "elt-ai-puter";
-        divEltsAI.appendChild(eltAI);
-    }
+    //     const detInfoAutomated = mkElt("details", { style: "color:lightskyblue; margin-top:20px;" }, [
+    //         mkElt("summary", { style: "color:lightskyblue" }, "Info about these AI models"),
+    //         eltInfoAutomated,
+    //     ]);
+
+    //     const divDetAIcontent = mkElt("div", undefined, [
+    //         "Much more to come here!",
+    //         detInfoAutomated,
+    //         divPuterModels,
+    //     ]);
+    //     divDetAIcontent.classList.add("elt-ai-det-content");
+
+    //     const detAI = mkElt("details", undefined, [
+    //         sumAI,
+    //         // mkElt("div", undefined, [ "More to come!", ]),
+    //         divDetAIcontent
+    //     ]);
+
+
+    //     const eltAI = mkElt("div", undefined, [eltAIlabel, detAI]);
+    //     eltAI.classList.add("elt-ai");
+    //     eltAI.id = "elt-ai-puter";
+    //     divEltsAI.appendChild(eltAI);
+    // }
 
 
 
@@ -1568,7 +1604,7 @@ Important:
 
     // const btnGo = modMdc.mkMDCbutton("Go", "raised", "play_circle");
     const btnGo = modMdc.mkMDCiconButton("play_arrow", "Get mindmap", 40);
-    btnGo.id = "btn-go";
+    btnGo.id = "btn-ai-go";
     btnGo.classList.add("mdc-button--raised");
     btnGo.style.textTransform = "none";
     btnGo.inert = true;

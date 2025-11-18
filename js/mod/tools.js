@@ -3942,6 +3942,17 @@ getYouTubeCaptionsNative({})
 
 **** END of Grok very bad suggestions for YouTube */
 
+// Truly bullet-proof validator (2025 edition)
+/**
+ * @param {any} id 
+ * @returns {boolean}
+ */
+export function isValidYouTubeID(id) {
+    return typeof id === 'string' &&
+        id.length >= 8 &&
+        id.length <= 11 &&
+        /^[A-Za-z0-9_-]+$/.test(id);
+}
 
 /**
  * From Grok.
@@ -3954,6 +3965,9 @@ getYouTubeCaptionsNative({})
  *   https://www.youtube.com/embed/VIDEO_ID
  *   https://www.youtube.com/v/VIDEO_ID
  *   (with or without extra query parameters)
+ * 
+ * @param {string} url 
+ * @returns {string|null}
  */
 export function getYouTubeVideoId(url) {
     try {
@@ -3963,7 +3977,8 @@ export function getYouTubeVideoId(url) {
         // ---------- youtu.be ----------
         if (host === 'youtu.be') {
             const id = parsed.pathname.slice(1).split('/')[0]; // strip possible trailing path
-            return id.length === 11 ? id : null;               // YouTube IDs are 11 chars
+            // return id.length === 11 ? id : null;               // YouTube IDs are 11 chars
+            return isValidYouTubeID(id) ? id : null;               // YouTube IDs are 11 chars
         }
 
         // ---------- youtube.com ----------
@@ -3973,19 +3988,25 @@ export function getYouTubeVideoId(url) {
 
         // /watch?v=...
         if (path.startsWith('/watch') && parsed.searchParams.has('v')) {
-            return parsed.searchParams.get('v');
+            // return parsed.searchParams.get('v');
+            const paramV = parsed.searchParams.get('v');
+            return isValidYouTubeID(paramV) ? paramV : null;
         }
 
         // /embed/VIDEO_ID
         if (path.startsWith('/embed/')) {
             const parts = path.split('/');
-            return parts[2] || null;
+            // return parts[2] || null;
+            const p2 = parts[2];
+            return isValidYouTubeID(p2) ? p2 : null;
         }
 
         // /v/VIDEO_ID
         if (path.startsWith('/v/')) {
             const parts = path.split('/');
-            return parts[2] || null;
+            // return parts[2] || null;
+            const p2 = parts[2];
+            return isValidYouTubeID(p2) ? p2 : null;
         }
 
         return null;

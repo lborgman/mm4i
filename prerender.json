@@ -1572,12 +1572,12 @@
             display: flex;
         }
 
-        #btn-go {
+        #btn-ai-go {
             color: greenyellow;
         }
 
         .ai-in-progress {
-            #btn-go {
+            #btn-ai-go {
                 color: red;
             }
         }

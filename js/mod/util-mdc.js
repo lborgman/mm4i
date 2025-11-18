@@ -1,6 +1,8 @@
 ////////////////////////////////////////////////////////////////////
 // MDC helpers
 
+// @ts-check
+
 // FIXME: useful? https://codepen.io/oneezy/pen/qwRVaq
 
 // const modErrorJs = await importFc4i("toolsJs");
