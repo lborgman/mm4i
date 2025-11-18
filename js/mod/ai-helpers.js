@@ -1326,6 +1326,7 @@ export async function generateMindMap(fromLink) {
         const nameAI = k;
         // @ts-ignore
         const { company, urlDescription, qW, qA, android, urlImg, urlChat, isPWA, fun, urlAPIkey } = v;
+        const canReadYouTube = v.canReadYouTube;
         // const { qA, qW, android, urlImg, isPWA } = v; // "Gemini"
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
         const imgAI = mkElt("span", { class: "elt-ai-img" });
@@ -1542,6 +1543,7 @@ export async function generateMindMap(fromLink) {
         ]);
         const eltAI = mkElt("div", undefined, [lblAI, detAI]);
         eltAI.classList.add("elt-ai");
+        if (canReadYouTube) { eltAI.classList.add("ai-can-read-youtube"); }
         if (nameAI == settingUsedAIname.defaultValue()) {
             eltAI.classList.add("ai-default");
             // lblAI.style.fontSize = "2rem";
