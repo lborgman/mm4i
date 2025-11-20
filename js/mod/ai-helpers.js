@@ -317,7 +317,11 @@ export async function generateMindMap(fromLink) {
     initAItextarea = onAItextareaInput;
 
 
-    const eltStatus = mkElt("div", undefined, "(empty)");
+    // const eltStatus = mkElt("div", undefined, "(empty)");
+    const eltStatus = mkElt("div");
+    eltStatus.style.minHeight = "1.25em";
+    eltStatus.style.lineHeight = "normal";
+    eltStatus.style.backgroundColor = "yellowgreen";
     if (fromLink) {
         inpLink.value = fromLink;
         checkInpLink();
@@ -342,7 +346,7 @@ export async function generateMindMap(fromLink) {
 
         const u = inpLink.value.trim();
         youTubeVideoId = modTools.isValidYouTubeID(u) ? u : modTools.getYouTubeVideoId(u);
-        console.log({ youTubeVideoId });
+        // console.log({ youTubeVideoId });
         const eltDialogContent = inpLink.closest("div.mdc-dialog__content");
         eltStatus.textContent = "";
         if (youTubeVideoId) {
@@ -369,19 +373,39 @@ export async function generateMindMap(fromLink) {
             return;
         }
         */
-        const vu = await modTools.isValidUrl(u);
-        switch (vu) {
-            case true:
-                eltStatus.textContent = "";
-                b.inert = false;
-                return;
-            default:
-                console.error("checkInpLink, vu", vu);
-                eltStatus.textContent = vu;
-                b.inert = true;
-                return;
+        const vu = await modTools.isValidUrlFormat(u);
+        if (vu != true) {
+            const vuInvalid = vu.invalid;
+            let userInvalid = vuInvalid;
+            switch (vuInvalid) {
+                case "NO-HTTPS":
+                    userInvalid = mkElt("span", undefined,[
+                        "Must begin with ",
+                        mkElt("b", undefined, "https://")
+                    ]);
+                    break;
+                case "NO-TLD":
+                    userInvalid = "No top domain";
+                    break;
+                case "CONTAINS-SPACE":
+                    userInvalid = "Can not contain spaces";
+                    break;
+                case "UNKNOWN-TLD":
+                    userInvalid = "Unknown top domain";
+                    break;
+                default:
+                    console.error("checkInpLink, vu", vu);
+                    debugger;
+            }
+            eltStatus.textContent = "";
+            eltStatus.append(userInvalid);
+            if (vu.more) {
+                eltStatus.append(" (", vu.more, ")");
+            }
+            b.inert = true;
+            return;
         }
-        // "head"
+        eltStatus.textContent = "";
         b.inert = false;
 
         updatePromptAi();
