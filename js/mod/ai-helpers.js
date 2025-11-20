@@ -320,24 +320,21 @@ export async function generateMindMap(fromLink) {
     const eltStatus = mkElt("div", undefined, "(empty)");
     if (fromLink) {
         inpLink.value = fromLink;
-        // setTimeout(() => { checkInpLink(); }, 1000);
         checkInpLink();
     }
     inpLink.addEventListener("input", async () => {
-        checkInpLink();
+        debouncedCheckInpLink();
     });
     inpLink.addEventListener("change", async () => {
-        checkInpLink();
+        debouncedCheckInpLink();
     });
+
+    async function debouncedCheckInpLink() {
+        const f = modTools.createDebouncedCallback(checkInpLink, 2000);
+        f();
+    }
     async function checkInpLink() {
         const modPWA = await importFc4i("pwa");
-        // const funHasInternet = modPWA.PWAhasInternet;
-        // FIX-ME:
-        // if (funHasInternet) {
-        // const tofFun = typeof funHasInternet;
-        // if (tofFun != "function") throw Error(`typeof funHasInternet == "${tofFun}"`);
-        // const i = await funHasInternet();
-        // if (!i) {
         if (!modPWA.PWAhasInternet()) {
             eltStatus.textContent = "No internet connection";
             return;
@@ -358,7 +355,9 @@ export async function generateMindMap(fromLink) {
         eltDialogContent.classList.remove("is-youtube-video");
 
         const b = divPrompt;
+
         // console.log({ u });
+        /*
         if (u.length < 13) {
             eltStatus.textContent = `Url too short: ${u.length} < 13`;
             b.inert = true;
@@ -368,6 +367,19 @@ export async function generateMindMap(fromLink) {
             eltStatus.textContent = "Link must begin with 'https://'";
             b.inert = true;
             return;
+        }
+        */
+        const vu = await modTools.isValidUrl(u);
+        switch (vu) {
+            case true:
+                eltStatus.textContent = "";
+                b.inert = false;
+                return;
+            default:
+                console.error("checkInpLink, vu", vu);
+                eltStatus.textContent = vu;
+                b.inert = true;
+                return;
         }
         // "head"
         b.inert = false;
@@ -2057,7 +2069,10 @@ export async function generateMindMap(fromLink) {
         divWays,
     ]);
     modMdc.mkMDCdialogAlert(body, "Close");
+
     checkInpLink(); // Necessary elements are connected to the DOM here
+
+
     /**
      * 
      * @param {string} strSourceLink 

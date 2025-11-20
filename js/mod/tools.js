@@ -1052,20 +1052,115 @@ function throttleRA(fn) {
 }
 */
 
-// From https://garden.bradwoods.io/notes/javascript/performance/debounce-throttle
-export function debounce(callback, waitMS = 200) {
-    let timeoutId;
 
+// From https://garden.bradwoods.io/notes/javascript/performance/debounce-throttle
+/**
+ * Creates a debounced function that delays invoking `func` until after `wait`
+ * milliseconds have elapsed since the last time the debounced function was invoked.
+ *
+ * @param {Function} func - The function to debounce.
+ * @param {number} waitMS - The number of milliseconds to delay.
+ *                                      (immediately), instead of the trailing edge.
+ * @returns {Function} A new debounced function.
+ *
+ * @example
+ * window.addEventListener('resize', debounce(handleResize, 250));
+ */
+export function debounce(func, waitMS = 200) {
+    /** @type {ReturnType<typeof setTimeout> | undefined} */
+    let timeoutId;
+    /**
+     * @this {any}
+     * @param {...any} args
+     */
     return function (...args) {
         const context = this
         clearTimeout(timeoutId);
-
         timeoutId = setTimeout(function () {
-            timeoutId = null
-            callback.call(context, ...args)
+            timeoutId = undefined;
+            func.call(context, ...args)
         }, waitMS);
     };
 };
+
+
+
+/**
+ * Plain JS factory: Returns a debounced version of the callback.
+ * Each call creates a stable, unique debounced instance (lazy via closure).
+ * 
+ * @template {(...args: any[]) => any} T
+ * 
+ * @param {T} callback
+ * @param {number} [waitMS=200] - Delay in ms.
+ * @returns {T} The debounced function (call it with ...args).
+ */
+export function createDebouncedCallback(callback, waitMS = 200) {
+    /** @type {WeakMap<Function, Function>} */
+    const cache = (() => {
+        if (createDebouncedCallback.cache) return createDebouncedCallback.cache;
+        const c = new WeakMap();
+        // @ts-ignore
+        createDebouncedCallback.cache = c;
+        return c;
+    })();
+    if (!cache.has(callback)) {
+        console.log("createDebounced for ", callback);
+        /** @type {ReturnType<typeof setTimeout> | undefined} */
+        let timeoutId;
+        /** @param {...any} args */
+        const debounced = function (...args) {
+            clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                timeoutId = undefined;
+                callback.apply(... args);
+            }, waitMS);
+        };
+        cache.set(callback, debounced);
+    }
+    return cache.get(callback);
+}
+
+// Just to compare and be sure...
+/**
+ * Creates a debounced function that delays invoking `func` until after `wait`
+ * milliseconds have elapsed since the last time the debounced function was invoked.
+ *
+ * @param {Function} func - The function to debounce.
+ * @param {number} wait - The number of milliseconds to delay.
+ * @param {boolean} [immediate=false] - If `true`, trigger the function on the leading edge
+ *                                      (immediately), instead of the trailing edge.
+ * @returns {Function} A new debounced function.
+ *
+ * @example
+ * window.addEventListener('resize', debounce(handleResize, 250));
+ */
+export function GrokDebounce(func, wait, immediate = false) {
+    /** @type {ReturnType<typeof setTimeout> | undefined} */
+    let timeout;
+    /**
+     * @this {any} 
+     * @param {...any} args 
+     */
+    return function executedFunction(...args) {
+        const later = () => {
+            timeout = undefined;
+            if (!immediate) func.apply(this, args);
+        };
+
+        const callNow = immediate && !timeout;
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+
+        if (callNow) func.apply(this, args);
+    };
+}
+
+// Usage
+// window.addEventListener('resize', debounce(() => { console.log('Resized!', window.innerWidth); }, 250));
+
+
+
 
 /*
 function throttle(func, waitMS = 200) {
@@ -1101,7 +1196,7 @@ export function getUrllNotValidMsg(id) {
 }
 
 // To check top level domains async fetchReTLD() must be called first!
-export function isValidUrl(strUrl, protocol) {
+export async function isValidUrl(strUrl, protocol) {
     protocol = protocol || "https:";
     try {
         // new URL() only checks for well formatted so do some more checks first
@@ -1110,7 +1205,8 @@ export function isValidUrl(strUrl, protocol) {
                 if (!strUrl.match(new RegExp("^https://[^/]"))) return "NO-HTTPS";
                 if (!strUrl.match(new RegExp("^https://[^/]{0,}[^.][.][^/.]+($|/)"))) return "NO-DOMAIN";
                 if (strUrl.search(" ") != -1) return "CONTAINS-SPACE";
-                const re = getReTLD();
+                // const re = getReTLD();
+                const re = await fetchReTLD();
                 if (re) {
                     if (!re.test(strUrl)) return "UNKNOWN-TLD";
                 } else {
