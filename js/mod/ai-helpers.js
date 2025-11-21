@@ -339,7 +339,7 @@ export async function generateMindMap(fromLink) {
     }
     async function checkInpLink() {
         const modPWA = await importFc4i("pwa");
-        if (!modPWA.PWAhasInternet()) {
+        if (!(await modPWA.PWAhasInternet())) {
             eltStatus.textContent = "No internet connection";
             return;
         }
@@ -374,38 +374,12 @@ export async function generateMindMap(fromLink) {
         }
         */
         const vu = await modTools.isValidUrlFormat(u);
+        eltStatus.textContent = "";
         if (vu != true) {
-            const vuInvalid = vu.invalid;
-            let userInvalid = vuInvalid;
-            switch (vuInvalid) {
-                case "NO-HTTPS":
-                    userInvalid = mkElt("span", undefined,[
-                        "Must begin with ",
-                        mkElt("b", undefined, "https://")
-                    ]);
-                    break;
-                case "NO-TLD":
-                    userInvalid = "No top domain";
-                    break;
-                case "CONTAINS-SPACE":
-                    userInvalid = "Can not contain spaces";
-                    break;
-                case "UNKNOWN-TLD":
-                    userInvalid = "Unknown top domain";
-                    break;
-                default:
-                    console.error("checkInpLink, vu", vu);
-                    debugger;
-            }
-            eltStatus.textContent = "";
-            eltStatus.append(userInvalid);
-            if (vu.more) {
-                eltStatus.append(" (", vu.more, ")");
-            }
+            eltStatus.append(vu.message);
             b.inert = true;
             return;
         }
-        eltStatus.textContent = "";
         b.inert = false;
 
         updatePromptAi();

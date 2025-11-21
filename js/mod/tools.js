@@ -1200,25 +1200,38 @@ export async function isValidUrlFormat(strUrl, protocol) {
     /**
      * 
      * @param {string} reason 
-     * @param {string|undefined} extra 
+     * @param {string|HTMLSpanElement} message
      * @returns {Object}
      */
-    const makeInvalid = (reason, extra = undefined) => {
-        return { invalid: reason, more: extra }
+    const makeInvalid = (reason, message) => {
+        return { reason, message }
     }
     protocol = protocol || "https:";
     try {
         // new URL() only checks for well formatted so do some more checks first
         switch (protocol) {
             case "https:":
-                if (!strUrl.match(new RegExp("^https://[^/]"))) return makeInvalid("NO-HTTPS");
-                if (!strUrl.match(new RegExp("^https://[^/]{0,}[^.][.]([^/.]){2,63}($|/)"))) return makeInvalid("NO-TLD");
-                if (strUrl.search(" ") != -1) return makeInvalid("CONTAINS-SPACE");
+                if (!strUrl.match(new RegExp("^https://[^/]"))) {
+                    return makeInvalid("NO-HTTPS",
+                        mkElt("span", undefined, [
+                            "Must begin with ",
+                            mkElt("b", undefined, "https://")
+                        ])
+
+                    );
+                }
+                if (!strUrl.match(new RegExp("^https://[^/]{0,}[^.][.]([^/.]){2,63}($|/)"))) {
+                    return makeInvalid("NO-TLD", "No top domain");
+                }
+                if (strUrl.search(" ") != -1) return makeInvalid("CONTAINS-SPACE", "Can not contain spaces");
                 await fetchTLD();
                 const re = getReTLD();
                 if (!re.test(strUrl)) {
                     const tld = getTLD(strUrl);
-                    return makeInvalid("UNKNOWN-TLD", tld);
+                    return makeInvalid("UNKNOWN-TLD", mkElt("span", undefined, [
+                        "Unknown top domain: ",
+                        mkElt("b", undefined, tld)
+                    ]));
                 }
                 break;
             default:
@@ -1229,7 +1242,6 @@ export async function isValidUrlFormat(strUrl, protocol) {
     } catch (err) {
         console.error("isValidUrlFormat", err);
         throw err;
-        // return makeInvalid(err.message);
     }
 }
 /*
@@ -1267,7 +1279,8 @@ export function getReTLD() {
  * @return {string|undefined}
  */
 export function getTLD(url) {
-    const reFindTLD = new RegExp("^https://[^/]{0,}[^.][.](.?)($|/)");
+    // const reFindTLD = new RegExp("^https://[^/]{0,}[^.][.](.?)($|/)");
+    const reFindTLD = new RegExp("^https://[^/]{0,}[^.][.]([^./]*)($|/)");
     const m = url.match(reFindTLD);
     if (!m) return;
     return m[1];
