@@ -1095,13 +1095,13 @@ export function debounce(func, waitMS = 200) {
  * @param {number} [waitMS=200] - Delay in ms.
  * @returns {T} The debounced function (call it with ...args).
  */
-export function createDebouncedCallback(callback, waitMS = 200) {
+export function callDebounced(callback, waitMS = 200) {
     /** @type {WeakMap<Function, Function>} */
     const cache = (() => {
-        if (createDebouncedCallback.cache) return createDebouncedCallback.cache;
+        if (callDebounced.cache) return callDebounced.cache;
         const c = new WeakMap();
         // @ts-ignore
-        createDebouncedCallback.cache = c;
+        callDebounced.cache = c;
         return c;
     })();
     if (!cache.has(callback)) {
@@ -1118,8 +1118,123 @@ export function createDebouncedCallback(callback, waitMS = 200) {
         };
         cache.set(callback, debounced);
     }
-    return cache.get(callback);
+    const funDebounced = cache.get(callback);
+    if (funDebounced == undefined) throw Error("funDebounced == undefined");
+    funDebounced();
 }
+
+/** @type {WeakMap<Function, DebounceState>} */
+const cache = new WeakMap();
+
+/**
+ * @typedef {Object} DebounceState
+ * @property {ReturnType<typeof setTimeout> | undefined} timeoutId - The ID of the current timeout.
+ * @property {((value: any) => void) | undefined} resolve - The resolve function of the *current* pending Promise.
+ * @property {((reason?: any) => void) | undefined} reject - The reject function of the *current* pending Promise.
+ * @property {Promise<any> | undefined} promise - The *current* pending Promise object.
+ * @property {Function} debounced - The actual debounced function wrapper.
+ */
+
+// Gemini version:
+/**
+ * Calls a function after a delay, but cancels any pending calls if this function is called again before the delay expires.
+ * Returns the *same* Promise instance for all calls that occur before the callback is executed.
+ *
+ * @export
+ * @param {Function} callback The function to debounce.
+ * @param {number} [waitMS=200] The number of milliseconds to wait.
+ * @param {any[]} [args=[]] Arguments to be passed to the callback.
+ * @returns {Promise<any>} A Promise that fulfills when the callback is called.
+ */
+export function callDebouncedGemini(callback, waitMS = 200, args = []) {
+    let state;
+    
+    // --- 1. Get or Initialize State ---
+    if (!cache.has(callback)) {
+        console.log("createDebounced for ", callback.name || 'anonymous');
+        
+        /** @type {DebounceState} */
+        const initialState = {
+            timeoutId: undefined,
+            resolve: undefined,
+            reject: undefined,
+            promise: undefined,
+            debounced: () => {} // Placeholder
+        };
+
+        /** @param {...any} currentArgs */
+        const debounced = function (currentArgs) {
+            
+            // If a previous call is pending, clear its timer
+            if (initialState.timeoutId) {
+                clearTimeout(initialState.timeoutId);
+            }
+
+            // Set the new timeout
+            initialState.timeoutId = setTimeout(() => {
+                initialState.timeoutId = undefined; // Clear ID after execution
+                
+                let result;
+                let error;
+
+                try {
+                    // Call the original function with the last received arguments
+                    result = callback.apply(null, currentArgs);
+                } catch (e) {
+                    error = e;
+                }
+                
+                // Resolve or Reject the stored promise
+                if (initialState.resolve && initialState.reject) {
+                    if (error) {
+                        initialState.reject(error);
+                    } else {
+                        initialState.resolve(result);
+                    }
+                }
+                
+                // IMPORTANT: After the promise is settled, clear all promise-related state.
+                initialState.resolve = undefined;
+                initialState.reject = undefined;
+                initialState.promise = undefined;
+                
+            }, waitMS);
+        };
+        
+        initialState.debounced = debounced;
+        cache.set(callback, initialState);
+        state = initialState;
+
+    } else {
+        state = cache.get(callback);
+    }
+    
+    if (!state) throw new Error("Debounce state not found.");
+    
+    // --- 2. Handle Promise Logic ---
+    
+    // If there is no pending Promise, create a new one
+    if (!state.promise) {
+        state.promise = new Promise((resolve, reject) => {
+            // Store the handlers for this new Promise
+            state.resolve = resolve;
+            state.reject = reject;
+        });
+    }
+
+    // --- 3. Execute Debounced Wrapper ---
+    // This function:
+    // 1. Clears any existing timer.
+    // 2. Starts a new timer that will eventually run the callback and resolve/reject the stored Promise.
+    state.debounced(args);
+
+    // --- 4. Return the Promise ---
+    // If a promise was already pending, this returns the same one.
+    // If not, this returns the new one just created.
+    return state.promise;
+}
+
+
 
 // Just to compare and be sure...
 /**

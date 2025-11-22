@@ -18,6 +18,7 @@ const importFc4i = window["importFc4i"];
 // const modAiFirebase = await import("https://www.gstatic.com/firebasejs/12.1.0/firebase-ai.js");
 // import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 
+const modTools = await importFc4i("toolsJs");
 const modMMhelpers = await importFc4i("mindmap-helpers");
 
 const userAgent = navigator.userAgent.toLowerCase();
@@ -310,7 +311,6 @@ let initAItextarea;
  */
 export async function generateMindMap(fromLink) {
     const modMdc = await importFc4i("util-mdc");
-    const modTools = await importFc4i("toolsJs");
     // const modMMhelpers = await importFc4i("mindmap-helpers");
     const inpLink = modMdc.mkMDCtextFieldInput(undefined, "text");
     const tfLink = modMdc.mkMDCtextField("Link to article/video", inpLink);
@@ -334,8 +334,12 @@ export async function generateMindMap(fromLink) {
     });
 
     async function debouncedCheckInpLink() {
-        const f = modTools.createDebouncedCallback(checkInpLink, 2000);
-        f();
+        // const f = modTools.callDebounced(checkInpLink, 2000);
+        // f();
+        // modTools.callDebounced(checkInpLink, 2000);
+        const p = modTools.callDebouncedGemini(checkInpLink, 2000);
+        console.log("debounce", p);
+        return p;
     }
     async function checkInpLink() {
         const modPWA = await importFc4i("pwa");
@@ -446,8 +450,8 @@ export async function generateMindMap(fromLink) {
     let promptAI = "";
     /** @type {string|null} */
     let youTubeVideoId = null;
-    function updatePromptAi() {
-        promptAI = makeAIprompt(inpLink.value.trim(), 4);
+    async function updatePromptAi() {
+        promptAI = await makeAIprompt(inpLink.value.trim(), 4);
         const bPrompt = document.getElementById("prompt-ai");
         if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
         bPrompt.textContent = promptAI;
@@ -456,9 +460,9 @@ export async function generateMindMap(fromLink) {
      * 
      * @param {string} link 
      * @param {number} maxDepth 
-     * @returns {string}
+     * @returns {Promise<string>}
      */
-    function makeAIprompt(link, maxDepth = 4) {
+    async function makeAIprompt(link, maxDepth = 4) {
         // Today (2025-11-16) this is how the link must be handled:
         // A) If it is a YouTube video then Gemini must be used since
         //    it is the only AI with access to the info on YouTube.com
@@ -470,7 +474,9 @@ export async function generateMindMap(fromLink) {
         // youTubeVideoId = modTools.getYouTubeVideoId(link); // inpLink
         // console.log({ youTubeVideoId });
         if (youTubeVideoId == null) {
-            // modTools.f
+            const strLinkHtml = await modTools.fetchFreshViaProxy(link);
+            const strLinkText = extractText(strLinkHtml);
+            console.log("strLinkText", strLinkText.length);
         }
 
         const endMark = "----";
@@ -1653,7 +1659,7 @@ export async function generateMindMap(fromLink) {
 
         const { way } = getWayToCallAI(nameAI);
         if (way != "API") {
-            const modTools = await importFc4i("toolsJs");
+            // const modTools = await importFc4i("toolsJs");
             await modTools.copyTextToClipboard(promptAI);
             divGoStatus.textContent = "Copied prompt. ";
             // document.documentElement.classList.add("have-ai-on-clipboard");
@@ -2170,6 +2176,8 @@ export async function generateMindMap(fromLink) {
         const cleaned = [];
 
         // Remove prompt if it is there:
+        // FIX-ME: async
+        /*
         const dummyPromptAI = makeAIprompt("dummy");
         const a = dummyPromptAI.split("\n");
         const l = a.length;
@@ -2179,6 +2187,7 @@ export async function generateMindMap(fromLink) {
             strOnlyJson = strOnlyJson.slice(pp + lastLine.length);
             cleaned.push("prompt");
         }
+        */
 
         // Remove anyting before or after json:
         const p1 = strOnlyJson.indexOf("[");
@@ -2477,7 +2486,7 @@ export function wayToCallAIisAPI(nameAI) {
  * @param {string} promptAI 
  */
 async function callNamedAI(nameAI, promptAI, handleRes) {
-    const modTools = await importFc4i("toolsJs");
+    // const modTools = await importFc4i("toolsJs");
 
     const divGoStatus = document.getElementById("div-go-status");
     if (!divGoStatus) throw Error(`Did not find element "div-go-status"`);
@@ -4003,4 +4012,56 @@ function _testFixMalformedJSON3() {
     } catch (e) {
         console.error('Parse error:', e.message);
     }
+}
+
+/**
+ * 
+ * @param {string} strHtml 
+ * @returns {string}
+ */
+export function extractText(strHtml) {
+    // FIX-ME: cleanHtml and check the code below! It cleans the <html>
+    // const strCleaned = modTools.cleanHtml(strHtml)
+    // FIX-ME: <meta>
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(strHtml, 'text/html');
+    const eltMetaDesc = /** @type {HTMLMetaElement} */ (doc.querySelector("meta[name=description]"));
+    const metaDescription = eltMetaDesc?.content || "";
+
+    const articleText = (() => {
+        // 1. Primary: <article> (precise for content)
+        let el = doc.querySelector('article');
+        if (!el) {
+            // 2. Fallback: <main> (broad coverage)
+            el = doc.querySelector('main, [role="main"]');
+        }
+        if (!el) {
+            // 3. Science/news hybrids
+            el = doc.querySelector('.article-body, .article-content, .body');
+        }
+
+        if (el) {
+            // const clone = el.cloneNode(true);
+            const clone = el;
+            // Clean up (tailored for science: refs, figs)
+            clone.querySelectorAll('script, style, nav, header, footer, aside, .ad, .references, figure, .fig, .supplementary').forEach(x => x.remove());
+            // let text = (clone.innerText || clone.textContent).trim();
+            let text = clone.textContent.trim();
+
+            // Not sure how to use this!
+            /*
+            // Science bonus: Grab abstract if separate
+            const abs = doc.querySelector('.abstract, [id*="abstract"]');
+            if (abs && text.length > 500 && !text.includes(abs.innerText.trim().substring(0, 100))) {
+                text = abs.innerText.trim() + '\n\nMain Body:\n' + text;
+            }
+            */
+
+            return text.length > 1000 ? text.slice(0, 18000) : null;
+        }
+
+        // Last resort
+        return doc.body.innerText.trim().slice(0, 18000);
+    })();
+    return `${metaDescription}\n\n${articleText}`;
 }
