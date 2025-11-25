@@ -3286,6 +3286,9 @@ const urlProxies = {
     // Working
     corsproxy: 'https://corsproxy.io/?',
 
+    // Not tested yet
+    mm4i: "https://mm4i.vercel.app/api/proxy?url=",
+
 
     // cors.sh needs an API key
     // corssh: 'https://cors.sh/', // rejected 2025-11-17
