@@ -1148,23 +1148,23 @@ const cache = new WeakMap();
  */
 export function callDebouncedGemini(callback, waitMS = 200, args = []) {
     let state;
-    
+
     // --- 1. Get or Initialize State ---
     if (!cache.has(callback)) {
         console.log("createDebounced for ", callback.name || 'anonymous');
-        
+
         /** @type {DebounceState} */
         const initialState = {
             timeoutId: undefined,
             resolve: undefined,
             reject: undefined,
             promise: undefined,
-            debounced: () => {} // Placeholder
+            debounced: () => { } // Placeholder
         };
 
         /** @param {...any} currentArgs */
         const debounced = function (currentArgs) {
-            
+
             // If a previous call is pending, clear its timer
             if (initialState.timeoutId) {
                 clearTimeout(initialState.timeoutId);
@@ -1173,7 +1173,7 @@ export function callDebouncedGemini(callback, waitMS = 200, args = []) {
             // Set the new timeout
             initialState.timeoutId = setTimeout(() => {
                 initialState.timeoutId = undefined; // Clear ID after execution
-                
+
                 let result;
                 let error;
 
@@ -1183,7 +1183,7 @@ export function callDebouncedGemini(callback, waitMS = 200, args = []) {
                 } catch (e) {
                     error = e;
                 }
-                
+
                 // Resolve or Reject the stored promise
                 if (initialState.resolve && initialState.reject) {
                     if (error) {
@@ -1192,15 +1192,15 @@ export function callDebouncedGemini(callback, waitMS = 200, args = []) {
                         initialState.resolve(result);
                     }
                 }
-                
+
                 // IMPORTANT: After the promise is settled, clear all promise-related state.
                 initialState.resolve = undefined;
                 initialState.reject = undefined;
                 initialState.promise = undefined;
-                
+
             }, waitMS);
         };
-        
+
         initialState.debounced = debounced;
         cache.set(callback, initialState);
         state = initialState;
@@ -1208,11 +1208,11 @@ export function callDebouncedGemini(callback, waitMS = 200, args = []) {
     } else {
         state = cache.get(callback);
     }
-    
+
     if (!state) throw new Error("Debounce state not found.");
-    
+
     // --- 2. Handle Promise Logic ---
-    
+
     // If there is no pending Promise, create a new one
     if (!state.promise) {
         state.promise = new Promise((resolve, reject) => {
@@ -3276,51 +3276,81 @@ export function addSafeCacheBuster(url) {
  */
 
 /**
- * @typedef {Object} UrlProxies
- * @property {string} allorigins
- * @property {string} corsproxy
- * @property {string} corssh
+ * @typedef {ShallowJsonObject} UrlProxies
+ * property {string} allorigins
+ * property {string} corsproxy
+ * property {string} corssh
  */
+/** @type {UrlProxies} */
 const urlProxies = {
-    // allorigins: 'https://api.allorigins.win/get?url=', // rejected 2025-11-17
+    // Working
     corsproxy: 'https://corsproxy.io/?',
+
+
+    // cors.sh needs an API key
     // corssh: 'https://cors.sh/', // rejected 2025-11-17
 
+    // allorigins: 'https://api.allorigins.win/get?url=', // rejected 2025-11-17, sr.se
+    // allorigins: 'https://api.allorigins.win/raw?url=',  // receted 2025-11-25, sr.se
+
+    // temporary demo, key needed
     // CORS_Anywhere: "https://cors-anywhere.herokuapp.com/",
+
+
     // Codetabs: "https://api.codetabs.com/v1/proxy?quest=",
     // Corsfix: "https://corsproxy.io/?",
     // Thebugging: "https://thebugging.com/cors-proxy/",
     // Corsx2u: "https://corsx2u.in/",
 };
 
+const nameProxies = Object.keys(urlProxies);
+
 /**
- * fetchFreshViaProxy(url, proxyName = 'allorigins')
- * 
  * Fetches any URL via public CORS proxy.
  * 
  * @param {string} url - The article URL to fetch
- * @param {string} proxyName - 'allorigins' | 'corsproxy' | 'corssh'
+ * @param {Object} [opts]
+ * @param {string} [opts.proxyName]
+ * @param {AbortSignal} [opts.signal]
  * @returns {Promise<string>} HTML string
  */
-export async function fetchFreshViaProxy(url, proxyName = 'corsproxy') {
+export async function fetchFreshViaProxy(url,
+    opts = {}
+) {
+    const proxy = opts.proxyName || "corsproxy";
+    const signal = opts.signal;
+    if (!nameProxies.includes(proxy)) throw new Error(`Unknown proxy: ${proxy}. Use: ${nameProxies.join(", ")}`);
 
-    const proxy = urlProxies[proxyName];
-    if (!proxy) throw new Error(`Unknown proxy: ${proxyName}. Use: allorigins, corsproxy, corssh`);
+    /** @type {HeadersInit} */
+    const headers = {
+        'Cache-Control': 'no-cache',
+        cache: 'no-store',
+    };
+    /** @type {RequestInit} */
+    const reqInit = {
+        headers,
+        signal
+    }
 
     const encoded = encodeURIComponent(url);
-    const proxyUrl = proxy + encoded;
+    const urlProxy = urlProxies[proxy] + encoded;
+    // const proxyUrl = "https://en.wikipedia.org/wiki/Self-compassion";
+    console.log(`Fetching via ${proxy}: ${urlProxy}`, headers);
 
-    console.log(`Fetching via ${proxyName}: ${proxyUrl}`);
-
-    const res = await fetch(proxyUrl, {
-        headers: { 'Cache-Control': 'no-cache' },
-        cache: 'no-store'
-    });
-
-    if (!res.ok) throw new Error(`Proxy ${proxyName} failed: ${res.status}`);
+    let res;
+    try {
+        res = await fetch(urlProxy, reqInit);
+        // res = await fetch(urlProxy);
+        if (!res.ok) {
+            throw new Error(`Proxy ${proxy} failed: ${res.status}`);
+        }
+    } catch (err) {
+        console.error(err)
+        throw err;
+    }
 
     // allorigins returns { contents: "HTML..." }
-    if (proxyName === 'allorigins') {
+    if (proxy === 'allorigins') {
         const data = await res.json();
         return data.contents || '';
     }
@@ -3329,27 +3359,38 @@ export async function fetchFreshViaProxy(url, proxyName = 'corsproxy') {
     return await res.text();
 }
 export async function testFetchProxy(url = "https://sr.se") {
-    console.log("%ctestFetchProxy", "font-size:24px", url);
+    const keys = nameProxies;
+    console.log("%ctestFetchProxy", "font-size:24px", url, keys);
     /** @type {Record<string, Promise<string>>} */
     const prom = {};
     // Populate prom with promises for each proxy
-    const keys = Object.keys(urlProxies);
-    // for (const k of Object.keys(urlProxies)) {
     for (const k of keys) {
-        prom[k] = fetchFreshViaProxy(url, k);
+        const aborter = new AbortController();
+        setTimeout(() => {
+            return;
+            console.log("%cABORTING >>>", "color:red", k);
+            aborter.abort("Testing .abort");
+            console.log("%cABORTING done", "color:red", k);
+        }, 100);
+        const signal = aborter.signal;
+        prom[k] = fetchFreshViaProxy(url, { proxyName: k, signal });
     }
-    prom["DEFAULT"] = fetchFreshViaProxy(url);
+    // prom["DEFAULT"] = fetchFreshViaProxy(url);
     // Promise.allSettled expects an iterable (array) of promises
     const res = await Promise.allSettled(Object.values(prom));
     console.log({ res });
     for (let i = 0; i < res.length; i++) {
         const key = keys[i] || "DEFAULT";
         const result = res[i];
+        console.log({ result });
         const status = result.status;
         const value = result.value;
+        const reason = result.reason;
+        console.log({ reason });
         // const html = "none yet"; // cleanHtml(value);
         const isRejected = status == "rejected";
-        const html = isRejected ? "REJECTED-html" : cleanHtml(value).slice(0, 1000);
+        // const html = isRejected ? "REJECTED-html" : cleanHtml(value).slice(0, 1000);
+        const html = isRejected ? "REJECTED-html" : value.slice(0, 300);
         const title = isRejected ? "REJECTED-title" : value.match(/<title[^>]*>([^<]+)<\/title>/)[1];
 
         console.log("---> ", key, status, `\n"${title}"\n`, html);
@@ -4354,4 +4395,25 @@ export function _testSplitHeadBody() {
 
     // Also return it so you can inspect it by clicking the arrow
     return result;
+}
+
+
+/**
+ * Asynchronously checks if a Promise is settled (fulfilled or rejected).
+ * This function is non-blocking and fulfills within the current microtask tick 
+ * if the Promise is already settled.
+ *
+ * @param {Promise<any>} p The promise to check.
+ * @returns {Promise<boolean>} A Promise that resolves to true if 'p' is settled, false otherwise.
+ */
+export async function isPromiseSettled(p) {
+    const unsettled = {}; // A unique object used as a sentinel value
+
+    // We race the input promise 'p' against the 'unsettled' object.
+    // 1. If 'p' is PENDING, the 'unsettled' object (a non-Promise value) wins the race immediately.
+    // 2. If 'p' is ALREADY SETTLED (fulfilled or rejected), 'p' wins the race.
+    const result = await Promise.race([p, unsettled]);
+
+    // If the result of the race is our sentinel object, the promise 'p' was pending.
+    return result !== unsettled;
 }

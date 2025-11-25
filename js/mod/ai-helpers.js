@@ -334,9 +334,9 @@ export async function generateMindMap(fromLink) {
     });
 
     async function debouncedCheckInpLink() {
-        // const f = modTools.callDebounced(checkInpLink, 2000);
+        // const f = modTools.callDebounced(XcheckInpLink, 2000);
         // f();
-        // modTools.callDebounced(checkInpLink, 2000);
+        // modTools.callDebounced(XcheckInpLink, 2000);
         const p = modTools.callDebouncedGemini(checkInpLink, 2000);
         console.log("debounce", p);
         return p;
@@ -364,33 +364,21 @@ export async function generateMindMap(fromLink) {
 
         const b = divPrompt;
 
-        // console.log({ u });
-        /*
-        if (u.length < 13) {
-            eltStatus.textContent = `Url too short: ${u.length} < 13`;
-            b.inert = true;
-            return;
-        }
-        if (!u.startsWith("https://")) {
-            eltStatus.textContent = "Link must begin with 'https://'";
-            b.inert = true;
-            return;
-        }
-        */
         const vu = await modTools.isValidUrlFormat(u);
         eltStatus.textContent = "";
         if (vu != true) {
             eltStatus.append(vu.message);
             b.inert = true;
-            return;
+            return false;
         }
         b.inert = false;
 
-        updatePromptAi();
+        // updatePromptAi();
 
         const divWays = document.getElementById("div-ways");
         if (!divWays) throw Error(`Could not find element "div-ways"`);
         divWays.style.display = "block";
+        return true;
     }
     // @ts-ignore
     async function _isReachableUrl(url) {
@@ -451,6 +439,7 @@ export async function generateMindMap(fromLink) {
     /** @type {string|null} */
     let youTubeVideoId = null;
     async function updatePromptAi() {
+        const validLinkFormat = await debouncedCheckInpLink();
         promptAI = await makeAIprompt(inpLink.value.trim(), 4);
         const bPrompt = document.getElementById("prompt-ai");
         if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
