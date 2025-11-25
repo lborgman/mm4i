@@ -12,6 +12,7 @@ module.exports = {
 		'woff-codepoints.js',
 		'**/api/prerender.js',
 		'**/api/call-groq.js',
+		'**/api/proxy.js',
 		'**/api/myOLD-prerender.js',
 		'**/img/Groq Logo_Orange 25.svg',
 		'package.json',

@@ -3284,7 +3284,7 @@ export function addSafeCacheBuster(url) {
 /** @type {UrlProxies} */
 const urlProxies = {
     // Working
-    corsproxy: 'https://corsproxy.io/?',
+    // corsproxy: 'https://corsproxy.io/?',
 
     // Not tested yet
     mm4i: "https://mm4i.vercel.app/api/proxy?url=",
