@@ -316,6 +316,8 @@ export async function generateMindMap(fromLink) {
     const tfLink = modMdc.mkMDCtextField("Link to article/video", inpLink);
     initAItextarea = onAItextareaInput;
 
+    /** @type {Promise<string>|undefined} */
+    let promFetch;
 
     // const eltStatus = mkElt("div", undefined, "(empty)");
     const eltStatus = mkElt("div");
@@ -327,9 +329,13 @@ export async function generateMindMap(fromLink) {
         checkInpLink();
     }
     inpLink.addEventListener("input", async () => {
+        // FIX-ME: cancel fetch
+        promFetch = undefined;
         debouncedCheckInpLink();
     });
     inpLink.addEventListener("change", async () => {
+        // FIX-ME: cancel fetch
+        promFetch = undefined;
         debouncedCheckInpLink();
     });
 
@@ -341,6 +347,9 @@ export async function generateMindMap(fromLink) {
         console.log("debounce", p);
         return p;
     }
+
+    /** @type {string|null} */
+    let youTubeVideoId = null;
     async function checkInpLink() {
         const modPWA = await importFc4i("pwa");
         if (!(await modPWA.PWAhasInternet())) {
@@ -348,11 +357,13 @@ export async function generateMindMap(fromLink) {
             return;
         }
 
-        const u = inpLink.value.trim();
-        youTubeVideoId = modTools.isValidYouTubeID(u) ? u : modTools.getYouTubeVideoId(u);
-        // console.log({ youTubeVideoId });
         const eltDialogContent = inpLink.closest("div.mdc-dialog__content");
         eltStatus.textContent = "";
+
+        const linkSource = inpLink.value.trim();
+
+        youTubeVideoId = modTools.isValidYouTubeID(linkSource) ? linkSource : modTools.getYouTubeVideoId(linkSource);
+        // console.log({ youTubeVideoId });
         if (youTubeVideoId) {
             eltDialogContent.classList.add("is-youtube-video");
 
@@ -364,7 +375,7 @@ export async function generateMindMap(fromLink) {
 
         const b = divPrompt;
 
-        const vu = await modTools.isValidUrlFormat(u);
+        const vu = await modTools.isValidUrlFormat(linkSource);
         eltStatus.textContent = "";
         if (vu != true) {
             eltStatus.append(vu.message);
@@ -372,8 +383,6 @@ export async function generateMindMap(fromLink) {
             return false;
         }
         b.inert = false;
-
-        // updatePromptAi();
 
         const divWays = document.getElementById("div-ways");
         if (!divWays) throw Error(`Could not find element "div-ways"`);
@@ -434,12 +443,50 @@ export async function generateMindMap(fromLink) {
     }
 
 
+    /**
+     * @typedef {"YouTubeId" | "link" | "text" | "none"} AIpromptDataType
+     */
+    /**
+     * @typedef {Object} AIpromptData
+     * @property {AIpromptDataType} dataType
+     * @property {string} data
+     */
 
     let promptAI = "";
-    /** @type {string|null} */
-    let youTubeVideoId = null;
-    async function updatePromptAi() {
+    /**
+     * @param {string} linkSource
+     * @param {boolean} [needToFetch]
+     * @return {Promise<AIpromptData>}
+     */
+    async function getAIpromptData(linkSource, needToFetch = true) {
+        /**
+         * 
+         * @param {AIpromptDataType} tpe 
+         * @param {*} [data]
+         */
+        const makeReturn = (tpe, data = undefined) => {
+            return {
+                dataType: tpe,
+                data
+            }
+
+        }
+
+        // if (needToFetch && youTubeVideoId) { throw Error("Both youTubeVideoId and needToFetch"); }
+        if (youTubeVideoId) { return makeReturn("YouTubeId", youTubeVideoId); }
+
+        /** @type {boolean} */
         const validLinkFormat = await debouncedCheckInpLink();
+        if (!validLinkFormat) {
+            return makeReturn("none", `validLinkFormat == "${validLinkFormat}"`); // { validLinkFormat }; // FIX-ME: invalid format???
+        }
+
+        if (!needToFetch) { return makeReturn("link", linkSource); }
+
+        promFetch = promFetch || modTools.fetchFreshViaProxy(linkSource);
+        const txt = await promFetch;
+        return makeReturn("text", txt);
+
         promptAI = await makeAIprompt(inpLink.value.trim(), 4);
         const bPrompt = document.getElementById("prompt-ai");
         if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
@@ -451,7 +498,7 @@ export async function generateMindMap(fromLink) {
      * @param {number} maxDepth 
      * @returns {Promise<string>}
      */
-    async function makeAIprompt(link, maxDepth = 4) {
+    function makeAIprompt(promptData, maxDepth = 4) {
         // Today (2025-11-16) this is how the link must be handled:
         // A) If it is a YouTube video then Gemini must be used since
         //    it is the only AI with access to the info on YouTube.com
@@ -462,20 +509,52 @@ export async function generateMindMap(fromLink) {
 
         // youTubeVideoId = modTools.getYouTubeVideoId(link); // inpLink
         // console.log({ youTubeVideoId });
+
+        /*
         if (youTubeVideoId == null) {
             const strLinkHtml = await modTools.fetchFreshViaProxy(link);
             const strLinkText = extractText(strLinkHtml);
             console.log("strLinkText", strLinkText.length);
         }
+        */
 
         const endMark = "----";
-        const nocacheLink = /** @type {string} */ (modTools.addSafeCacheBuster(link));
+        const articleMark = ">>> ARTICle >>>";
+
+        // const nocacheLink = /** @type {string} */ (modTools.addSafeCacheBuster(link));
+        let specRule;
+        let txtArticle;
+        switch (promptData.dataType) {
+            case "link":
+                const nocacheLink = /** @type {string} */ (modTools.addSafeCacheBuster(promptData.data));
+                specRule =
+                    `*Open and read the actual web page at "${nocacheLink}"
+                    using the web tool (do not rely on memory or guesses).
+                    If you do not have the ability to open and read a web page
+                    then just return "ERROR: I do not have the ability to fetch a web page".
+                    `;
+                break;
+            case "text":
+                txtArticle = promptData.data;
+                specRule =
+                    `*The text you should summarize is found below after "${articleMark}".  `;
+                break;
+            default:
+                throw Error(`Unexpected data type: "${promptData.dataType}"`);
+        }
+        debugger;
+
         const rules = [
             `*If this prompt does not end with ${endMark}, consider it incomplete and notify the user
               that the prompt appears to be cut off.`,
-            `*Open and read the actual web page at "${nocacheLink}"
-              using the web tool (do not rely on memory or guesses).`,
-            `*Summarize the article (or video) in only that web page
+
+            /*
+              `*Open and read the actual web page at "${nocacheLink}"
+                using the web tool (do not rely on memory or guesses).`,
+            */
+            specRule,
+
+            `*Summarize the article (or video) 
               into 1 mind map (with 1 root node) and
               output a strict, parse-ready JSON node array
               (flat; fields: id, name, parentid, and notes).`,
@@ -485,9 +564,16 @@ export async function generateMindMap(fromLink) {
             `*Return only valid JSON (no text before or after).`,
             // `*Validate that the JSON is parseable in Chromium browsers.`,
             `*Preserve escaped newlines (\\n) inside string values for JSON validity;
-              they should represent Markdown line breaks when rendered.`,
-            `*${endMark}`
+              they should represent Markdown line breaks when rendered.`
         ];
+        if (txtArticle) {
+            rules.push(articleMark);
+            rules.push(txtArticle);
+        }
+        rules.push(`*${endMark}`);
+
+
+
         let n = 0;
         const arr = rules
             .map(m => { return m.trim(); })
@@ -598,6 +684,35 @@ export async function generateMindMap(fromLink) {
                 bPrompt
             ])
         ]);
+        eltPromptDetails.addEventListener("toggle", async () => {
+            const isOpenNow = eltPromptDetails.open;
+            console.log({ isOpenNow });
+            if (isOpenNow) {
+                debugger;
+                const linkSource = inpLink.value.trim();
+                const promptData = await getAIpromptData(linkSource);
+                console.log({ promptData });
+                debugger;
+                const prompt = makeAIprompt(promptData);
+                debugger;
+                /*
+                makeAIprompt
+                promFetch = promFetch || modTools.fetchFreshViaProxy()
+                if (promFetch) {
+                    const isSettled = await modTools.isPromiseSettled(promFetch)
+                    if (isSettled) {
+                        debugger;
+                    }
+                    try {
+                        const txt = await promFetch;
+                    } catch (err) {
+                        console.error(err);
+                        debugger;
+                    }
+                }
+                */
+            }
+        })
 
         const divNewPrompt = mkElt("div", undefined, [
             "AI prompt:",
@@ -2163,20 +2278,6 @@ export async function generateMindMap(fromLink) {
         // You may get more from the AI than the JSON:
         let strOnlyJson = cleanJsonString(strAI);
         const cleaned = [];
-
-        // Remove prompt if it is there:
-        // FIX-ME: async
-        /*
-        const dummyPromptAI = makeAIprompt("dummy");
-        const a = dummyPromptAI.split("\n");
-        const l = a.length;
-        const lastLine = a[l - 2];
-        const pp = strOnlyJson.indexOf(lastLine);
-        if (pp > -1) {
-            strOnlyJson = strOnlyJson.slice(pp + lastLine.length);
-            cleaned.push("prompt");
-        }
-        */
 
         // Remove anyting before or after json:
         const p1 = strOnlyJson.indexOf("[");

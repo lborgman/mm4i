@@ -3320,7 +3320,7 @@ const nameProxies = Object.keys(urlProxies);
 export async function fetchFreshViaProxy(url,
     opts = {}
 ) {
-    const proxy = opts.proxyName || "corsproxy";
+    const proxy = opts.proxyName || "mm4i";
     const signal = opts.signal;
     if (!nameProxies.includes(proxy)) throw new Error(`Unknown proxy: ${proxy}. Use: ${nameProxies.join(", ")}`);
 
@@ -3370,7 +3370,7 @@ export async function testFetchProxy(url = "https://sr.se") {
     for (const k of keys) {
         const aborter = new AbortController();
         setTimeout(() => {
-            return;
+            // return;
             console.log("%cABORTING >>>", "color:red", k);
             aborter.abort("Testing .abort");
             console.log("%cABORTING done", "color:red", k);
