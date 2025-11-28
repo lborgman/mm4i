@@ -40,8 +40,8 @@ const settingPuterAImodel = new SettingsMm4iAI("puter-ai-model", "");
 // const settingHuggingFaceAImodel = new SettingsMm4iAI("hugging-face-ai-model", "");
 const settingUsedAIname = new SettingsMm4iAI("used-ai-name", "groq");
 
-const settingTemperatureType = new SettingsMm4iAI("ai-temperature-type", "normal");
-const arrTemperatureTypes = ["scientific", "normal", "creative"];
+const settingTemperatureType = new SettingsMm4iAI("ai-temperature-type", "careful");
+const arrTemperatureTypes = ["careful", "normal", "creative"];
 /**
  * 
  * @param {string} tempType 
@@ -49,13 +49,17 @@ const arrTemperatureTypes = ["scientific", "normal", "creative"];
  */
 const tempType2temperature = (tempType) => {
     switch (tempType) {
-        case "scientific": return 0.2;
-        case "normal": return 0.4;
+        // case "careful": return 0.2;
+        case "careful": return 0.15;
+        // case "normal": return 0.4;
+        case "normal": return 0.3;
         // Too many errors with 1.0
-        // case "creative": return 1.0;
-        case "creative": return 0.7;
+        // case "creative": return 0.6;
+        case "creative": return 0.5;
         default:
-            throw Error(`Bad tempType: "${tempType}"`);
+            console.error(`Bad tempType: "${tempType}"`);
+            settingTemperatureType.reset(); 
+            return 0.15;
     }
 }
 

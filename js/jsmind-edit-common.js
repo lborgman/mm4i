@@ -2005,6 +2005,18 @@ export async function pageSetup() {
                 return;
             }
             const node = jmDisplayed.mind.nodes[nodeId];
+            if (node.expanded) {
+                const nc = node.children;
+                const childFirst = nc[0];
+                // const childLast = nc[nc.length - 1];
+                // console.log({ childFirst, childLast });
+                setTimeout(() => {
+                    console.log("setTimeout, scroll first");
+                    const resScrollFirst = scrollNodeIntoView(childFirst);
+                    console.log({ resScrollFirst });
+                    // FIX-ME: What to do with childLast???
+                }, 1000);
+            }
             const topic = node.topic;
             const theChange = !node.expanded ? "Collapse" : "Expand";
             fastLog4bug(`theChange: ${theChange}`);
@@ -2799,7 +2811,10 @@ export function scrollNodeIntoView(node, options = {}) {
         zoomMove.style.transition = `left ${duration}ms ${timing}, top ${duration}ms ${timing}`;
         zoomMove.style.left = `${finalLeft}px`;
         zoomMove.style.top = `${finalTop}px`;
-        return;
+        // return { deltaScreenX, deltaScreenY }
+        const ret = { deltaScreenX, deltaScreenY }
+        console.log("scrollNodeIntoView", ret);
+        return ret;
     }
 
     function animate(time) {
@@ -2818,6 +2833,10 @@ export function scrollNodeIntoView(node, options = {}) {
     }
 
     requestAnimationFrame(animate);
+
+    const ret = { deltaScreenX, deltaScreenY }
+    console.log("scrollNodeIntoView", ret);
+    return ret;
 }
 
 
