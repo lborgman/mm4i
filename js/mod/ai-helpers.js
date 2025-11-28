@@ -339,12 +339,11 @@ export async function generateMindMap(fromLink) {
         debouncedCheckInpLink();
     });
 
+    let promInpLink;
     async function debouncedCheckInpLink() {
-        // const f = modTools.callDebounced(XcheckInpLink, 2000);
-        // f();
-        // modTools.callDebounced(XcheckInpLink, 2000);
         const p = modTools.callDebouncedGemini(checkInpLink, 2000);
         console.log("debounce", p);
+        promInpLink = p;
         return p;
     }
 
@@ -476,7 +475,10 @@ export async function generateMindMap(fromLink) {
         if (youTubeVideoId) { return makeReturn("YouTubeId", youTubeVideoId); }
 
         /** @type {boolean} */
-        const validLinkFormat = await debouncedCheckInpLink();
+        // const validLinkFormat = await debouncedCheckInpLink();
+        // debugger;
+        const validLinkFormat = promInpLink ? await promInpLink
+            : await modTools.isValidUrlFormat(linkSource, undefined, false);
         if (!validLinkFormat) {
             return makeReturn("none", `validLinkFormat == "${validLinkFormat}"`); // { validLinkFormat }; // FIX-ME: invalid format???
         }
@@ -487,16 +489,16 @@ export async function generateMindMap(fromLink) {
         const txt = await promFetch;
         return makeReturn("text", txt);
 
-        promptAI = await makeAIprompt(inpLink.value.trim(), 4);
+        promptAI = makeAIprompt(inpLink.value.trim(), 4);
         const bPrompt = document.getElementById("prompt-ai");
         if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
         bPrompt.textContent = promptAI;
     }
     /**
      * 
-     * @param {string} link 
+     * @param {AIpromptData} promptData 
      * @param {number} maxDepth 
-     * @returns {Promise<string>}
+     * @returns {string}
      */
     function makeAIprompt(promptData, maxDepth = 4) {
         // Today (2025-11-16) this is how the link must be handled:
@@ -507,25 +509,14 @@ export async function generateMindMap(fromLink) {
         //    themselves (they use what the already has fetched - which
         //    might contain something very different).
 
-        // youTubeVideoId = modTools.getYouTubeVideoId(link); // inpLink
-        // console.log({ youTubeVideoId });
-
-        /*
-        if (youTubeVideoId == null) {
-            const strLinkHtml = await modTools.fetchFreshViaProxy(link);
-            const strLinkText = extractText(strLinkHtml);
-            console.log("strLinkText", strLinkText.length);
-        }
-        */
-
         const endMark = "----";
-        const articleMark = ">>> ARTICle >>>";
+        const articleMark = ">>> ARTICLE >>>";
 
-        // const nocacheLink = /** @type {string} */ (modTools.addSafeCacheBuster(link));
         let specRule;
         let txtArticle;
         switch (promptData.dataType) {
             case "link":
+                debugger;
                 const nocacheLink = /** @type {string} */ (modTools.addSafeCacheBuster(promptData.data));
                 specRule =
                     `*Open and read the actual web page at "${nocacheLink}"
@@ -535,14 +526,15 @@ export async function generateMindMap(fromLink) {
                     `;
                 break;
             case "text":
-                txtArticle = promptData.data;
+                const htmlArticle = promptData.data;
+                txtArticle = extractText(htmlArticle);
                 specRule =
                     `*The text you should summarize is found below after "${articleMark}".  `;
                 break;
             default:
                 throw Error(`Unexpected data type: "${promptData.dataType}"`);
         }
-        debugger;
+        // debugger;
 
         const rules = [
             `*If this prompt does not end with ${endMark}, consider it incomplete and notify the user
@@ -570,7 +562,7 @@ export async function generateMindMap(fromLink) {
             rules.push(articleMark);
             rules.push(txtArticle);
         }
-        rules.push(`*${endMark}`);
+        rules.push(`${endMark}`);
 
 
 
@@ -583,10 +575,13 @@ export async function generateMindMap(fromLink) {
             .map(m => {
                 if (m.startsWith("*")) {
                     return `${++n}. ` + m.slice(1);
+                } else {
+                    return m;
                 }
             })
             ;
         return arr.join(";\n\n");
+
         // @ts-ignore
         console.log({ arr });
         debugger; // eslint-disable-line no-debugger
@@ -686,31 +681,17 @@ export async function generateMindMap(fromLink) {
         ]);
         eltPromptDetails.addEventListener("toggle", async () => {
             const isOpenNow = eltPromptDetails.open;
-            console.log({ isOpenNow });
+            // console.log({ isOpenNow });
             if (isOpenNow) {
-                debugger;
                 const linkSource = inpLink.value.trim();
                 const promptData = await getAIpromptData(linkSource);
                 console.log({ promptData });
-                debugger;
-                const prompt = makeAIprompt(promptData);
-                debugger;
-                /*
-                makeAIprompt
-                promFetch = promFetch || modTools.fetchFreshViaProxy()
-                if (promFetch) {
-                    const isSettled = await modTools.isPromiseSettled(promFetch)
-                    if (isSettled) {
-                        debugger;
-                    }
-                    try {
-                        const txt = await promFetch;
-                    } catch (err) {
-                        console.error(err);
-                        debugger;
-                    }
-                }
-                */
+                const promptAI = makeAIprompt(promptData);
+                // debugger;
+
+                const bPrompt = document.getElementById("prompt-ai");
+                if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
+                bPrompt.textContent = promptAI;
             }
         })
 
@@ -4110,13 +4091,11 @@ function _testFixMalformedJSON3() {
  * @returns {string}
  */
 export function extractText(strHtml) {
-    // FIX-ME: cleanHtml and check the code below! It cleans the <html>
-    // const strCleaned = modTools.cleanHtml(strHtml)
-    // FIX-ME: <meta>
     const parser = new DOMParser();
     const doc = parser.parseFromString(strHtml, 'text/html');
-    const eltMetaDesc = /** @type {HTMLMetaElement} */ (doc.querySelector("meta[name=description]"));
-    const metaDescription = eltMetaDesc?.content || "";
+    // FIX-ME: <meta>
+    // const eltMetaDesc = /** @type {HTMLMetaElement} */ (doc.querySelector("meta[name=description]"));
+    // const metaDescription = eltMetaDesc?.content || "";
 
     const articleText = (() => {
         // 1. Primary: <article> (precise for content)
@@ -4134,7 +4113,9 @@ export function extractText(strHtml) {
             // const clone = el.cloneNode(true);
             const clone = el;
             // Clean up (tailored for science: refs, figs)
-            clone.querySelectorAll('script, style, nav, header, footer, aside, .ad, .references, figure, .fig, .supplementary').forEach(x => x.remove());
+            clone.querySelectorAll(
+                'meta, script, style, nav, header, footer, aside, .ad, .references, figure, .fig, .supplementary'
+            ).forEach(x => x.remove());
             // let text = (clone.innerText || clone.textContent).trim();
             let text = clone.textContent.trim();
 
@@ -4153,5 +4134,7 @@ export function extractText(strHtml) {
         // Last resort
         return doc.body.innerText.trim().slice(0, 18000);
     })();
-    return `${metaDescription}\n\n${articleText}`;
+    if (!articleText) throw Error(`articleText == "${articleText}"`);
+    return articleText;
+    // return `${metaDescription}\n\n${articleText}`;
 }

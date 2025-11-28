@@ -1311,7 +1311,14 @@ export function getUrllNotValidMsg(id) {
 }
 
 // To check top level domains async fetchReTLD() must be called first!
-export async function isValidUrlFormat(strUrl, protocol) {
+/**
+ * 
+ * @param {string} strUrl 
+ * @param {string} protocol 
+ * @param {boolean} [mustCheckTLD]
+ * @returns 
+ */
+export async function isValidUrlFormat(strUrl, protocol, mustCheckTLD = true) {
     /**
      * 
      * @param {string} reason 
@@ -1339,15 +1346,21 @@ export async function isValidUrlFormat(strUrl, protocol) {
                     return makeInvalid("NO-TLD", "No top domain");
                 }
                 if (strUrl.search(" ") != -1) return makeInvalid("CONTAINS-SPACE", "Can not contain spaces");
-                await fetchTLD();
-                const re = getReTLD();
-                if (!re.test(strUrl)) {
-                    const tld = getTLD(strUrl);
-                    return makeInvalid("UNKNOWN-TLD", mkElt("span", undefined, [
-                        "Unknown top domain: ",
-                        mkElt("b", undefined, tld)
-                    ]));
+
+                const tld = getTLD(strUrl);
+                if (!tld) return makeInvalid("NO-TLD", "No top domain in url");
+
+                if (hasReTLD() || mustCheckTLD) {
+                    await fetchTLD();
+                    const re = getReTLD();
+                    if (!re.test(strUrl)) {
+                        return makeInvalid("UNKNOWN-TLD", mkElt("span", undefined, [
+                            "Unknown top domain: ",
+                            mkElt("b", undefined, tld)
+                        ]));
+                    }
                 }
+
                 break;
             default:
                 throw Error("Not implemented");
@@ -1377,6 +1390,10 @@ async function isReachableUrl(url) {
 // let reTLD;
 /** @type {string[]} */
 const arrTLD = [];
+export function hasReTLD() {
+    return arrTLD.length > 0;
+}
+
 /**
  * Get RegExp mathing top level domains.
  * 
