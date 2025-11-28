@@ -2392,6 +2392,7 @@ export function _OLDreplaceMDCicon(newIconName, spanIcon) {
  * @param {HTMLElement} eltWithIcon 
  */
 export function replaceMDCicon(newIconName, eltWithIcon) {
+    addToUsedSymbols(newIconName);
     if (!(eltWithIcon instanceof HTMLElement)) throw Error(`eltWithIcon is not HTMLElement`);
     let spanIcon;
     const tagName = eltWithIcon.tagName;

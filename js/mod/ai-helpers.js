@@ -2234,8 +2234,16 @@ export async function generateMindMap(fromLink) {
         // addShareMarker
         const addAIgeneratedMarker = () => {
             // debugger;
+            // const iconReplay = modMdc.mkMDCicon("replay");
+            const btnReplay = modMdc.mkMDCiconButton("replay", "Try again");
+            btnReplay.addEventListener("click", () => {
+                alert("not implemented yet");
+            });
             const divInfo = mkElt("div", undefined,
-                mkElt("b", undefined, "AI generated mindmap"),
+                mkElt("span", undefined, [
+                    "AI generated mindmap",
+                    btnReplay
+                ]),
             );
             const eltTellGenerated = mkElt("div", undefined, [
                 divInfo,

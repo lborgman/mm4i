@@ -110,9 +110,10 @@ export async function getFullMindmapDisplayState(jmDisplayed) {
 /** @type {string} */
 let oldNOT_SAVEABLE = "";
 async function saveMindmapPlusUndoRedo(keyNamePar, jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
-    debugger;
+    // debugger;
     let keyName = keyNamePar;
     // jmDisplayed.NOT_SAVEABLE = jmDisplayed.NOT_SAVEABLE || oldNOT_SAVEABLE;
+    if (jmDisplayed.NOT_SAVEABLE == true) return;
     if (jmDisplayed.NOT_SAVEABLE == "") {
         delete jmDisplayed.NOT_SAVEABLE;
     }
@@ -147,8 +148,18 @@ async function saveMindmapPlusUndoRedo(keyNamePar, jmDisplayed, actionTopic, las
                 await checkInappAndSaveMindmap(keyName, mindToStore);
                 await startUndoRedo(keyName, jmDisplayed);
             } else {
-                modMdc.mkMDCsnackbar(`Not saving: ${msgNS}`, 10 * 1000);
+                // modMdc.mkMDCsnackbar(`Not saving: ${msgNS}`, 2 * 1000);
                 jmDisplayed.NOT_SAVEABLE = true;
+                const eltMarker = document.getElementById("generated-marker");
+                if (!eltMarker) throw Error('Did not find "generated-marker"');
+                const style = eltMarker.style;
+                style.background = "blue";
+                style.color = "white";
+                style.outline = "solid 1px";
+                style.borderRadius = "2px";
+                style.padding = "4px";
+                style.gap = "4px";
+                // eltMarker.append(mkElt("span", undefined, " (not saving)"));
                 return;
             }
         }
@@ -246,31 +257,31 @@ async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
 
 export function getNextMindmapKey() { return "mm-" + new Date().toISOString(); }
 export function isValidMindmapKey(str) {
-  // Regex breakdown:
-  // ^              - start of string
-  // m-             - literal "m-"
-  // (\d{4})        - year (4 digits)
-  // -(\d{2})       - month (2 digits)
-  // -(\d{2})       - day (2 digits)
-  // T              - literal T
-  // (\d{2})        - hours
-  // :(\d{2})       - minutes
-  // :(\d{2})       - seconds
-  // \.(\d{3})      - milliseconds (3 digits)
-  // Z              - literal Z (UTC)
-  // $              - end of string
-  const regex = /^m-(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/;
+    // Regex breakdown:
+    // ^              - start of string
+    // m-             - literal "m-"
+    // (\d{4})        - year (4 digits)
+    // -(\d{2})       - month (2 digits)
+    // -(\d{2})       - day (2 digits)
+    // T              - literal T
+    // (\d{2})        - hours
+    // :(\d{2})       - minutes
+    // :(\d{2})       - seconds
+    // \.(\d{3})      - milliseconds (3 digits)
+    // Z              - literal Z (UTC)
+    // $              - end of string
+    const regex = /^m-(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/;
 
-  if (!regex.test(str)) return false;
+    if (!regex.test(str)) return false;
 
-  // Extra safety: parse the date to ensure it's valid
-  const isoPart = str.slice(2); // remove "m-"
-  const date = new Date(isoPart);
+    // Extra safety: parse the date to ensure it's valid
+    const isoPart = str.slice(2); // remove "m-"
+    const date = new Date(isoPart);
 
-  // Check if date is valid and matches the string exactly
-  return date instanceof Date && 
-         !isNaN(date) && 
-         date.toISOString() === isoPart;
+    // Check if date is valid and matches the string exactly
+    return date instanceof Date &&
+        !isNaN(date) &&
+        date.toISOString() === isoPart;
 }
 
 export function showMindmap(key) {
