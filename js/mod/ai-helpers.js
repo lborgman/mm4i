@@ -451,7 +451,8 @@ export async function generateMindMap(fromLink) {
      * @property {string} data
      */
 
-    let promptAI = "";
+    // let promptAI = "";
+
     /**
      * @param {string} linkSource
      * @param {boolean} [needToFetch]
@@ -489,10 +490,10 @@ export async function generateMindMap(fromLink) {
         const txt = await promFetch;
         return makeReturn("text", txt);
 
-        promptAI = makeAIprompt(inpLink.value.trim(), 4);
-        const bPrompt = document.getElementById("prompt-ai");
-        if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
-        bPrompt.textContent = promptAI;
+        // XpromptAI = XmakeAIprompt(inpLink.value.trim(), 4);
+        // const bPrompt = document.getElementById("prompt-ai");
+        // if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
+        // bPrompt.textContent = XpromptAI;
     }
     /**
      * 
@@ -530,6 +531,9 @@ export async function generateMindMap(fromLink) {
                 txtArticle = extractText(htmlArticle);
                 specRule =
                     `*The text you should summarize is found below after "${articleMark}".  `;
+                break;
+            case "none":
+                debugger; // FIX-ME: invalid link, catch it earlier!
                 break;
             default:
                 throw Error(`Unexpected data type: "${promptData.dataType}"`);
@@ -631,6 +635,14 @@ export async function generateMindMap(fromLink) {
         */
     }
 
+    async function getAIprompt() {
+        const linkSource = inpLink.value.trim();
+        const promptData = await getAIpromptData(linkSource);
+        console.log({ promptData });
+        const prompt = makeAIprompt(promptData);
+        return prompt;
+    }
+
 
     let theValidJsonNodeArray;
     let theValidRoot;
@@ -639,7 +651,8 @@ export async function generateMindMap(fromLink) {
     divPrompt.id = "mk-div-prompt";
     divPrompt.inert = true;
     function mkDivPrompt() {
-        const bPrompt = mkElt("div", undefined, promptAI);
+        // const bPrompt = mkElt("div", undefined, XpromptAI);
+        const bPrompt = mkElt("div");
         bPrompt.id = "prompt-ai";
         bPrompt.style = `
             white-space: pre-wrap;
@@ -653,7 +666,8 @@ export async function generateMindMap(fromLink) {
         const btnCopyPrompt = modMdc.mkMDCiconButton("content_copy", "Copy AI prompt");
         btnCopyPrompt.addEventListener("click", async () => {
             // evt.stopPropagation();
-            await modTools.copyTextToClipboard(promptAI);
+            const prompt = await getAIprompt();
+            await modTools.copyTextToClipboard(prompt);
             setCSSforAIautomated(false);
             setCSSforAIonClipboard(true);
             setCliboardInert(false);
@@ -681,17 +695,13 @@ export async function generateMindMap(fromLink) {
         ]);
         eltPromptDetails.addEventListener("toggle", async () => {
             const isOpenNow = eltPromptDetails.open;
-            // console.log({ isOpenNow });
             if (isOpenNow) {
-                const linkSource = inpLink.value.trim();
-                const promptData = await getAIpromptData(linkSource);
-                console.log({ promptData });
-                const promptAI = makeAIprompt(promptData);
                 // debugger;
+                const prompt = await getAIprompt();
 
                 const bPrompt = document.getElementById("prompt-ai");
                 if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
-                bPrompt.textContent = promptAI;
+                bPrompt.textContent = prompt;
             }
         })
 
@@ -911,8 +921,6 @@ export async function generateMindMap(fromLink) {
                 toDoIt = setTimeout(() => {
                     // @ts-ignore
                     eltDialog.remove();
-                    // doMakeGeneratedMindmap();
-                    // promptAI = makeAIprompt(inpLink.value.trim(), 4);
                     doMakeGeneratedMindmap(inpLink.value.trim(), nodeArray, theValidRoot);
                 }, (secDelay + secOpacity) * 1000);
             } else {
@@ -1718,6 +1726,9 @@ export async function generateMindMap(fromLink) {
     btnGo.addEventListener("click", async (evt) => {
         evt.stopPropagation();
 
+        const userPrompt = await getAIprompt();
+        // debugger;
+
         document.documentElement.classList.remove("ai-response-error");
         document.documentElement.classList.remove("has-ai-response");
         divGoStatus.textContent = "";
@@ -1744,8 +1755,7 @@ export async function generateMindMap(fromLink) {
 
         const { way } = getWayToCallAI(nameAI);
         if (way != "API") {
-            // const modTools = await importFc4i("toolsJs");
-            await modTools.copyTextToClipboard(promptAI);
+            await modTools.copyTextToClipboard(userPrompt);
             divGoStatus.textContent = "Copied prompt. ";
             // document.documentElement.classList.add("have-ai-on-clipboard");
             // mayHaveAIonClipboard();
@@ -1776,7 +1786,8 @@ export async function generateMindMap(fromLink) {
             document.documentElement.classList.add("ai-in-progress");
             modMdc.replaceMDCicon("stop", btnGo);
         }
-        await callNamedAI(nameAI, promptAI, handleAIres);
+        // await callNamedAI(nameAI, promptAI, handleAIres);
+        await callNamedAI(nameAI, userPrompt, handleAIres);
 
         if (callingAPI) {
             document.documentElement.classList.remove("ai-in-progress");
