@@ -2587,72 +2587,6 @@ function REALscrollNodeIntoView(node) {
     });
 }
 
-// Debug version:
-function NOTworking_scrollNodeIntoView(node) {
-    console.clear();
-    console.log("DIAGNOSTIC: scrollNodeIntoView START");
-
-    // 1. Get DOM element
-    const elt = jsMind.my_get_DOM_element_from_node(node);
-    if (!elt) {
-        console.error("No DOM element from node");
-        return;
-    }
-    if (!elt.isConnected) {
-        console.error("Element not in DOM");
-        return;
-    }
-    console.log("Element:", elt);
-    console.log("Element visible?", elt.offsetParent !== null);
-
-    // 2. Find scrollable ancestor
-    const anc = modTools.getScrollableAncestorInfo(elt);
-    if (!anc.hasScrollableAncestor) {
-        console.error("No scrollable ancestor");
-        return;
-    }
-    const scroller = anc.firstScrollableAncestor;
-    console.log("Scroller:", scroller);
-    console.log("Scroller overflow-x:", getComputedStyle(scroller).overflowX);
-
-    // 3. Measure positions
-    const eRect = elt.getBoundingClientRect();
-    const sRect = scroller.getBoundingClientRect();
-    console.log("Element rect:", eRect);
-    console.log("Scroller rect:", sRect);
-
-    console.log("Is out of view?", eRect.left < sRect.left || eRect.right > sRect.right);
-
-    // 4. Force layout
-    requestAnimationFrame(() => {
-        console.log("Inside requestAnimationFrame");
-
-        void elt.offsetLeft;
-        void scroller.scrollLeft; // force scroller layout
-
-        // 5. Final check before scroll
-        const eRect2 = elt.getBoundingClientRect();
-        const sRect2 = scroller.getBoundingClientRect();
-        console.log("After reflow — still out of view?",
-            eRect2.left < sRect2.left || eRect2.right > sRect2.right);
-
-        // 6. MANUAL SCROLL TEST (this MUST work)
-        const targetScrollLeft = scroller.scrollLeft + (eRect2.left + eRect2.width / 2) - (sRect2.left + sRect2.width / 2);
-        console.log("Manual target scrollLeft:", targetScrollLeft, "current:", scroller.scrollLeft);
-
-        // Try manual smooth scroll
-        scroller.scrollTo({
-            left: targetScrollLeft,
-            behavior: 'smooth'
-        });
-
-        // 7. Also try scrollIntoView
-        setTimeout(() => {
-            console.log("Trying scrollIntoView...");
-            elt.scrollIntoView({ behavior: 'smooth', inline: 'center' });
-        }, 100);
-    });
-}
 
 
 
@@ -2695,13 +2629,47 @@ function NOTworking_scrollNodeIntoView(node) {
 export function scrollNodeIntoView(node, options = {}) {
     const {
         where = "nearest-border",
-        borderMargin = 10,
+        borderMargin = 32,
         timing = "ease-in-out",
         duration = 500
     } = options;
 
     const elt = jsMind.my_get_DOM_element_from_node(node);
     if (!elt?.isConnected) return;
+
+    const setNodeSiblings = new Set([node]);
+    const parent = node.parent;
+    if (parent) {
+        parent.children.forEach(c => {
+            if (c.direction == node.direction) {
+                setNodeSiblings.add(c);
+            }
+        });
+    }
+    console.log({ setNodeSiblings });
+    const setEltSiblings = new Set();
+    setNodeSiblings.forEach(n => {
+        const e = jsMind.my_get_DOM_element_from_node(n);
+        setEltSiblings.add(e);
+    });
+    console.log({ setEltSiblings });
+    const nodeRects = {
+        left: Number.MAX_SAFE_INTEGER,
+        right: - Number.MAX_SAFE_INTEGER,
+        top: Number.MAX_SAFE_INTEGER,
+        bottom: - Number.MAX_SAFE_INTEGER,
+        width: 0,
+        height: 0,
+    }
+    setEltSiblings.forEach(e => {
+        const r = e.getBoundingClientRect();
+        nodeRects.left = Math.min(nodeRects.left, r.left);
+        nodeRects.right = Math.max(nodeRects.right, r.right);
+        nodeRects.top = Math.min(nodeRects.top, r.top);
+        nodeRects.bottom = Math.max(nodeRects.bottom, r.bottom);
+    });
+    nodeRects.width = nodeRects.right - nodeRects.left;
+    nodeRects.height = nodeRects.bottom - nodeRects.top;
 
     // --- Find containers with .closest ---
     const zoomMove = elt.closest('.zoom-move');
@@ -2718,7 +2686,7 @@ export function scrollNodeIntoView(node, options = {}) {
     const scale = scaleMatch ? parseFloat(scaleMatch[1]) : 1;
 
     // --- Bounding rects in SCREEN space ---
-    const nodeRect = elt.getBoundingClientRect();
+    // const nodeRect = elt.getBoundingClientRect();
     const vpRect = viewport.getBoundingClientRect();
 
     // --- Helper: screen to map space ---
@@ -2729,12 +2697,12 @@ export function scrollNodeIntoView(node, options = {}) {
 
     // --- RENAMED: nodeMap instead of node ---
     const nodeMap = {
-        left: toMap(nodeRect.left, nodeRect.top).x,
-        top: toMap(nodeRect.top, nodeRect.top).y,
-        right: toMap(nodeRect.right, nodeRect.bottom).x,
-        bottom: toMap(nodeRect.bottom, nodeRect.bottom).y,
-        width: (nodeRect.width / scale),
-        height: (nodeRect.height / scale)
+        left: toMap(nodeRects.left, nodeRects.top).x,
+        top: toMap(nodeRects.top, nodeRects.top).y,
+        right: toMap(nodeRects.right, nodeRects.bottom).x,
+        bottom: toMap(nodeRects.bottom, nodeRects.bottom).y,
+        width: (nodeRects.width / scale),
+        height: (nodeRects.height / scale)
     };
 
     // --- Viewport in MAP space ---
