@@ -58,7 +58,7 @@ const tempType2temperature = (tempType) => {
         case "creative": return 0.5;
         default:
             console.error(`Bad tempType: "${tempType}"`);
-            settingTemperatureType.reset(); 
+            settingTemperatureType.reset();
             return 0.15;
     }
 }
@@ -333,6 +333,8 @@ export async function generateMindMap(fromLink) {
         checkInpLink();
     }
     inpLink.addEventListener("input", async () => {
+        divPrompt.inert = true;
+        btnGo.inert = true;
         // FIX-ME: cancel fetch
         promFetch = undefined;
         debouncedCheckInpLink();
@@ -345,7 +347,7 @@ export async function generateMindMap(fromLink) {
 
     let promInpLink;
     async function debouncedCheckInpLink() {
-        const p = modTools.callDebouncedGemini(checkInpLink, 2000);
+        const p = modTools.callDebouncedGemini(checkInpLink, 300);
         console.log("debounce", p);
         promInpLink = p;
         return p;
@@ -372,20 +374,23 @@ export async function generateMindMap(fromLink) {
 
             const eltLogo = mkEltYouTubeLogo("18px");
             eltStatus.appendChild(eltLogo);
+            btnGo.inert = false;
             return;
         }
         eltDialogContent.classList.remove("is-youtube-video");
 
-        const b = divPrompt;
+        // const b = divPrompt;
 
         const vu = await modTools.isValidUrlFormat(linkSource);
         eltStatus.textContent = "";
         if (vu != true) {
             eltStatus.append(vu.message);
-            b.inert = true;
+            divPrompt.inert = true;
+            btnGo.inert = true;
             return false;
         }
-        b.inert = false;
+        divPrompt.inert = false;
+        btnGo.inert = false;
 
         const divWays = document.getElementById("div-ways");
         if (!divWays) throw Error(`Could not find element "div-ways"`);
@@ -1678,7 +1683,8 @@ export async function generateMindMap(fromLink) {
     });
     /** @param {string} nameAI */
     function setAIchoosen(nameAI) {
-        btnGo.inert = false;
+        // btnGo.inert = false;
+        btnGo.inert = !modTools.isValidUrlFormat(inpLink.value.trim());
         const isAuto = isAutomatedAI(nameAI);
         setCSSforAIautomated(isAuto);
         setCSSforAIonClipboard(!isAuto);
