@@ -1606,6 +1606,25 @@ export async function generateMindMap(fromLink) {
                     ]);
                     divGroqExtra.id = "div-groq-extra";
                     divAPIinfo.insertBefore(divGroqExtra, divAPIinfo.firstChild);
+                    /*
+UTC Time Window,Likelihood of Rate Limits / Slowdowns on Free Tier,Notes
+16:00 – 00:00 UTC,Very High,Peak period
+00:00 – 04:00 UTC,High,US evening + early Asia overlap
+04:00 – 12:00 UTC,Medium,Asia/Japan daytime traffic
+12:00 – 16:00 UTC,Low → Medium,Generally quieter
+05:00 – 14:00 UTC,Lowest congestion,Best window for free-tier users (especially weekends)
+
+
+
+Free-Tier Limits for llama-3.1-8b-instant
+These are enforced per organization/account and reset periodically (RPM/TPM every minute; RPD/TPD every 24 hours from your first request). Exceeding any can cause immediate throttling, regardless of overall traffic.
+
+Limit Type,Value,What It Means,Common Pitfall
+RPM (Requests Per Minute),30,Max API calls per minute,"Rapid loops or chat streams (e.g., multiple messages in a session) hit this quick"
+TPM (Tokens Per Minute),"6,000",Max input + output tokens processed per minute,"A single prompt/output combo over ~6K tokens (e.g., long context or verbose responses) exceeds it—most frequent cause for 429s"
+RPD (Requests Per Day),"14,400",Max API calls per 24 hours,"Fine for light dev, but batch jobs add up"
+TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent to ~80–100 medium-length chats; resets daily
+                    */
                 }
                 const spanAPIkeyInfo = mkElt("span", undefined, [" You can get your own API key ", aAPIkey, "."]);
                 divAPIinfo.appendChild(spanAPIkeyInfo);
@@ -2205,6 +2224,7 @@ export async function generateMindMap(fromLink) {
                 n.shapeEtc.notes = notes;
             }
         });
+        rootNode.topic = `${rootNode.topic} (w/ ${nameUsedAI})`;
         const rootNotes = rootNode.shapeEtc?.notes;
         // Insert source data
         let arrMdRootNotes = [
@@ -2243,16 +2263,12 @@ export async function generateMindMap(fromLink) {
         document.getElementById("mm4i-btn-history")?.remove();
         // addShareMarker
         const addAIgeneratedMarker = () => {
-            // debugger;
-            // const iconReplay = modMdc.mkMDCicon("replay");
-            const btnReplay = modMdc.mkMDCiconButton("replay", "Try again");
-            btnReplay.addEventListener("click", () => {
-                alert("not implemented yet");
-            });
+            // const btnReplay = modMdc.mkMDCiconButton("replay", "Try again");
+            // btnReplay.addEventListener("click", () => { alert("not implemented yet"); });
             const divInfo = mkElt("div", undefined,
                 mkElt("span", undefined, [
                     "AI generated mindmap",
-                    btnReplay
+                    // btnReplay
                 ]),
             );
             const eltTellGenerated = mkElt("div", undefined, [

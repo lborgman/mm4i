@@ -1279,23 +1279,20 @@ export function setTopic4undoRedo(topic) {
     // if (topic4undoRedo != undefined) throw Error(`topic4undoRedo != undefined`);
     topic4undoRedo = topic;
 }
-let mindmapKeyNotFound;
+
+/**
+ * Mindmap to show
+ * @type {string|undefined} */
+let parMindmapKeyNotFound;
+
 export async function pageSetup() {
     await checkParamNames();
-
-    // const sharedParam = new URLSearchParams(location.search).get("share");
-    // const searchParams = new URLSearchParams(location.search);
-    // const sharedParam = searchParams.get("share");
-    // console.log({ sharedParam });
     const searchParams = new URLSearchParams(location.search);
     const sharepostParam = searchParams.get("sharepost");
-    // console.log({ sharepostParam });
     if (sharepostParam != null) {
-        // const sp = new URLSearchParams(sharedParam);
         const spTitle = searchParams.get("title");
         const spText = searchParams.get("text");
 
-        // const btnDownloadShared = modMdc.mkMDCiconButton("edit_arrow_down", "Save to your device", 40);
         const btnInfoLinked = modMdc.mkMDCiconButton("info", "Show info about this mindmap", 40);
         btnInfoLinked.style = ` border-radius: 50%; background-color: #fff4; `;
         btnInfoLinked.addEventListener("click", async evt => {
@@ -1489,7 +1486,7 @@ export async function pageSetup() {
             mindInStoredFormat = await modMMhelpers.getMindmap(mindmapKey);
             if (!mindInStoredFormat) {
                 // alert(`Could not find mindmap with key=="${mindmapKey}"`);
-                mindmapKeyNotFound = mindmapKey;
+                parMindmapKeyNotFound = mindmapKey;
                 mindmapKey = null;
             }
         }
@@ -2822,16 +2819,21 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
 
     const showNew = !arrMindmapsHits;
 
-    const eltTitle = mkElt("h2", undefined, "Mindmaps");
-    if (mindmapKeyNotFound) {
+    const spanSubTitle = mkElt("span", undefined, "(Root topics)");
+    spanSubTitle.style.fontSize = "14px";
+    const spanTitle = mkElt("span", undefined, ["Mindmaps", spanSubTitle]);
+    spanTitle.style.display = "inline-flex";
+    spanTitle.style.flexDirection = "column";
+    const eltTitle = mkElt("h2", undefined, spanTitle);
+    if (parMindmapKeyNotFound) {
         if (info) {
             debugger; // eslint-disable-line no-debugger
-            throw Error(`mindmapkeyNotFound=="${mindmapKeyNotFound}" and info=="${info}"`);
+            throw Error(`mindmapkeyNotFound=="${parMindmapKeyNotFound}" and info=="${info}"`);
         }
 
         const infoStart = mkElt("div", undefined, [
             mkElt("div", undefined, "Mindmap key not found:"),
-            mkElt("div", undefined, mkElt("b", undefined, mindmapKeyNotFound))
+            mkElt("div", undefined, mkElt("b", undefined, parMindmapKeyNotFound))
         ])
         info = mkElt("p", { class: "mdc-card" }, [
             infoStart
@@ -2857,20 +2859,30 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
         const key = mh.key;
         const j = mh.jsmindmap;
         const hits = mh.hits;
-        let topic;
-        switch (j.format) {
-            case "node_tree":
-                topic = j.data.topic;
-                break;
-            case "node_array":
-                topic = j.data[0].topic;
-                break;
-            case "freemind":
-                const s = j.data;
-                topic = s.match(/<node .*?TEXT="([^"]*)"/)[1];
-                break;
-            default:
-                throw Error(`Unknown mindmap format: ${j.format}`);
+        const topic = modMMhelpers.getRootTopic(j);
+        /**
+         * 
+         * @param {Object} j 
+         * @returns {string}
+         */
+        function _getRootTopic(j) {
+            switch (j.format) {
+                case "node_tree":
+                    // topic = j.data.topic;
+                    return j.data.topic;
+                    break;
+                case "node_array":
+                    // topic = j.data[0].topic;
+                    return j.data[0].topic;
+                    break;
+                case "freemind":
+                    const s = j.data;
+                    // topic = s.match(/<node .*?TEXT="([^"]*)"/)[1];
+                    return s.match(/<node .*?TEXT="([^"]*)"/)[1];
+                    break;
+                default:
+                    throw Error(`Unknown mindmap format: ${j.format}`);
+            }
         }
         return { key, topic, hits };
     });
@@ -2925,8 +2937,11 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
         btnFabNew.style.marginLeft = "40px";
         eltTitle.appendChild(btnFabNew);
 
-        const eltIconGenAI = modMdc.mkMDCicon("smart_toy");
-        const btnFabGenAI = modMdc.mkMDCfab(eltIconGenAI, "Make mindmap from link", true);
+        const eltIconGenAI = modMdc.mkMDCicon("add_link");
+        const btnFabGenAI = modMdc.mkMDCfab(eltIconGenAI, "Make mindmap with AI from link", true);
+        // btnFabGenAI.style.backgroundColor = "lightskyblue";
+        btnFabGenAI.style.backgroundColor = "#FF0FDC";
+
         btnFabGenAI.addEventListener("click", async () => {
             // generate mindmap
             const modAIhelpers = await importFc4i("ai-helpers");
