@@ -10,7 +10,8 @@
 // @ts-check
 
 const version = "0.1.000";
-window["logConsoleHereIs"](`here is mm4i-jsmind.drag-node.js, module ${version}`);
+window.logConsoleHereIs(`here is mm4i-jsmind.drag-node.js, module ${version}`);
+logConsoleHereIs(`here is mm4i-jsmind.drag-node.js, module ${version}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 /** @param any[] @returns {HTMLElement} */

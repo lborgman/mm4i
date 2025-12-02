@@ -1,7 +1,7 @@
 // @ts-check
 
 // @ts-ignore
-const SW_VERSION = "0.2.320-x4"; // Changed version to verify new SW is running
+const SW_VERSION = "0.2.320-x5"; // Changed version to verify new SW is running
 
 /**
  * @module sw-init
