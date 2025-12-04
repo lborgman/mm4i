@@ -2643,13 +2643,13 @@ export function scrollNodeIntoView(node, options = {}) {
             }
         });
     }
-    console.log({ setNodeSiblings });
+    // console.log({ setNodeSiblings });
     const setEltSiblings = new Set();
     setNodeSiblings.forEach(n => {
         const e = jsMind.my_get_DOM_element_from_node(n);
         setEltSiblings.add(e);
     });
-    console.log({ setEltSiblings });
+    // console.log({ setEltSiblings });
     const nodeRects = {
         left: Number.MAX_SAFE_INTEGER,
         right: - Number.MAX_SAFE_INTEGER,
@@ -2778,7 +2778,7 @@ export function scrollNodeIntoView(node, options = {}) {
         zoomMove.style.top = `${finalTop}px`;
         // return { deltaScreenX, deltaScreenY }
         const ret = { deltaScreenX, deltaScreenY }
-        console.log("scrollNodeIntoView", ret);
+        // console.log("scrollNodeIntoView", ret);
         return ret;
     }
 

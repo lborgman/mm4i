@@ -26,6 +26,12 @@ declare global {
    */
   function importFc4i<T = any>(modulePath: string): Promise<T>;
 
+  /**
+   * @param relLink
+   */
+  function makeAbsLink(relLink: string): string;
+
+
   // make them available on window too (in case some old code uses window.mkElt)
   /*
   interface Window {
@@ -39,5 +45,12 @@ declare global {
   // ... but it is not officially supported (yet).
   var window: Window & typeof globalThis;
 }
-
 export {};   // keeps it working in module mode
+
+
+
+// checkIsMMformatJmdisplayed(jmDisplayed, "wantToSave");
+/** * @typedef {Object} MMformatJmDisplayed */
+// type MMformatJmDisplayed = object;
+
+/** @typedef {Object} MMformatStored */

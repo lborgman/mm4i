@@ -1084,43 +1084,40 @@ export function debounce(func, waitMS = 200) {
 };
 
 
+/**
+ * @typedef {Object} ObjDebounceOptions
+ * @property {Function} callback
+ * @property {number|undefined} msWait
+ */
+
+/** @type {WeakMap<ObjDebounceOptions, Function>} */
+const mapForDebounced = new WeakMap();
 
 /**
- * Plain JS factory: Returns a debounced version of the callback.
- * Each call creates a stable, unique debounced instance (lazy via closure).
- * 
- * @template {(...args: any[]) => any} T
- * 
- * @param {T} callback
- * @param {number} [waitMS=200] - Delay in ms.
- * @returns {T} The debounced function (call it with ...args).
+ * @param {ObjDebounceOptions} objCallback
+ * @param {...any} args
  */
-export function callDebounced(callback, waitMS = 200) {
-    /** @type {WeakMap<Function, Function>} */
-    const cache = (() => {
-        if (callDebounced.cache) return callDebounced.cache;
-        const c = new WeakMap();
-        // @ts-ignore
-        callDebounced.cache = c;
-        return c;
-    })();
-    if (!cache.has(callback)) {
-        console.log("createDebounced for ", callback);
+export function callDebounced(objCallback, ...args) {
+    console.warn("callDebounced", { args });
+    const { callback, msWait = 200 } = objCallback;
+    if (!mapForDebounced.has(objCallback)) {
+        console.log("createDebounced for ", objCallback);
         /** @type {ReturnType<typeof setTimeout> | undefined} */
         let timeoutId;
-        /** @param {...any} args */
-        const debounced = function (...args) {
+        const funDebounced = (...args2) => {
             clearTimeout(timeoutId);
             timeoutId = setTimeout(() => {
                 timeoutId = undefined;
-                callback.apply(...args);
-            }, waitMS);
+                // callback.apply(null, ...args); // Old way
+                console.log("funDebounced", { args2 });
+                callback(...args2); // ES6
+            }, msWait);
         };
-        cache.set(callback, debounced);
+        mapForDebounced.set(objCallback, funDebounced);
     }
-    const funDebounced = cache.get(callback);
+    const funDebounced = mapForDebounced.get(objCallback);
     if (funDebounced == undefined) throw Error("funDebounced == undefined");
-    funDebounced();
+    funDebounced(...args);
 }
 
 /** @type {WeakMap<Function, DebounceState>} */

@@ -6,22 +6,54 @@ if (document.currentScript) throw Error("import .currentScript"); // is module
 
 // const mkElt = window["mkElt"];
 // const importFc4i = window["importFc4i"];
-const makeAbsLink = window["makeAbsLink"];
+// const makeAbsLink = window["makeAbsLink"];
 
 const URL_MINDMAPS_PAGE = "./mm4i.html";
 
 const modTools = await importFc4i("toolsJs");
+
+/**
+ * @typedef {Object} MMformatJmDisplayed
+ * @property {Function} get_data
+ * @property {Function} get_selected_node
+ * @property {boolean|string|undefined} NOT_SAVEABLE
+ * @property {Object} mind
+ */
+
+
+
+async function getJmDisplayed() {
+    const modCustRend = await importFc4i("jsmind-cust-rend");
+    const theCustomRenderer = await modCustRend.getOurCustomRenderer();
+    const jmDisplayed = theCustomRenderer.THEjmDisplayed;
+    return jmDisplayed;
+}
+
+/**
+ * @param {MMformatJmDisplayed} jmDisplayed
+ * @param {string} actionTopic
+ * */
+async function dbSaveMe(jmDisplayed, actionTopic) {
+    // const jmDisplayed = await getJmDisplayed();
+    console.warn("dbSaveMe", { actionTopic });
+    DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic);
+}
+const ObjDebounceSaveMindmap = {
+    callback: dbSaveMe,
+    msWait: 300
+}
+/**
+ * @param {Object} jmDisplayed
+ * @param {string} actionTopic
+ */
 function debounceDBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
-    console.warn("debounceDBsaveNowM...");
-    debugger;
-    function dbSaveMe() {
-        DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic);
-    }
-    modTools.callDebounced(dbSaveMe, 300);
+    console.warn("debounceDBsaveNowM...", { actionTopic });
+    modTools.callDebounced(ObjDebounceSaveMindmap, jmDisplayed, actionTopic)
 }
 
 
-let undoRedoTreeStyle;
+
+let undoRedoTreeStyle = false;
 /**
  * Use tree or linear style undo.
  *  
@@ -39,8 +71,14 @@ export function setUndoRedoTreeStyle(useTreeStyle) {
  */
 export function getUndoRedoTreeStyle() { return undoRedoTreeStyle; }
 
+/**
+ * 
+ * @param {string} keyName 
+ * @param {MMformatJmDisplayed} jmDisplayed 
+ */
 export async function startUndoRedo(keyName, jmDisplayed) {
     // FIX-ME: remove par jmDisplayed
+    // @ts-ignore
     if (!jmDisplayed.get_selected_node) {
         debugger; // eslint-disable-line no-debugger
         throw Error("!jmDisplayed.get_selected_node");
@@ -95,7 +133,14 @@ export async function getCurrentFullMindmapDisplayState() {
     if (!jm) throw Error("getCurrentFullMindmapDisplay: .getOurJm() return undefined");
     return getFullMindmapDisplayState(jm);
 }
+
+/**
+ * 
+ * @param {MMformatJmDisplayed} jmDisplayed 
+ * @returns 
+ */
 export async function getFullMindmapDisplayState(jmDisplayed) {
+    // @ts-ignore
     const selected_id = jmDisplayed.get_selected_node().id;
     const modZoomMove = await importFc4i("zoom-move");
     const zoomed = modZoomMove.getZoomPercentage();
@@ -115,16 +160,17 @@ export async function getFullMindmapDisplayState(jmDisplayed) {
 }
 
 /**
- * @param {Object} jmDisplayed 
+ * @param {MMformatJmDisplayed} jmDisplayed 
  * @returns {Promise<boolean>}
  */
-async function wantToSave(jmDisplayed) {
+async function wantToSave_NOT_SAVEABLE(jmDisplayed) {
+    checkIsMMformatJmdisplayed(jmDisplayed, "wantToSave");
     if (jmDisplayed.NOT_SAVEABLE == undefined) return true;
     if (jmDisplayed.NOT_SAVEABLE == true) return false;
     return await askSave_NOT_SAVEABLE(jmDisplayed);
 }
 /**
- * @param {Object} jmDisplayed 
+ * @param {MMformatJmDisplayed} jmDisplayed 
  * @returns {Promise<boolean>} - true for save
  */
 async function askSave_NOT_SAVEABLE(jmDisplayed) {
@@ -200,6 +246,7 @@ async function askSave_NOT_SAVEABLE(jmDisplayed) {
 
         await checkInappAndSaveMindmap(keyStore, mindToStore);
         await startUndoRedo(keyStore, jmDisplayed);
+        return true;
     } else {
         jmDisplayed.NOT_SAVEABLE = true;
         const eltMarker = document.getElementById("generated-marker");
@@ -215,8 +262,20 @@ async function askSave_NOT_SAVEABLE(jmDisplayed) {
     }
 
 }
+// END askSave_NOT_SAVEABLE(jmDisplayed)
+
+/**
+ * 
+ * @param {string} keyName 
+ * @param {MMformatJmDisplayed} jmDisplayed 
+ * @param {string} actionTopic 
+ * @param {string} lastUpdated 
+ * @param {string} lastSynced 
+ * @param {string} privacy 
+ * @returns 
+ */
 async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
-    if (!wantToSave(jmDisplayed)) return;
+    if (!wantToSave_NOT_SAVEABLE(jmDisplayed)) return;
 
     checkIsMMformatJmdisplayed(jmDisplayed, "saveMindmapPlusUndoRedo");
     const modUndo = await importFc4i("undo-redo-tree");
@@ -248,6 +307,11 @@ async function checkInappAndSaveMindmap(keyName, objMindData, lastUpdated, lastS
     // return await checkInappAndSaveMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy);
 }
 
+/**
+ * 
+ * @param {string} keyName 
+ * @returns 
+ */
 export async function DBundo(keyName) {
     if (arguments.length != 1) { throw Error(`Should have 1 argument: ${arguments.length}`); }
     if (typeof keyName != "string") { throw Error(`keyName is not string: ${typeof keyName}`); }
@@ -262,6 +326,12 @@ export async function DBundo(keyName) {
     // return await dbMindmaps.DBsetMindmap(keyName, objDataMind);
     return await checkInappAndSaveMindmap(keyName, objDataMind);
 }
+
+/**
+ * 
+ * @param {string} keyName 
+ * @returns 
+ */
 export async function DBredo(keyName) {
     if (arguments.length != 1) { throw Error(`Should have 1 argument: ${arguments.length}`); }
     if (typeof keyName != "string") { throw Error(`keyName is not string: ${typeof keyName}`); }
@@ -273,13 +343,19 @@ export async function DBredo(keyName) {
     await checkInappAndSaveMindmap(keyName, objDataMind);
     return objDataMind
 }
+
+/**
+ * @param {MMformatJmDisplayed} jmDisplayed 
+ * @param {string} actionTopic 
+ * @returns 
+ */
 export function DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     if (arguments.length != 2) {
         debugger; // eslint-disable-line no-debugger
         throw Error(`Wrong number of arguments: ${arguments.length} (should be 2)`);
     }
     // if (jmDisplayed.NOT_SAVEABLE) { return false; }
-    if (!wantToSave(jmDisplayed)) return;
+    if (!wantToSave_NOT_SAVEABLE(jmDisplayed)) return;
     checkIsMMformatJmdisplayed(jmDisplayed, "DBrequestSaveMindmapPlusUndoRedo");
     if (typeof actionTopic != "string") {
         console.error(`actionTopic is not string: ${typeof actionTopic}`);
@@ -289,6 +365,12 @@ export function DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     debounceDBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic)
     return true;
 }
+
+/**
+ * @param {MMformatJmDisplayed} jmDisplayed 
+ * @param {string} actionTopic 
+ * @returns 
+ */
 async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     // NOT_SAVEABLE
     // if (!wantToSave(jmDisplayed)) return;
@@ -810,7 +892,7 @@ export async function getSharedMindmaps() {
 /**
  * Check if obj is in the format for a displayed mindmap.
  *  
- * @param {Object} obj 
+ * @param {MMformatJmDisplayed} obj 
  * @param {string} where 
  * 
  * @throws
