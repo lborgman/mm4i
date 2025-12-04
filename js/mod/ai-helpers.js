@@ -561,8 +561,11 @@ export async function generateMindMap(fromLink) {
 
             `*Summarize the article (or video) 
               into 1 mind map (with 1 root node) and
-              output a strict, parse-ready JSON node array
-              (flat; fields: id, name, parentid, and notes).`,
+              output a strict, parse-ready JSON node tree
+              (node fields: id, name, parentid, and notes).`,
+              // output a strict, parse-ready JSON node array
+              // (flat; fields: id, name, parentid, and notes).`,
+
             `*Optional field "notes": For details, markdown format.`,
             `*Give as much details as in a text summary.`,
             `*Limit the hiearchy to max depth ${maxDepth} levels.`,
