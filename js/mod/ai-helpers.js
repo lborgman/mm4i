@@ -2250,19 +2250,19 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
 
 
         // debugger;
-        const mindStored = {
+        const mindInStoreFormat = {
             data: nodeArray,
             format: "node_array",
             key: "key-generate",
             meta: { name: "key-generate" }
         }
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
-        const jm = await modJsEditCommon.displayOurMindmap(mindStored);
+        const jm = await modJsEditCommon.displayOurMindmap(mindInStoreFormat);
         modJsEditCommon.addScrollIntoViewOnSelect();
         jm.select_node(jm.get_root());
         setTimeout(() => modJsEditCommon.scrollSelectedNodeIntoView(), 500);
         jm.NOT_SAVEABLE = "This mindmap is made by an AI";
-        jm.MIND_STORED = mindStored;
+        // jm.MIND_STORE_FORMAT = mindInStoreFormat;
         document.getElementById("mm4i-btn-history")?.remove();
         // addShareMarker
         const addAIgeneratedMarker = () => {

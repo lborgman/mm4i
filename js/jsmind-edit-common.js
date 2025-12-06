@@ -1824,7 +1824,8 @@ export async function pageSetup() {
 
     if (!sharepostParam) {
         const jm = await displayOurMindmap(mindInStoredFormat);
-        modMMhelpers.startUndoRedo(mindmapKey, jm);
+        // modMMhelpers.startUndoRedo(mindmapKey, jm);
+        modMMhelpers.startUndoRedo(jm);
     }
 
 

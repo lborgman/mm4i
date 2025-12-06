@@ -70,7 +70,7 @@ export async function DBsetMindmap(keyName, jsMindMap, lastUpdated, lastSynced, 
         const json = JSON.stringify(jsMindMap);
         localStorage.setItem(lsKey, json);
     } else {
-        return modIdbCmn.setDbKey(idbStoreMm, keyName, jsMindMap);
+        return await modIdbCmn.setDbKey(idbStoreMm, keyName, jsMindMap);
     }
 }
 /**
@@ -157,7 +157,7 @@ export async function DBsetMindmapBookmark(keyName, bookmarkName, fullDisplaySta
     const keyBookmark = `${keyName}-bookmark-${bookmarkName}`;
     // debugger;
     // return modIdbCmn.setDbKey(idbStoreMm, keyBookmark, jsMindMap);
-    return modIdbCmn.setDbKey(idbStoreMm, keyBookmark, fullDisplayState);
+    return await modIdbCmn.setDbKey(idbStoreMm, keyBookmark, fullDisplayState);
 }
 // dbgetallmindmaps
 export async function DBgetAllMindmapBookmarks(keyName) {
@@ -177,5 +177,5 @@ export async function DBgetAllMindmapBookmarks(keyName) {
 }
 
 export async function DBremoveMindmapBookmark(key) {
-    return modIdbCmn.deleteDbKey(idbStoreMm, key);
+    return await modIdbCmn.deleteDbKey(idbStoreMm, key);
 }

@@ -538,7 +538,9 @@ export function resetHistory(key) {
 export function getHistory(key) {
   const history = histories[key];
   if (!history) {
-    throw Error(`No history found for key: ${key}`);
+    const msg = `No history found for key: ${key}`;
+    console.error(msg);
+    throw Error(msg);
   }
   return history;
 }

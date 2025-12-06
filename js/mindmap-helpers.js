@@ -30,12 +30,12 @@ async function getJmDisplayed() {
 }
 
 /**
- * @param {MMformatJmDisplayed} jmDisplayed
+ * param {MMformatJmDisplayed} jmDisplayed
  * @param {string} actionTopic
  * */
-async function dbSaveMe(jmDisplayed, actionTopic) {
-    // const jmDisplayed = await getJmDisplayed();
-    console.warn("dbSaveMe", { actionTopic });
+async function dbSaveMe(actionTopic) {
+    const jmDisplayed = await getJmDisplayed();
+    console.warn("%cdbSaveMe", "font-size:20px", { actionTopic, jmDisplayed });
     DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic);
 }
 const ObjDebounceSaveMindmap = {
@@ -48,7 +48,8 @@ const ObjDebounceSaveMindmap = {
  */
 function debounceDBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     console.warn("debounceDBsaveNowM...", { actionTopic });
-    modTools.callDebounced(ObjDebounceSaveMindmap, jmDisplayed, actionTopic)
+    // modTools.callDebounced(ObjDebounceSaveMindmap, jmDisplayed, actionTopic)
+    modTools.callDebounced(ObjDebounceSaveMindmap, actionTopic)
 }
 
 
@@ -73,10 +74,14 @@ export function getUndoRedoTreeStyle() { return undoRedoTreeStyle; }
 
 /**
  * 
- * @param {string} keyName 
+ * param {string} keyName 
  * @param {MMformatJmDisplayed} jmDisplayed 
  */
-export async function startUndoRedo(keyName, jmDisplayed) {
+export async function startUndoRedo(jmDisplayed) {
+    const keyName = getJmDisplayKey(jmDisplayed);
+    console.warn("startUndoRedo", { keyName });
+    if (!isValidMindmapKey(keyName)) return; // FIX-ME: temporary, should not happen!
+
     // FIX-ME: remove par jmDisplayed
     // @ts-ignore
     if (!jmDisplayed.get_selected_node) {
@@ -91,8 +96,10 @@ export async function startUndoRedo(keyName, jmDisplayed) {
     if (objStored) {
         objBaseMm = objStored;
     } else {
+        const msg = `Did not find mindmap key "${keyName}"`;
+        console.error(msg);
         debugger;
-        throw Error(`Did not find mindmap key "${keyName}"`);
+        throw Error(msg);
     }
     if (undoRedoTreeStyle === undefined) {
         throw Error("setUndoRedoTreeStyle(true/false) has not been called");
@@ -159,133 +166,170 @@ export async function getFullMindmapDisplayState(jmDisplayed) {
     return objToSave;
 }
 
+/** @type {Promise<boolean>} */
+let promWantTosave;
+
 /**
  * @param {MMformatJmDisplayed} jmDisplayed 
  * @returns {Promise<boolean>}
  */
 async function wantToSave_NOT_SAVEABLE(jmDisplayed) {
     checkIsMMformatJmdisplayed(jmDisplayed, "wantToSave");
-    if (jmDisplayed.NOT_SAVEABLE == undefined) return true;
+    if (hasValidKey()) return true;
     if (jmDisplayed.NOT_SAVEABLE == true) return false;
-    return await askSave_NOT_SAVEABLE(jmDisplayed);
+    if (typeof promWantTosave == "undefined") {
+        promWantTosave = askSave_NOT_SAVEABLE(jmDisplayed);
+    }
+    return await promWantTosave;
+
+    function hasValidKey() {
+        // const jmName = jmDisplayed.mind.name;
+        // if (jmName == undefined) throw Error("jmName == undefined");
+        // const [keyName] = jmName.split("/");
+        const keyName = getJmDisplayKey(jmDisplayed);
+        return isValidMindmapKey(keyName);
+    }
 }
+
+/**
+ * @param {MMformatJmDisplayed} jmDisplayed 
+ * @returns {string}
+ */
+function getJmDisplayKey(jmDisplayed) {
+        const jmName = jmDisplayed.mind.name;
+        if (jmName == undefined) throw Error("jmName == undefined");
+        const [keyMM] = jmName.split("/");
+        return keyMM;
+}
+
 /**
  * @param {MMformatJmDisplayed} jmDisplayed 
  * @returns {Promise<boolean>} - true for save
  */
-async function askSave_NOT_SAVEABLE(jmDisplayed) {
-    const tofNS = typeof jmDisplayed.NOT_SAVEABLE;
-    if ("string" != tofNS) throw Error(`typeof NOT_SAVEABLE: "${tofNS}" (not "string")`)
-    const msgNS = jmDisplayed.NOT_SAVEABLE;
-    const modMdc = await importFc4i("util-mdc");
-    const body = mkElt("div", undefined, [
-        mkElt("p", undefined, msgNS),
-        mkElt("p", undefined, "Do you want to save it?")
-    ]);
-    const ans = await modMdc.mkMDCdialogConfirm(body, "Yes", "No");
-    if (ans) {
-        debugger;
-        delete jmDisplayed.NOT_SAVEABLE;
+function askSave_NOT_SAVEABLE(jmDisplayed) {
+    console.warn("askSave_NOT_SAVEABLE", { jmDisplayed });
+    return innerAskSave();
+    async function innerAskSave() {
+        const tofNS = typeof jmDisplayed.NOT_SAVEABLE;
+        if ("string" != tofNS) throw Error(`typeof NOT_SAVEABLE: "${tofNS}" (not "string")`)
+        const msgNS = jmDisplayed.NOT_SAVEABLE;
+        const modMdc = await importFc4i("util-mdc");
+        const body = mkElt("div", undefined, [
+            mkElt("p", undefined, msgNS),
+            mkElt("p", undefined, "Do you want to save it?")
+        ]);
+        const ans = await modMdc.mkMDCdialogConfirm(body, "Yes", "No");
+        if (ans) {
+            // debugger;
 
-        const mindToStore = jmDisplayed.get_data("node_array");
-        const rootTopic = getRootTopic(mindToStore);
-        if (await getMindMapKeyFromTopic(rootTopic)) {
-            debugger;
+            const mindToStore = jmDisplayed.get_data("node_array");
+            const rootTopic = getRootTopic(mindToStore);
+            if (await getMindMapKeyFromTopic(rootTopic)) {
+                // debugger;
 
-            /** @type {HTMLButtonElement|undefined} */
-            let btnOk;
-            const pFeedback = mkElt("p");
-            pFeedback.style.color = "red";
+                /** @type {HTMLButtonElement|undefined} */
+                let btnOk;
+                const pFeedback = mkElt("p");
+                pFeedback.style.color = "red";
 
-            const inp = modMdc.mkMDCtextFieldInput();
-            const suggestTopic = `${rootTopic} - ${(new Date()).toISOString().slice(0, 10)}`;
-            const tf = modMdc.mkMDCtextField("New mindmap name", inp, suggestTopic);
-            const checkValidName = async () => {
-                const v = inp.value.trim();
-                const k = await getMindMapKeyFromTopic(v);
-                if (k) {
-                    pFeedback.textContent = "There is already a mindmap with this name.";
-                    btnOk.inert = true;
-                } else {
-                    pFeedback.textContent = "";
-                    btnOk.inert = false;
+                const inp = modMdc.mkMDCtextFieldInput();
+                const suggestTopic = `${rootTopic} - ${(new Date()).toISOString().slice(0, 10)}`;
+                const tf = modMdc.mkMDCtextField("Choose new mindmap name", inp, suggestTopic);
+                const checkValidName = async () => {
+                    const v = inp.value.trim();
+                    const k = await getMindMapKeyFromTopic(v);
+                    if (k) {
+                        pFeedback.textContent = "There is already a mindmap with this name.";
+                        btnOk.inert = true;
+                    } else {
+                        pFeedback.textContent = "";
+                        btnOk.inert = false;
+                    }
                 }
+                inp.addEventListener("input", () => { checkValidName(); })
+
+
+                tf.style.width = "100%";
+                const body = mkElt("div", undefined, [
+                    mkElt("h2", undefined, `Mindmap name already used`),
+                    mkElt("p", undefined, [
+                        `There is already a mindmap named:`,
+                        mkElt("div", { style: "font-weight:bold; font-style:italic;" }, rootTopic),
+                    ]),
+                    tf,
+                    pFeedback,
+                ]);
+                setTimeout(() => {
+                    const dlg = body.closest("div.mdc-dialog");
+                    btnOk = dlg.querySelector("button");
+                    btnOk.inert = true;
+                    checkValidName();
+                });
+                const res = await modMdc.mkMDCdialogConfirm(body);
+                if (!res) return false;
             }
-            inp.addEventListener("input", () => { checkValidName(); })
+            // debugger;
 
+            delete jmDisplayed.NOT_SAVEABLE;
+            const keyStore = getNextMindmapKey();
+            mindToStore.key = keyStore;
+            mindToStore.meta.name = keyStore;
+            jmDisplayed.mind.name = keyStore;
 
-            const body = mkElt("div", undefined, [
-                mkElt("h2", undefined, `Mindmap name already used`),
-                mkElt("p", undefined, `There is already a mindmap named "${rootTopic}"`),
-                tf,
-                pFeedback,
-            ]);
-            setTimeout(() => {
-                const dlg = body.closest("div.mdc-dialog");
-                btnOk = dlg.querySelector("button");
-                btnOk.inert = true;
-                checkValidName();
-            });
-            const res = await modMdc.mkMDCdialogConfirm(body);
-            if (!res) return false;
+            const marker = /** @type {HTMLDivElement} */ (document.getElementById("generated-marker"));
+            if (!marker) throw Error(`Did not find "generated-marker"`);
+            marker.style.opacity = "1";
+            marker.style.transition = "left 1s, opacity 2s";
+            marker.style.opacity = "0.5";
+            marker.style.left = "70px";
+            marker.style.backgroundColor = "yellowgreen";
+
+            await checkInappAndSaveMindmap(keyStore, mindToStore);
+            // await startUndoRedo(keyStore, jmDisplayed);
+            await startUndoRedo(jmDisplayed);
+            return true;
+        } else {
+            jmDisplayed.NOT_SAVEABLE = true;
+            const eltMarker = document.getElementById("generated-marker");
+            if (!eltMarker) throw Error('Did not find "generated-marker"');
+            const style = eltMarker.style;
+            style.background = "blue";
+            style.color = "white";
+            style.outline = "solid 1px";
+            style.borderRadius = "2px";
+            style.padding = "4px";
+            style.gap = "4px";
+            return false;
         }
-        debugger;
 
-        const keyStore = getNextMindmapKey();
-        mindToStore.key = keyStore;
-        mindToStore.meta.name = keyStore;
-        jmDisplayed.mind.name = keyStore;
-
-        const marker = /** @type {HTMLDivElement} */ (document.getElementById("generated-marker"));
-        if (!marker) throw Error(`Did not find "generated-marker"`);
-        marker.style.opacity = "1";
-        marker.style.transition = "left 1s, opacity 2s";
-        marker.style.opacity = "0.5";
-        marker.style.left = "70px";
-        marker.style.backgroundColor = "yellowgreen";
-
-        await checkInappAndSaveMindmap(keyStore, mindToStore);
-        await startUndoRedo(keyStore, jmDisplayed);
-        return true;
-    } else {
-        jmDisplayed.NOT_SAVEABLE = true;
-        const eltMarker = document.getElementById("generated-marker");
-        if (!eltMarker) throw Error('Did not find "generated-marker"');
-        const style = eltMarker.style;
-        style.background = "blue";
-        style.color = "white";
-        style.outline = "solid 1px";
-        style.borderRadius = "2px";
-        style.padding = "4px";
-        style.gap = "4px";
-        return false;
     }
-
 }
 // END askSave_NOT_SAVEABLE(jmDisplayed)
 
 /**
  * 
- * @param {string} keyName 
+ * param {string} keyName 
  * @param {MMformatJmDisplayed} jmDisplayed 
  * @param {string} actionTopic 
- * @param {string} lastUpdated 
- * @param {string} lastSynced 
- * @param {string} privacy 
+ * @param {string} [lastUpdated]
+ * @param {string} [lastSynced]
+ * @param {string} [privacy]
  * @returns 
  */
-async function saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
-    if (!wantToSave_NOT_SAVEABLE(jmDisplayed)) return;
+async function saveMindmapPlusUndoRedo(jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
+    if (!(await wantToSave_NOT_SAVEABLE(jmDisplayed))) return;
+    const keyName = getJmDisplayKey(jmDisplayed);
 
-    checkIsMMformatJmdisplayed(jmDisplayed, "saveMindmapPlusUndoRedo");
+    checkIsMMformatJmdisplayed(jmDisplayed, "saveMindmapPlusUndoRedoX");
     const modUndo = await importFc4i("undo-redo-tree");
     if (!modUndo.hasUndoRedo(keyName)) {
-        await startUndoRedo(keyName, jmDisplayed);
+        // await startUndoRedo(keyName, jmDisplayed);
+        await startUndoRedo(jmDisplayed);
     }
     const objFullMindmapDisplayState = await getFullMindmapDisplayState(jmDisplayed);
     objFullMindmapDisplayState.objMindStored.key = keyName;
 
-    checkIsFullMindmapDisplayState(objFullMindmapDisplayState, "saveMindmapPlusUndoRedo");
+    checkIsFullMindmapDisplayState(objFullMindmapDisplayState, "saveMindmapPlusUndoRedoX");
 
     modUndo.actionRecordAction(keyName, objFullMindmapDisplayState, actionTopic);
     const objMindData = jmDisplayed.get_data("node_array");
@@ -350,12 +394,13 @@ export async function DBredo(keyName) {
  * @returns 
  */
 export function DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
+    console.warn("DBrequestSaveMindmapPlusUndoRedo", { jmDisplayed, actionTopic });
     if (arguments.length != 2) {
         debugger; // eslint-disable-line no-debugger
         throw Error(`Wrong number of arguments: ${arguments.length} (should be 2)`);
     }
     // if (jmDisplayed.NOT_SAVEABLE) { return false; }
-    if (!wantToSave_NOT_SAVEABLE(jmDisplayed)) return;
+    // if (!wantToSave_NOT_SAVEABLE(jmDisplayed)) return;
     checkIsMMformatJmdisplayed(jmDisplayed, "DBrequestSaveMindmapPlusUndoRedo");
     if (typeof actionTopic != "string") {
         console.error(`actionTopic is not string: ${typeof actionTopic}`);
@@ -378,11 +423,14 @@ async function DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
     const tofTopic = typeof actionTopic;
     if (tofTopic != "string") { throw Error(`Wrong actionTopic type: ${tofTopic} (should be string)`); }
     const objDataMind = jmDisplayed.get_data("node_array");
-    const metaName = objDataMind.meta.name;
-    if (!metaName) throw Error("Current mindmap has no meta.key");
-    const [keyName] = metaName.split("/");
 
-    const resSave = await saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, (new Date()).toISOString());
+    // const metaName = objDataMind.meta.name;
+    // if (!metaName) throw Error("Current mindmap has no meta.key");
+    // const [keyName] = metaName.split("/");
+    // if (!isValidMindmapKey(keyName)) return; // FIX-ME: temporary, should not happen!
+
+    // const resSave = await saveMindmapPlusUndoRedo(keyName, jmDisplayed, actionTopic, (new Date()).toISOString());
+    const resSave = await saveMindmapPlusUndoRedo(jmDisplayed, actionTopic, (new Date()).toISOString());
     return resSave;
 }
 
@@ -401,12 +449,13 @@ export function isValidMindmapKey(str) {
     // \.(\d{3})      - milliseconds (3 digits)
     // Z              - literal Z (UTC)
     // $              - end of string
-    const regex = /^m-(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/;
+    const regex = /^mm-(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})\.(\d{3})Z$/;
 
     if (!regex.test(str)) return false;
 
     // Extra safety: parse the date to ensure it's valid
-    const isoPart = str.slice(2); // remove "m-"
+    if (!str.startsWith("mm-")) throw Error(`Did not start with "mm-": "${str}"`);
+    const isoPart = str.slice(3); // remove "mm-"
     const date = new Date(isoPart);
 
     // Check if date is valid and matches the string exactly
