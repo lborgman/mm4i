@@ -35,7 +35,7 @@ async function getJmDisplayed() {
  * */
 async function dbSaveMe(actionTopic) {
     const jmDisplayed = await getJmDisplayed();
-    console.warn("%cdbSaveMe", "font-size:20px", { actionTopic, jmDisplayed });
+    // console.warn("%cdbSaveMe", "font-size:20px", { actionTopic, jmDisplayed });
     DBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic);
 }
 const ObjDebounceSaveMindmap = {
@@ -47,7 +47,7 @@ const ObjDebounceSaveMindmap = {
  * @param {string} actionTopic
  */
 function debounceDBsaveNowMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
-    console.warn("debounceDBsaveNowM...", { actionTopic });
+    // console.warn("debounceDBsaveNowM...", { actionTopic });
     // modTools.callDebounced(ObjDebounceSaveMindmap, jmDisplayed, actionTopic)
     modTools.callDebounced(ObjDebounceSaveMindmap, actionTopic)
 }
@@ -79,7 +79,7 @@ export function getUndoRedoTreeStyle() { return undoRedoTreeStyle; }
  */
 export async function startUndoRedo(jmDisplayed) {
     const keyName = getJmDisplayKey(jmDisplayed);
-    console.warn("startUndoRedo", { keyName });
+    // console.warn("startUndoRedo", { keyName });
     if (!isValidMindmapKey(keyName)) return; // FIX-ME: temporary, should not happen!
 
     // FIX-ME: remove par jmDisplayed
@@ -394,7 +394,7 @@ export async function DBredo(keyName) {
  * @returns 
  */
 export function DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, actionTopic) {
-    console.warn("DBrequestSaveMindmapPlusUndoRedo", { jmDisplayed, actionTopic });
+    // console.warn("DBrequestSaveMindmapPlusUndoRedo", { jmDisplayed, actionTopic });
     if (arguments.length != 2) {
         debugger; // eslint-disable-line no-debugger
         throw Error(`Wrong number of arguments: ${arguments.length} (should be 2)`);

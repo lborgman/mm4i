@@ -650,7 +650,7 @@ export async function generateMindMap(fromLink) {
     async function getAIprompt() {
         const linkSource = inpLink.value.trim();
         const promptData = await getAIpromptData(linkSource);
-        console.log({ promptData });
+        // console.log({ promptData });
         const prompt = makeAIprompt(promptData);
         return prompt;
     }
@@ -2343,7 +2343,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
      * @returns 
      */
     function tellIfAIisChoosen(b, nameAI) {
-        console.log("tellIfAIisChoosen", { b, nameAI });
+        // console.log("tellIfAIisChoosen", { b, nameAI });
         // btnGo.inert = !b;
         if (b) {
             document.documentElement.classList.add("ai-is-choosen");
@@ -3330,12 +3330,12 @@ function getWhatToDoForUser(nameAI, eltWhere) {
     let numDo = 0;
     /** @type {HTMLSpanElement[]} */
     const arrToDo = [];
-    /** @param {string} txt */
-    const addDo = (txt) => {
+    /** @param {string|HTMLElement} eltDo */
+    const addDo = (eltDo) => {
         numDo++;
         const bNum = mkElt("b", undefined, `${numDo}.`);
         bNum.style.marginRight = "10px";
-        const spanDo = mkElt("div", undefined, [bNum, txt]);
+        const spanDo = mkElt("div", undefined, [bNum, eltDo]);
         arrToDo.push(spanDo);
     }
     if (way == "API") {
@@ -3346,9 +3346,7 @@ function getWhatToDoForUser(nameAI, eltWhere) {
     const { qW, qA } = infoThisAI;
     const qValue = isAndroid ? qA : qW;
     const needPaste = (qValue == false);
-    if (needPaste != copyQ) {
-        console.warn(`needPaste (${needPaste} != copyQ (${copyQ}))`);
-    }
+    // if (needPaste != copyQ) { console.warn(`needPaste (${needPaste} != copyQ (${copyQ}))`); }
     const needStart = needPaste || (qValue != "auto");
 
     if (needPaste) { addDo("In AI: Paste the prompt."); }

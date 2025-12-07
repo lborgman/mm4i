@@ -1098,18 +1098,17 @@ const mapForDebounced = new WeakMap();
  * @param {...any} args
  */
 export function callDebounced(objCallback, ...args) {
-    console.warn("callDebounced", { args });
+    // console.warn("callDebounced", { args });
     const { callback, msWait = 200 } = objCallback;
     if (!mapForDebounced.has(objCallback)) {
-        console.log("createDebounced for ", objCallback);
+        // console.log("createDebounced for ", objCallback);
         /** @type {ReturnType<typeof setTimeout> | undefined} */
         let timeoutId;
         const funDebounced = (...args2) => {
             clearTimeout(timeoutId);
             timeoutId = setTimeout(() => {
                 timeoutId = undefined;
-                // callback.apply(null, ...args); // Old way
-                console.log("funDebounced", { args2 });
+                // console.log("funDebounced", { args2 });
                 callback(...args2); // ES6
             }, msWait);
         };

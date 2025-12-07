@@ -4,10 +4,23 @@ const WOFF_CODEPOINTS_VER = "0.0.1";
 window["logConsoleHereIs"](`here is woff-codepoints.js ${WOFF_CODEPOINTS_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
+
+/** @type {undefined|Promise<any[]>} */
+let promCodePoints;
+
+/**
+ * @param {string} woffUrl 
+ * @returns {Promise<any[]>}
+ */
 export function getCodepoints(woffUrl) {
-    return fontkitGetCodepoints(woffUrl);
+    promCodePoints = promCodePoints || fontkitGetCodepoints(woffUrl);
+    return promCodePoints;
 }
 
+/**
+ * @param {string} woffUrl 
+ * @returns {Promise<any[]>}
+ */
 async function fontkitGetCodepoints(woffUrl) {
     let response;
     try {
