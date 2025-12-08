@@ -3361,7 +3361,7 @@ export async function fetchFreshViaProxy(url,
             throw new Error(`Proxy ${proxy} failed: ${res.status}`);
         }
     } catch (err) {
-        console.error(err)
+        console.error("%cfetchFreshViaProxy", "color:red;font-size:20px", urlProxy, reqInit, err);
         throw err;
     }
 
