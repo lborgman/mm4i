@@ -63,9 +63,24 @@ If you find some views more useful you can bookmark them.  If you name the bookm
 
 
 ### Let AI summarize a link
-You can use the major AIs to get a mindmap from a link. It works like asking the AI for a summary of a link, but the summary is presented in the form of a mindmap.
+You can use some of the major AIs to get a mindmap from a link. It works like asking the AI for a summary of a link, but the summary is presented in the form of a mindmap.
 
-If you install this app it will show up as a share target. Use this to get a summary mindmap.
+If you install this app it will show up as a share target. Use this to quickly get a summary mindmap.
+
+#### Which AI can you use?
+You can try to use the AI prompt that MM4I makes in any AI you have access to.
+However it is a rather cumbersome manual process.
+It is much easier to use one of the AI that has automation support builtin to MM4I.
+
+There is currently one AI (Groq) that you can use for free.
+Groq is often very fast.
+However MM4I uses the free tier and Groq may answer that it has reach a free tier limit.
+
+This is a bit inconvenient of course. 
+And maybe the output from Groq could be better if we paid for it.
+I do not want to pay for this myself.
+So I am trying to figure out some other way to pay for the tokens that Groq AI used.
+
 
 ### Sync and Backup
 There is currently no built in backup. And the mindmaps are only stored on your device (in your web browser, actually).

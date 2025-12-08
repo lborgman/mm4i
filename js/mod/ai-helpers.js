@@ -563,8 +563,8 @@ export async function generateMindMap(fromLink) {
               into 1 mind map (with 1 root node) and
               output a strict, parse-ready JSON node tree
               (node fields: id, name, parentid, and notes).`,
-              // output a strict, parse-ready JSON node array
-              // (flat; fields: id, name, parentid, and notes).`,
+            // output a strict, parse-ready JSON node array
+            // (flat; fields: id, name, parentid, and notes).`,
 
             `*Optional field "notes": For details, markdown format.`,
             `*Give as much details as in a text summary.`,
@@ -596,12 +596,14 @@ export async function generateMindMap(fromLink) {
                 }
             })
             ;
-        return arr.join(";\n\n");
+        const prompt = arr.join(";\n\n");
+        logEstimateAItokens(prompt, "makeAIprompt");
+        return prompt;
 
-        // @ts-ignore
         console.log({ arr });
         debugger; // eslint-disable-line no-debugger
-        return `
+        const OLDprompt =
+            `
 1. Summarize the article (or video)
    "${link}"
    into a mind map and
@@ -612,7 +614,9 @@ export async function generateMindMap(fromLink) {
 4. Limit the hiearchy to max depth ${maxDepth} levels.
 5. Return only valid JSON (no text before or after).
 6. Check that the JSON is parseable in Chromium browsers.
-                `
+                `;
+        logEstimateAItokens(OLDprompt, "makeAIprompt");
+        return OLDprompt;
         /*
         return `
     You are an assistant that summarizes content into a structured mind map.
@@ -2719,6 +2723,7 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
             // divGoStatus.style.color = "green";
             document.documentElement.classList.add("has-ai-response");
             divGoStatus.textContent = `${nameAI} answered (${parseFloat(secElapsed).toFixed(0)}s)`;
+            logEstimateAItokens(res, "callNamedAI");
             handleRes(res);
         }
     }
@@ -3194,59 +3199,66 @@ function isAutomatedAI(nameAI) {
     return way == "API";
 }
 
+/**
+ * Count tokens for a value (string, number, boolean, null, object, array)
+ * (Originally From Grok.)
+ * 
+ * @param {any} value 
+ * @returns {number}
+ */
+export function estimateAItokens(value) {
+    // Base heuristic: ~4.5 chars per token for strings/numbers
+    const charsPerToken = 4.5;
+    if (value === null || value === undefined) {
+        return 1; // null is ~1 token
+    }
+    if (typeof value === 'boolean') {
+        return 1; // true/false is ~1 token
+    }
+    if (typeof value === 'number') {
+        // Numbers: ~1 token for small integers, more for decimals/longer numbers
+        return Math.ceil(String(value).length / charsPerToken) || 1;
+    }
+    if (typeof value === 'string') {
+        // Strings: chars / 4.5 + 2 for quotes
+        return Math.ceil(value.length / charsPerToken) + 2;
+    }
+    if (Array.isArray(value)) {
+        // Arrays: 2 for [] + tokens for elements + commas
+        let tokens = 2; // []
+        for (let i = 0; i < value.length; i++) {
+            tokens += estimateAItokens(value[i]);
+            if (i < value.length - 1) tokens += 1; // Comma
+        }
+        return tokens;
+    }
+    if (typeof value === 'object') {
+        // Objects: 2 for {} + tokens for keys/values + commas + colons
+        let tokens = 2; // {}
+        const entries = Object.entries(value);
+        for (let i = 0; i < entries.length; i++) {
+            const [key, val] = entries[i];
+            tokens += estimateAItokens(key) + estimateAItokens(val) + 1; // Key + value + colon
+            if (i < entries.length - 1) tokens += 1; // Comma
+        }
+        return tokens;
+    }
+    return 0; // Fallback for unexpected types
+}
 
-// From Grok.
+
 /**
  * 
  * @param {Object|null} objJson 
+ * @param {string} where;
  * @returns 
  */
-function estimateJsonObjectTokens(objJson) {
-    // Base heuristic: ~4.5 chars per token for strings/numbers
-    const charsPerToken = 4.5;
-
-    // Helper to count tokens for a value (string, number, boolean, null, object, array)
-    // @ts-ignore
-    function countTokens(value) {
-        if (value === null || value === undefined) {
-            return 1; // null is ~1 token
-        }
-        if (typeof value === 'boolean') {
-            return 1; // true/false is ~1 token
-        }
-        if (typeof value === 'number') {
-            // Numbers: ~1 token for small integers, more for decimals/longer numbers
-            return Math.ceil(String(value).length / charsPerToken) || 1;
-        }
-        if (typeof value === 'string') {
-            // Strings: chars / 4.5 + 2 for quotes
-            return Math.ceil(value.length / charsPerToken) + 2;
-        }
-        if (Array.isArray(value)) {
-            // Arrays: 2 for [] + tokens for elements + commas
-            let tokens = 2; // []
-            for (let i = 0; i < value.length; i++) {
-                tokens += countTokens(value[i]);
-                if (i < value.length - 1) tokens += 1; // Comma
-            }
-            return tokens;
-        }
-        if (typeof value === 'object') {
-            // Objects: 2 for {} + tokens for keys/values + commas + colons
-            let tokens = 2; // {}
-            const entries = Object.entries(value);
-            for (let i = 0; i < entries.length; i++) {
-                const [key, val] = entries[i];
-                tokens += countTokens(key) + countTokens(val) + 1; // Key + value + colon
-                if (i < entries.length - 1) tokens += 1; // Comma
-            }
-            return tokens;
-        }
-        return 0; // Fallback for unexpected types
-    }
-
+function logEstimateAItokens(objJson, where) {
     try {
-        return countTokens(objJson);
+        const numTokens = estimateAItokens(objJson);
+        console.log(`%cEstimated num AI tokens (${where}): ${numTokens}`,
+            "background:blue;color:yellowgreen;font-size:24px;");
+        return numTokens;
     } catch (error) {
         const errorMsg = String(error);
         console.error('Error estimating tokens:', errorMsg, error);
@@ -3267,7 +3279,7 @@ function _testEstimateTokens() {
     ];
 
     testCases.forEach((input, index) => {
-        const tokens = estimateJsonObjectTokens(input);
+        const tokens = logEstimateAItokens(input);
         console.log(`Test ${index + 1}:`,
             JSON.stringify(input, null, 2),
             `→ ~${tokens} tokens`);

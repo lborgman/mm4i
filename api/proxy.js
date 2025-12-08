@@ -1,11 +1,16 @@
-// api/proxy.mjs - from Grok 2025-11-25
+// api/proxy.js - initially from Grok 2025-11-25
 export default async function handler(req, res) {
-    // Preflight
-    if (req.method === "OPTIONS") {
-        res.setHeader("Access-Control-Allow-Origin", "*");
-        res.setHeader("Access-Control-Allow-Methods", "*");
-        res.setHeader("Access-Control-Allow-Headers", "*");
-        return res.status(204).end();
+    try {
+        // Preflight
+        if (req.method === "OPTIONS") {
+            res.setHeader("Access-Control-Allow-Origin", "*");
+            res.setHeader("Access-Control-Allow-Methods", "*");
+            res.setHeader("Access-Control-Allow-Headers", "*");
+            return res.status(204).end();
+        }
+    } catch (err) {
+        console.error(`Preflight, OPTIONS: ${err.message}`);
+        res.status(502).json({ error: "Preflight, OPTIONS", details: err.message });
     }
 
     const url = req.query.url ?? req.url.split("?url=")[1];
@@ -33,6 +38,7 @@ export default async function handler(req, res) {
         res.status(response.status);
         return res.send(response.body ? Buffer.from(await response.arrayBuffer()) : null);
     } catch (err) {
+        console.error(`502: Bad gateway: ${err.message}`);
         res.status(502).json({ error: "Bad gateway", details: err.message });
     }
 }
