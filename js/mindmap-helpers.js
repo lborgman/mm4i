@@ -12,7 +12,7 @@ const URL_MINDMAPS_PAGE = "./mm4i.html";
 
 const modTools = await importFc4i("toolsJs");
 
-/**
+/* *
  * @typedef {Object} MMformatJmDisplayed
  * @property {Function} get_data
  * @property {Function} get_selected_node

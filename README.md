@@ -1,5 +1,5 @@
 ![my image](./img/mm4i.png)
-Temp: Deployment sync - October 18, 2025, 10:48 PM CEST
+
 
 # Mindmaps 4 Internet
 
@@ -8,9 +8,14 @@ directly through your web browser, designed to work
 both on mobile phones and on desktop computers.
 You can create and edit mindmaps without needing to install
 any software, and your work is stored locally for offline use.
-Key features include the ability to **visually enhance nodes**, add
-**notes** to nodes, **search** nodes and notes, **dynamically link nodes**
-(through the search function), create **paths** between nodes (called "stairs"), and a **visual undo/redo history**.
+Key features includes:
+ a **visual undo/redo history**,
+ add **notes** to nodes,
+ **search** nodes and notes,
+ **visually enhance nodes**,
+ **dynamically link nodes** (through the search function),
+ create **paths** between nodes (called "stairs"),
+ and **create mindmaps with AI**.
 
 
 You can start MM4I here:
@@ -23,10 +28,17 @@ You can start MM4I here:
 </a>
 
 
-## Usage
-Just try it. If you think something needs to be explained then please tell me [here](https://github.com/lborgman/mm4i/issues).
+There is not much to learn. Just try it. If you think something needs to be explained then please tell me [here](https://github.com/lborgman/mm4i/issues).
+(Hm. But take a look at the table of contents below.)
 
-Hm. Maybe [node notes and search](#node-notes-and-search-links) needs explanation? [Undo/redo](#undoredo) style? [Backup and sync mindmaps](#sync-and-backup) between devices?
+
+> **Table of contents**
+[Node notes and search links](#node-notes-and-search-links)
+[Undo/Redo (edit history)](#undoredo-edit-history)
+[Let AI summarize a link](#let-ai-summarize-a-link)
+[Sync and Backup](#sync-and-backup)
+[Background](#background)
+
 
 
 ### Node notes and search links
@@ -50,7 +62,7 @@ The edit history panel lets you quickly move between different views of you mind
 If you find some views more useful you can bookmark them.  If you give the bookmarks name they will be there the next time you start editing the mindmap.
 
 
-### Summary mindmap from a link with AI
+### Let AI summarize a link
 You can use the major AI:s to get a mindmap from a link. It is like asking the AI for a summary of a link you give it, but you get the summary in the form of a mindmap.
 
 If you install this app it will show up as a share target. Use this to get a summary mindmap.

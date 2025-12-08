@@ -45,12 +45,23 @@ declare global {
   // ... but it is not officially supported (yet).
   var window: Window & typeof globalThis;
 }
-export {};   // keeps it working in module mode
 
 
 
 // checkIsMMformatJmdisplayed(jmDisplayed, "wantToSave");
-/** * @typedef {Object} MMformatJmDisplayed */
+/** * 
+ */
+// type MMformatJmDisplayed = Object;
 // type MMformatJmDisplayed = object;
 
 /** @typedef {Object} MMformatStored */
+
+  interface MMformatJmDisplayed {
+    get_data: Function;
+    get_selected_node: Function;
+    NOT_SAVEABLE: boolean | string | undefined;
+    mind: object;
+  }
+
+
+  export {};   // keeps it working in module mode

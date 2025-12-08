@@ -46,6 +46,7 @@ export async function DBgetAllMindmaps() {
  * 
  * @param {string} keyName 
  * @param {Object} jsMindMap - mindmap in jsMind format (FIX-ME: name of format)
+ * @property {Object} jsMindMap.meta
  * @param {string|undefined} lastUpdated - time in UTC format, use this as updated time if given
  * @param {string|undefined} lastSynced - time in UTC format, new time for last sync
  * @param {string|undefined} privacy - "private" or "public", use this as privacy if given
