@@ -3369,14 +3369,15 @@ async function fetchResponseViaProxy(url, opts = {}) {
 export async function fetchFreshViaProxy(url,
     opts = {}
 ) {
-
-    const res = await fetchResponseViaProxy(url);
+    const res = await fetchResponseViaProxy(url, opts);
 
     // allorigins returns { contents: "HTML..." }
+    /*
     if (proxy === 'allorigins') {
         const data = await res.json();
         return data.contents || '';
     }
+    */
 
     // corsproxy.io and cors.sh return raw HTML
     return await res.text();
@@ -4446,17 +4447,33 @@ export async function isPromiseSettled(p) {
 ////////////////////////////////////////////
 // Proxy troubles handling
 
-/**
- * 
- * @param {string} url 
- * @returns {Promise<string>}
- */
+/** @param {string} url  @returns {boolean} */
+function needsPMC(url) {
+    const objUrl = new URL(url);
+    switch (objUrl.hostname) {
+        case "cell.com":
+        case "www.cell.com":
+            return true;
+        default:
+            return false;
+    }
+}
+/** @param {string} url  @returns {Promise<string>} */
+export async function getFetchableLink(url) {
+    if (needsPMC(url)) {
+        return await getPMCurl(url);
+    }
+    return url;
+}
+
+
+/** @param {string} url  @returns {Promise<string>} */
 export async function getProxyFriendlyUrl(url) {
     const objUrl = new URL(url);
     switch (objUrl.hostname) {
         case "cell.com":
         case "www.cell.com":
-            return getPMCUrlFromCellUrl(url);
+            return getPMCurl(url);
         default:
             return url;
     }
@@ -4465,8 +4482,8 @@ export async function getProxyFriendlyUrl(url) {
 /** * @param {string} cellUrl * @returns {string} * @throws */
 
 /*
-async function getPMCUrlFromCellUrl(cellUrl) {
-    console.log("getPMCUrlFromCellUrl", cellUrl);
+async function getPMCurl(cellUrl) {
+    console.log("getPMCurl", cellUrl);
     try {
         // Step 1: Parse the partial DOI from the URL (after /fulltext/)
         const url = new URL(cellUrl);
@@ -4535,6 +4552,10 @@ async function getPMCUrlFromCellUrl(cellUrl) {
 
 // New version from Grok:
 // DOI prefix mapping for common Cell Press journals (expand as needed)
+/**
+ * @type {Object}
+ * @property {string<string>}
+ * */
 const journalPrefixes = {
     'cell': '10.1016/j.cell',
     'neuron': '10.1016/j.neuron',
@@ -4555,45 +4576,30 @@ const journalPrefixes = {
     'heliyon': '10.1016/j.heliyon',  // Your example journal
     // Add more: e.g., 'ajhg': '10.1016/j.ajhg'
 };
+/**
+ * 
+ * @param {string} url 
+ * @returns {string}
+ */
+function getDOIprefix(url) {
+    const u = new URL(url);
+    const arrHostname = u.hostname.split(".").reverse();
+    const name = arrHostname[1];
+    if (!name) throw Error(`Could not find name in url: ${url}`);
+    const prefix = journalPrefixes[name];
+    const prefix10 = prefix.slice(0, prefix.indexOf("/"));
+    return prefix10;
+}
 
 /**
- * @param {string} cellUrl
+ * @param {string} biomedUrl
  * @returns {Promise<string>}
  * @throws
  * */
-export async function getPMCUrlFromCellUrl(cellUrl) {
+export async function getPMCurl(biomedUrl) {
     try {
-        /*
-        // Step 1: Parse URL and extract journal slug and partial DOI
-        const url = new URL(cellUrl);
-        const pathParts = url.pathname.split('/').filter(Boolean);  // Remove empty parts
-        const fulltextIndex = pathParts.indexOf('fulltext');
-        if (fulltextIndex === -1 || fulltextIndex + 1 >= pathParts.length) {
-            throw new Error('Invalid Cell.com URL: Expected /[journal]/fulltext/[partial-doi] format.');
-        }
-        const journalSlug = pathParts[fulltextIndex - 1];  // e.g., 'heliyon'
-        const partialDoi = pathParts[fulltextIndex + 1];   // e.g., 'S2405-8440(23)10711-0'
-
-        // Step 2: Get journal DOI prefix
-        const doiPrefix = journalPrefixes[journalSlug];
-        if (!doiPrefix) {
-            throw new Error(`Unsupported journal: ${journalSlug}. Add its DOI prefix to the mapping.`);
-        }
-
-        // Step 3: Construct full DOI (replace S... with prefix/year/suffix)
-        // Pattern: Partial is S[ISSN without dots](YY)[digits]-[check], full is prefix.YYYY.[suffix]
-        // Extract year (2 digits) and suffix ([digits]-[check])
-        const yearMatch = partialDoi.match(/\(([\d]{2})\)/);
-        const suffixMatch = partialDoi.match(/(\d+-\d+)$/);
-        if (!yearMatch || !suffixMatch) {
-            throw new Error('Could not parse year or suffix from partial DOI.');
-        }
-        const year = `20${yearMatch[1]}`;  // Assume 20YY
-        const suffix = suffixMatch[1];
-        const fullDoi = `${doiPrefix}.${year}.${suffix}`;
-        */
-        const fullDoi = await getDoiFromUrl(cellUrl);
-        console.log("%cgetPMCUrlFromCellUrl", "font-size:28px;", cellUrl, fullDoi);
+        const fullDoi = await getDoiFromUrl(biomedUrl);
+        console.log("%cgetPMCUrlFromCellUrl", "font-size:28px;", biomedUrl, fullDoi);
 
         // Step 4: Convert full DOI to PMCID using PMC API
         // https://pmc.ncbi.nlm.nih.gov/tools/id-converter-api/
@@ -4632,27 +4638,42 @@ export async function getPMCUrlFromCellUrl(cellUrl) {
     }
 }
 
+/**
+ * 
+ * @param {string} url 
+ * @returns {Promise<string>}
+ * @throws
+ */
 async function getDoiFromUrl(url) {
-    return getDoiFromUrlReliable(url);
+    return getDoiByPrefixFilter(url);
 }
 // Example usage (your test case):
 await _testGetPMCurlFromCell();
 async function _testGetPMCurlFromCell() {
-    debugger;
+    // debugger;
     // doi: 10.1016/j.heliyon.2023.e23503
     // https://pubmed.ncbi.nlm.nih.gov/38170124/
-    const url1 = "https://www.cell.com/heliyon/fulltext/S2405-8440(23)10711-0";
-    const url2 = "https://www.cell.com/heliyon/fulltext/S2405-8440(23)10711-0";
-    // const doi = await getDoiFromUrl(url1);
-    const doiR = await getDoiFromUrlReliable(url1);
-    console.log({ doiR });
-    // return;
+    const urlCell = "https://www.cell.com/heliyon/fulltext/S2405-8440(23)10711-0";
+    const urlWikipedia = "https://en.wikipedia.org/wiki/Empathy";
+    const msStart = Date.now();
     try {
-        const pmcUrl1 = await getPMCUrlFromCellUrl(url1)
-        console.log('PMC URL:', pmcUrl1);
+        const faWi = await getFetchableLink(urlWikipedia);
+        if (faWi != urlWikipedia) throw Error("Bad faWi");
+        const faUrl = await getFetchableLink(urlCell);
+        console.log("faUrl", faUrl);
+        const resp = await fetchResponseViaProxy(faUrl);
+        const msResp = Date.now();
+        console.log("<<<<<< Elapsed msResp", msResp - msStart);
+        console.log("resp", resp)
+        // debugger;
+        const t = await resp.text();
+        const msText = Date.now();
+        console.log("<<<<<< Elapsed msResp.text()", msText - msResp);
+        console.log("t", t.slice(0, 100));
+        throw "testing error - test passed!";
     } catch (err1) {
-        console.error('No PMC URL for ', url1);
-        debugger;
+        console.error('%cError testing', "font-size:30px;background:red;color:black;", err1);
+        // debugger;
     }
 }
 
@@ -4919,23 +4940,27 @@ async function OLD4getDoiFromUrlReliable(url) {
         return null;
     }
 }
-async function getDoiFromUrlReliable(url) {
-    return getDoiByPrefixFilter(url);
-}
 
+
+// FIX-ME: only for cell.com at the moment!
 /**
  * Uses a highly optimized search strategy: 
  * 1. Queries the full problematic string to ensure the target is in the result set.
  * 2. Applies a strict filter=prefix:10.1016 to immediately isolate Elsevier's DOIs.
- * * @param {string} url The full article URL.
- * @returns {Promise<string | null>} The correct DOI.
+ *
+ * @param {string} url The full article URL.
+ * param {string} doiPrefix
+ * @returns {Promise<string>} The correct DOI.
+ * @throws
  */
 async function getDoiByPrefixFilter(url) {
     try {
         const encodedUrl = encodeURIComponent(url);
 
         // Use the query for the full string, but ADD the prefix filter
-        const correctPrefix = "10.1016"; // Elsevier's DOI prefix
+        // const correctPrefix = "10.1016"; // Elsevier's DOI prefix
+        // const correctPrefix = doiPrefix
+        const correctPrefix = getDOIprefix(url);
 
         const apiUrl = `https://api.crossref.org/works?query=${encodedUrl}&filter=prefix:${correctPrefix}&rows=1`;
 

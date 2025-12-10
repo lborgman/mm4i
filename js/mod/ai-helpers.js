@@ -495,7 +495,8 @@ export async function generateMindMap(fromLink) {
 
         if (!needToFetch) { return makeReturn("link", linkSource); }
 
-        promFetch = promFetch || modTools.fetchFreshViaProxy(linkSource);
+        promFetch = promFetch ||
+            modTools.fetchFreshViaProxy(await modTools.getFetchableLink(linkSource));
         const txt = await promFetch;
         return makeReturn("text", txt);
 
