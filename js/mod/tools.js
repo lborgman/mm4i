@@ -4668,7 +4668,7 @@ async function _testDoiAndPMC() {
 
     /** @param {string} title @param {string} expectedPMID @throws */
     async function testPMIDfrom(title, expectedPMID) {
-        const ids = await getArticleIdsEuropePMC(inputString);
+        const ids = await getArticleIdsFromEuroPMC(inputString);
         console.log({ ids });
         debugger;
         const pmid = await getNbciIdfromTitle(title, "pubmed");
@@ -4677,7 +4677,7 @@ async function _testDoiAndPMC() {
         }
     }
     /** @param {string} title @param {string} expectedPMCID @throws */
-    async function testPMCIDfromTitle(title, expectedPMCID) {
+    async function test_getNcbiIdfromTitle(title, expectedPMCID) {
         const pmcid = await getNbciIdfromTitle(title, "pmc");
         if (pmcid != expectedPMCID) {
             throw Error(`Got wrong PMCID, expected ${expectedPMCID}, got ${pmcid}`);
@@ -4702,7 +4702,7 @@ async function _testDoiAndPMC() {
         if (faWi != urlWikipedia) throw Error("Bad faWi");
 
         await testPMIDfromTitle(titleCell, pmidCell);
-        await testPMCIDfromTitle(titleCell, pmcidCell);
+        await test_getNcbiIdfromTitle(titleCell, pmcidCell);
 
         // Getting DOI from some URLs is impossible today:
         // https://gemini.google.com/share/6082cdc84b8c
@@ -5062,7 +5062,7 @@ async function getDoiFromCrossRefByPrefixFilter(url) {
 
 
 
-/**
+/*
  * Step 1: Searches the PubMed Central (PMC) database for the article title
  * to retrieve the unique NCBI ID (UID).
  *
@@ -5071,6 +5071,8 @@ async function getDoiFromCrossRefByPrefixFilter(url) {
  * @returns {Promise<string|null>} The NCBI UID, or null if not found.
  */
 
+/*
+Euro PMC is much better for searching!
 export async function getNbciIdfromTitle(title, pubmedORpmc) {
     if (!title) throw Error("Missing title");
     if (!["pubmed", "pmc"].includes(pubmedORpmc)) throw Error(`pubmedORpmc should be pubmed or pmc: ${pubmedORpmc}`);
@@ -5117,15 +5119,17 @@ export async function getNbciIdfromTitle(title, pubmedORpmc) {
         return null;
     }
 }
+*/
 
-
-/**
+/*
  * Step 2: Uses the NCBI UID to retrieve the full article record from PMC
  * and extracts the PMCID (e.g., PMC1234567).
  *
  * @param {string} uid The NCBI unique ID (UID) retrieved from ESearch.
  * @returns {Promise<string|null>} The PMCID, or null if retrieval fails.
  */
+/*
+Euro PMC is much better for searching!
 export async function getPmcidFromNcbiUid(uid) {
     if (!uid) return null;
 
@@ -5168,6 +5172,7 @@ export async function getPmcidFromNcbiUid(uid) {
         return null;
     }
 }
+*/
 
 // --- Combined Usage Example ---
 
@@ -5411,7 +5416,7 @@ export async function OLDgetArticleIdsEuropePMC(inputString) {
  * An object containing the article identifiers and title. Identifiers may be null if not found.
  * @throws {Error} Throws specific errors for invalid input, network issues, or no results found.
  */
-export async function getArticleIdsEuropePMC(inputString) {
+export async function getArticleIdsFromEuroPMC(inputString) {
     if (!inputString || typeof inputString !== 'string') {
         throw new Error("Invalid Input: The input must be a non-empty string.");
     }
@@ -5524,13 +5529,13 @@ export async function getArticleIdsEuropePMC(inputString) {
     }
 }
 
-_testIdsFromString();
+// _testIdsFromString();
 async function _testIdsFromString() {
     console.log("%c_testIdsFromString", "font-size:30px;");
     const pmidCell = "38170124";
     debugger;
     // const r = await getArticleIdsFromEuropePMC(pmidCell);
-    const r = await getArticleIdsEuropePMC(pmidCell);
+    const r = await getArticleIdsFromEuroPMC(pmidCell);
     console.log("ids:", r);
 }
 
@@ -5601,10 +5606,10 @@ export function getDOIfromUrl(urlString) {
     }
     const pathSegments = url.pathname.split('/').filter(s => s.length > 0);
     const len = pathSegments.length;
-    for (let i=0; i<len; i++) {
+    for (let i = 0; i < len; i++) {
         const seg = pathSegments[i];
         if (seg.startsWith("10.")) {
-        const segNext = pathSegments[i+1];
+            const segNext = pathSegments[i + 1];
             const doi = `${seg}/${segNext}`;
             return doi;
         }
@@ -5619,4 +5624,133 @@ function _test_getDOIfromUrl() {
     if (res != doi) {
         throw Error(`res != doi`);
     }
+}
+
+
+/**
+ * Returns true only if the string is a well-formed, plausible real-world DOI
+ * - Allows '/' in suffix (per Crossref/DataCite guidelines)
+ * - Rejects raw '%' (must be encoded as %25 if needed)
+ *   (I did not implement that, % is simply not allowed now.)
+ * - Rejects reserved/test prefixes like 10.0000–10.0999
+ * - Rejects common wrappers like "doi:" or full URLs
+ * - Trims whitespace; case-insensitive
+ * 
+ * @param {string} str
+ * @return {boolean}
+ * @throws {Error}
+ */
+export function isValidDOI(str) {
+    const tofStr = typeof str;
+    if (tofStr !== 'string') throw Error(`Parameter str should be string but is "${tofStr}"`)
+
+    const s = str.trim();
+    if (!s || s.length < 8 || s.length > 512) return false;  // Increased max for rare long DOIs
+
+    const prefixMatch = s.match(/^10\.(\d+)/i);
+    if (!prefixMatch || parseInt(prefixMatch[1]) < 1000) return false;
+
+    const DOI_REGEX = /^10\.[1-9]\d{3,}(?:\.\d+)*\/[^\s"%<>]+$/i;
+    return DOI_REGEX.test(s);
+}
+
+/** @type {Object.<string, string} */
+const knownUrlBlock = {
+}
+// knownUrlBlock["wiley.com"] = '{"corsBlock":true};'
+
+console.log("================", { knownUrlBlock });
+
+/**
+ * 
+ * @param {string} url 
+ * @returns {Promise<string>}
+ */
+export async function fetchIt(url) {
+    const host = (new URL(url)).hostname.split(".").slice(-2).join(".")
+    /**
+     * @param {string} blockType 
+     * @returns {Promise<string>}
+     * @throws {Error}
+     */
+    const fetchBlockType = async (blockType) => {
+        switch (blockType) {
+            case "notBlocked":
+                const response1 = await fetch(url);
+                const content1 = await response1.text();
+                return content1;
+            case "corsBlock":
+                const response2 = await fetchResponseViaProxy(url);
+                const content2 = await response2.text();
+                return content2;
+            case "scrapingBlock":
+                return "todo";
+            case "blocked":
+                return "";
+            default:
+                throw Error(`Bad block type: "${blockType}"`);
+        }
+    }
+    /** @param {string} blockType */
+    const logBlockType = (blockType) => {
+        const s3 = `%cknownUrlBlock["${host}"]='${blockType};'`;
+        console.log(s3, "color:white;background:darkblue;font-size:18px;padding:4px;");
+    }
+    /**
+     * @param {string} blockType 
+     * @returns {Promise<string>} 
+     * @throws {Error}
+     */
+    const fetchAndLogBlockType = async (blockType) => {
+        try {
+            const content = await fetchBlockType(blockType);
+            logBlockType(blockType);
+            return content;
+        } catch (err) { throw err; }
+    }
+    const knownBlock = knownUrlBlock[host];
+    if (knownBlock) { return fetchBlockType(knownBlock); }
+
+    /** @type {string} */ let blockType;
+
+
+    // Not blocked?
+    try {
+        return await fetchBlockType("notBlocked");
+    } catch (err) {
+        console.log("checkUrlBlocks, fetch", err);
+        blockType = "corsBlock";
+    }
+    if (blockType != "corsBlock") { throw Error(`blockType=="${blockType}", expected "corsBlock"`); }
+
+    // A simple CORS block?
+    try {
+        const content = await fetchBlockType("corsBlock");
+        logBlockType("corsBlocked");
+        return content;
+    } catch (err) {
+        console.log(``, err);
+        blockType = "scrapingBlock";
+    }
+    if (blockType != "scrapingBlock") { throw Error(`blockType=="${blockType}", expected "scrapingBlock"`); }
+
+    // A scraping block, try DOI and PMC
+    if (blockType == "scrapingBlock") {
+        const doi = getDOIfromUrl(url);
+        const ids = await getArticleIdsFromEuroPMC(doi);
+        console.log({ ids });
+    }
+    debugger;
+}
+_test_fetchIt();
+async function _test_fetchIt() {
+    const testUrl = async (url) => {
+        try {
+            const f = await fetchIt(url);
+            console.log("fetchIt test success", f.slice(0, 200));
+        } catch (err) {
+            console.log("test_fetchIt error", err);
+        }
+    }
+    testUrl("https://advanced.onlinelibrary.wiley.com/doi/10.1002/adtp.202500262");
 }
