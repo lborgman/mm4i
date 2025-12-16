@@ -3638,16 +3638,7 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
         }
         return json;
     }
-    const isVercelDev = (() => {
-        const hostname = location.hostname;
-        if (hostname != "localhost") return false;
-        const port = location.port;
-        if (port != "8090") return false;
-        return true;
-    })();
-    console.log({ isVercelDev });
-
-    if (isVercelDev) {
+    if (modTools.isVercelDev()) {
         // const returnFixed =  (confirm("vercel dev. Return fixed json?");
         const returnFixed = false;
         if (returnFixed) {
@@ -3668,7 +3659,7 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
     let endpoint = endpointVercel;
     async function _dialogChooseEndpoint() {
         const choices = [];
-        if (isVercelDev) choices.push(endpointLocalhostVercel);
+        if (modTools.isVercelDev()) choices.push(endpointLocalhostVercel);
         choices.push(endpointVercel);
         choices.push(endpointGroq);
         // return MDCdialogQuickChoices("Choose endpoint", choices, "Test endpoints:");

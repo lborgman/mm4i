@@ -3302,7 +3302,6 @@ const urlProxies = {
     // Working
     // corsproxy: 'https://corsproxy.io/?',
 
-    // Not tested yet
     mm4i: "https://mm4i.vercel.app/api/proxy?url=",
 
 
@@ -3337,25 +3336,33 @@ async function fetchResponseViaProxy(url, opts = {}) {
     /** @type {RequestInit} */
     const reqInit = {
         headers,
-        signal
+        // signal
     }
+    if (signal) reqInit.signal = signal;
 
-    const proxyFriendlyUrl = await getProxyFriendlyUrl(url);
-    const encoded = encodeURIComponent(proxyFriendlyUrl);
-    const urlProxy = urlProxies[proxy] + encoded;
+    // const proxyFriendlyUrl = await getProxyFriendlyUrl(url);
+    // const encoded = encodeURIComponent(proxyFriendlyUrl);
+
+    const proxyAtVercel = urlProxies[proxy];
+    const proxyToUse = isVercelDev() ? "http://localhost:8090/api/proxy?url=" : proxyAtVercel;
+    const encoded = encodeURIComponent(url);
+    // const urlProxy = urlProxies[proxy] + encoded;
+    const urlProxied = proxyToUse + encoded;
+
     // const proxyUrl = "https://en.wikipedia.org/wiki/Self-compassion";
-    console.log(`%cFetching via ${proxy}: `, "font-size:20px;background-color:red;color:white;", url, urlProxy, headers);
+    console.log(`%cFetching via ${proxy}: `, "background-color:blue;color:white;", url, urlProxied, headers);
 
     let res;
     try {
-        res = await fetch(urlProxy, reqInit);
+        res = await fetch(urlProxied, reqInit);
         // res = await fetch(urlProxy);
         if (!res.ok) {
             throw new Error(`Proxy ${proxy} failed: ${res.status}`);
         }
     } catch (err) {
-        console.error("%cfetchResponseViaProxy", "color:red;font-size:20px", urlProxy, reqInit, err);
-        throw err;
+        console.error(`%c${err.message} fetchResponseViaProxy`, "color:red;font-size:18px;", urlProxied, reqInit, err);
+        debugger;
+        // throw err;
     }
     return res;
 }
@@ -4471,7 +4478,7 @@ export async function getFetchableLink(url) {
 
 
 /** @param {string} url  @returns {Promise<string>} */
-export async function getProxyFriendlyUrl(url) {
+export async function OLDgetProxyFriendlyUrl(url) {
     const objUrl = new URL(url);
     switch (objUrl.hostname) {
         case "cell.com":
@@ -4649,10 +4656,11 @@ export async function getPMCurl(biomedUrl) {
  * @throws
  */
 async function getDoiFromCrossRef(url) {
-    return getDoiFromCrossRefByPrefixFilter(url);
+    throw Error("getDoiFromCrossRef");
+    return OLDgetDoiFromCrossRefByPrefixFilter(url);
 }
 // Example usage (your test case):
-await _testDoiAndPMC();
+// await _testDoiAndPMC();
 async function _testDoiAndPMC() {
     // debugger;
     // doi: 10.1016/j.heliyon.2023.e23503
@@ -4686,6 +4694,7 @@ async function _testDoiAndPMC() {
 
 
     // This fails 2025-12-11
+    /*
     async function _testDOI(url, expectDOI) {
         const gotDOI = await getDoiFromCrossRef(url);
         if (gotDOI != expectDOI) {
@@ -4694,6 +4703,7 @@ async function _testDoiAndPMC() {
         }
 
     }
+    */
 
     const msStart = Date.now();
     try {
@@ -5021,7 +5031,9 @@ async function OLD4getDoiFromUrlReliable(url) {
  * @returns {Promise<string>} The correct DOI.
  * @throws
  */
-async function getDoiFromCrossRefByPrefixFilter(url) {
+async function OLDgetDoiFromCrossRefByPrefixFilter(url) {
+    console.error("OLDgetDoiFromCrossRefByPrefixFilter");
+    throw Error("OLDgetDoiFromCrossRefByPrefixFilter");
     try {
         const encodedUrl = encodeURIComponent(url);
 
@@ -5518,7 +5530,8 @@ export async function getArticleIdsFromEuroPMC(inputString) {
 
             return result;
         } else {
-            throw new Error(`No article found for ${inputType}: "${searchTerm}". (Hit Count: 0)`);
+            console.warn(`No article found for ${inputType}: "${searchTerm}". (Hit Count: 0)`);
+            return result;
         }
 
     } catch (error) {
@@ -5654,10 +5667,20 @@ export function isValidDOI(str) {
     return DOI_REGEX.test(s);
 }
 
+// fetchBlockType
+const arrBlockNames = [
+    "notBlocked",
+    "corsBlock",
+    "scrapingBlock",
+    "finalBlock",
+];
+Object.freeze(arrBlockNames)
+
 /** @type {Object.<string, string} */
 const knownUrlBlock = {
 }
-// knownUrlBlock["wiley.com"] = '{"corsBlock":true};'
+knownUrlBlock["wiley.com"] = 'scrapingBlock';
+knownUrlBlock["cell.com"] = 'corsBlock';
 
 console.log("================", { knownUrlBlock });
 
@@ -5670,23 +5693,41 @@ export async function fetchIt(url) {
     const host = (new URL(url)).hostname.split(".").slice(-2).join(".")
     /**
      * @param {string} blockType 
-     * @returns {Promise<string>}
+     * @returns {Promise<Object.<string, string>>}
      * @throws {Error}
      */
     const fetchBlockType = async (blockType) => {
+        console.log(`------------ trying "${blockType}"`);
+        let content = "";
         switch (blockType) {
             case "notBlocked":
-                const response1 = await fetch(url);
-                const content1 = await response1.text();
-                return content1;
+                try {
+                    const response1 = await fetch(url);
+                    content = await response1.text();
+                    return { content, blockType }
+                } catch (err) {
+                    console.log(`%cnotBlocked ${err}`, "color:red;", url);
+                    return { content, blockType }
+                }
             case "corsBlock":
                 const response2 = await fetchResponseViaProxy(url);
-                const content2 = await response2.text();
-                return content2;
+                content = await response2.text();
+                return { content, blockType }
             case "scrapingBlock":
-                return "todo";
+                // Try PMC
+                const doi = getDOIfromUrl(url);
+                if (doi) {
+                    const ids = await getArticleIdsFromEuroPMC(doi);
+                    console.log({ ids });
+                    // debugger;
+                    if (ids.pmcid) {
+                        const response3 = await fetch(url);
+                        content = await response3.text();
+                    }
+                }
+                return { content, blockType }
             case "blocked":
-                return "";
+                return { content, blockType }
             default:
                 throw Error(`Bad block type: "${blockType}"`);
         }
@@ -5709,6 +5750,19 @@ export async function fetchIt(url) {
         } catch (err) { throw err; }
     }
     const knownBlock = knownUrlBlock[host];
+    let currentBlockName = knownBlock || "notBlocked";
+    let currentBlockIdx = arrBlockNames.indexOf(currentBlockName);
+    for (let i = currentBlockIdx; i < arrBlockNames.length; i++) {
+        const blockName = arrBlockNames[i];
+        if (blockName == "finalBlock") {
+            return { content: null, blockName }
+        }
+        const result = await fetchBlockType(blockName);
+        if (result.content) return result;
+    }
+    throw Error("You should have returned!");
+    return;
+
     if (knownBlock) { return fetchBlockType(knownBlock); }
 
     /** @type {string} */ let blockType;
@@ -5725,9 +5779,9 @@ export async function fetchIt(url) {
 
     // A simple CORS block?
     try {
-        const content = await fetchBlockType("corsBlock");
-        logBlockType("corsBlocked");
-        return content;
+        const result = await fetchBlockType("corsBlock");
+        logBlockType("corsBlock");
+        return result;
     } catch (err) {
         console.log(``, err);
         blockType = "scrapingBlock";
@@ -5735,22 +5789,51 @@ export async function fetchIt(url) {
     if (blockType != "scrapingBlock") { throw Error(`blockType=="${blockType}", expected "scrapingBlock"`); }
 
     // A scraping block, try DOI and PMC
-    if (blockType == "scrapingBlock") {
-        const doi = getDOIfromUrl(url);
-        const ids = await getArticleIdsFromEuroPMC(doi);
-        console.log({ ids });
+    try {
+        const result = await fetchBlockType("scrapingBlock");
+        logBlockType("scrapingBlock");
+        return result;
+
+    } catch (err) {
+        console.warning("fetchBlockType scrapingBlock failed", url, err)
     }
+    logBlockType("blocked");
     debugger;
+    return null;
 }
-_test_fetchIt();
+
+// const doTestFetchIt = location.hostname == "localhost";
+const doTestFetchIt = true;
+if (doTestFetchIt) { setTimeout(() => _test_fetchIt(), 2000); }
 async function _test_fetchIt() {
-    const testUrl = async (url) => {
+    /** @param {boolean} doIt @param {string} url * @returns */
+    const testUrl = async (doIt, url) => {
+        if (!doIt && !confirm(`testUrl ${url}`)) return;
+        console.log("%c\ntestUrl", "font-size:18px;", url);
         try {
-            const f = await fetchIt(url);
-            console.log("fetchIt test success", f.slice(0, 200));
+            const result = await fetchIt(url);
+            const content = result.content;
+            const blockType = result.blockType;
+            if (content) {
+                const startContent = content.slice(0, 200);
+                console.log("%cfetchIt test success", "background:yellowgreen;color:black;", { url, blockType, startContent });
+            } else {
+                console.log("%cfetchIt test failed", "background:red", url);
+            }
         } catch (err) {
-            console.log("test_fetchIt error", err);
+            console.log("%ctest_fetchIt error", "background:red;font-size:18px;", err);
         }
     }
-    testUrl("https://advanced.onlinelibrary.wiley.com/doi/10.1002/adtp.202500262");
+    await testUrl(true, "https://en.wikipedia.org/wiki/Self-compassion");
+    await testUrl(true, "https://advanced.onlinelibrary.wiley.com/doi/10.1002/adtp.202500262");
+    await testUrl(false, "https://www.cell.com/heliyon/fulltext/S2405-8440(23)10711-0");
 }
+export function isVercelDev() {
+    const hostname = location.hostname;
+    if (hostname != "localhost") return false;
+    const port = location.port;
+    if (port != "8090") return false;
+    // console.log("isVercelDev!");
+    return true;
+}
+
