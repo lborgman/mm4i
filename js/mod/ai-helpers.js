@@ -496,9 +496,12 @@ export async function generateMindMap(fromLink) {
         if (!needToFetch) { return makeReturn("link", linkSource); }
 
         promFetch = promFetch ||
-            modTools.fetchFreshViaProxy(await modTools.getFetchableLink(linkSource));
-        const txt = await promFetch;
-        return makeReturn("text", txt);
+            // modTools.fetchFreshViaProxy(await modTools.getFetchableLink(linkSource));
+            // modTools.fetchFreshViaProxy(linkSource);
+            modTools.fetchIt(linkSource);
+        const obj = await promFetch;
+        const content = obj.content;
+        return makeReturn("text", content);
 
         // XpromptAI = XmakeAIprompt(inpLink.value.trim(), 4);
         // const bPrompt = document.getElementById("prompt-ai");
@@ -538,7 +541,7 @@ export async function generateMindMap(fromLink) {
                 break;
             case "text":
                 const htmlArticle = promptData.data;
-                txtArticle = extractText(htmlArticle);
+                txtArticle = modTools.extractArticleText(htmlArticle);
                 if (!txtArticle) {
                     // debugger;
                     return null;
@@ -1779,7 +1782,13 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
 
         const userPrompt = await getAIprompt();
         if (userPrompt == null) {
-            modMdc.mkMDCdialogAlert("Sorry, can't read this article");
+            const h2 = mkElt("h2", undefined, "Sorry, can't read this article");
+            h2.style.color = "red";
+            const body = mkElt("div", undefined, [
+                h2,
+                "I have tried all ways I currently can use."
+            ]);
+            modMdc.mkMDCdialogAlert(body);
             return;
         }
 
@@ -4150,62 +4159,4 @@ function _testFixMalformedJSON3() {
     } catch (e) {
         console.error('Parse error:', e.message);
     }
-}
-
-/**
- * 
- * @param {string} strHtml 
- * @returns {string}
- */
-export function extractText(strHtml) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(strHtml, 'text/html');
-    // FIX-ME: <meta>
-    // const eltMetaDesc = /** @type {HTMLMetaElement} */ (doc.querySelector("meta[name=description]"));
-    // const metaDescription = eltMetaDesc?.content || "";
-
-    const articleText = (() => {
-        // 1. Primary: <article> (precise for content)
-        let el = doc.querySelector('article');
-        if (!el) {
-            // 2. Fallback: <main> (broad coverage)
-            el = doc.querySelector('main, [role="main"]');
-        }
-        if (!el) {
-            // 3. Science/news hybrids
-            el = doc.querySelector('.article-body, .article-content, .body');
-        }
-
-        if (el) {
-            // const clone = el.cloneNode(true);
-            const clone = el;
-            // Clean up (tailored for science: refs, figs)
-            clone.querySelectorAll(
-                'meta, script, style, nav, header, footer, aside, .ad, .references, figure, .fig, .supplementary'
-            ).forEach(x => x.remove());
-            // let text = (clone.innerText || clone.textContent).trim();
-            let text = clone.textContent.trim();
-
-            // Not sure how to use this!
-            /*
-            // Science bonus: Grab abstract if separate
-            const abs = doc.querySelector('.abstract, [id*="abstract"]');
-            if (abs && text.length > 500 && !text.includes(abs.innerText.trim().substring(0, 100))) {
-                text = abs.innerText.trim() + '\n\nMain Body:\n' + text;
-            }
-            */
-
-            return text.length > 1000 ? text.slice(0, 18000) : null;
-        }
-
-        // Last resort
-        return doc.body.innerText.trim().slice(0, 18000);
-    })();
-    if (!articleText) {
-        // throw Error(`articleText == "${articleText}"`);
-        console.error(`articleText == "${articleText}"`);
-        // debugger;
-    }
-    return articleText;
-    // return `${metaDescription}\n\n${articleText}`;
 }

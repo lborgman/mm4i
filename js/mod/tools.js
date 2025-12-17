@@ -4470,6 +4470,7 @@ export async function isPromiseSettled(p) {
 
 /** @param {string} url  @returns {boolean} */
 function needsPMC(url) {
+    throw Error("called needsPMC");
     const objUrl = new URL(url);
     switch (objUrl.hostname) {
         case "cell.com":
@@ -4481,6 +4482,7 @@ function needsPMC(url) {
 }
 /** @param {string} url  @returns {Promise<string>} */
 export async function getFetchableLink(url) {
+    throw Error("called getFetchableLink");
     if (needsPMC(url)) {
         return await getPMCurl(url);
     }
@@ -5151,13 +5153,21 @@ export async function fetchIt(url) {
                 }
                 break;
             case "corsBlock":
-                const response2 = await fetchResponseViaProxy(url);
-                content = await response2.text();
-                return { content, blockType }
+                {
+                    const response = await fetchResponseViaProxy(url);
+                    if (response == undefined) throw Error("respone == undefined (from fetchResponseViaProxy");
+                    if (response.ok) {
+                        content = await response.text();
+                    }
+                    return { content, blockType }
+                }
                 break;
             case "scrapingBlock":
+                const ids2 = await getArticleIdsFromEuroPMC(url);
+                debugger;
                 // Try PMC
-                const doi = getDOIfromUrl(url);
+                // const doi = getDOIfromUrl(url);
+                const doi = ids2.doi;
                 if (doi) {
                     const ids = await getArticleIdsFromEuroPMC(doi);
                     console.log({ ids });
@@ -5172,11 +5182,25 @@ export async function fetchIt(url) {
                     }
                     if (ids.pmcid) {
                         const urlXmlPmcid = `https://ebi.ac.uk/europepmc/webservices/rest/${ids.pmcid}/fullTextXML`;
+                        console.log("urlXmlPmcid", urlXmlPmcid);
+                        debugger;
                         try {
-                            const response = await fetch(urlXmlPmcid);
-                            const xml = await response.xml();
-                            console.log(xml);
+                            // const response = await fetch(urlXmlPmcid);
+                            const response = await fetchResponseViaProxy(urlXmlPmcid);
+                            const text = await response.text();
+                            // console.log(xml);
                             debugger;
+                            const parser = new DOMParser();
+                            const xmlDoc = parser.parseFromString(text, "text/xml");
+                            /** @type {HTMLCollection} */
+                            const listBody = xmlDoc.getElementsByTagName("body");
+                            const arrBody = [...listBody];
+                            const body = arrBody[0];
+                            // const articleText = extractArticleText(body.outerHTML);
+                            content = extractArticleText(body.outerHTML);
+                            debugger;
+                            return { content, blockType }
+
                         } catch (err) {
                             // debugger;
                             // return { content, blockType }
@@ -5305,8 +5329,8 @@ async function _test_fetchIt() {
     }
     // await testUrl(true, "https://en.wikipedia.org/wiki/Self-compassion");
     // await testUrl(true, "https://advanced.onlinelibrary.wiley.com/doi/10.1002/adtp.202500262");
-    await testUrl(true, "https://acamh.onlinelibrary.wiley.com/doi/10.1111/jcpp.12977");
-    // await testUrl(false, "https://www.cell.com/heliyon/fulltext/S2405-8440(23)10711-0");
+    // await testUrl(true, "https://acamh.onlinelibrary.wiley.com/doi/10.1111/jcpp.12977");
+    await testUrl(false, "https://www.cell.com/heliyon/fulltext/S2405-8440(23)10711-0");
 }
 export function isVercelDev() {
     const hostname = location.hostname;
@@ -5315,5 +5339,64 @@ export function isVercelDev() {
     if (port != "8090") return false;
     // console.log("isVercelDev!");
     return true;
+}
+
+
+/**
+ * 
+ * @param {string} strHtml 
+ * @returns {string}
+ */
+export function extractArticleText(strHtml) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(strHtml, 'text/html');
+    // FIX-ME: <meta>
+    // const eltMetaDesc = /** @type {HTMLMetaElement} */ (doc.querySelector("meta[name=description]"));
+    // const metaDescription = eltMetaDesc?.content || "";
+
+    const articleText = (() => {
+        // 1. Primary: <article> (precise for content)
+        let el = doc.querySelector('article');
+        if (!el) {
+            // 2. Fallback: <main> (broad coverage)
+            el = doc.querySelector('main, [role="main"]');
+        }
+        if (!el) {
+            // 3. Science/news hybrids
+            el = doc.querySelector('.article-body, .article-content, .body');
+        }
+
+        if (el) {
+            // const clone = el.cloneNode(true);
+            const clone = el;
+            // Clean up (tailored for science: refs, figs)
+            clone.querySelectorAll(
+                'meta, script, style, nav, header, footer, aside, .ad, .references, figure, .fig, .supplementary'
+            ).forEach(x => x.remove());
+            // let text = (clone.innerText || clone.textContent).trim();
+            let text = clone.textContent.trim();
+
+            // Not sure how to use this!
+            /*
+            // Science bonus: Grab abstract if separate
+            const abs = doc.querySelector('.abstract, [id*="abstract"]');
+            if (abs && text.length > 500 && !text.includes(abs.innerText.trim().substring(0, 100))) {
+                text = abs.innerText.trim() + '\n\nMain Body:\n' + text;
+            }
+            */
+
+            return text.length > 1000 ? text.slice(0, 18000) : null;
+        }
+
+        // Last resort
+        return doc.body.innerText.trim().slice(0, 18000);
+    })();
+    if (!articleText) {
+        // throw Error(`articleText == "${articleText}"`);
+        console.error(`articleText == "${articleText}"`);
+        // debugger;
+    }
+    return articleText || "";
+    // return `${metaDescription}\n\n${articleText}`;
 }
 
