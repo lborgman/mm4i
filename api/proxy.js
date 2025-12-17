@@ -173,6 +173,7 @@ export default async function handler(req, res) {
     // ---------------------------------
 
     const url = req.query.url ?? req.url.split("?url=")[1];
+    console.log("---url", url);
     if (!url) return res.status(400).json({ error: "Missing ?url= parameter" });
 
     try {
@@ -219,6 +220,7 @@ export default async function handler(req, res) {
         res.setHeader("Access-Control-Allow-Origin", "*");
         res.setHeader("Access-Control-Expose-Headers", "*");
 
+        console.log("response.status", response.status);
         res.status(response.status);
         // Important: Log the final status and URL to debug the 404
         if (response.status === 404) {

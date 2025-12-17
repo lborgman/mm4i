@@ -539,6 +539,10 @@ export async function generateMindMap(fromLink) {
             case "text":
                 const htmlArticle = promptData.data;
                 txtArticle = extractText(htmlArticle);
+                if (!txtArticle) {
+                    // debugger;
+                    return null;
+                }
                 specRule =
                     `*The text you should summarize is found below after "${articleMark}".  `;
                 break;
@@ -718,6 +722,16 @@ export async function generateMindMap(fromLink) {
 
                 const bPrompt = document.getElementById("prompt-ai");
                 if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
+
+                if (prompt == null) {
+                    const eltCantGetArticle = mkElt("div", undefined,
+                        "Sorry, can't read this article"
+                    );
+                    eltCantGetArticle.style.color = "red";
+                    eltCantGetArticle.style.fontSize = "1.2em";
+                    bPrompt.appendChild(eltCantGetArticle);
+                    return;
+                }
                 bPrompt.textContent = prompt;
             }
         })
@@ -1764,7 +1778,10 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
         evt.stopPropagation();
 
         const userPrompt = await getAIprompt();
-        // debugger;
+        if (userPrompt == null) {
+            modMdc.mkMDCdialogAlert("Sorry, can't read this article");
+            return;
+        }
 
         document.documentElement.classList.remove("ai-response-error");
         document.documentElement.classList.remove("has-ai-response");
@@ -4184,7 +4201,11 @@ export function extractText(strHtml) {
         // Last resort
         return doc.body.innerText.trim().slice(0, 18000);
     })();
-    if (!articleText) throw Error(`articleText == "${articleText}"`);
+    if (!articleText) {
+        // throw Error(`articleText == "${articleText}"`);
+        console.error(`articleText == "${articleText}"`);
+        // debugger;
+    }
     return articleText;
     // return `${metaDescription}\n\n${articleText}`;
 }

@@ -3357,12 +3357,23 @@ async function fetchResponseViaProxy(url, opts = {}) {
         res = await fetch(urlProxied, reqInit);
         // res = await fetch(urlProxy);
         if (!res.ok) {
-            throw new Error(`Proxy ${proxy} failed: ${res.status}`);
+            // We do not have to use "cause" here now, but it is better in case we refactor this code.
+            throw new Error(`Proxy ${proxy} failed: ${res.status}`,
+                {
+                    cause: {
+                        httpsStatus: res.status
+                    }
+                }
+            );
         }
     } catch (err) {
-        console.error(`%c${err.message} fetchResponseViaProxy`, "color:red;font-size:18px;", urlProxied, reqInit, err);
-        debugger;
-        // throw err;
+        if (err instanceof Error) {
+            const httpsStatus = err.cause?.httpsStatus;
+            if (!httpsStatus) { throw err; }
+            console.error(`%c${err.message} fetchResponseViaProxy`, "color:red;", urlProxied, reqInit);
+        } else {
+            throw err;
+        }
     }
     return res;
 }
@@ -4716,25 +4727,7 @@ async function _testDoiAndPMC() {
 
         // Getting DOI from some URLs is impossible today:
         // https://gemini.google.com/share/6082cdc84b8c
-        /*
-        await _testDOI(urlCell, doiCell);
-        const faUrl = await getFetchableLink(urlCell);
-        console.log("faUrl", faUrl);
-        const resp = await fetchResponseViaProxy(faUrl);
-        const msResp = Date.now();
-        console.log("<<<<<< Elapsed msResp", msResp - msStart);
-        console.log("resp", resp)
-        // debugger;
-        const t = await resp.text();
-        const msText = Date.now();
-        console.log("<<<<<< Elapsed msResp.text()", msText - msResp);
-        console.log("t", t.slice(0, 100));
-        */
 
-        // The only way left for the blocked urls seems to be to 
-        // try to get PMCID from article title:
-        // https://gemini.google.com/share/7a2e99d0938d
-        _test
 
         throw "testing error - test passed!";
     } catch (err1) {
@@ -4743,477 +4736,13 @@ async function _testDoiAndPMC() {
     }
 }
 
-/*
- * Finds the actual, registered DOI for a URL using the Crossref API.
- * This is the only reliable way for many publishers.
- * @param {string} url The source URL (e.g., cell.com).
- * @returns {Promise<string | null>} The actual DOI, or null if not found.
- */
-/*
-async function OLDgetDoiFromUrl(url) {
-   try {
-       // Crossref's API can often find works based on their URL.
-       // We look for works that have a match to the given URL in their metadata.
-       const encodedUrl = encodeURIComponent(url);
-       const apiUrl = `https://api.crossref.org/works?query.url=${encodedUrl}&rows=1`;
 
-       console.log("getDoiFromUrl", apiUrl);
-       // const response = await fetch(apiUrl);
-       const response = await fetchResponseViaProxy(apiUrl);
-       if (!response.ok) {
-           throw new Error(`HTTP error! status: ${response.status}`);
-       }
 
-       const data = await response.json();
 
-       // Check if results were found
-       if (data.message.items.length > 0) {
-           const doi = data.message.items[0].DOI;
-           return doi;
-       } else {
-           return null;
-       }
 
-   } catch (error) {
-       console.error("Failed to retrieve DOI:", error);
-       return null;
-   }
-}
-*/
 
-// Example usage (assuming an environment that supports fetch, like Node or a browser)
-// const url1 = "https://www.cell.com/heliyon/fulltext/S2405-8440(23)10711-0";
 
-// Note: This requires an async call and cannot run directly in a synchronous console.
-// getDoiFromUrl(url1).then(doi => {
-//     console.log(`The actual, resolved DOI is: ${doi}`);
-// });
-// Expected Output: 10.1016/j.heliyon.2023.e21015
 
-/*
- * Reliably finds the actual, registered DOI for a URL using the Crossref API.
- * This function bypasses the content negotiation issues seen with curl.
- * * @param {string} url The source URL (e.g., https://www.cell.com/heliyon/...).
- * @returns {Promise<string | null>} The actual DOI, or null if not found.
- */
-/*
-async function OLD5getDoiFromUrl(url) {
-   try {
-       const encodedUrl = encodeURIComponent(url);
-       const apiUrl = `https://api.crossref.org/works?query=${encodedUrl}&rows=1`;
-
-       console.log(`%cSearching Crossref:`, "font-size:20px;background:cyan;color:white;", url, apiUrl);
-
-       const response = await fetch(apiUrl);
-
-       if (!response.ok) {
-           // Check for HTTP errors
-           throw new Error(`HTTP error! Status: ${response.status}`);
-       }
-
-       const data = await response.json();
-
-       // 1. Check if Crossref found any matching items
-       if (data.message.items.length > 0) {
-           // 2. The DOI is located within the first item's 'DOI' property
-           const doi = data.message.items[0].DOI;
-           return doi;
-       } else {
-           return null; // No match found in the Crossref database
-       }
-
-   } catch (error) {
-       console.error("Failed to retrieve DOI:", error);
-       return null;
-   }
-}
-*/
-
-/*
- * Reliably finds the actual, registered DOI for a URL using Crossref Content Negotiation.
- * This method is robust against search index errors and HTML redirects.
- * @param {string} url The source URL (e.g., https://www.cell.com/heliyon/...).
- * @returns {Promise<string | null>} The actual DOI, or null if not found.
- */
-/*
-async function OLDgetDoiFromUrlReliable(url) {
-   try {
-       // 1. Construct the URL for the Crossref content resolution proxy
-       // This is the URL of the identifier you want to resolve.
-       const apiUrl = `https://doi.org/${encodeURIComponent(url)}`;
-
-       const response = await fetch(apiUrl, {
-           method: 'GET',
-           headers: {
-               // 2. Request CSL JSON format (a citation format containing the DOI).
-               // This forces the resolver to return structured data, not an HTML redirect.
-               'Accept': 'application/vnd.citationstyles.csl+json',
-               // 3. Recommended for ethical usage
-               'User-Agent': 'DOI Resolver Script (mailto:your-email@example.com)'
-           },
-       });
-
-       if (!response.ok) {
-           // This handles non-2xx status codes
-           throw new Error(`HTTP error! Status: ${response.status}`);
-       }
-
-       // 4. The response will be JSON (if successful)
-       const data = await response.json();
-
-       if (data.DOI) {
-           return data.DOI; // This should reliably be: 10.1016/j.heliyon.2023.e21015
-       } else {
-           return null;
-       }
-
-   } catch (error) {
-       console.error("Failed to retrieve DOI:", error);
-       return null;
-   }
-}
-*/
-
-/*
- * The definitive, most reliable way to get a DOI from a full URL using
- * the Crossref search API's dedicated metadata resolver for full URLs.
- * * @param {string} url The full article URL (e.g., cell.com/heliyon/fulltext/...).
- * @returns {Promise<string | null>} The actual DOI, or null if not found.
- */
-/*
-async function OLD2getDoiFromUrlReliable(url) {
-   try {
-       const encodedUrl = encodeURIComponent(url);
-
-       // This is the correct, dedicated endpoint for searching by full URL in the metadata
-       // without triggering the "query" parameter inconsistencies.
-       const apiUrl = `https://api.crossref.org/works?filter=doi-url:${encodedUrl}&rows=1`;
-
-       console.log(`Searching Crossref using URL filter: `, apiUrl);
-
-       // Set a contact email for ethical API use
-       const response = await fetch(`${apiUrl}&mailto=your-email@example.com`);
-
-       if (!response.ok) {
-           // Check for HTTP errors (including 400s)
-           throw new Error(`HTTP error! Status: ${response.status}`);
-       }
-
-       const data = await response.json();
-
-       // Check if results were found
-       if (data.message.items.length > 0) {
-           // The DOI is located within the first item's 'DOI' property
-           const doi = data.message.items[0].DOI;
-           return doi;
-       } else {
-           return null; // No match found
-       }
-
-   } catch (error) {
-       console.error("Failed to retrieve DOI:", error);
-       return null;
-   }
-}
-*/
-
-/*
- * The definitive, most reliable method for URL-to-DOI resolution.
- * It uses the Content Negotiation service to retrieve CSL JSON data,
- * which is guaranteed to contain the stable DOI.
- * * @param {string} url The full article URL.
- * @returns {Promise<string | null>} The actual DOI, or null if not found.
- */
-/*
-async function OLD3getDoiFromUrlReliable(url) {
-   try {
-       // 1. Use the DOI resolver endpoint, passing the full URL as the identifier to resolve
-       const apiUrl = `https://doi.org/${encodeURIComponent(url)}`;
-
-       console.log(`Attempting Content Negotiation at:`, apiUrl);
-
-       const response = await fetch(apiUrl, {
-           method: 'GET',
-           headers: {
-               // 2. Request CSL JSON format. This forces the resolver to return 
-               // structured data instead of redirecting to the HTML page.
-               'Accept': 'application/vnd.citationstyles.csl+json',
-               // 3. Required for ethical API use
-               'User-Agent': 'DOI Resolver Script (mailto:your-email@example.com)'
-           },
-           // Prevent the Fetch API from following redirects, although the Accept header 
-           // should prevent the HTML redirect in the first place.
-           redirect: 'follow'
-       });
-
-       // The status code 303 See Other is often returned by the doi.org service on success
-       if (response.status !== 200 && response.status !== 303 && response.status !== 404) {
-           throw new Error(`HTTP error! Status: ${response.status}`);
-       }
-
-       // 4. If successful, the response is JSON.
-       const data = await response.json();
-
-       if (data.DOI) {
-           return data.DOI; // Should be the correct 10.1016/j.heliyon.2023.e21015
-       } else {
-           return null;
-       }
-
-   } catch (error) {
-       console.error("Failed to retrieve DOI:", error);
-       return null;
-   }
-}
-*/
-
-
-/*
- * Searches the Crossref API without restricting rows and iterates through results
- * to find the DOI that belongs to the correct publisher/journal.
- * @param {string} url The source URL (the problematic string).
- * @returns {Promise<string | null>} The correct DOI, or null if not found.
- */
-/*
-// async function getDoiByIteratingResults(url) {
-async function OLD4getDoiFromUrlReliable(url) {
-   try {
-       const encodedUrl = encodeURIComponent(url);
-
-       // Remove &rows=1 to get more results (default is usually 20)
-       const apiUrl = `https://api.crossref.org/works?query=${encodedUrl}`;
-
-       console.log(`Searching all results at: ${apiUrl}`);
-
-       const response = await fetch(`${apiUrl}&mailto=your-email@example.com`);
-
-       if (!response.ok) {
-           throw new Error(`HTTP error! Status: ${response.status}`);
-       }
-
-       const data = await response.json();
-       const items = data.message.items;
-
-       if (items.length === 0) {
-           return null;
-       }
-
-       // Search the items for the correct publisher prefix (Elsevier/Cell Press)
-       const correctDoiPrefix = "10.1016";
-
-       for (const item of items) {
-           if (item.DOI && item.DOI.startsWith(correctDoiPrefix)) {
-               // We found a DOI that belongs to the correct publisher (Elsevier)
-               return item.DOI;
-           }
-       }
-
-       // Fallback: If no DOI with the correct prefix is found, return the top result 
-       // (which we know is the incorrect one, but it's a necessary fallback)
-       return null;
-
-   } catch (error) {
-       console.error("Failed to retrieve DOI:", error);
-       return null;
-   }
-}
-*/
-
-
-// FIX-ME: only for cell.com at the moment!
-/**
- * Uses a highly optimized search strategy: 
- * 1. Queries the full problematic string to ensure the target is in the result set.
- * 2. Applies a strict filter=prefix:10.1016 to immediately isolate Elsevier's DOIs.
- *
- * @param {string} url The full article URL.
- * param {string} doiPrefix
- * @returns {Promise<string>} The correct DOI.
- * @throws
- */
-async function OLDgetDoiFromCrossRefByPrefixFilter(url) {
-    console.error("OLDgetDoiFromCrossRefByPrefixFilter");
-    throw Error("OLDgetDoiFromCrossRefByPrefixFilter");
-    try {
-        const encodedUrl = encodeURIComponent(url);
-
-        // Use the query for the full string, but ADD the prefix filter
-        // const correctPrefix = "10.1016"; // Elsevier's DOI prefix
-        // const correctPrefix = doiPrefix
-        const correctPrefix = getDOIprefix(url);
-        // const rows = 1;
-        const rows = 5;
-
-        const apiUrl = `https://api.crossref.org/works?query=${encodedUrl}&filter=prefix:${correctPrefix}&rows=${rows}`;
-
-        console.log(`Searching Crossref with prefix filter: `, apiUrl);
-
-        // Note: Adding a mailto parameter is essential for ethical usage when using the API repeatedly.
-        const response = await fetch(`${apiUrl}&mailto=your-email@example.com`);
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        if (data.message.items.length > 0) {
-            // The DOI for the Heliyon article should now be the top result
-            const doi = data.message.items[0].DOI;
-            return doi;
-        } else {
-            return null;
-        }
-
-    } catch (error) {
-        console.error("Failed to retrieve DOI:", error);
-        return null;
-    }
-}
-
-
-
-
-/*
- * Step 1: Searches the PubMed Central (PMC) database for the article title
- * to retrieve the unique NCBI ID (UID).
- *
- * @param {string} title The full article title.
- * @param {string} pubmedORpmc
- * @returns {Promise<string|null>} The NCBI UID, or null if not found.
- */
-
-/*
-Euro PMC is much better for searching!
-export async function getNbciIdfromTitle(title, pubmedORpmc) {
-    if (!title) throw Error("Missing title");
-    if (!["pubmed", "pmc"].includes(pubmedORpmc)) throw Error(`pubmedORpmc should be pubmed or pmc: ${pubmedORpmc}`);
-    if (pubmedORpmc == "pmc") throw Error("pubmedORpmc == pmc is unreliable at the moment");
-
-    const esearchURL = new URL("https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi");
-    const searchParams = new URLSearchParams({
-        db: pubmedORpmc,
-
-        // term: `"${title}"[Title]`,
-        term: `"${title}"[Title:~0]`,
-
-        retmode: "json",
-        retmax: "1",
-        sort: "relevance",
-        tool: NCBI_TOOL_NAME,
-        email: NCBI_EMAIL_ADDRESS
-    });
-    // debugger;
-    esearchURL.search = searchParams.toString();
-    const esearchUrl = esearchURL.href;
-
-
-    console.log('ESearch URL:', esearchUrl); // Log for debugging
-
-    try {
-        // const response = await fetch(esearchUrl);
-        // const response = await fetchFreshViaProxy(esearchUrl);
-        // const data = await response.json();
-        const txtJson = await fetchFreshViaProxy(esearchUrl);
-        const json = JSON.parse(txtJson);
-
-        const idList = json.esearchresult.idlist;
-
-        if (idList && idList.length > 0) {
-            // Return the first (best-matching) UID
-            return idList[0];
-        } else {
-            console.log(`No record found for title: "${title}"`);
-            return null;
-        }
-    } catch (error) {
-        console.error('Error during ESearch:', error);
-        return null;
-    }
-}
-*/
-
-/*
- * Step 2: Uses the NCBI UID to retrieve the full article record from PMC
- * and extracts the PMCID (e.g., PMC1234567).
- *
- * @param {string} uid The NCBI unique ID (UID) retrieved from ESearch.
- * @returns {Promise<string|null>} The PMCID, or null if retrieval fails.
- */
-/*
-Euro PMC is much better for searching!
-export async function getPmcidFromNcbiUid(uid) {
-    if (!uid) return null;
-
-    // We use rettype=pmc to get an XML response that explicitly contains the PMCID.
-    const efetchUrl = `https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi?db=pmc&id=${uid}&rettype=pmc&tool=${TOOL_NAME}&email=${EMAIL_ADDRESS}`;
-
-    console.log('EFetch URL:', efetchUrl); // Log for debugging
-
-    try {
-        const response = await fetch(efetchUrl);
-        // The result is an XML string, not JSON
-        const xmlString = await response.text();
-
-        // --- XML Parsing Logic ---
-        // Note: Parsing XML in JavaScript requires a DOMParser in the browser
-        // or an external library (like 'xml2js') in Node.js.
-        // For simplicity and browser compatibility, we use a basic string search here.
-
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-
-        // Try to find the article-id element with type="pmcid"
-        const pmcidElement = xmlDoc.querySelector('article-id[pub-id-type="pmcid"]');
-
-        if (pmcidElement) {
-            return pmcidElement.textContent.trim();
-        }
-
-        // Fallback: Check the root article tag (some older records may use this)
-        const articleElement = xmlDoc.querySelector('article');
-        if (articleElement && articleElement.getAttribute('id') && articleElement.getAttribute('id').startsWith('PMC')) {
-            return articleElement.getAttribute('id').trim();
-        }
-
-        console.log(`PMCID not found in the record for UID: ${uid}`);
-        return null;
-
-    } catch (error) {
-        console.error('Error during EFetch or XML parsing:', error);
-        return null;
-    }
-}
-*/
-
-// --- Combined Usage Example ---
-
-/*
-export async function OLDgetPmcidByTitle(articleTitle) {
-    const uid = await getNbciIdfromTitle(articleTitle);
-    if (!uid) {
-        return "PMCID not found. The article may not be in PubMed Central (PMC).";
-    }
-
-    const pmcid = await getPmcidFromNcbiUid(uid);
-
-    return pmcid || "PMCID not found in the record, but an NCBI ID was retrieved.";
-}
-*/
-
-/*
-// _testTitle2Pmc();
-async function _testTitle2Pmc() {
-    debugger;
-    // ** EXAMPLE CALL **
-    const sampleTitle = "Impact of high-quality early childhood education on children's academic and social development";
-
-    const result = await OLDgetPmcidByTitle(sampleTitle);
-    console.log('\n--- Final Result ---');
-    console.log(`Article Title: "${sampleTitle}"`);
-    console.log(`Found PMCID: ${result}`);
-}
-*/
 
 /**
  * 
@@ -5315,97 +4844,6 @@ export async function getPMCIDfromTitleEuropePMC(title) {
 
 
 
-/*
- * Uses the Europe PMC API to find article IDs (PMID and PMCID) from any input string.
- * It automatically detects if the input is a DOI, PMID, PMCID, or a Title.
- * * @param {string} inputString - The input (DOI, PMID, PMCID, or Title).
- * returns {Promise<{pmid: string|null, pmcid: string|null, doi: string|null, title: string|null}>} 
- * An object containing the article identifiers and title. Identifiers may be null if not found/applicable.
- * @throws {Error} Throws specific errors for invalid input, network issues, or no results found.
- */
-/*
-export async function OLDgetArticleIdsEuropePMC(inputString) {
-    if (!inputString || typeof inputString !== 'string') {
-        throw new Error("Invalid Input: The input must be a non-empty string.");
-    }
-
-    let query;
-    // Initialize the result object with all expected nullable fields for clarity
-    let result = { pmid: null, pmcid: null, doi: null, title: null };
-    let inputType = 'Unknown/Title';
-
-    // 1. Normalize and Trim Input
-    const normalizedInput = inputString.trim();
-
-    // 2. Identify Input Type using Regular Expressions
-    const doiRegex = /^10\.\d{4,9}\/[-._;()/:A-Za-z0-9]+$/;
-    const pmcidRegex = /^PMC\d{6,}$/i;
-    const pmidRegex = /^\d{6,}$/;
-
-    if (doiRegex.test(normalizedInput)) {
-        query = `DOI:"${normalizedInput}"`;
-        inputType = 'DOI';
-    } else if (pmcidRegex.test(normalizedInput)) {
-        query = `PMCID:"${normalizedInput}"`;
-        inputType = 'PMCID';
-    } else if (pmidRegex.test(normalizedInput)) {
-        query = `EXT_ID:"${normalizedInput}"`;
-        inputType = 'PMID';
-    } else {
-        query = `TITLE:"${normalizedInput}"`;
-    }
-
-    console.log(`Searching Europe PMC for ${inputType}: "${normalizedInput}"`);
-
-    // 3. Construct and Execute the API Call
-    const europePmcURL = new URL("https://www.ebi.ac.uk/europepmc/webservices/rest/search");
-    const searchParams = new URLSearchParams({
-        query: query,
-        resulttype: "core",
-        format: "json",
-        pageSize: "1"
-    });
-
-    europePmcURL.search = searchParams.toString();
-    const europePmcUrl = europePmcURL.href;
-
-    try {
-        const response = await fetch(europePmcUrl);
-
-        if (!response.ok) {
-            throw new Error(`Europe PMC API request failed with HTTP status: ${response.status} (${response.statusText})`);
-        }
-
-        const data = await response.json();
-
-        if (data.hitCount > 0 && data.resultList.result.length > 0) {
-            const resultRecord = data.resultList.result[0];
-
-            // Populate the result object from the API response fields
-            result.pmid = resultRecord.pmid || null;
-            result.pmcid = resultRecord.pmcid || null;
-            result.doi = resultRecord.doi || null;
-            result.title = resultRecord.title || null;
-
-            // Optional: Basic validation check for ID inputs
-            if ((inputType !== 'Unknown/Title') && !result.pmid && !result.pmcid && !result.doi) {
-                throw new Error(`Invalid ID: The ${inputType} input ("${normalizedInput}") was found, but the record is incomplete.`);
-            }
-
-            return result;
-        } else {
-            throw new Error(`No article found for ${inputType}: "${normalizedInput}". (Hit Count: 0)`);
-        }
-
-    } catch (error) {
-        if (error.name === 'TypeError' || error.message.includes('fetch failed')) {
-            throw new Error(`Network/Fetch Error connecting to Europe PMC: ${error.message}`);
-        }
-        throw error;
-    }
-}
-*/
-
 /**
  * @typedef {Object} ArticleInfo
  * @property {string|null} pmid
@@ -5439,6 +4877,7 @@ export async function getArticleIdsFromEuroPMC(inputString) {
     let result = {
         pmid: null,
         pmcid: null,
+        inEPMC: null,
         doi: null,
         title: null,
         isOpenAccess: null,
@@ -5527,6 +4966,7 @@ export async function getArticleIdsFromEuroPMC(inputString) {
             result.isOpenAccess = resultRecord.isOpenAccess || null;
             result.firstPublicationDate = resultRecord.firstPublicationDate || null;
             result.dateOfPublicationInPMC = resultRecord.dateOfPublicationInPMC || null;
+            result.inEPMC = resultRecord.inEPMC || null;
 
             return result;
         } else {
@@ -5709,10 +5149,12 @@ export async function fetchIt(url) {
                     console.log(`%cnotBlocked ${err}`, "color:red;", url);
                     return { content, blockType }
                 }
+                break;
             case "corsBlock":
                 const response2 = await fetchResponseViaProxy(url);
                 content = await response2.text();
                 return { content, blockType }
+                break;
             case "scrapingBlock":
                 // Try PMC
                 const doi = getDOIfromUrl(url);
@@ -5720,14 +5162,50 @@ export async function fetchIt(url) {
                     const ids = await getArticleIdsFromEuroPMC(doi);
                     console.log({ ids });
                     // debugger;
+                    if (!ids.pmcid) {
+                        debugger;
+                        return { content, blockType }
+                    }
+                    if (!ids.inEPMC) {
+                        debugger;
+                        return { content, blockType }
+                    }
                     if (ids.pmcid) {
-                        const response3 = await fetch(url);
-                        content = await response3.text();
+                        const urlXmlPmcid = `https://ebi.ac.uk/europepmc/webservices/rest/${ids.pmcid}/fullTextXML`;
+                        try {
+                            const response = await fetch(urlXmlPmcid);
+                            const xml = await response.xml();
+                            console.log(xml);
+                            debugger;
+                        } catch (err) {
+                            // debugger;
+                            // return { content, blockType }
+                            console.log("%cEurope PMC XML not available", "color:red;");
+                        }
+                        /*
+                        // US PMC has a JavaScript block
+                        const urlUsPmcid = `https://pmc.ncbi.nlm.nih.gov/articles/${ids.pmcid}/`;
+                        console.log("urlUsPmcid", urlUsPmcid);
+                        debugger;
+                        try {
+                            const response = await fetchResponseViaProxy(urlUsPmcid);
+                            const txt = await response?.text();
+                            if (txt != undefined) {
+                                content = txt;
+                                return { content, blockType }
+                            }
+                        } catch (err) {
+                            console.log("%cUS PMC page not available", "color:red;", "color:red", err);
+                        }
+                        debugger;
+                        */
                     }
                 }
                 return { content, blockType }
+                break;
             case "blocked":
                 return { content, blockType }
+                break;
             default:
                 throw Error(`Bad block type: "${blockType}"`);
         }
@@ -5755,6 +5233,7 @@ export async function fetchIt(url) {
     for (let i = currentBlockIdx; i < arrBlockNames.length; i++) {
         const blockName = arrBlockNames[i];
         if (blockName == "finalBlock") {
+            console.log(`%c${blockName}`, "background:red;font-size:18px;", url);
             return { content: null, blockName }
         }
         const result = await fetchBlockType(blockName);
@@ -5824,9 +5303,10 @@ async function _test_fetchIt() {
             console.log("%ctest_fetchIt error", "background:red;font-size:18px;", err);
         }
     }
-    await testUrl(true, "https://en.wikipedia.org/wiki/Self-compassion");
-    await testUrl(true, "https://advanced.onlinelibrary.wiley.com/doi/10.1002/adtp.202500262");
-    await testUrl(false, "https://www.cell.com/heliyon/fulltext/S2405-8440(23)10711-0");
+    // await testUrl(true, "https://en.wikipedia.org/wiki/Self-compassion");
+    // await testUrl(true, "https://advanced.onlinelibrary.wiley.com/doi/10.1002/adtp.202500262");
+    await testUrl(true, "https://acamh.onlinelibrary.wiley.com/doi/10.1111/jcpp.12977");
+    // await testUrl(false, "https://www.cell.com/heliyon/fulltext/S2405-8440(23)10711-0");
 }
 export function isVercelDev() {
     const hostname = location.hostname;
