@@ -206,7 +206,7 @@ export async function wait4connected(elt, msMaxWait, msInterval) {
 
 
 
-async function _getWebBrowserInfo() {
+async function getWebBrowserInfo() {
 
     function getRealBrands() {
         const userAgentData = navigator["userAgentData"];
@@ -303,7 +303,7 @@ async function _getWebBrowserInfo() {
     console.log(env);
     return env;
 }
-// export const promWebBrowserInfo = _getWebBrowserInfo();
+export const promWebBrowserInfo = getWebBrowserInfo();
 
 
 // https://developers.google.com/web/fundamentals/performance/rail
@@ -5164,7 +5164,7 @@ export async function fetchIt(url) {
                 break;
             case "scrapingBlock":
                 const ids2 = await getArticleIdsFromEuroPMC(url);
-                debugger;
+                // debugger;
                 // Try PMC
                 // const doi = getDOIfromUrl(url);
                 const doi = ids2.doi;
@@ -5183,27 +5183,26 @@ export async function fetchIt(url) {
                     if (ids.pmcid) {
                         const urlXmlPmcid = `https://ebi.ac.uk/europepmc/webservices/rest/${ids.pmcid}/fullTextXML`;
                         console.log("urlXmlPmcid", urlXmlPmcid);
-                        debugger;
+                        // debugger;
                         try {
                             // const response = await fetch(urlXmlPmcid);
                             const response = await fetchResponseViaProxy(urlXmlPmcid);
-                            const text = await response.text();
-                            // console.log(xml);
-                            debugger;
+                            const textXML = await response.text();
+                            // debugger;
+
+                            // JATS XML (ISO standard)
+                            // https://www.xml.com/articles/2018/10/12/introduction-jats/
                             const parser = new DOMParser();
-                            const xmlDoc = parser.parseFromString(text, "text/xml");
+                            const xmlDoc = parser.parseFromString(textXML, "text/xml");
                             /** @type {HTMLCollection} */
                             const listBody = xmlDoc.getElementsByTagName("body");
                             const arrBody = [...listBody];
                             const body = arrBody[0];
-                            // const articleText = extractArticleText(body.outerHTML);
+
                             content = extractArticleText(body.outerHTML);
-                            debugger;
                             return { content, blockType }
 
                         } catch (err) {
-                            // debugger;
-                            // return { content, blockType }
                             console.log("%cEurope PMC XML not available", "color:red;");
                         }
                         /*
@@ -5244,7 +5243,7 @@ export async function fetchIt(url) {
      * @returns {Promise<string>} 
      * @throws {Error}
      */
-    const fetchAndLogBlockType = async (blockType) => {
+    const _fetchAndLogBlockType = async (blockType) => {
         try {
             const content = await fetchBlockType(blockType);
             logBlockType(blockType);
@@ -5305,10 +5304,13 @@ export async function fetchIt(url) {
     return null;
 }
 
-// const doTestFetchIt = location.hostname == "localhost";
-const doTestFetchIt = true;
+const doTestFetchIt = navigator.userAgentData?.platform == "Windows";
 if (doTestFetchIt) { setTimeout(() => _test_fetchIt(), 2000); }
 async function _test_fetchIt() {
+    // const inf = await promWebBrowserInfo;
+    // console.log("inf", inf);
+    // debugger;
+
     /** @param {boolean} doIt @param {string} url * @returns */
     const testUrl = async (doIt, url) => {
         if (!doIt && !confirm(`testUrl ${url}`)) return;
@@ -5400,3 +5402,48 @@ export function extractArticleText(strHtml) {
     // return `${metaDescription}\n\n${articleText}`;
 }
 
+/*
+General Aggregators (Cross-Disciplinary)
+These pull from multiple repositories and publishers, making them versatile for various scientific areas.
+
+CORE API (Connecting Repositories):
+This is a free API that aggregates open access content from thousands of repositories worldwide. It allows searching for articles by DOI and retrieving metadata, full-text (if available), or download URLs to PDFs.
+Disciplines covered: All academic fields, including physics, engineering, social sciences, humanities, computer science, environmental studies, and more (not limited to biomedicine).
+Relevant usage: Use the /search/works endpoint with a doi filter (e.g., GET https://api.core.ac.uk/v3/search/works?q=doi:10.1234/example). Responses include fields like fullText (plain text if harvested) or downloadUrl for the PDF. Free to use, no API key required for basic access.
+More details in their documentation.
+https://www.sciencedirect.com/science/article/pii/S2352711024002772
+https://doi.org/10.1016/j.softx.2024.101907
+https://core.ac.uk
+https://core.ac.uk/services/api
+https://bit.ly/core-api3§
+Tested a bit. Seems pretty useless!
+
+
+Unpaywall API:
+A free service focused on finding legal open access versions of articles. It doesn't provide full-text directly but returns the best URL to an open access PDF or HTML version.
+Disciplines covered: All scholarly fields, as it scans DOIs from any domain (e.g., physics journals, social science repositories, engineering proceedings).
+Relevant usage: Simple GET request like https://api.unpaywall.org/<doi>?email=your@email.com (email required for courtesy/rate limiting). Response JSON includes is_oa and best_oa_location with a url_for_pdf. Handles millions of DOIs from repositories like arXiv, institutional archives, and publishers.
+Great for quick links without CORS issues when fetching from the provided URL.
+This too looks pretty useless!
+
+
+Semantic Scholar API:
+A free AI-powered academic search engine API from the Allen Institute for AI, providing metadata and open access PDF links.
+Disciplines covered: Broad, including computer science, physics, chemistry, biology, materials science, geology, psychology, sociology, economics, engineering, environmental science, education, law, and linguistics (among others).
+Relevant usage: Use GET /graph/v1/paper/DOI:<doi> (e.g., DOI:10.18653/v1/N18-3011) with optional fields=openAccessPdf,url. If open access, it returns an openAccessPdf object with a direct URL to the PDF. Also supports batch requests for multiple DOIs.
+No direct full-text, but the links are reliable for downloading.
+https://api.semanticscholar.org/api-docs
+I don't think this is useful either!
+
+
+Springer Nature Open Access API:
+Provides metadata and full-text content for their open access articles.
+Disciplines covered: Diverse, including engineering, physics, chemistry, social sciences, computer science, environmental science, and humanities (via SpringerOpen and BioMed Central journals, though the latter leans biomed).
+Relevant usage: Supports queries by DOI, with endpoints for searching/filtering by parameters like title, author, or subject. Returns JSON/XML with full-text if available. Requires free registration for an API key.
+Good for articles published by Springer.
+https://datasolutions.springernature.com/products/open-access/
+https://www.lib.ncsu.edu/text-and-data-mining/scholarly-apis-datasets
+
+
+
+*/
