@@ -5161,10 +5161,10 @@ export async function fetchIt(url) {
                 try {
                     const response1 = await fetch(url);
                     content = await response1.text();
-                    return { content, blockType }
+                    return { content, blockType, url }
                 } catch (err) {
                     console.log(`%cnotBlocked ${err}`, "color:red;", url);
-                    return { content, blockType }
+                    return { content, blockType, url }
                 }
                 break;
             case "corsBlock":
@@ -5174,7 +5174,7 @@ export async function fetchIt(url) {
                     if (response.ok) {
                         content = await response.text();
                     }
-                    return { content, blockType }
+                    return { content, blockType, url }
                 }
                 break;
             case "scrapingBlock":
@@ -5189,11 +5189,11 @@ export async function fetchIt(url) {
                     // debugger;
                     if (!ids.pmcid) {
                         debugger;
-                        return { content, blockType }
+                        return { content, blockType, url }
                     }
                     if (!ids.inEPMC) {
                         debugger;
-                        return { content, blockType }
+                        return { content, blockType, url }
                     }
                     if (ids.pmcid) {
                         const urlXmlPmcid = `https://ebi.ac.uk/europepmc/webservices/rest/${ids.pmcid}/fullTextXML`;
@@ -5215,7 +5215,7 @@ export async function fetchIt(url) {
                             const body = arrBody[0];
 
                             content = extractArticleText(body.outerHTML);
-                            return { content, blockType }
+                            return { content, blockType, url }
 
                         } catch (err) {
                             console.log("%cEurope PMC XML not available", "color:red;");
@@ -5239,10 +5239,10 @@ export async function fetchIt(url) {
                         */
                     }
                 }
-                return { content, blockType }
+                return { content, blockType, url }
                 break;
             case "blocked":
-                return { content, blockType }
+                return { content, blockType, url }
                 break;
             default:
                 throw Error(`Bad block type: "${blockType}"`);

@@ -707,21 +707,25 @@ export async function generateMindMap(fromLink) {
             top: 10px;
             left: 140px;
         `;
-        const eltPromptDetails = mkElt("details", undefined, [
-            eltPromptSummary,
-            mkElt("div", undefined, [
-                mkElt("p", undefined,
-                    `I have created the AI prompt below.
-                        It will be given to the AI you use if possible
-                        and copied to the clipboard otherwise.`),
-                bPrompt
-            ])
-        ]);
+        const eltCreatingInfo = mkElt("p", undefined, "Fetching article");
+        const eltPromptDetails = /** @type {HTMLDetailsElement} */
+            (mkElt("details", undefined, [
+                eltPromptSummary,
+                mkElt("div", undefined, [
+                    eltCreatingInfo,
+                    bPrompt
+                ])
+            ]));
         eltPromptDetails.addEventListener("toggle", async () => {
             const isOpenNow = eltPromptDetails.open;
             if (isOpenNow) {
                 // debugger;
+                eltCreatingInfo.textContent = "Fetching article...";
                 const prompt = await getAIprompt();
+                eltCreatingInfo.textContent =
+                    `I have created the AI prompt below.
+                        It will be given to the AI you use if possible
+                        and copied to the clipboard otherwise.`;
 
                 const bPrompt = document.getElementById("prompt-ai");
                 if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
