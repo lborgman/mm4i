@@ -5266,7 +5266,8 @@ export async function fetchIt(url) {
         } catch (err) { throw err; }
     }
     const knownBlock = knownUrlBlock[host];
-    let currentBlockName = knownBlock || "notBlocked";
+    // let currentBlockName = knownBlock || "notBlocked";
+    let currentBlockName = knownBlock || "corsBlock";
     let currentBlockIdx = arrBlockNames.indexOf(currentBlockName);
     for (let i = currentBlockIdx; i < arrBlockNames.length; i++) {
         const blockName = arrBlockNames[i];
@@ -5278,45 +5279,6 @@ export async function fetchIt(url) {
         if (result.content) return result;
     }
     throw Error("You should have returned!");
-    return;
-
-    if (knownBlock) { return fetchBlockType(knownBlock); }
-
-    /** @type {string} */ let blockType;
-
-
-    // Not blocked?
-    try {
-        return await fetchBlockType("notBlocked");
-    } catch (err) {
-        console.log("checkUrlBlocks, fetch", err);
-        blockType = "corsBlock";
-    }
-    if (blockType != "corsBlock") { throw Error(`blockType=="${blockType}", expected "corsBlock"`); }
-
-    // A simple CORS block?
-    try {
-        const result = await fetchBlockType("corsBlock");
-        logBlockType("corsBlock");
-        return result;
-    } catch (err) {
-        console.log(``, err);
-        blockType = "scrapingBlock";
-    }
-    if (blockType != "scrapingBlock") { throw Error(`blockType=="${blockType}", expected "scrapingBlock"`); }
-
-    // A scraping block, try DOI and PMC
-    try {
-        const result = await fetchBlockType("scrapingBlock");
-        logBlockType("scrapingBlock");
-        return result;
-
-    } catch (err) {
-        console.warning("fetchBlockType scrapingBlock failed", url, err)
-    }
-    logBlockType("blocked");
-    debugger;
-    return null;
 }
 
 const doTestFetchIt = navigator.userAgentData?.platform == "Windows";
