@@ -5282,12 +5282,12 @@ export async function fetchIt(url) {
 }
 
 const doTestFetchIt = navigator.userAgentData?.platform == "Windows";
-if (doTestFetchIt) { setTimeout(() => _test_fetchIt(), 2000); }
-async function _test_fetchIt() {
-    // const inf = await promWebBrowserInfo;
-    // console.log("inf", inf);
-    // debugger;
-
+if (doTestFetchIt) { setTimeout(() => test_fetchIt(), 2000); }
+/**
+ * 
+ * @param {string|null} oneUrl 
+ */
+export async function test_fetchIt(oneUrl) {
     /** @param {boolean} doIt @param {string} url * @returns */
     const testUrl = async (doIt, url) => {
         if (!doIt && !confirm(`testUrl ${url}`)) return;
@@ -5306,10 +5306,15 @@ async function _test_fetchIt() {
             console.log("%ctest_fetchIt error", "background:red;font-size:18px;", err);
         }
     }
+    if (oneUrl) {
+        await testUrl(false, oneUrl);
+        return;
+    }
     // await testUrl(true, "https://en.wikipedia.org/wiki/Self-compassion");
     // await testUrl(true, "https://advanced.onlinelibrary.wiley.com/doi/10.1002/adtp.202500262");
     // await testUrl(true, "https://acamh.onlinelibrary.wiley.com/doi/10.1111/jcpp.12977");
-    await testUrl(false, "https://www.cell.com/heliyon/fulltext/S2405-8440(23)10711-0");
+    // await testUrl(false, "https://www.cell.com/heliyon/fulltext/S2405-8440(23)10711-0");
+    await testUrl(false, "https://www.psypost.org/scientists-find-the-biological-footprint-of-social-anxiety-may-reside-partially-in-the-gut/");
 }
 export function isVercelDev() {
     const hostname = location.hostname;
@@ -5343,6 +5348,10 @@ export function extractArticleText(strHtml) {
         if (!el) {
             // 3. Science/news hybrids
             el = doc.querySelector('.article-body, .article-content, .body');
+        }
+        if ((!el) || (el.textContent.length < 1000)) {
+            // 4. PsyPost, etc
+            el = doc.querySelector('body');
         }
 
         if (el) {

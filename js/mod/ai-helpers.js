@@ -473,7 +473,7 @@ export async function generateMindMap(fromLink) {
          * @param {AIpromptDataType} tpe 
          * @param {*} [data]
          */
-        const makeReturn = (tpe, data = undefined) => {
+        const makeReturnPromptData = (tpe, data = undefined) => {
             return {
                 dataType: tpe,
                 data
@@ -482,7 +482,7 @@ export async function generateMindMap(fromLink) {
         }
 
         // if (needToFetch && youTubeVideoId) { throw Error("Both youTubeVideoId and needToFetch"); }
-        if (youTubeVideoId) { return makeReturn("YouTubeId", youTubeVideoId); }
+        if (youTubeVideoId) { return makeReturnPromptData("YouTubeId", youTubeVideoId); }
 
         /** @type {boolean} */
         // const validLinkFormat = await debouncedCheckInpLink();
@@ -490,24 +490,18 @@ export async function generateMindMap(fromLink) {
         const validLinkFormat = promInpLink ? await promInpLink
             : await modTools.isValidUrlFormat(linkSource, undefined, false);
         if (!validLinkFormat) {
-            return makeReturn("none", `validLinkFormat == "${validLinkFormat}"`); // { validLinkFormat }; // FIX-ME: invalid format???
+            return makeReturnPromptData("none", `validLinkFormat == "${validLinkFormat}"`); // { validLinkFormat }; // FIX-ME: invalid format???
         }
 
-        if (!needToFetch) { return makeReturn("link", linkSource); }
+        if (!needToFetch) { return makeReturnPromptData("link", linkSource); }
 
         promFetch = promFetch ||
-            // modTools.fetchFreshViaProxy(await modTools.getFetchableLink(linkSource));
-            // modTools.fetchFreshViaProxy(linkSource);
             modTools.fetchIt(linkSource);
         const obj = await promFetch;
         const content = obj.content;
-        return makeReturn("text", content);
-
-        // XpromptAI = XmakeAIprompt(inpLink.value.trim(), 4);
-        // const bPrompt = document.getElementById("prompt-ai");
-        // if (!bPrompt) throw Error(`Could not find "prompt-ai"`);
-        // bPrompt.textContent = XpromptAI;
+        return makeReturnPromptData("text", content);
     }
+
     /**
      * 
      * @param {AIpromptData} promptData 
