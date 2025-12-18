@@ -2265,6 +2265,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
             "## Source etc\n",
             `*Article/video:* [${strSourceLink}](${strSourceLink})`,
             `*AI name:* ${nameUsedAI}`,
+            `*Created by AI at:* ${modTools.localISOtime()}`
         ]
         if (typeof rootNotes == "string") {
             arrMdRootNotes.push(`\n## AI Notes\n\n${rootNotes}`);

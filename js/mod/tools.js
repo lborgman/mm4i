@@ -2672,6 +2672,21 @@ export function leftISOtimeMoreRecent(leftTime, rightTime) {
     return leftTime > rightTime;
 }
 // if (!leftISOtimeMoreRecent( (new Date()).toISOString(), (new Date("2000")).toISOString())) { debugger; }
+/**
+ * 
+ * @param {string|undefined} [when]
+ * @returns {string}
+ */
+export function localISOtime(when = undefined) {
+    const now = when ? new Date(when) : new Date();
+    const localISO = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+        .toISOString()
+        .slice(0, -8)
+        .replace("T", " ");
+    return localISO;
+}
+
+console.log("localISOtime", localISOtime());
 
 
 // From Grok. You can't currently link to a Grok chat. 
