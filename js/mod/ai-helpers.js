@@ -392,6 +392,7 @@ export async function generateMindMap(fromLink) {
         divPrompt.inert = false;
         btnGo.inert = false;
 
+        // FIX-ME: some race condition here???
         const divWays = document.getElementById("div-ways");
         if (!divWays) throw Error(`Could not find element "div-ways"`);
         divWays.style.display = "block";

@@ -2975,6 +2975,7 @@ export async function setupVirtualKeyboardDetection() {
 
 window["vkActive"] = vkActiveLocal;
 async function vkActiveLocal(active) {
+    return;
     const tofActive = typeof active;
     if ("boolean" != tofActive) throw Error(`vkActive: typeof active == "${tofActive}"`);
     const modMdc = await importFc4i("util-mdc");
@@ -5289,8 +5290,9 @@ export async function fetchIt(url) {
     throw Error("You should have returned!");
 }
 
-const doTestFetchIt = navigator.userAgentData?.platform == "Windows";
-if (doTestFetchIt) { setTimeout(() => test_fetchIt(), 2000); }
+const _doTestFetchIt = navigator.userAgentData?.platform == "Windows";
+// if (_doTestFetchIt) { setTimeout(() => test_fetchIt(), 2000); }
+
 /**
  * 
  * @param {string|null} oneUrl 
