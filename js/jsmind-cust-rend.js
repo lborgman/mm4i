@@ -684,7 +684,7 @@ export class CustomRenderer4jsMind {
             }
             modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, `Edit notes "${node.topic}"`);
         };
-
+        divEasyMdeOuterWrapper.inert = true;
         body.appendChild(divEasyMdeOuterWrapper);
         // FIX-ME: remove setTimeout??
         setTimeout(async () => {
