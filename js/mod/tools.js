@@ -5349,7 +5349,7 @@ export class ArticleTextError extends Error {
  * @returns {string}
  */
 export function extractArticleText(strHtml) {
-    throw new ArticleTextError("test");
+    // throw new ArticleTextError("test");
     const parser = new DOMParser();
     const doc = parser.parseFromString(strHtml, 'text/html');
     // FIX-ME: <meta>
@@ -5393,6 +5393,7 @@ export function extractArticleText(strHtml) {
 
             // return text.length > 1000 ? text.slice(0, 18000) : null;
             if (text.length < 1000) throw new ArticleTextError("Article text less than 1000 chars");
+            return text.slice(0, 18000);
         }
 
         throw new ArticleTextError("Could not find text in article");

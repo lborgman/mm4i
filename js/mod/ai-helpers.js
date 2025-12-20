@@ -715,8 +715,17 @@ export async function generateMindMap(fromLink) {
         // const btnCopyPrompt = modMdc.mkMDCbutton("", "outlined", "content_copy");
         const btnCopyPrompt = modMdc.mkMDCiconButton("content_copy", "Copy AI prompt");
         btnCopyPrompt.addEventListener("click", async () => {
-            // evt.stopPropagation();
-            const prompt = await getAIprompt();
+
+            // const prompt = await getAIprompt();
+            const res = await getAIpromptAndErrors();
+            if (res == undefined) throw Error("res is undefined");
+            if (res.data.err) {
+                eltCreatingInfo.style.color = "red";
+                eltCreatingInfo.textContent = res.data.longErr;
+                return;
+            }
+            const prompt = res.data.prompt;
+
             await modTools.copyTextToClipboard(prompt);
             setCSSforAIautomated(false);
             setCSSforAIonClipboard(true);
@@ -749,11 +758,9 @@ export async function generateMindMap(fromLink) {
                 eltCreatingInfo.textContent = "Fetching article...";
                 eltCreatingInfo.style.color = "";
                 const res = await getAIpromptAndErrors();
-
                 if (res == undefined) throw Error("res is undefined");
                 if (res.data.err) {
                     eltCreatingInfo.style.color = "red";
-                    // eltCreatingInfo.textContent = `Error: ${res.data.err.message}`;
                     eltCreatingInfo.textContent = res.data.longErr;
                     return;
                 }
@@ -1822,7 +1829,21 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
     btnGo.addEventListener("click", async (evt) => {
         evt.stopPropagation();
 
-        const userPrompt = await getAIprompt();
+        // const userPrompt = await getAIprompt();
+        const res = await getAIpromptAndErrors();
+        if (res == undefined) throw Error("res is undefined");
+        if (res.data.err) {
+            //// FIX-ME:
+            const divGoStatus = document.getElementById("div-go-status");
+            if (!divGoStatus) throw Error(`Did not find element "div-go-status"`);
+            divGoStatus.style.color = "red";
+            divGoStatus.textContent = res.data.longErr;
+            return;
+        }
+        const userPrompt = res.data.prompt;
+
+
+        /*
         if (userPrompt == null) {
             const h2 = mkElt("h2", undefined, "Sorry, can't read this article");
             h2.style.color = "red";
@@ -1833,6 +1854,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
             modMdc.mkMDCdialogAlert(body);
             return;
         }
+        */
 
         document.documentElement.classList.remove("ai-response-error");
         document.documentElement.classList.remove("has-ai-response");
