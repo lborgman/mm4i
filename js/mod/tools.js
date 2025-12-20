@@ -5141,12 +5141,20 @@ knownUrlBlock["cell.com"] = 'corsBlock';
 
 console.log("================", { knownUrlBlock });
 
+export class FetchItError extends Error {
+    // @ts-ignore
+    constructor(message, options) {
+        super(message, options);
+    }
+}
+
 /**
  * 
  * @param {string} url 
  * @returns {Promise<string>}
  */
 export async function fetchIt(url) {
+    // throw new FetchItError("testing");
     const host = (new URL(url)).hostname.split(".").slice(-2).join(".")
     /**
      * @param {string} blockType 
@@ -5326,12 +5334,22 @@ export function isVercelDev() {
 }
 
 
+export class ArticleTextError extends Error {
+    // @ts-ignore
+    constructor(message, options) {
+        super(message, options);
+    }
+}
+// console.log(new ArticleTextError("test", { cause: new Error("cause") }).cause);
+// Error: cause
+
 /**
  * 
  * @param {string} strHtml 
  * @returns {string}
  */
 export function extractArticleText(strHtml) {
+    throw new ArticleTextError("test");
     const parser = new DOMParser();
     const doc = parser.parseFromString(strHtml, 'text/html');
     // FIX-ME: <meta>
@@ -5373,11 +5391,14 @@ export function extractArticleText(strHtml) {
             }
             */
 
-            return text.length > 1000 ? text.slice(0, 18000) : null;
+            // return text.length > 1000 ? text.slice(0, 18000) : null;
+            if (text.length < 1000) throw new ArticleTextError("Article text less than 1000 chars");
         }
 
+        throw new ArticleTextError("Could not find text in article");
+
         // Last resort
-        return doc.body.innerText.trim().slice(0, 18000);
+        // return doc.body.innerText.trim().slice(0, 18000);
     })();
     if (!articleText) {
         // throw Error(`articleText == "${articleText}"`);

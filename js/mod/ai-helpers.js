@@ -660,6 +660,38 @@ export async function generateMindMap(fromLink) {
         const prompt = makeAIprompt(promptData);
         return prompt;
     }
+    async function getAIpromptAndErrors() {
+        let prompt;
+        try {
+            prompt = await getAIprompt();
+            return { ok: true, data: { prompt } }
+        } catch (err) {
+            if (!(err instanceof Error)) throw Error("Not instanceof Error");
+            if (err instanceof modTools.FetchItError) {
+                // eltCreatingInfo.textContent = `Could not get article. Error: ${err.message}`;
+                const longErr = `Could not get article. Error: ${err.message}`;
+                const body = mkElt("div", undefined, [
+                    mkElt("h2", { style: "color:red;" }, "Could not fetch article"),
+                    mkElt("p", undefined, `The error was "${err.message}"`)
+                ]);
+                modMdc.mkMDCdialogAlert(body);
+                return { ok: false, data: { err, longErr } }
+            }
+            if (err instanceof modTools.ArticleTextError) {
+                // eltCreatingInfo.textContent = `Could not extract article text. Error: ${err.message}`;
+                const longErr = `Could not extract article text. Error: ${err.message}`;
+                const body = mkElt("div", undefined, [
+                    mkElt("h2", { style: "color:red;" }, "Could not get article text"),
+                    mkElt("p", undefined, `The error was "${err.message}"`)
+                ]);
+                modMdc.mkMDCdialogAlert(body);
+                return { ok: false, data: { err, longErr } }
+            }
+
+            throw err;
+        }
+    }
+
 
 
     let theValidJsonNodeArray;
@@ -715,7 +747,19 @@ export async function generateMindMap(fromLink) {
             if (isOpenNow) {
                 // debugger;
                 eltCreatingInfo.textContent = "Fetching article...";
-                const prompt = await getAIprompt();
+                eltCreatingInfo.style.color = "";
+                const res = await getAIpromptAndErrors();
+
+                if (res == undefined) throw Error("res is undefined");
+                if (res.data.err) {
+                    eltCreatingInfo.style.color = "red";
+                    // eltCreatingInfo.textContent = `Error: ${res.data.err.message}`;
+                    eltCreatingInfo.textContent = res.data.longErr;
+                    return;
+                }
+
+                const prompt = res.data.prompt;
+
                 eltCreatingInfo.textContent =
                     `I have created the AI prompt below.
                         It will be given to the AI you use if possible
