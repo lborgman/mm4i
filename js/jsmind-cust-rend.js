@@ -689,7 +689,8 @@ export class CustomRenderer4jsMind {
         // FIX-ME: remove setTimeout??
         setTimeout(async () => {
             const { btnEdit } = await modToastUIhelpers.setupToastUIpreview(divEasyMdeOuterWrapper, initialNotes, placeholder, onChange, objClose);
-            setTimeout(() => { divEasyMdeOuterWrapper.inert = false; }, 700);
+            // setTimeout(() => { divEasyMdeOuterWrapper.inert = false; }, 700);
+            setTimeout(() => { divEasyMdeOuterWrapper.inert = false; }, 100);
             // let btnSave;
             btnEdit.addEventListener("click", (evt) => {
                 evt.preventDefault();
