@@ -673,7 +673,7 @@ export async function generateMindMap(fromLink) {
                 const longErr = `Could not get article. Error: ${err.message}`;
                 const body = mkElt("div", undefined, [
                     mkElt("h2", { style: "color:red;" }, "Could not fetch article"),
-                    mkElt("p", undefined, `The error was "${err.message}"`)
+                    mkElt("p", undefined, `The problem was "${err.message}"`)
                 ]);
                 modMdc.mkMDCdialogAlert(body);
                 return { ok: false, data: { err, longErr } }

@@ -3360,7 +3360,9 @@ async function fetchResponseViaProxy(url, opts = {}) {
     // const encoded = encodeURIComponent(proxyFriendlyUrl);
 
     const proxyAtVercel = urlProxies[proxy];
-    const proxyToUse = isVercelDev() ? "http://localhost:8090/api/proxy?url=" : proxyAtVercel;
+    // const proxyToUse = isVercelDev() ? "http://localhost:8090/api/proxy?url=" : proxyAtVercel;
+    const proxyToUse = proxyAtVercel;
+
     const encoded = encodeURIComponent(url);
     // const urlProxy = urlProxies[proxy] + encoded;
     const urlProxied = proxyToUse + encoded;
@@ -5157,6 +5159,7 @@ export class FetchItError extends Error {
 export async function fetchIt(url) {
     // throw new FetchItError("testing");
     const host = (new URL(url)).hostname.split(".").slice(-2).join(".")
+    let corsStatus = "";
     /**
      * @param {string} blockType 
      * @returns {Promise<Object.<string, string>>}
@@ -5180,10 +5183,11 @@ export async function fetchIt(url) {
                 {
                     const response = await fetchResponseViaProxy(url);
                     if (response == undefined) throw Error("respone == undefined (from fetchResponseViaProxy");
+                    corsStatus = response.status.toString();
                     if (response.ok) {
                         content = await response.text();
                     }
-                    return { content, blockType, url }
+                    return { content, blockType, url, corsStatus }
                 }
                 break;
             case "scrapingBlock":
@@ -5251,7 +5255,8 @@ export async function fetchIt(url) {
                 return { content, blockType, url }
                 break;
             case "blocked":
-                return { content, blockType, url }
+                // throw new FetchItError(`Could not fetch: ${corsStatus}`);
+                return { content, blockType, url, corsStatus }
                 break;
             default:
                 throw Error(`Bad block type: "${blockType}"`);
@@ -5282,7 +5287,19 @@ export async function fetchIt(url) {
         const blockName = arrBlockNames[i];
         if (blockName == "finalBlock") {
             console.log(`%c${blockName}`, "background:red;font-size:18px;", url);
-            return { content: null, blockName }
+            const firstStatusChar = corsStatus.slice(0, 1);
+            switch (firstStatusChar) {
+                case "4":
+                    throw new FetchItError(`Server blocked access: ${corsStatus}`);
+                    break;
+                case "5":
+                    throw new FetchItError(`Server has problems: ${corsStatus}`);
+                    break;
+                default:
+                    throw new FetchItError(`Could not fetch: ${corsStatus}`);
+            }
+            // throw new FetchItError(`Could not fetch: ${corsStatus}`);
+            return { content: null, blockName, corsStatus } // corsStatus
         }
         const result = await fetchBlockType(blockName);
         if (result.content) return result;
@@ -5291,7 +5308,7 @@ export async function fetchIt(url) {
 }
 
 const _doTestFetchIt = navigator.userAgentData?.platform == "Windows";
-// if (_doTestFetchIt) { setTimeout(() => test_fetchIt(), 2000); }
+if (_doTestFetchIt) { setTimeout(() => test_fetchIt(), 2000); }
 
 /**
  * 
@@ -5317,14 +5334,25 @@ export async function test_fetchIt(oneUrl) {
         }
     }
     if (oneUrl) {
-        await testUrl(false, oneUrl);
+        await testUrl(true, oneUrl);
         return;
     }
+    if (!confirm("run test_fetchIt?")) return;
+
+    const ask = false;
+
+    //// CORS
+    await testUrl(ask, "https://example.com");
+
+    //// DOI
     // await testUrl(true, "https://en.wikipedia.org/wiki/Self-compassion");
     // await testUrl(true, "https://advanced.onlinelibrary.wiley.com/doi/10.1002/adtp.202500262");
     // await testUrl(true, "https://acamh.onlinelibrary.wiley.com/doi/10.1111/jcpp.12977");
     // await testUrl(false, "https://www.cell.com/heliyon/fulltext/S2405-8440(23)10711-0");
-    await testUrl(false, "https://www.psypost.org/scientists-find-the-biological-footprint-of-social-anxiety-may-reside-partially-in-the-gut/");
+
+    //// Totally blocked?
+    // await testUrl(false, "https://www.psypost.org/scientists-find-the-biological-footprint-of-social-anxiety-may-reside-partially-in-the-gut/");
+    await testUrl(ask, "https://scitechdaily.com/challenging-long-held-theories-evolution-isnt-one-and-done-new-study-suggests/");
 }
 export function isVercelDev() {
     const hostname = location.hostname;
