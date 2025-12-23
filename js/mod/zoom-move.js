@@ -23,6 +23,8 @@ export function start(evt) {
 
 // Calculate distance between two fingers
 const distanceTouches = (event) => {
+    const len = event.touches.length;
+    if (len < 2) return 0;
     return Math.hypot(
         event.touches[0].pageX - event.touches[1].pageX,
         event.touches[0].pageY - event.touches[1].pageY);
