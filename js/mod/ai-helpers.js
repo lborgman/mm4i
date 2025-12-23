@@ -669,7 +669,11 @@ export async function generateMindMap(fromLink) {
         } catch (err) {
             if (!(err instanceof Error)) throw Error("Not instanceof Error");
             if (err instanceof modTools.FetchItError) {
+                // https://www.scrapeunblocker.com/serp
                 // eltCreatingInfo.textContent = `Could not get article. Error: ${err.message}`;
+                const cause = err.cause;
+                console.log({ cause });
+                debugger;
                 const longErr = `Could not get article. Error: ${err.message}`;
                 const body = mkElt("div", undefined, [
                     mkElt("h2", { style: "color:red;" }, "Could not fetch article"),

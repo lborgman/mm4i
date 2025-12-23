@@ -954,7 +954,9 @@ function connectFsm() {
     });
     ourFsm?.hook_exit("n_Move", () => pointHandle.teardownPointHandle());
 
+    /** @type {Function|Promise<Function>|undefined} */
     let funStopScroll;
+
     ourFsm?.post_hook_entry("c_Move", (hookData) => {
         // const { eltJmnode, pointerType } = hookData.data;
         const { eltJmnode } = hookData.data;
@@ -998,6 +1000,7 @@ async function startGrabMove(elt2move) {
     const modMoveHelp = await importFc4i("move-help");
     // console.log("startGrabMove", elt2move);
     let isMoving = true;
+    return;
     // const ourElement2move = elt2move;
     // let n = 0;
 
@@ -1032,6 +1035,10 @@ async function startGrabMove(elt2move) {
         movingData.movingElt.style.filter = "";
         isMoving = false;
     }
+}
+async function startGrabMoveMove() {
+    const modZoomMove = await importFc4i("zoom-move");
+    // funStopScroll
 }
 function addZoomMoveLayer(eltContainer) {
     if (!eltContainer) throw Error("Could not find jsmind container");

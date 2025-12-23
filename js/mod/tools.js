@@ -14,6 +14,20 @@ const NCBI_EMAIL_ADDRESS = 'lennart.borgman@gmail.com';
 
 let theSWcacheVersion = "Fix this! (not known yet)";
 
+
+/** @type { import('../../js/mod/local-settings.js') } */
+const modLocalSettings = await importFc4i("local-settings");
+/** @extends modLocalSettings.LocalSetting */
+class SettingsMm4iFetchIt extends modLocalSettings.LocalSetting {
+    /**
+     * 
+     * @param {string} key 
+     * @param {string|number|boolean} defaultValue 
+     */
+    constructor(key, defaultValue) { super("mm4i-settings-fetch-it-", key, defaultValue); }
+}
+const settingFetchItSerpKey = new SettingsMm4iFetchIt("serp-key", "");
+
 // https://dev.to/somedood/promises-and-events-some-pitfalls-and-workarounds-elp
 /** When awaited, this function blocks until the `event` fires once. */
 // function blockUntilEvent(target: EventTarget, event: string)
@@ -3352,22 +3366,16 @@ async function fetchResponseViaProxy(url, opts = {}) {
     /** @type {RequestInit} */
     const reqInit = {
         headers,
-        // signal
     }
     if (signal) reqInit.signal = signal;
-
-    // const proxyFriendlyUrl = await getProxyFriendlyUrl(url);
-    // const encoded = encodeURIComponent(proxyFriendlyUrl);
 
     const proxyAtVercel = urlProxies[proxy];
     // const proxyToUse = isVercelDev() ? "http://localhost:8090/api/proxy?url=" : proxyAtVercel;
     const proxyToUse = proxyAtVercel;
 
     const encoded = encodeURIComponent(url);
-    // const urlProxy = urlProxies[proxy] + encoded;
     const urlProxied = proxyToUse + encoded;
 
-    // const proxyUrl = "https://en.wikipedia.org/wiki/Self-compassion";
     console.log(`%cFetching via ${proxy}: `, "background-color:blue;color:white;", url, urlProxied, headers);
 
     let res;
@@ -3397,7 +3405,7 @@ async function fetchResponseViaProxy(url, opts = {}) {
 }
 
 /**
- * Fetches any URL via public CORS proxy.
+ * Fetches URL via CORS proxy.
  * 
  * @param {string} url - The article URL to fetch
  * @param {Object} [opts]
@@ -3461,6 +3469,101 @@ export async function testFetchProxy(url = "https://sr.se") {
     }
     return res;
 }
+
+/**
+ * Fetches URL via unblocker
+ * 
+ * @param {string} url - The article URL to fetch
+ * @param {Object} [opts]
+ * param {string} [opts.proxyName]
+ * @param {AbortSignal} [opts.signal]
+ * @returns {Promise<Response>} HTML string
+ */
+async function fetchResponseViaUnblocker(url, opts = {}) {
+    console.log(`%cFetching via unblocker: `, "background-color:blue;color:white;", url);
+
+    const unblocker = "serp";
+    const keyAPI = settingFetchItSerpKey.valueS;
+    if (!keyAPI) throw new Error("No API key for serp");
+
+    // curl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, "POST");
+    // curl_easy_setopt(hnd, CURLOPT_URL, "https://api.scrapeunblocker.com/getPageSource?url=https%3A%2F%2Fwww.example.com%2F");
+
+    // struct curl_slist * headers = NULL;
+    // headers = curl_slist_append(headers, "x-scrapeunblocker-key: w4SrWfkWDcDoFL3FtpW7KokPm6nrwuY9awrw7BDhECqCNulmL3");
+    // headers = curl_slist_append(headers, "Accept-Encoding: gzip, deflate");
+    // curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);
+
+
+    /** @type {HeadersInit} */
+    const headers = {
+        // 'Cache-Control': 'no-cache',
+        // cache: 'no-store',
+
+        // "x-scrapeunblocker-key: w4SrWfkWDcDoFL3FtpW7KokPm6nrwuY9awrw7BDhECqCNulmL3",
+        "x-scrapeunblocker-key": keyAPI,
+        // headers = curl_slist_append(headers, "Accept-Encoding: gzip, deflate");
+        "Accept-Encoding": "gzip, deflate",
+    };
+    /** @type {RequestInit} */
+    const reqInit = {
+        headers,
+    }
+    if (opts.signal) reqInit.signal = opts.signal;
+
+    const unblockerEndPoint = "https://api.scrapeunblocker.com/getPageSource?url=";
+
+    const encoded = encodeURIComponent(url);
+    const urlUnblocked = unblockerEndPoint + encoded;
+
+    let res;
+    try {
+        res = await fetch(urlUnblocked, reqInit);
+        // res = await fetch(urlProxy);
+        if (!res.ok) {
+            // We do not have to use "cause" here now, but it is better in case we refactor this code.
+            throw new Error(`Unblocker ${unblocker} failed: ${res.status}`,
+                {
+                    cause: {
+                        httpsStatus: res.status
+                    }
+                }
+            );
+        }
+    } catch (err) {
+        if (err instanceof Error) {
+            const httpsStatus = err.cause?.httpsStatus;
+            if (!httpsStatus) { throw err; }
+            console.error(`%c${err.message} fetchResponseViaUnblocker`, "color:red;", urlUnblocked, reqInit);
+        } else {
+            throw err;
+        }
+    }
+    return res;
+}
+/**
+ * Fetches https response via unblocker
+ * 
+ * @param {string} url - The article URL to fetch
+ * @param {Object} [opts]
+ * param {string} [opts.proxyName]
+ * @param {AbortSignal} [opts.signal]
+ * @returns {Promise<string>} HTML string
+ */
+
+async function fetchPageViaUnblocker(url, opts) {
+    // fetchResponseViaProxy
+    const response = await fetchResponseViaUnblocker(url, opts);
+    if (response == undefined) throw Error("respone == undefined (from fetchResponseViaProxy");
+    if (!response.ok) {
+        throw new FetchItError(`Unblocker failed, status ${response.status}`)
+    }
+    const content = await response.text();
+    return content;
+}
+// https://scitechdaily.com/challenging-long-held-theories-evolution-isnt-one-and-done-new-study-suggests/
+
+
 
 /**
  * Get text from html.
@@ -5132,6 +5235,7 @@ const arrBlockNames = [
     "notBlocked",
     "corsBlock",
     "scrapingBlock",
+    "unBlock",
     "finalBlock",
 ];
 Object.freeze(arrBlockNames)
@@ -5254,8 +5358,15 @@ export async function fetchIt(url) {
                 }
                 return { content, blockType, url }
                 break;
+            /*
             case "blocked":
+                debugger;
                 // throw new FetchItError(`Could not fetch: ${corsStatus}`);
+                return { content, blockType, url, corsStatus }
+                break;
+            */
+            case "unBlock":
+                content = await fetchPageViaUnblocker(url);
                 return { content, blockType, url, corsStatus }
                 break;
             default:
@@ -5290,10 +5401,30 @@ export async function fetchIt(url) {
             const firstStatusChar = corsStatus.slice(0, 1);
             switch (firstStatusChar) {
                 case "4":
-                    throw new FetchItError(`Server blocked access: ${corsStatus}`);
+                    // https://www.scrapeunblocker.com/serp
+                    if (settingFetchItSerpKey.value) {
+                        // corsblock
+
+                    }
+                    const modMdc = await importFc4i("util-mdc");
+                    const body = mkElt("div", undefined, [
+                        mkElt("h2", undefined, "Article provider blocked browser programs access"),
+                        mkElt("p", undefined, `
+                                This block is probably not meant to block programs like MM4I.
+                                There is a way to get around this block.
+                                Do you want to know more about this?
+                            `)
+                    ]);
+                    const ans = await modMdc.mkMDCdialogConfirm(body, "Yes", "No");
+                    if (ans) {
+                        debugger;
+                        alert("not implemented yet");
+                    } else {
+                        throw new FetchItError(`Server blocked access: ${corsStatus}`, { cause: corsStatus });
+                    }
                     break;
                 case "5":
-                    throw new FetchItError(`Server has problems: ${corsStatus}`);
+                    throw new FetchItError(`Server has problems: ${corsStatus}`, { cause: corsStatus });
                     break;
                 default:
                     throw new FetchItError(`Could not fetch: ${corsStatus}`);

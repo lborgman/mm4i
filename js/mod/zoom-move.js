@@ -22,12 +22,15 @@ export function start(evt) {
 ///// https://stackoverflow.com/questions/74010960/how-to-implement-pinch-zoom-in-zoom-out-using-javascript
 
 // Calculate distance between two fingers
-const distance = (event) => {
-    return Math.hypot(event.touches[0].pageX - event.touches[1].pageX, event.touches[0].pageY - event.touches[1].pageY);
+const distanceTouches = (event) => {
+    return Math.hypot(
+        event.touches[0].pageX - event.touches[1].pageX,
+        event.touches[0].pageY - event.touches[1].pageY);
 };
 
 
-let eltZoomMove; // FIX-ME:
+/** @type {HTMLDivElement} */
+let eltZoomMove;
 
 /**
  * 
@@ -52,20 +55,30 @@ export function setupPinchZoom() {
         yI = transforms.y;
     }
 
+    /**
+     * @type {Object}
+     */
     let start = {};
 
     eltZoomMove.addEventListener('touchstart', (event) => {
         // console.log('touchstart', event);
-        if (event.touches.length === 2) {
-            event.preventDefault(); // Prevent page scroll
+        const len = event.touches.length;
+        if (len === 0) return;
+        if (len > 2) return;
 
-            // Calculate where the fingers have started on the X and Y axis
+        event.preventDefault(); // Prevent page scroll
+
+        // Calculate where the fingers have started on the X and Y axis
+        if (len === 1) {
+            start.x = event.touches[0].pageX;
+            start.y = event.touches[0].pageY;
+        } else {
             start.x = (event.touches[0].pageX + event.touches[1].pageX) / 2;
             start.y = (event.touches[0].pageY + event.touches[1].pageY) / 2;
-            start.distance = distance(event);
-
-            getTransformsI();
         }
+        start.distance = distanceTouches(event);
+
+        getTransformsI();
     });
 
     eltZoomMove.addEventListener('touchmove', (event) => {
@@ -73,7 +86,7 @@ export function setupPinchZoom() {
         if (event.touches.length === 2) {
             event.preventDefault(); // Prevent page scroll
 
-            const deltaDistance = distance(event);
+            const deltaDistance = distanceTouches(event);
             const scaleD = deltaDistance / start.distance;
             const minScale = 0.5;
             const maxScale = 4;
