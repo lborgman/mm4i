@@ -964,7 +964,8 @@ function connectFsm() {
         funStopScroll = undefined;
         const jmnodes = getJmnodesFromJm(jmDisplayed);
         const eltScroll = jmnodes.closest("div.zoom-move");
-        funStopScroll = startGrabMove(eltScroll);
+        // funStopScroll = startGrabMove(eltScroll);
+        funStopScroll = startGrabMoveMove(eltScroll);
     });
     ourFsm?.hook_exit("c_Move", () => {
         if (funStopScroll) {
@@ -1000,7 +1001,7 @@ async function startGrabMove(elt2move) {
     const modMoveHelp = await importFc4i("move-help");
     // console.log("startGrabMove", elt2move);
     let isMoving = true;
-    return;
+    // return;
     // const ourElement2move = elt2move;
     // let n = 0;
 
@@ -1036,9 +1037,18 @@ async function startGrabMove(elt2move) {
         isMoving = false;
     }
 }
-async function startGrabMoveMove() {
-    const modZoomMove = await importFc4i("zoom-move");
+async function startGrabMoveMove(elt2move) {
+    // const modZoomMove = await importFc4i("zoom-move");
+    const modMoveHelp = await importFc4i("move-help");
+    const movingData = modMoveHelp.setInitialMovingData(elt2move);
     // funStopScroll
+    return () => {
+        // ourElement2move.style.cursor = "";
+        movingData.movingElt.style.cursor = "";
+        movingData.movingElt.style.filter = "";
+        // isMoving = false;
+    }
+
 }
 function addZoomMoveLayer(eltContainer) {
     if (!eltContainer) throw Error("Could not find jsmind container");
