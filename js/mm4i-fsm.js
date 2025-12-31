@@ -117,8 +117,7 @@ export function getPointerType(evt) {
     }
     return pointerType;
 }
-
-export async function setupFsmListeners(eltFsm) {
+export async function setupMMcontainers(eltFsm) {
     const modZoomMove = await importFc4i("zoom-move");
     modZoomMove.setEltZoomMove(eltFsm);
     modZoomMove.setupPinchZoom();
@@ -269,6 +268,10 @@ outline: 4px groove ${F};
         // eltInner.style.overflow = "hidden";
     }
     // return; // FIX-ME:
+}
+
+export async function setupFsmListeners(eltFsm) {
+    // await setupMMcontainers(eltFsm);
 
 
     eltFsm.addEventListener("touchstart", errorHandlerAsyncEvent(async evt => {

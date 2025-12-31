@@ -163,6 +163,7 @@ const cacheImportFc4i = new Map();
         // "jssm": "https://esm.sh/jssm",
         "jssm-tools": "./js/mod/jssm-tools.js",
         "jssm-viz": "./ext/jssm/jssm-viz.es6.js",
+        "mm4i-delegate-events": "./js/mm4i-delegate-events.js",
         "mm4i-fsm": "./js/mm4i-fsm.js",
         "mm4i-share": "./js/mm4i-share-link.js",
         // "viz-js": "https://cdn.jsdelivr.net/npm/viz-js@latest/dist/jssm.es6.mjs",
@@ -182,6 +183,8 @@ const cacheImportFc4i = new Map();
         // "qr-creator": "https://esm.sh/qr-creator?bundle=yes",
         "qrcode": "https://cdn.jsdelivr.net/npm/qrcode-esm/+esm",
         "qr-scanner": "https://cdn.jsdelivr.net/npm/qr-scanner@latest/qr-scanner.min.js",
+
+        "delegate-events": "./js/mod/delegate-events.js",
 
 
         // new

@@ -5439,7 +5439,7 @@ export async function fetchIt(url) {
 }
 
 const _doTestFetchIt = navigator.userAgentData?.platform == "Windows";
-if (_doTestFetchIt) { setTimeout(() => test_fetchIt(), 2000); }
+// if (_doTestFetchIt) { setTimeout(() => test_fetchIt(), 2000); }
 
 /**
  * 

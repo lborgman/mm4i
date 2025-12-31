@@ -22,7 +22,7 @@ const modTools = await importFc4i("toolsJs");
 
 
 
-async function getJmDisplayed() {
+export async function getJmDisplayed() {
     const modCustRend = await importFc4i("jsmind-cust-rend");
     const theCustomRenderer = await modCustRend.getOurCustomRenderer();
     const jmDisplayed = theCustomRenderer.THEjmDisplayed;

@@ -20,6 +20,7 @@ const modMMhelpers = await importFc4i("mindmap-helpers");
 const modMdc = await importFc4i("util-mdc");
 const modTools = await importFc4i("toolsJs");
 
+
 const modMm4iFsm = await (async () => {
     // return;
     // if (!navigator.onLine) return;
@@ -581,7 +582,7 @@ export async function applyShapeEtcBg(bgName, bgValue, bgTheme, eltJmnode) {
 
 }
 
-async function editNotes(eltJmnode) {
+export async function editNotes(eltJmnode) {
     const modCustRend = await importFc4i("jsmind-cust-rend");
     const renderer = await modCustRend.getOurCustomRenderer();
     renderer.editNotesDialog(eltJmnode);
@@ -680,6 +681,7 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
             eltJmnode.appendChild(eltSpanNotes);
 
             eltSpanNotes.addEventListener("click", errorHandlerAsyncEvent(async evt => {
+                return; //     window["using-mm4i-delegated-events"] = true;
                 evt.preventDefault();
                 evt.stopPropagation();
                 evt.stopImmediatePropagation();
@@ -929,13 +931,24 @@ function getUsedOptJmDisplay(mind) {
     }
     return usedOptJmDisplay;
 }
-function connectFsm() {
+async function addDelegatedEvents() {
+    // return;
+    const modMm4iDelegatedEvents = await importFc4i("mm4i-delegate-events");
+    modMm4iDelegatedEvents.setupEvents(getEltFsm());
+}
+function connectFsm(nOut) {
+    // const n = parseInt(prompt("nOut", nOut || 99));
+    const n = 9;
+    console.log(`%cn==${n}`, "font-size:40px;color:orange;");
     ourFsm?.hook_any_action(fsmEvent);
+    if (n > 98) return;
     ourFsm?.hook_any_transition((...args) => {
         const newState = args[0].to;
         logJssmState(newState);
     });
+    if (n > 97) return;
     const eltFsm = getEltFsm();
+    if (n > 96) return;
 
 
     ////// FSL hooks
@@ -952,7 +965,9 @@ function connectFsm() {
     ourFsm?.post_hook_entry("n_Move", (hookData) => {
         hookStartMovePointHandle(hookData);
     });
+    if (n > 95) return;
     ourFsm?.hook_exit("n_Move", () => pointHandle.teardownPointHandle());
+    if (n > 94) return;
 
     /** @type {Function|Promise<Function>|undefined} */
     let funStopScroll;
@@ -964,9 +979,11 @@ function connectFsm() {
         funStopScroll = undefined;
         const jmnodes = getJmnodesFromJm(jmDisplayed);
         const eltScroll = jmnodes.closest("div.zoom-move");
-        // funStopScroll = startGrabMove(eltScroll);
-        funStopScroll = startGrabMoveMove(eltScroll);
+
+        funStopScroll = startGrabMove(eltScroll);
+        // funStopScroll = startGrabMoveMove(eltScroll);
     });
+    if (n > 93) return;
     ourFsm?.hook_exit("c_Move", () => {
         if (funStopScroll) {
             if (funStopScroll instanceof Promise) {
@@ -982,6 +999,7 @@ function connectFsm() {
         }
     });
 
+    if (n > 92) return;
     ourFsm?.post_hook_entry("c_Dblclick", () => { dialogEditMindmap(); });
     ourFsm?.post_hook_entry("n_Dblclick", async (hookData) => {
         // const eltJmnode = hookData.data;
@@ -990,9 +1008,11 @@ function connectFsm() {
         const renderer = await modCustRend.getOurCustomRenderer();
         renderer.editNodeDialog(eltJmnode);
     });
+    if (n > 91) return;
 
     // FIX-ME: for testing original jsMind dragging 
     if (modJsmindDraggable.setJmnodeDragged) {
+        // modMm4iFsm.setupMMcontainers(eltFsm);
         modMm4iFsm.setupFsmListeners(eltFsm);
     }
 }
@@ -1051,7 +1071,7 @@ async function startGrabMoveMove(elt2move) {
 
 }
 function addZoomMoveLayer(eltContainer) {
-    if (!eltContainer) throw Error("Could not find jsmind container");
+    // if (!eltContainer) throw Error("Could not find jsmind container");
     const eltInner = eltContainer?.querySelector("div.jsmind-inner");
     if (!eltInner) throw Error("Could not find div.jsmind-inner");
     if (!eltInner.closest("div.zoom-move")) {
@@ -1170,15 +1190,77 @@ export async function displayOurMindmap(mindStored) {
     initialUpdateCustomAndShapes(jmDisplayed); // FIX-ME: maybe remove when this is fixed in jsmind?
 
     jmDisplayed.disable_event_handle("dblclick"); // Double click on Windows and Android
+
+
+    ///// One of these!
     // if (modJsmindDraggable.setJmnodeDragged) {
-    connectFsm(); // Using mm4i version
-    // }
+    let strChoosen = await (async () => {
+        const mkChoice = (what) => {
+            return mkElt("div", undefined, [
+                mkElt("label", undefined, [
+                    mkElt("input", { type: "radio", name: "fsmOrDelegate", value: what }),
+                    what
+                ])
+            ])
+        }
+        const listChoices = mkElt("div", undefined, [
+            mkChoice("connectFsm"),
+            mkChoice("addDelegatedEvents"),
+            mkChoice("Both"),
+            mkChoice("None"),
+        ]);
+        // debugger;
+        const first = listChoices.querySelector("input");
+        if (!first) throw Error("hm???");
+        first.checked = true;
+        const body = mkElt("div", undefined, [
+            mkElt("h3", { style: "color:red;" }, "Testing..."),
+            listChoices,
+        ]);
+        await modMdc.mkMDCdialogConfirm(body);
+        const choosen = listChoices.querySelector("input:checked");
+        console.log({ choosen });
+        return choosen.value;
+    })();
+    // const eltFsm = getEltFsm();
 
     // We need another layer to handle zoom-move:
     if (modJsmindDraggable.setJmnodeDragged) {
         addZoomMoveLayer(eltJmdisplayContainer);
+        // FIX-ME: Do we need await here???
+        await addDragBorders(jmDisplayed);
+    }
+
+    await modMm4iFsm.setupMMcontainers(getEltFsm());
+    // strChoosen = 
+    switch (strChoosen) {
+        case "None":
+            break;
+        case "Both":
+            connectFsm(); // Using mm4i version
+            addDelegatedEvents();
+            break;
+        case "connectFsm":
+            connectFsm(); // Using mm4i version
+            // addDelegatedEvents();
+            break;
+
+        case "addDelegatedEvents":
+            // connectFsm(); // Using mm4i version
+            addDelegatedEvents();
+            break;
+        default:
+            throw Error(`Unknown case: "${strChoosen}"`);
+    }
+    // }
+
+    // We need another layer to handle zoom-move:
+    /*
+    if (modJsmindDraggable.setJmnodeDragged) {
+        addZoomMoveLayer(eltJmdisplayContainer);
         addDragBorders(jmDisplayed);
     }
+    */
 
     applyOurMindmapGlobals(jmDisplayed);
     // addDragBorders(jmDisplayed);
@@ -1974,6 +2056,7 @@ export async function pageSetup() {
     // jsMindContainer.addEventListener("pointerdown", evt => hideContextMenuOnEvent(evt)); // FIX-ME:
     // jsMindContainer.addEventListener("click", async evt => { handleClickJsMindContainer(evt); });
     function handleClickJsMindContainer(evt) {
+        if (window["using-mm4i-delegated-events"]) return;
         // evt.stopPropagation();
         // evt.preventDefault();
 
@@ -1987,56 +2070,7 @@ export async function pageSetup() {
         const fastLog4bug = window["fastLog4bug"];
         fastLog4bug("before doExpanding");
 
-        doExpanding();
-        async function doExpanding() {
-            if (eltExpander == null) throw Error("eltExpander == null");
-
-            // FIX-ME: It never reach the next line for generated mindmaps????
-            fastLog4bug("before hasAttribute, click was on expander");
-
-            let strNodeId;
-            const hasId = eltExpander.hasAttribute("nodeid");
-            fastLog4bug(`error, id: ${hasId}`); // 
-            try {
-                strNodeId = eltExpander.getAttribute("nodeid");
-            } catch (err) {
-                const msg = err instanceof Error ? err.message : err.toString();
-                fastLog4bug(`error: ${hasId} "${msg}"`); // 
-            }
-
-            if (null == strNodeId) throw Error("jmexpander attribute nodeid is null");
-            const str = strNodeId.trim();
-            if (str.length == 0) throw Error("jmexpander attribute nodeid.length == 0");
-            const nodeId = str.match(/^\d+$/) ? parseInt(str) : str;
-            fastLog4bug("click was on expander (before toggle_node)"); // 
-            jmDisplayed.toggle_node(nodeId);
-            // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, "Edit mindmap description");
-            if (jmDisplayed.isSavedBookmark) {
-                if (!toldChangesNotSaved) {
-                    fastLog4bug("Changes to named/shared bookmarks are not stored");
-                    modMdc.mkMDCsnackbar("Changes to named/shared bookmarks are not stored");
-                }
-                toldChangesNotSaved = true;
-                return;
-            }
-            const node = jmDisplayed.mind.nodes[nodeId];
-            if (node.expanded) {
-                const nc = node.children;
-                const childFirst = nc[0];
-                // const childLast = nc[nc.length - 1];
-                // console.log({ childFirst, childLast });
-                setTimeout(() => {
-                    console.log("setTimeout, scroll first");
-                    const resScrollFirst = scrollNodeIntoView(childFirst);
-                    console.log({ resScrollFirst });
-                    // FIX-ME: What to do with childLast???
-                }, 1000);
-            }
-            const topic = node.topic;
-            const theChange = !node.expanded ? "Collapse" : "Expand";
-            fastLog4bug(`theChange: ${theChange}`);
-            modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, `${theChange} ${topic}`);
-        }
+        doExpanding(eltExpander);
     }
 
 
@@ -2447,6 +2481,55 @@ export async function pageSetup() {
 
     return mindmapKey;
 }
+export async function doExpanding(eltExpander) {
+    if (eltExpander == null) throw Error("eltExpander == null");
+
+    // FIX-ME: It never reach the next line for generated mindmaps????
+    fastLog4bug("before hasAttribute, click was on expander");
+
+    let strNodeId;
+    const hasId = eltExpander.hasAttribute("nodeid");
+    fastLog4bug(`error, id: ${hasId}`); // 
+    try {
+        strNodeId = eltExpander.getAttribute("nodeid");
+    } catch (err) {
+        const msg = err instanceof Error ? err.message : err.toString();
+        fastLog4bug(`error: ${hasId} "${msg}"`); // 
+    }
+
+    if (null == strNodeId) throw Error("jmexpander attribute nodeid is null");
+    const str = strNodeId.trim();
+    if (str.length == 0) throw Error("jmexpander attribute nodeid.length == 0");
+    const nodeId = str.match(/^\d+$/) ? parseInt(str) : str;
+    fastLog4bug("click was on expander (before toggle_node)"); // 
+    jmDisplayed.toggle_node(nodeId);
+    // modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, "Edit mindmap description");
+    if (jmDisplayed.isSavedBookmark) {
+        if (!toldChangesNotSaved) {
+            fastLog4bug("Changes to named/shared bookmarks are not stored");
+            modMdc.mkMDCsnackbar("Changes to named/shared bookmarks are not stored");
+        }
+        toldChangesNotSaved = true;
+        return;
+    }
+    const node = jmDisplayed.mind.nodes[nodeId];
+    if (node.expanded) {
+        const nc = node.children;
+        const childFirst = nc[0];
+        // const childLast = nc[nc.length - 1];
+        // console.log({ childFirst, childLast });
+        setTimeout(() => {
+            console.log("setTimeout, scroll first");
+            const resScrollFirst = scrollNodeIntoView(childFirst);
+            console.log({ resScrollFirst });
+            // FIX-ME: What to do with childLast???
+        }, 1000);
+    }
+    const topic = node.topic;
+    const theChange = !node.expanded ? "Collapse" : "Expand";
+    fastLog4bug(`theChange: ${theChange}`);
+    modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(jmDisplayed, `${theChange} ${topic}`);
+}
 
 function hasTouchEvents() {
     let hasTouch = false;
@@ -2463,7 +2546,7 @@ function hasTouchEvents() {
 
 // FIX-ME: Should be in jsmind core
 // function getDOMeltFromNode(node) { return jsMind.my_get_DOM_element_from_node(node); }
-function getNodeIdFromDOMelt(elt) { return jsMind.my_get_nodeID_from_DOM_element(elt); }
+export function getNodeIdFromDOMelt(elt) { return jsMind.my_get_nodeID_from_DOM_element(elt); }
 // basicInit4jsmind();
 
 
