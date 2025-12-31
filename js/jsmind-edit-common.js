@@ -1195,6 +1195,7 @@ export async function displayOurMindmap(mindStored) {
     ///// One of these!
     // if (modJsmindDraggable.setJmnodeDragged) {
     let strChoosen = await (async () => {
+        if (location.hostname != "localhost") return "connectFsm";
         const mkChoice = (what) => {
             return mkElt("div", undefined, [
                 mkElt("label", undefined, [
