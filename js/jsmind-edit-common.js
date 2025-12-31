@@ -681,7 +681,7 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
             eltJmnode.appendChild(eltSpanNotes);
 
             eltSpanNotes.addEventListener("click", errorHandlerAsyncEvent(async evt => {
-                return; //     window["using-mm4i-delegated-events"] = true;
+                if (window["using-mm4i-delegated-events"]) return;
                 evt.preventDefault();
                 evt.stopPropagation();
                 evt.stopImmediatePropagation();
