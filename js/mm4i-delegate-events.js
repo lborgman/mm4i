@@ -105,19 +105,31 @@ export async function setupEvents(delegatorRoot) {
         const jmDisplayed = await modMMhelpers.getJmDisplayed();
         jmDisplayed.select_node(node_id);
     });
+    delegate("jmnode", "dblclick", async (myEvent) => {
+        console.log("delegated dblclick jmnode");
+    });
+
     delegate("jmnode>span.has-notes-mark", "click", async (myArgs) => {
         console.log("delegated click notes mark", myArgs);
         const jmnode = myArgs.target.closest("jmnode");
         modEditCommon.editNotes(jmnode);
     });
+
     delegate("jmexpander", "click", (myArgs) => {
         console.log("delegated click jmexpander");
         const targetExpander = myArgs.target;
         modEditCommon.doExpanding(targetExpander);
     });
+
     // delegate("div.jsmind-inner", "click", (myArgs) => {
     delegate("div.jsmind-inner", "click", (myArgs) => {
         console.log("div.jsmind-inner click");
+    });
+    delegate("div.jsmind-inner", "dblclick", (myArgs) => {
+        console.log("div.jsmind-inner dblclick");
+    });
+    delegate("div.jsmind-inner", "doubleclick", (myArgs) => {
+        console.log("div.jsmind-inner doubleclick");
     });
 
 

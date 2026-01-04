@@ -185,6 +185,9 @@ const cacheImportFc4i = new Map();
         "qr-scanner": "https://cdn.jsdelivr.net/npm/qr-scanner@latest/qr-scanner.min.js",
 
         "delegate-events": "./js/mod/delegate-events.js",
+        "delegate-fsm-xstate": "./js/mod/delegate-fsm-xstate.js",
+        "delegate-fsm-jssm": "./js/mod/delegate-fsm-jssm.js",
+        "xstate": "https://esm.sh/xstate",
 
 
         // new
