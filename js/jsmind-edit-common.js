@@ -972,6 +972,8 @@ function connectFsm(nOut) {
     /** @type {Function|Promise<Function>|undefined} */
     let funStopScroll;
 
+    const useMoveMove = confirm("Use startGrabMoveMove");
+    console.log({ useMoveMove });
     ourFsm?.post_hook_entry("c_Move", (hookData) => {
         // const { eltJmnode, pointerType } = hookData.data;
         const { eltJmnode } = hookData.data;
@@ -980,8 +982,11 @@ function connectFsm(nOut) {
         const jmnodes = getJmnodesFromJm(jmDisplayed);
         const eltScroll = jmnodes.closest("div.zoom-move");
 
-        funStopScroll = startGrabMove(eltScroll);
-        // funStopScroll = startGrabMoveMove(eltScroll);
+        if (useMoveMove) {
+            funStopScroll = startGrabMoveMove(eltScroll);
+        } else {
+            funStopScroll = startGrabMove(eltScroll);
+        }
     });
     if (n > 93) return;
     ourFsm?.hook_exit("c_Move", () => {
