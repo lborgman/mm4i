@@ -119,8 +119,8 @@ export function getPointerType(evt) {
 }
 export async function setupMMcontainers(eltFsm) {
     const modZoomMove = await importFc4i("zoom-move");
-    modZoomMove.setEltZoomMove(eltFsm);
-    modZoomMove.setupPinchZoom();
+    // modZoomMove.setEltZoomMove(eltFsm);
+    modZoomMove.setupPinchZoomMove(eltFsm);
     // const zoomButtons = modZoomMove.mkZoomButtons(eltFsm, "horizontal");
     const zoomButtons = modZoomMove.mkZoomButtons("horizontal");
     zoomButtons.id = "mm4i-zoom-buttons";

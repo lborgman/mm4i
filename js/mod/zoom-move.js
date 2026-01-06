@@ -34,22 +34,26 @@ const distanceTouches = (event) => {
 /** @type {HTMLDivElement} */
 let eltZoomMove;
 
-/**
- * 
- * @param {HTMLDivElement} element 
- */
-export function setEltZoomMove(element) {
+// FIX-ME: weakmap with key eltZoomMove???
+/** @type {number} */ let scaleI;
+/** @type {number} */ let xI;
+/** @type {number} */ let yI;
+/** @type {Object} */ let start = {};
+
+
+
+/** @param {HTMLDivElement} element */
+function setEltZoomMove(element) {
     const tagName = element.tagName;
     if (tagName != "DIV") throw Error(`setEltZoomMove: expected DIV, got "${tagName}"`);
     eltZoomMove = element;
 }
 /**
+ * @param {HTMLDivElement} element
  * Setup pinch zoom.
  */
-export function setupPinchZoom() {
-    let scaleI;
-    let xI;
-    let yI;
+export function setupPinchZoomMove(element) {
+    setEltZoomMove(element);
     function getTransformsI() {
         const transforms = modTools.getCssTransforms(eltZoomMove);
         scaleI = transforms.scale;
@@ -57,16 +61,13 @@ export function setupPinchZoom() {
         yI = transforms.y;
     }
 
-    /**
-     * @type {Object}
-     */
-    let start = {};
-
     eltZoomMove.addEventListener('touchstart', (event) => {
         // console.log('touchstart', event);
         const len = event.touches.length;
-        if (len === 0) return;
-        if (len > 2) return;
+        // if (len === 0) return;
+        // if (len === 1) return;
+        // if (len > 2) return;
+        if (len != 2) return;
 
         event.preventDefault(); // Prevent page scroll
 

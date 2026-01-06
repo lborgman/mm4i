@@ -1063,6 +1063,7 @@ async function startGrabMove(elt2move) {
     }
 }
 async function startGrabMoveMove(elt2move) {
+    // touches
     // const modZoomMove = await importFc4i("zoom-move");
     const modMoveHelp = await importFc4i("move-help");
     const movingData = modMoveHelp.setInitialMovingData(elt2move);
