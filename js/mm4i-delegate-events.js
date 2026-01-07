@@ -1,5 +1,6 @@
 // mm4i-fms
-// @ts-check
+// NOts-check
+throw "mm4i-delegate is now obsolete";
 
 if (document.currentScript) { throw "File is not loaded as module"; }
 

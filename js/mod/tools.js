@@ -1568,7 +1568,19 @@ export class TimeoutTimer {
     requestAnimationFrame.
 */
 
-const savedPointerPos = {};
+const savedPointerPos = {
+    clientX: -1,
+    clientY: -1,
+    startX: -1,
+    startY: -1,
+    // Needed by zoom-move:
+    pageX: -1,
+    pageY: -1,
+    startPageX: -1,
+    startPageY: -1,
+};
+Object.seal(savedPointerPos);
+
 let aborter4HasSaved;
 let promHasSaved;
 setupWait4Saved();
@@ -1635,7 +1647,9 @@ export function savePointerPos(evt) {
     // if (!(evt instanceof PointerEvent)) throw Error("Expected PointerEvent");
     const clientX = evt.clientX;
     const clientY = evt.clientY;
-    let fail = isNaN(clientX) || isNaN(clientY);
+    const pageX = evt.pageX;
+    const pageY = evt.pageY;
+    let fail = isNaN(clientX) || isNaN(clientY) || isNaN(pageX) || isNaN(pageY);
     if (fail) {
         abortPosListeners.abort();
         debugger; // eslint-disable-line no-debugger
@@ -1644,6 +1658,8 @@ export function savePointerPos(evt) {
 
     savedPointerPos.clientX = clientX;
     savedPointerPos.clientY = clientY;
+    savedPointerPos.pageX = pageX;
+    savedPointerPos.pageY = pageY;
     switch (evt.type) {
         case "pointermove":
             break;
@@ -1652,6 +1668,8 @@ export function savePointerPos(evt) {
             // .signal AbortHandler
             savedPointerPos.startX = clientX;
             savedPointerPos.startY = clientY;
+            savedPointerPos.startPageX = pageX;
+            savedPointerPos.startPageY = pageY;
             aborter4HasSaved.abort("has saved pos");
             break;
         default:
@@ -1663,11 +1681,22 @@ export async function getAndClearStartPointerPos() {
     await promHasSaved;
     const startX = savedPointerPos.startX;
     const startY = savedPointerPos.startY;
+    const startPageX = savedPointerPos.startPageX;
+    const startPageY = savedPointerPos.startPageY;
+    if (
+        isNaN(startX)
+        ||
+        isNaN(startY)
+        ||
+        isNaN(startPageX)
+        ||
+        isNaN(startPageY)
+    ) throw Error("Did not get all start values");
     savedPointerPos.startX = undefined;
     savedPointerPos.startY = undefined;
     promHasSaved = undefined;
     setupWait4Saved();
-    return { startX, startY };
+    return { startX, startY, startPageX, startPageY };
 }
 export function getSavedPointerPos() {
     // Don't check anyting here, just return.

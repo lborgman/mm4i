@@ -936,6 +936,7 @@ async function addDelegatedEvents() {
     const modMm4iDelegatedEvents = await importFc4i("mm4i-delegate-events");
     modMm4iDelegatedEvents.setupEvents(getEltFsm());
 }
+const modZoomMove = await importFc4i("zoom-move");
 function connectFsm(nOut) {
     // const n = parseInt(prompt("nOut", nOut || 99));
     const n = 9;
@@ -972,7 +973,8 @@ function connectFsm(nOut) {
     /** @type {Function|Promise<Function>|undefined} */
     let funStopScroll;
 
-    const useMoveMove = confirm("Use startGrabMoveMove");
+    // const useMoveMove = confirm("Use startGrabMoveMove");
+    const useMoveMove = true;
     console.log({ useMoveMove });
     ourFsm?.post_hook_entry("c_Move", (hookData) => {
         // const { eltJmnode, pointerType } = hookData.data;
@@ -983,7 +985,9 @@ function connectFsm(nOut) {
         const eltScroll = jmnodes.closest("div.zoom-move");
 
         if (useMoveMove) {
-            funStopScroll = startGrabMoveMove(eltScroll);
+            // funStopScroll = startGrabMoveMove(eltScroll);
+            // funStopScroll = modZoomMove.handleSimilarPointerStart;
+            funStopScroll = modZoomMove.handleSimilarPointerStart();
         } else {
             funStopScroll = startGrabMove(eltScroll);
         }

@@ -22,6 +22,11 @@ export function start(evt) {
 ///// https://stackoverflow.com/questions/74010960/how-to-implement-pinch-zoom-in-zoom-out-using-javascript
 
 // Calculate distance between two fingers
+/**
+ * 
+ * @param {TouchEvent} event 
+ * @returns 
+ */
 const distanceTouches = (event) => {
     const len = event.touches.length;
     if (len < 2) return 0;
@@ -38,8 +43,102 @@ let eltZoomMove;
 /** @type {number} */ let scaleI;
 /** @type {number} */ let xI;
 /** @type {number} */ let yI;
-/** @type {Object} */ let start = {};
 
+/**
+ * @typedef {Object} PointAndDistance
+ * @property {number} x - The x coordinate
+ * @property {number} y - The y coordinate
+ * @property {number} distance
+ */
+
+/**
+ * @type {PointAndDistance}
+ */
+const start = {
+    x: -1,
+    y: -1,
+    distance: -1
+};
+
+function getTransformsI() {
+    const transforms = modTools.getCssTransforms(eltZoomMove);
+    scaleI = transforms.scale;
+    xI = transforms.x;
+    yI = transforms.y;
+}
+
+/**
+ * 
+ * @param {TouchEvent} event 
+ * @returns 
+ */
+function handleTouchStart(event) {
+    const len = event.touches.length;
+    if (len != 2) return;
+
+    event.preventDefault(); // Prevent page scroll
+
+    // Calculate where the fingers have started on the X and Y axis
+    start.x = (event.touches[0].pageX + event.touches[1].pageX) / 2;
+    start.y = (event.touches[0].pageY + event.touches[1].pageY) / 2;
+    start.distance = distanceTouches(event);
+
+    getTransformsI();
+};
+
+/** @type {number} */ let pointerMoveStartTime;
+/**
+ * 
+ * @param {PointerEvent} event 
+ */
+export async function handleSimilarPointerStart() {
+    console.log("%chandleSimilarPointerStart", "font-size:28px;");
+    const savedStartPointerPos = await modTools.getAndClearStartPointerPos();
+    start.x = savedStartPointerPos.startPageX;
+    start.y = savedStartPointerPos.startPageY;
+    if (isNaN(start.x) || isNaN(start.y)) throw Error("Did not get start.x/y");
+    start.distance = 0;
+    getTransformsI();
+
+    // touchMove
+    pointerMoveStartTime = performance.now();
+    requestAnimationFrame(handleSimilarPointerMove);
+        return () => {
+        isMovingPointer = false;
+    }
+};
+let isMovingPointer = false;
+export async function handleSimilarPointerMove() {
+    // moving
+    const elapsed = performance.now() - pointerMoveStartTime;
+    if (elapsed > 2000) {
+        console.log("jumping out of move");
+        isMovingPointer = false;
+        return;
+    }
+    // const deltaDistance = distanceTouches(event);
+    // const scaleD = deltaDistance / start.distance;
+    // const minScale = 0.5;
+    // const maxScale = 4;
+    // const scaleB = Math.min(Math.max(minScale, scaleD * scaleI), maxScale);
+
+    const savedPointerPos = await modTools.getSavedPointerPos();
+
+    // Calculate how much the fingers have moved on the X and Y axis
+    const xD = savedPointerPos.pageX - start.x;
+    const yD = savedPointerPos.pageY - start.y;
+
+    const xB = xD + xI;
+    const yB = yD + yI;
+    // FIX-ME: keep element inside some boundaries
+
+    // Transform the container to make it grow and move with fingers
+    const transform = `translate3d(${xB}px, ${yB}px, 0) scale(${scaleI})`;
+    eltZoomMove.style.transform = transform;
+
+    isMovingPointer = true;
+    requestAnimationFrame(handleSimilarPointerMove);
+};
 
 
 /** @param {HTMLDivElement} element */
@@ -54,35 +153,8 @@ function setEltZoomMove(element) {
  */
 export function setupPinchZoomMove(element) {
     setEltZoomMove(element);
-    function getTransformsI() {
-        const transforms = modTools.getCssTransforms(eltZoomMove);
-        scaleI = transforms.scale;
-        xI = transforms.x;
-        yI = transforms.y;
-    }
 
-    eltZoomMove.addEventListener('touchstart', (event) => {
-        // console.log('touchstart', event);
-        const len = event.touches.length;
-        // if (len === 0) return;
-        // if (len === 1) return;
-        // if (len > 2) return;
-        if (len != 2) return;
-
-        event.preventDefault(); // Prevent page scroll
-
-        // Calculate where the fingers have started on the X and Y axis
-        if (len === 1) {
-            start.x = event.touches[0].pageX;
-            start.y = event.touches[0].pageY;
-        } else {
-            start.x = (event.touches[0].pageX + event.touches[1].pageX) / 2;
-            start.y = (event.touches[0].pageY + event.touches[1].pageY) / 2;
-        }
-        start.distance = distanceTouches(event);
-
-        getTransformsI();
-    });
+    eltZoomMove.addEventListener('touchstart', handleTouchStart);
 
     eltZoomMove.addEventListener('touchmove', (event) => {
         // console.log('touchmove', event);
@@ -138,6 +210,10 @@ function changeScale(amount) {
     changeScaleTo(scale);
 }
 
+/**
+ * 
+ * @param {number} scale 
+ */
 function changeScaleTo(scale) {
     if (isNaN(scale)) throw Error("isNaN(scale)");
     if (scale > 1) throw Error("scale > 1");
@@ -173,12 +249,12 @@ function mkZoomButton(inOrOut) {
     return btn;
 }
 
-let btnDisplayZoomed;
+const btnDisplayZoomed = document.createElement("button");
 const clsDisplayZoomed = "display-zoomed";
 function mkDisplayZoomed() {
-    const btn = document.createElement("button");
+    // const btn = document.createElement("button");
     // btn.id = "mm4i-display-zoomed"
-    btnDisplayZoomed = btn;
+    const btn = btnDisplayZoomed;
     btn.classList.add(clsDisplayZoomed);
     btn.textContent = "100%";
     btn.title = "zoom 100%";
@@ -189,6 +265,10 @@ function mkDisplayZoomed() {
     });
     return btn;
 }
+/**
+ * 
+ * @param {number} scaled 
+ */
 function displayZoomed(scaled) {
     const perc = Math.round(scaled * 100);
     // FIX-ME: You can't use the ID here.
@@ -211,6 +291,10 @@ export function getZoomPercentage() {
     if (Number.isNaN(percentage)) throw Error(`"${txt}" does not start with number`);
     return percentage;
 }
+/**
+ * 
+ * @param {number} zoomed 
+ */
 export function setZoomPercentage(zoomed) {
     changeScaleTo(zoomed / 100);
 }
@@ -244,7 +328,8 @@ export function mkZoomButtons(horOrVer) {
 }
 
 export function getMoved() {
-    const eltZM = eltZoomMove.closest("div.zoom-move");
+    const eltZM = /** @type {HTMLDivElement} */ (eltZoomMove.closest("div.zoom-move"));
+    if (!eltZM) throw Error(`Did not find .closest("div.zoom-move")`);
     const top = eltZM.style.top;
     const left = eltZM.style.left;
     return { top, left }
@@ -268,7 +353,9 @@ export function setMoved(objMoved) {
         if (!movedTop.endsWith(".px")) throw Error(`movedTop is not in px: "${movedTop}`);
     }
 
-    const eltZM = eltZoomMove.closest("div.zoom-move");
+    // const eltZM = eltZoomMove.closest("div.zoom-move");
+    const eltZM = /** @type {HTMLDivElement} */ (eltZoomMove.closest("div.zoom-move"));
+    if (!eltZM) throw Error(`Did not find .closest("div.zoom-move")`);
     // FIX-ME:
     eltZM.style.left = movedLeft;
     eltZM.style.top = movedTop;
