@@ -101,19 +101,26 @@ export async function handleSimilarPointerStart() {
     getTransformsI();
 
     // touchMove
+    isMovingPointer = true;
+    eltZoomMove.style.cursor = "grab";
+
     pointerMoveStartTime = performance.now();
     requestAnimationFrame(handleSimilarPointerMove);
-        return () => {
+    return () => {
         isMovingPointer = false;
+        eltZoomMove.style.cursor = "";
     }
 };
 let isMovingPointer = false;
 export async function handleSimilarPointerMove() {
     // moving
+    if (!isMovingPointer) return;
     const elapsed = performance.now() - pointerMoveStartTime;
-    if (elapsed > 2000) {
-        console.log("jumping out of move");
+    const maxMoveDur = 5;
+    if (elapsed > maxMoveDur * 1000) {
+        console.warn(`Guard: jumping out of move after ${maxMoveDur} seconds`);
         isMovingPointer = false;
+        eltZoomMove.style.cursor = "";
         return;
     }
     // const deltaDistance = distanceTouches(event);

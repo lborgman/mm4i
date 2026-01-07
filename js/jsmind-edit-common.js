@@ -997,10 +997,12 @@ function connectFsm(nOut) {
         if (funStopScroll) {
             if (funStopScroll instanceof Promise) {
                 funStopScroll.then(fun => fun());
+                funStopScroll = undefined;
                 return;
             }
             if (typeof funStopScroll == "function") {
                 funStopScroll();
+                funStopScroll = undefined;
                 return;
             }
             debugger; // eslint-disable-line no-debugger
