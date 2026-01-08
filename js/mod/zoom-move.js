@@ -86,11 +86,44 @@ function handleTouchStart(event) {
     getTransformsI();
 };
 
+/** @type {HTMLDivElement} */
+let eltDraggingContainerIndicator;
+async function showDragContainerIndicator() {
+    document.body.classList.add("dragging-container");
+    if (eltDraggingContainerIndicator) {
+        eltDraggingContainerIndicator.style.display = "flex";
+        return;
+    }
+
+    const modMdc = await importFc4i("util-mdc");
+    const eltIcon = modMdc.mkMDCicon("drag_pan");
+    // @ts-ignore
+    eltDraggingContainerIndicator = mkElt("div", undefined, eltIcon);
+    eltDraggingContainerIndicator.style = `
+            position: fixed;
+            left: 10px;
+            top: 10px;
+            z-index: 99;
+            color: red;
+            background-color: black;
+            width: 32px;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            outline: 1px solid;
+        `;
+    document.body.appendChild(eltDraggingContainerIndicator);
+}
+function hideDragContainerIndicator() {
+    document.body.classList.remove("dragging-container");
+    if (eltDraggingContainerIndicator) {
+        eltDraggingContainerIndicator.style.display = "none";
+    }
+}
+
 /** @type {number} */ let pointerMoveStartTime;
-/**
- * 
- * @param {PointerEvent} event 
- */
 export async function handleSimilarPointerStart() {
     console.log("%chandleSimilarPointerStart", "font-size:28px;");
     const savedStartPointerPos = await modTools.getAndClearStartPointerPos();
@@ -103,12 +136,14 @@ export async function handleSimilarPointerStart() {
     // touchMove
     isMovingPointer = true;
     eltZoomMove.style.cursor = "grab";
+    showDragContainerIndicator();
 
     pointerMoveStartTime = performance.now();
     requestAnimationFrame(handleSimilarPointerMove);
     return () => {
         isMovingPointer = false;
         eltZoomMove.style.cursor = "";
+        hideDragContainerIndicator();
     }
 };
 let isMovingPointer = false;
