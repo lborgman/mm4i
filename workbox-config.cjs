@@ -13,6 +13,7 @@ module.exports = {
 		'**/api/prerender.js',
 		'**/api/call-groq.js',
 		'**/api/proxy.js',
+		'**/api/proxy-only-cors.js',
 		'**/api/myOLD-prerender.js',
 		'**/img/Groq Logo_Orange 25.svg',
 		'package.json',
