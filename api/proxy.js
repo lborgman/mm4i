@@ -200,6 +200,13 @@ export default async function handler(req, res) {
         }
         // -----------------------------------------------------------------
 
+        // --- DEBUG: Log outgoing headers ---
+        console.log("=== OUTGOING HEADERS ===");
+        for (const [key, value] of requestHeaders.entries()) {
+            console.log(`  ${key}: ${value}`);
+        }
+        console.log("========================");
+
         const response = await fetch(target, {
             method: req.method,
             headers: requestHeaders,

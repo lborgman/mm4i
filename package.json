@@ -6,7 +6,8 @@
   "dependencies": {
     "chalk": "^5.4.1",
     "etag": "^1.8.1",
-    "ignore": "^7.0.5"
+    "ignore": "^7.0.5",
+    "oxlint": "^1.38.0"
   },
   "devDependencies": {
     "@types/workbox-sw": "^4.3.7"

@@ -3382,7 +3382,14 @@ const urlProxies = {
 
 const nameProxies = Object.keys(urlProxies);
 
-async function fetchResponseViaProxy(url, opts = {}) {
+/**
+ * 
+ * @param {string} url 
+ * @param {Object} opts 
+ * @returns {Promise<Response>}
+ * @throws
+ */
+async function OLDfetchResponseViaCORSproxy(url, opts = {}) {
     const proxy = opts.proxyName || "mm4i";
     const signal = opts.signal;
     if (!nameProxies.includes(proxy)) throw new Error(`Unknown proxy: ${proxy}. Use: ${nameProxies.join(", ")}`);
@@ -3433,6 +3440,64 @@ async function fetchResponseViaProxy(url, opts = {}) {
     return res;
 }
 
+// New version suggested by Claude:
+async function fetchResponseViaCORSproxy(url, opts = {}) {
+    const proxy = opts.proxyName || "mm4i";
+    const signal = opts.signal;
+    if (!nameProxies.includes(proxy)) throw new Error(`Unknown proxy: ${proxy}. Use: ${nameProxies.join(", ")}`);
+
+    /** @type {HeadersInit} */
+    const headers = {
+        'Cache-Control': 'no-cache',
+        cache: 'no-store',
+    };
+
+    // Merge in any headers from opts
+    if (opts.headers) {
+        Object.assign(headers, opts.headers);
+    }
+
+    /** @type {RequestInit} */
+    const reqInit = {
+        headers,
+    }
+    if (signal) reqInit.signal = signal;
+
+    const proxyAtVercel = urlProxies[proxy];
+    const proxyToUse = proxyAtVercel;
+    const encoded = encodeURIComponent(url);
+    const urlProxied = proxyToUse + encoded;
+
+    console.log(`%cFetching via ${proxy}: `, "background-color:blue;color:white;", url, urlProxied, headers);
+
+    let res;
+    try {
+        res = await fetch(urlProxied, reqInit);
+
+        // Log the response for debugging
+        console.log(`%cCORS Proxy Response:`, "color:magenta;", {
+            status: res.status,
+            ok: res.ok,
+            statusText: res.statusText,
+            url: res.url
+        });
+
+        // IMPORTANT: Return the response even if not OK
+        // Let the calling function decide how to handle it
+        return res;
+
+    } catch (err) {
+        // Only network errors should be caught here (connection refused, DNS failure, etc.)
+        console.error(`%cCORS Proxy Network Error:`, "background:red;color:white;", err);
+        throw new Error(`CORS Proxy ${proxy} network error: ${err.message}`, {
+            cause: err
+        });
+    }
+}
+
+
+
+
 /**
  * Fetches URL via CORS proxy.
  * 
@@ -3442,10 +3507,10 @@ async function fetchResponseViaProxy(url, opts = {}) {
  * @param {AbortSignal} [opts.signal]
  * @returns {Promise<string>} HTML string
  */
-export async function fetchFreshViaProxy(url,
+export async function fetchFreshViaCORSproxy(url,
     opts = {}
 ) {
-    const res = await fetchResponseViaProxy(url, opts);
+    const res = await fetchResponseViaCORSproxy(url, opts);
 
     // allorigins returns { contents: "HTML..." }
     /*
@@ -3458,7 +3523,7 @@ export async function fetchFreshViaProxy(url,
     // corsproxy.io and cors.sh return raw HTML
     return await res.text();
 }
-export async function testFetchProxy(url = "https://sr.se") {
+export async function testFetchCORSproxy(url = "https://sr.se") {
     const keys = nameProxies;
     console.log("%ctestFetchProxy", "font-size:24px", url, keys);
     /** @type {Record<string, Promise<string>>} */
@@ -3473,7 +3538,7 @@ export async function testFetchProxy(url = "https://sr.se") {
             console.log("%cABORTING done", "color:red", k);
         }, 100);
         const signal = aborter.signal;
-        prom[k] = fetchFreshViaProxy(url, { proxyName: k, signal });
+        prom[k] = fetchFreshViaCORSproxy(url, { proxyName: k, signal });
     }
     // prom["DEFAULT"] = fetchFreshViaProxy(url);
     // Promise.allSettled expects an iterable (array) of promises
@@ -3508,32 +3573,23 @@ export async function testFetchProxy(url = "https://sr.se") {
  * @param {AbortSignal} [opts.signal]
  * @returns {Promise<Response>} HTML string
  */
-async function fetchResponseViaUnblocker(url, opts = {}) {
+async function OLDfetchResponseViaUnblocker(url, opts = {}) {
     console.log(`%cFetching via unblocker: `, "background-color:blue;color:white;", url);
-
     const unblocker = "serp";
-    const keyAPI = settingFetchItSerpKey.valueS;
-    if (!keyAPI) throw new Error("No API key for serp");
-
-    // curl_easy_setopt(hnd, CURLOPT_CUSTOMREQUEST, "POST");
-    // curl_easy_setopt(hnd, CURLOPT_URL, "https://api.scrapeunblocker.com/getPageSource?url=https%3A%2F%2Fwww.example.com%2F");
-
-    // struct curl_slist * headers = NULL;
-    // headers = curl_slist_append(headers, "x-scrapeunblocker-key: w4SrWfkWDcDoFL3FtpW7KokPm6nrwuY9awrw7BDhECqCNulmL3");
-    // headers = curl_slist_append(headers, "Accept-Encoding: gzip, deflate");
-    // curl_easy_setopt(hnd, CURLOPT_HTTPHEADER, headers);
-
 
     /** @type {HeadersInit} */
-    const headers = {
-        // 'Cache-Control': 'no-cache',
-        // cache: 'no-store',
-
-        // "x-scrapeunblocker-key: w4SrWfkWDcDoFL3FtpW7KokPm6nrwuY9awrw7BDhECqCNulmL3",
-        "x-scrapeunblocker-key": keyAPI,
-        // headers = curl_slist_append(headers, "Accept-Encoding: gzip, deflate");
-        "Accept-Encoding": "gzip, deflate",
-    };
+    const headers = (() => {
+        switch (unblocker) {
+            case "serp":
+                return {
+                    "x-scrapeunblocker-key": settingFetchItSerpKey.valueS,
+                    "Accept-Encoding": "gzip, deflate",
+                }
+                break;
+            default:
+                throw Error(`Unknown unblocker name == "${unblocker}"`);
+        }
+    })();
     /** @type {RequestInit} */
     const reqInit = {
         headers,
@@ -3546,30 +3602,331 @@ async function fetchResponseViaUnblocker(url, opts = {}) {
     const urlUnblocked = unblockerEndPoint + encoded;
 
     let res;
-    try {
-        res = await fetch(urlUnblocked, reqInit);
-        // res = await fetch(urlProxy);
-        if (!res.ok) {
-            // We do not have to use "cause" here now, but it is better in case we refactor this code.
-            throw new Error(`Unblocker ${unblocker} failed: ${res.status}`,
-                {
-                    cause: {
-                        httpsStatus: res.status
-                    }
+
+    if (!res)
+        try {
+            res = await fetchResponseViaCORSproxy(urlUnblocked);
+            console.log({ res });
+        } catch (err) {
+            console.error("CORS with no options", err)
+        }
+    if (!res)
+        try {
+            res = await fetchResponseViaCORSproxy(urlUnblocked, reqInit);
+            console.log({ res });
+        } catch (err) {
+            console.error("CORS with options", err)
+        }
+
+    if (!res) { debugger; throw Error(`Could not get res for unblocker`); }
+    if (!res?.ok) {
+        const corsStatus = res.status.toString();
+        const firstStatusChar = corsStatus.slice(0, 1);
+        console.log({ firstStatusChar });
+        switch (firstStatusChar) {
+            case "4":
+                // https://www.scrapeunblocker.com/serp
+                if (settingFetchItSerpKey.value) {
+                    // corsblock
+
                 }
-            );
+                const modMdc = await importFc4i("util-mdc");
+                const body = mkElt("div", undefined, [
+                    mkElt("h2", undefined, "Article publisher blocked browser programs access"),
+                    mkElt("p", undefined, [
+                        mkElt("p", undefined, `
+                                The publisher probably just wanted to block programs that collects
+                                a lot of data.
+                                (Technically there is no good choice fot that today.)
+                            `),
+                        mkElt("p", undefined, `
+                                There is a way in MM4I that might get around this block.
+                                Do you want to try this?
+                            `)
+                    ])
+                ]);
+                const ans = await modMdc.mkMDCdialogConfirm(body, "Yes", "No");
+                if (ans) {
+                    // alert("not implemented yet");
+                    // const inp = settingFetchItSerpKey.getInputElement();
+                    const inp = mkElt("input", { type: "text" });
+                    inp.value = settingFetchItSerpKey.valueS;
+                    const body = mkElt("div", undefined, [
+                        mkElt("h2", undefined, `Add/update API key for unblocker service "${unblocker}"`),
+                        mkElt("p", { style: "color:red;" }, "Not ready yet"),
+                        inp
+                    ]);
+                    const ans2 = await modMdc.mkMDCdialogConfirm(body, "Save", "Cancel");
+                    console.log({ ans2, inp });
+                    if (ans2) {
+                        settingFetchItSerpKey.value = inp.value;
+                        console.log({ settingFetchItSerpKey });
+                        // debugger;
+                    }
+                    debugger;
+                } else {
+                    throw new FetchItError(`Server blocked access: ${corsStatus}`, { cause: corsStatus });
+                }
+                break;
+            case "5":
+                throw new FetchItError(`Server has problems: ${corsStatus}`, { cause: corsStatus });
+                break;
+            default:
+                throw new FetchItError(`Could not fetch: ${corsStatus}`);
         }
-    } catch (err) {
-        if (err instanceof Error) {
-            const httpsStatus = err.cause?.httpsStatus;
-            if (!httpsStatus) { throw err; }
-            console.error(`%c${err.message} fetchResponseViaUnblocker`, "color:red;", urlUnblocked, reqInit);
-        } else {
-            throw err;
-        }
+
     }
+    return res; // FIX-ME:
+    // "4"
+    if (!res.ok) {
+        // dialog
+        const firstStatusChar = corsStatus.slice(0, 1);
+        switch (firstStatusChar) {
+            case "4":
+                // https://www.scrapeunblocker.com/serp
+                if (settingFetchItSerpKey.value) {
+                    // corsblock
+
+                }
+                const modMdc = await importFc4i("util-mdc");
+                const body = mkElt("div", undefined, [
+                    mkElt("h2", undefined, "Article provider blocked browser programs access"),
+                    mkElt("p", undefined, `
+                                This block is probably not meant to block programs like MM4I.
+                                There is a way to get around this block.
+                                Do you want to know more about this?
+                            `)
+                ]);
+                const ans = await modMdc.mkMDCdialogConfirm(body, "Yes", "No");
+                if (ans) {
+                    alert("not implemented yet");
+                } else {
+                    throw new FetchItError(`Server blocked access: ${corsStatus}`, { cause: corsStatus });
+                }
+                break;
+            case "5":
+                throw new FetchItError(`Server has problems: ${corsStatus}`, { cause: corsStatus });
+                break;
+            default:
+                throw new FetchItError(`Could not fetch: ${corsStatus}`);
+        }
+
+        // We do not have to use "cause" here now, but it is better in case we refactor this code.
+        throw new Error(`Unblocker ${unblocker} failed: ${res.status}`,
+            {
+                cause: {
+                    httpsStatus: res.status
+                }
+            }
+        );
+    }
+
     return res;
 }
+
+// New version with debugging, suggested by Claude
+async function fetchResponseViaUnblocker(url, opts = {}) {
+    console.log(`%cFetching via unblocker: `, "background-color:blue;color:white;", url);
+    const unblocker = "serp";
+
+    /** @type {HeadersInit} */
+    const headers = (() => {
+        switch (unblocker) {
+            case "serp":
+                return {
+                    "x-scrapeunblocker-key": settingFetchItSerpKey.valueS,
+                    "Accept-Encoding": "gzip, deflate",
+                }
+                break;
+            default:
+                throw Error(`Unknown unblocker name == "${unblocker}"`);
+        }
+    })();
+
+    console.log("%cUnblocker headers:", "color:purple;", headers);
+
+    /** @type {RequestInit} */
+    const reqInit = {
+        headers,
+    }
+    if (opts.signal) reqInit.signal = opts.signal;
+
+    const unblockerEndPoint = "https://api.scrapeunblocker.com/getPageSource?url=";
+    const encoded = encodeURIComponent(url);
+    const urlUnblocked = unblockerEndPoint + encoded;
+
+    console.log("%cFull unblocker URL:", "color:orange;", urlUnblocked);
+
+    let res;
+
+    if (!res)
+        try {
+            console.log("%cAttempt 1: CORS proxy without options", "color:green;font-weight:bold;");
+            res = await fetchResponseViaCORSproxy(urlUnblocked);
+            console.log("%cAttempt 1 SUCCESS:", "color:green;", {
+                status: res.status,
+                ok: res.ok,
+                statusText: res.statusText
+            });
+        } catch (err) {
+            console.error("%cAttempt 1 FAILED:", "color:red;font-weight:bold;", err);
+        }
+
+    if (!res)
+        try {
+            console.log("%cAttempt 2: CORS proxy with options", "color:green;font-weight:bold;");
+            res = await fetchResponseViaCORSproxy(urlUnblocked, reqInit);
+            console.log("%cAttempt 2 SUCCESS:", "color:green;", {
+                status: res.status,
+                ok: res.ok,
+                statusText: res.statusText
+            });
+        } catch (err) {
+            console.error("%cAttempt 2 FAILED:", "color:red;font-weight:bold;", err);
+        }
+
+    if (!res) {
+        debugger;
+        throw Error(`Could not get res for unblocker`);
+    }
+
+    // === DEBUGGING SECTION: Identify error source ===
+    if (!res.ok) {
+        console.log("%c=== ERROR DEBUGGING ===", "background:red;color:white;font-size:16px;");
+        console.log("Status:", res.status);
+        console.log("Status text:", res.statusText);
+
+        // Log all headers to see what came through
+        console.log("%cAll response headers:", "color:cyan;");
+        for (let [key, value] of res.headers) {
+            console.log(`  ${key}: ${value}`);
+        }
+
+        const contentType = res.headers.get('content-type');
+        console.log("%cContent-Type:", "color:cyan;", contentType);
+
+        // Try to get response body for analysis
+        let bodyText;
+        try {
+            bodyText = await res.clone().text();
+            console.log("%cResponse body (first 500 chars):", "color:cyan;", bodyText.slice(0, 500));
+
+            // Check for error source indicators
+            const bodyLower = bodyText.toLowerCase();
+
+            if (bodyLower.includes('cors') || bodyLower.includes('proxy')) {
+                console.error("%c🔴 ERROR SOURCE: CORS PROXY", "background:red;color:white;font-size:14px;");
+            } else if (contentType?.includes('application/json')) {
+                try {
+                    const jsonBody = JSON.parse(bodyText);
+                    console.log("%cJSON error body:", "color:yellow;", jsonBody);
+
+                    if (jsonBody.error || jsonBody.message?.toLowerCase().includes('api') ||
+                        jsonBody.message?.toLowerCase().includes('key') ||
+                        jsonBody.message?.toLowerCase().includes('credit')) {
+                        console.error("%c🟠 ERROR SOURCE: UNBLOCKER (ScrapeUnblocker)", "background:orange;color:white;font-size:14px;");
+                    } else {
+                        console.error("%c🟡 ERROR SOURCE: UNKNOWN JSON", "background:yellow;color:black;font-size:14px;");
+                    }
+                } catch (parseErr) {
+                    console.error("%c⚠️ Failed to parse JSON body", "color:orange;", parseErr);
+                }
+            } else if (contentType?.includes('text/html')) {
+                console.error("%c🔵 ERROR SOURCE: Likely TARGET WEBSITE (HTML response)", "background:blue;color:white;font-size:14px;");
+            } else {
+                console.error("%c⚪ ERROR SOURCE: UNKNOWN", "background:gray;color:white;font-size:14px;");
+            }
+
+        } catch (bodyErr) {
+            console.error("%cCouldn't read response body:", "color:red;", bodyErr);
+        }
+
+        console.log("%c=== END ERROR DEBUGGING ===", "background:red;color:white;font-size:16px;");
+
+        const corsStatus = res.status.toString();
+        const firstStatusChar = corsStatus.slice(0, 1);
+        console.log({ firstStatusChar });
+
+        switch (firstStatusChar) {
+            case "4":
+                // https://www.scrapeunblocker.com/serp
+                if (settingFetchItSerpKey.value) {
+                    // corsblock
+                }
+                const modMdc = await importFc4i("util-mdc");
+                const aSerpGetKey = mkElt("a", {
+                    href: "https://www.scrapeunblocker.com/serp",
+                    target: "_blank"
+                }, "Get your serp API key");
+                const lblAPIkey = mkElt("label", undefined, [
+                    "Your serp API key: ", settingFetchItSerpKey.getInputElement()
+                ]);
+                lblAPIkey.style.display = "flex";
+                lblAPIkey.style.flexDirection = "column";
+
+                const body = mkElt("div", undefined, [
+                    mkElt("h2", undefined, "Article publisher blocked browser programs access"),
+                    mkElt("p", undefined, [
+                        mkElt("p", undefined, `
+                                The publisher probably just wanted to block programs that collects
+                                a lot of data.
+                                (Technically there is no good choice for that today.)
+                            `),
+                        mkElt("p", undefined, [
+                            `
+                                You can probably get around this with an "unblocker" service.
+                                MM4I supports the "serp" unblocker service but you have to 
+                                use your own API key for the service.
+
+                                You can get an API key for serp here:
+                            `,
+                            aSerpGetKey,
+                        ]),
+                        mkElt("p", undefined, [
+                            lblAPIkey
+                        ]),
+                    ])
+                ]);
+                const ans = await modMdc.mkMDCdialogConfirm(body, "Yes", "No");
+                if (ans) {
+                    const inp = mkElt("input", { type: "text" });
+                    inp.value = settingFetchItSerpKey.valueS;
+                    const body2 = mkElt("div", undefined, [
+                        mkElt("h2", undefined, `Add / update API key for unblocker service "${unblocker}"`),
+                        mkElt("p", { style: "color:red;" }, "Not ready yet"),
+                        inp
+                    ]);
+                    const ans2 = await modMdc.mkMDCdialogConfirm(body2, "Save", "Cancel");
+                    console.log({ ans2, inp });
+                    if (ans2) {
+                        settingFetchItSerpKey.value = inp.value;
+                        console.log({ settingFetchItSerpKey });
+                    }
+                    debugger;
+                } else {
+                    throw new FetchItError(`Server blocked access: ${corsStatus} `, { cause: corsStatus });
+                }
+                break;
+            case "5":
+                throw new FetchItError(`Server has problems: ${corsStatus} `, { cause: corsStatus });
+                break;
+            default:
+                throw new FetchItError(`Could not fetch: ${corsStatus} `);
+        }
+    }
+
+    console.log("%c✅ SUCCESS - Returning response", "background:green;color:white;font-size:14px;");
+    return res;
+}
+export async function test_unblocker() {
+    const urlNeedsUnblocker =
+        "https://scitechdaily.com/challenging-long-held-theories-evolution-isnt-one-and-done-new-study-suggests/";
+    // test_fetchIt(urlNeedsUnblocker);
+    const txt = await fetchIt(urlNeedsUnblocker);
+}
+
+
+
 /**
  * Fetches https response via unblocker
  * 
@@ -3584,8 +3941,9 @@ async function fetchPageViaUnblocker(url, opts) {
     // fetchResponseViaProxy
     const response = await fetchResponseViaUnblocker(url, opts);
     if (response == undefined) throw Error("respone == undefined (from fetchResponseViaProxy");
+    response.headers.forEach(h => console.log("unblocker h", h));
     if (!response.ok) {
-        throw new FetchItError(`Unblocker failed, status ${response.status}`)
+        throw new FetchItError(`Unblocker failed, status ${response.status} `)
     }
     const content = await response.text();
     return content;
@@ -3639,88 +3997,88 @@ export async function getYouTubeCaptionsBrowser1(urlOrId, options = {}) {
   try {
     if (urlOrId.includes('youtube.com') || urlOrId.includes('youtu.be')) {
       const url = new URL(urlOrId.includes('youtu.be') ? `https://youtu.be/${urlOrId}` : urlOrId);
-      videoId = url.searchParams.get('v') || urlOrId.split('/').pop().split('?')[0];
+                videoId = url.searchParams.get('v') || urlOrId.split('/').pop().split('?')[0];
+        } else {
+            videoId = urlOrId;
+        }
+        if (!videoId || videoId.length < 11) throw new Error('Invalid video ID');
+    } catch (e) {
+        throw new Error('Parse error: ' + e.message);
+    }
+
+    console.log('Video ID:', videoId);
+
+    // === 2. Innertube API via CORS proxy (supports POST) ===
+    const endpoint = 'https://www.youtube.com/youtubei/v1/player';
+    const apiKey = 'AIzaSyAO_FJ2SlqU8Q4STEKL512S2PIv4M9r8o0';
+    const clientVersion = '2.20251115.00.00';
+
+    const body = {
+        context: { client: { clientName: 'WEB', clientVersion, hl: 'en' } },
+        videoId
+    };
+
+    // Use corsproxy.io with POST support
+    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(`${endpoint}?key=${apiKey}`);
+
+    const res = await fetch(proxyUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Origin': 'https://example.com'  // Required by some proxies
+        },
+        body: JSON.stringify(body),
+        cache: 'no-store'
+    });
+
+    if (!res.ok) {
+        const err = await res.text();
+        throw new Error(`API failed: ${res.status} — ${err}`);
+    }
+
+    const data = await res.json();
+    const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
+    if (tracks.length === 0) {
+        console.warn('No captions available');
+        return { captions: [], selected: null, transcript: '' };
+    }
+
+    const captions = tracks.map(t => ({
+        language: t.languageCode,
+        name: t.name?.simpleText || t.languageCode,
+        kind: t.kind || (t.vssId?.includes('.asr') ? 'asr' : 'standard'),
+        baseUrl: t.baseUrl
+    }));
+
+    // === 3. Select caption ===
+    let selected = null;
+    if (index !== null && index >= 0 && index < captions.length) {
+        selected = captions[index];
+    } else if (name) {
+        selected = captions.find(c => c.name.toLowerCase() === name.toLowerCase());
     } else {
-      videoId = urlOrId;
+        const matches = captions.filter(c => c.language === language);
+        selected = matches.length > 0
+            ? (preferManual ? matches.find(c => c.kind === 'standard') || matches[0] : matches[0])
+            : captions[0];
     }
-    if (!videoId || videoId.length < 11) throw new Error('Invalid video ID');
-  } catch (e) {
-    throw new Error('Parse error: ' + e.message);
-  }
 
-  console.log('Video ID:', videoId);
-
-  // === 2. Innertube API via CORS proxy (supports POST) ===
-  const endpoint = 'https://www.youtube.com/youtubei/v1/player';
-  const apiKey = 'AIzaSyAO_FJ2SlqU8Q4STEKL512S2PIv4M9r8o0';
-  const clientVersion = '2.20251115.00.00';
-
-  const body = {
-    context: { client: { clientName: 'WEB', clientVersion, hl: 'en' } },
-    videoId
-  };
-
-  // Use corsproxy.io with POST support
-  const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(`${endpoint}?key=${apiKey}`);
-
-  const res = await fetch(proxyUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Origin': 'https://example.com'  // Required by some proxies
-    },
-    body: JSON.stringify(body),
-    cache: 'no-store'
-  });
-
-  if (!res.ok) {
-    const err = await res.text();
-    throw new Error(`API failed: ${res.status} — ${err}`);
-  }
-
-  const data = await res.json();
-  const tracks = data.captions?.playerCaptionsTracklistRenderer?.captionTracks || [];
-  if (tracks.length === 0) {
-    console.warn('No captions available');
-    return { captions: [], selected: null, transcript: '' };
-  }
-
-  const captions = tracks.map(t => ({
-    language: t.languageCode,
-    name: t.name?.simpleText || t.languageCode,
-    kind: t.kind || (t.vssId?.includes('.asr') ? 'asr' : 'standard'),
-    baseUrl: t.baseUrl
-  }));
-
-  // === 3. Select caption ===
-  let selected = null;
-  if (index !== null && index >= 0 && index < captions.length) {
-    selected = captions[index];
-  } else if (name) {
-    selected = captions.find(c => c.name.toLowerCase() === name.toLowerCase());
-  } else {
-    const matches = captions.filter(c => c.language === language);
-    selected = matches.length > 0
-      ? (preferManual ? matches.find(c => c.kind === 'standard') || matches[0] : matches[0])
-      : captions[0];
-  }
-
-  // === 4. Fetch transcript via proxy ===
-  let transcript = '';
-  if (selected) {
-    const transcriptUrl = `${selected.baseUrl}&fmt=json3`;
-    const tProxy = 'https://corsproxy.io/?' + encodeURIComponent(transcriptUrl);
-    const tRes = await fetch(tProxy, { cache: 'no-store' });
-    if (tRes.ok) {
-      const tData = await tRes.json();
-      transcript = tData.events
-        ?.map(e => e.segs?.map(s => s.utf8).join('') || '')
-        .filter(Boolean)
-        .join(' ') || '';
+    // === 4. Fetch transcript via proxy ===
+    let transcript = '';
+    if (selected) {
+        const transcriptUrl = `${selected.baseUrl}&fmt=json3`;
+        const tProxy = 'https://corsproxy.io/?' + encodeURIComponent(transcriptUrl);
+        const tRes = await fetch(tProxy, { cache: 'no-store' });
+        if (tRes.ok) {
+            const tData = await tRes.json();
+            transcript = tData.events
+                ?.map(e => e.segs?.map(s => s.utf8).join('') || '')
+                .filter(Boolean)
+                .join(' ') || '';
+        }
     }
-  }
 
-  return { captions, selected, transcript };
+    return { captions, selected, transcript };
 }
 /**
  * Fixed browser YouTube caption fetcher (watch page method, CORS-safe)
@@ -4792,7 +5150,7 @@ export async function getPMCurl(biomedUrl) {
         console.log("fullDoi:", fullDoi, "  fullResolverUrl:", fullResolverUrl, "  objParams:", objParams);
         // const response = await fetch(`${apiUrl}${params}`);
         // const response = await fetch(fullResolverUrl);
-        const response = await fetchResponseViaProxy(fullResolverUrl);
+        const response = await fetchResponseViaCORSproxy(fullResolverUrl);
         if (!response.ok) {
             throw new Error(`API error: ${response.status} - ${response.statusText}`);
         }
@@ -4913,7 +5271,7 @@ async function getIdsFromPMID(pmid) {
     idConvURL.search = idConvParams.toString();
 
     try {
-        const fetched = await fetchFreshViaProxy(idConvURL.href);
+        const fetched = await fetchFreshViaCORSproxy(idConvURL.href);
         const data = JSON.parse(fetched);
         debugger;
 
@@ -5194,8 +5552,8 @@ export function extractPmidPmcidFromUrl(urlString) {
 /**
  * Some journals place the DOI in the url.
  * Wiley journals does this.
- * 
- * @param {string} urlString 
+ *
+ * @param {string} urlString
  * @return {string|null}
  * @throws {Error}
  */
@@ -5222,6 +5580,11 @@ export function getDOIfromUrl(urlString) {
     return null;
 }
 _test_getDOIfromUrl();
+/**
+ * Test function for getDOIfromUrl
+ * @returns {void}
+ * @throws {Error} If test fails
+ */
 function _test_getDOIfromUrl() {
     const url = "https://advanced.onlinelibrary.wiley.com/doi/10.1002/advs.202508383";
     const doi = "10.1002/advs.202508383";
@@ -5263,8 +5626,8 @@ export function isValidDOI(str) {
 const arrBlockNames = [
     "notBlocked",
     "corsBlock",
-    "scrapingBlock",
-    "unBlock",
+    "scrapingBlockWithWA",
+    "unBlockerNeeded",
     "finalBlock",
 ];
 Object.freeze(arrBlockNames)
@@ -5272,7 +5635,7 @@ Object.freeze(arrBlockNames)
 /** @type {Object.<string, string} */
 const knownUrlBlock = {
 }
-knownUrlBlock["wiley.com"] = 'scrapingBlock';
+knownUrlBlock["wiley.com"] = 'scrapingBlockWithWA';
 knownUrlBlock["cell.com"] = 'corsBlock';
 
 console.log("================", { knownUrlBlock });
@@ -5314,8 +5677,8 @@ export async function fetchIt(url) {
                 break;
             case "corsBlock":
                 {
-                    const response = await fetchResponseViaProxy(url);
-                    if (response == undefined) throw Error("respone == undefined (from fetchResponseViaProxy");
+                    const response = await fetchResponseViaCORSproxy(url);
+                    if (response == undefined) throw Error("respone == undefined (from fetchResponseViaCORSproxy");
                     corsStatus = response.status.toString();
                     if (response.ok) {
                         content = await response.text();
@@ -5323,7 +5686,7 @@ export async function fetchIt(url) {
                     return { content, blockType, url, corsStatus }
                 }
                 break;
-            case "scrapingBlock":
+            case "scrapingBlockWithWA":
                 const ids2 = await getArticleIdsFromEuroPMC(url);
                 // debugger;
                 // Try PMC
@@ -5347,7 +5710,7 @@ export async function fetchIt(url) {
                         // debugger;
                         try {
                             // const response = await fetch(urlXmlPmcid);
-                            const response = await fetchResponseViaProxy(urlXmlPmcid);
+                            const response = await fetchResponseViaCORSproxy(urlXmlPmcid);
                             const textXML = await response.text();
                             // debugger;
 
@@ -5394,7 +5757,7 @@ export async function fetchIt(url) {
                 return { content, blockType, url, corsStatus }
                 break;
             */
-            case "unBlock":
+            case "unBlockerNeeded":
                 content = await fetchPageViaUnblocker(url);
                 return { content, blockType, url, corsStatus }
                 break;
@@ -5426,9 +5789,11 @@ export async function fetchIt(url) {
     for (let i = currentBlockIdx; i < arrBlockNames.length; i++) {
         const blockName = arrBlockNames[i];
         if (blockName == "finalBlock") {
+            throw Error('blockName == "finalBlock');
             console.log(`%c${blockName}`, "background:red;font-size:18px;", url);
             const firstStatusChar = corsStatus.slice(0, 1);
             switch (firstStatusChar) {
+                // serp
                 case "4":
                     // https://www.scrapeunblocker.com/serp
                     if (settingFetchItSerpKey.value) {
@@ -5464,6 +5829,7 @@ export async function fetchIt(url) {
         const result = await fetchBlockType(blockName);
         if (result.content) return result;
     }
+    // "4"
     throw Error("You should have returned!");
 }
 
