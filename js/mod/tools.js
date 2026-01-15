@@ -3361,7 +3361,8 @@ const urlProxies = {
     // Working
     // corsproxy: 'https://corsproxy.io/?',
 
-    mm4i: "https://mm4i.vercel.app/api/proxy?url=",
+    // mm4i: "https://mm4i.vercel.app/api/proxy?url=",
+    mm4i: "https://mm4i.vercel.app/api/proxy",
 
 
     // cors.sh needs an API key
@@ -3465,9 +3466,12 @@ async function fetchResponseViaCORSproxy(url, opts = {}) {
 
     const proxyAtVercel = urlProxies[proxy];
     const proxyToUse = proxyAtVercel;
-    const encoded = encodeURIComponent(url);
-    const urlProxied = proxyToUse + encoded;
+    // const encoded = encodeURIComponent(url);
+    // const urlProxied = proxyToUse + encoded;
 
+    const u = new URL(proxyToUse);
+    u.searchParams.set("url", url);
+    const urlProxied = u.href;
     console.log(`%cFetching via ${proxy}: `, "background-color:blue;color:white;", url, urlProxied, headers);
 
     let res;
@@ -4244,6 +4248,7 @@ async function fetchResponseViaUnblocker(url, opts = {}) {
                 ok: resp.ok
             });
             if (resp.ok) return resp;
+            resp.headers.forEach(h => console.log("header h:", h));
             debugger;
             const ans = await dialogUnblockerAPIkey();
             if (!ans) return ;
