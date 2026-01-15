@@ -4149,50 +4149,112 @@ async function OLD3fetchResponseViaUnblocker(url, opts = {}) {
     return res;
 }
 
+async function dialogUnblockerAPIkey() {
+    const modMdc = await importFc4i("util-mdc");
+    let btnOK;
+    const inp = settingFetchItSerpKey.getInputElement();
+    inp.addEventListener("input", evt => {
+        if (inp.value.length > 15) {
+            btnOK.inert = false;
+        } else {
+            btnOK.inert = true;
+        }
+    });
+    const aSerpGetKey = mkElt("a", {
+        href: "https://www.scrapeunblocker.com/serp",
+        target: "_blank"
+    }, "Get your serp API key");
+    const lblAPIkey = mkElt("label", undefined, [
+        "Your serp API key: ", inp
+    ]);
+    lblAPIkey.style.display = "flex";
+    lblAPIkey.style.flexDirection = "column";
+
+    const body = mkElt("div", undefined, [
+        mkElt("h2", undefined, "Article publisher blocked browser programs access"),
+        mkElt("p", undefined, [
+            mkElt("p", undefined, `
+                                The publisher probably just wanted to block programs that collects
+                                a lot of data.
+                                (Technically there is no good choice for that today.)
+                            `),
+            mkElt("p", undefined, [
+                `
+                                You can probably get around this with an "unblocker" service.
+                                MM4I supports the "serp" unblocker service but you have to 
+                                use your own API key for the service.
+
+                                You can get an API key for serp here:
+                            `,
+                aSerpGetKey,
+            ]),
+            mkElt("p", undefined, [
+                lblAPIkey
+            ]),
+        ])
+    ]);
+    const getOkButton = (elt) => { btnOK = elt; btnOK.inert = true; }
+    const ans = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel", undefined, getOkButton);
+    return ans;
+}
+
+
 // This version lets the CORS proxy call serp
 async function fetchResponseViaUnblocker(url, opts = {}) {
     console.log(`%cFetching via unblocker: `, "background-color:blue;color:white;", url);
 
-    const apiKey = settingFetchItSerpKey.valueS;
-    if (!apiKey) {
-        throw new Error("ScrapeUnblocker API key not set");
-    }
-
-    console.log("%cAPI Key exists:", "color:purple;", !!apiKey);
-
-    // Just pass the original URL with serpKey parameter - proxy handles the rest!
-    const params = new URLSearchParams({
-        url: url,
-        serpKey: apiKey
-    });
-
-    const proxyUrl = urlProxies["mm4i"]; // or whatever your proxy is
-    const urlWithSerp = `${proxyUrl}?${params.toString()}`;
-
-    console.log("%cCalling proxy with serpKey", "color:orange;");
-
-    const reqInit = {
-        headers: {
-            'Cache-Control': 'no-cache',
-            'cache': 'no-store',
+    let n = 0;
+    while (n++ < 10) {
+        const apiKey = settingFetchItSerpKey.valueS;
+        if (!apiKey) {
+            // throw new Error("ScrapeUnblocker API key not set");
+            const ans = await dialogUnblockerAPIkey();
+            if (!ans) return ;
+            continue;
         }
-    };
-    if (opts.signal) reqInit.signal = opts.signal;
 
-    let res;
+        console.log("%cAPI Key exists:", "color:purple;", !!apiKey);
 
-    try {
-        console.log("%cAttempting CORS proxy with serpKey", "color:green;font-weight:bold;");
-        res = await fetch(urlWithSerp, reqInit);
-        console.log("%cProxy response:", "color:green;", {
-            status: res.status,
-            ok: res.ok
+        // Just pass the original URL with serpKey parameter - proxy handles the rest!
+        const params = new URLSearchParams({
+            url: url,
+            serpKey: apiKey
         });
-    } catch (err) {
-        console.error("%cProxy failed:", "color:red;font-weight:bold;", err);
-        throw err;
-    }
 
+        const proxyUrl = urlProxies["mm4i"]; // or whatever your proxy is
+        const urlWithSerp = `${proxyUrl}?${params.toString()}`;
+
+        console.log("%cCalling proxy with serpKey", "color:orange;");
+
+        const reqInit = {
+            headers: {
+                'Cache-Control': 'no-cache',
+                'cache': 'no-store',
+            }
+        };
+        if (opts.signal) reqInit.signal = opts.signal;
+
+        let resp;
+
+        try {
+            console.log("%cAttempting CORS proxy with serpKey", "color:green;font-weight:bold;");
+            resp = await fetch(urlWithSerp, reqInit);
+            console.log("%cProxy response:", "color:green;", {
+                status: resp.status,
+                ok: resp.ok
+            });
+            if (resp.ok) return resp;
+            debugger;
+            const ans = await dialogUnblockerAPIkey();
+            if (!ans) return ;
+            continue;
+        } catch (err) {
+            console.error("%cProxy failed:", "color:red;font-weight:bold;", err);
+            debugger;
+            throw err;
+        }
+
+    }
     // ... rest of your error handling code
 
     return res;
