@@ -2369,19 +2369,22 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
         const addAIgeneratedMarker = () => {
             // const btnReplay = modMdc.mkMDCiconButton("replay", "Try again");
             // btnReplay.addEventListener("click", () => { alert("not implemented yet"); });
-            const divInfo = mkElt("div", undefined,
-                mkElt("span", undefined, [
-                    "AI generated mindmap",
-                    // btnReplay
-                ]),
-            );
+            // const divInfo = mkElt("div", undefined, [
             const eltTellGenerated = mkElt("div", undefined, [
-                divInfo,
+                mkElt("span", undefined, ["Made by AI",]),
+                modMdc.mkMDCicon("save_as")
             ]);
+            // const eltTellGenerated = mkElt("div", undefined, [ divInfo, ]);
             eltTellGenerated.id = "generated-marker";
+            eltTellGenerated.title = "Save to your mindmaps";
+
             eltTellGenerated.classList.add("generated-marker");
             eltTellGenerated.classList.add("marker-at-bottom");
             document.body.appendChild(eltTellGenerated);
+            eltTellGenerated.addEventListener("click", evt => {
+                evt.stopImmediatePropagation();
+                alert("not implemented yet");
+            })
         }
         addAIgeneratedMarker();
     }
