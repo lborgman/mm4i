@@ -173,10 +173,16 @@ let promWantTosave;
  * @param {MMformatJmDisplayed} jmDisplayed 
  * @returns {Promise<boolean>}
  */
-async function wantToSave_NOT_SAVEABLE(jmDisplayed) {
+async function wantToSave_NOT_SAVEABLE(jmDisplayed, actionTopic) {
     checkIsMMformatJmdisplayed(jmDisplayed, "wantToSave");
     if (hasValidKey()) return true;
     if (jmDisplayed.NOT_SAVEABLE == true) return false;
+    debugger;
+    const isExpandOrCollapse =
+        actionTopic.startsWith("Expand ")
+        ||
+        actionTopic.startsWith("Collapse ");
+    if (isExpandOrCollapse) return false;
     if (typeof promWantTosave == "undefined") {
         promWantTosave = askSave_NOT_SAVEABLE(jmDisplayed);
     }
@@ -196,10 +202,10 @@ async function wantToSave_NOT_SAVEABLE(jmDisplayed) {
  * @returns {string}
  */
 function getJmDisplayKey(jmDisplayed) {
-        const jmName = jmDisplayed.mind.name;
-        if (jmName == undefined) throw Error("jmName == undefined");
-        const [keyMM] = jmName.split("/");
-        return keyMM;
+    const jmName = jmDisplayed.mind.name;
+    if (jmName == undefined) throw Error("jmName == undefined");
+    const [keyMM] = jmName.split("/");
+    return keyMM;
 }
 
 /**
@@ -317,7 +323,20 @@ function askSave_NOT_SAVEABLE(jmDisplayed) {
  * @returns 
  */
 async function saveMindmapPlusUndoRedo(jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
-    if (!(await wantToSave_NOT_SAVEABLE(jmDisplayed))) return;
+    switch (typeof jmDisplayed.NOT_SAVEABLE) {
+        case "undefined":
+            debugger;
+            break;
+        case "string":
+            debugger;
+            break;
+        case "boolean":
+            debugger;
+            break;
+        default:
+            debugger;
+    }
+    if (!(await wantToSave_NOT_SAVEABLE(jmDisplayed, actionTopic))) return;
     const keyName = getJmDisplayKey(jmDisplayed);
 
     checkIsMMformatJmdisplayed(jmDisplayed, "saveMindmapPlusUndoRedoX");
