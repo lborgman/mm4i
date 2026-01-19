@@ -1346,7 +1346,11 @@ export async function isValidUrlFormat(strUrl, protocol, mustCheckTLD = true) {
         // new URL() only checks for well formatted so do some more checks first
         switch (protocol) {
             case "https:":
-                if (!strUrl.match(new RegExp("^https://[^/]"))) {
+                if (strUrl.search(" ") != -1) return makeInvalid("CONTAINS-SPACE", "Can not contain spaces");
+
+                const lenHttps = "https://".length;
+                if (!"https://".startsWith(strUrl.slice(0, lenHttps))) {
+                    // if (!strUrl.match(new RegExp("^https://[^/]?"))) {
                     return makeInvalid("NO-HTTPS",
                         mkElt("span", undefined, [
                             "Must begin with ",
@@ -1355,10 +1359,17 @@ export async function isValidUrlFormat(strUrl, protocol, mustCheckTLD = true) {
 
                     );
                 }
-                if (!strUrl.match(new RegExp("^https://[^/]{0,}[^.][.]([^/.]){2,63}($|/)"))) {
+
+                // Find domain part
+                const strUrlHttpsRest = strUrl.slice(lenHttps);
+                const posSlash = `${strUrlHttpsRest}/`.indexOf("/");
+                const strDomain = strUrlHttpsRest.slice(0, posSlash);
+                if (strDomain.length < 5) return makeInvalid("NO-DOMAIN", "");
+
+
+                if (!strDomain.match(new RegExp("^[^/]{0,}[^.][.]([^/.]){2,63}($|/)"))) {
                     return makeInvalid("NO-TLD", "No top domain");
                 }
-                if (strUrl.search(" ") != -1) return makeInvalid("CONTAINS-SPACE", "Can not contain spaces");
 
                 const tld = getTLD(strUrl);
                 if (!tld) return makeInvalid("NO-TLD", "No top domain in url");

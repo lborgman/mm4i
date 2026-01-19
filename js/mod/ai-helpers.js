@@ -380,6 +380,11 @@ export async function generateMindMap(fromLink) {
         eltDialogContent.classList.remove("is-youtube-video");
 
         // const b = divPrompt;
+        if (linkSource.trim().length == 0) {
+            divPrompt.inert = true;
+            btnGo.inert = true;
+            return false;
+        }
 
         const vu = await modTools.isValidUrlFormat(linkSource);
         eltStatus.textContent = "";
