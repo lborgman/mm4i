@@ -231,6 +231,10 @@ export async function save_NOT_SAVEABLE(jmDisplayed) {
     await checkInappAndSaveMindmap(keyStore, mindToStore);
     // await startUndoRedo(keyStore, jmDisplayed);
     await startUndoRedo(jmDisplayed);
+
+    const modMdc = await importFc4i("util-mdc");
+    modMdc.mkMDCsnackbar("Saving mindmap...", 4 * 1000, { "background-color": "blue", "color": "white" });
+
 }
 
 /**
