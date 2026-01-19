@@ -1159,8 +1159,11 @@ async function dialogSetRoot(selected_node, mindmapKey) {
         // alert("saving of new root is not implemented yet");
     } else {
         jmDisplayed = await displayOurMindmap(mindStored);
+
         jmDisplayed.NOT_SAVEABLE = "Set root choice was to not save";
-        document.getElementById("mm4i-btn-history")?.remove();
+        // document.getElementById("mm4i-btn-history")?.remove();
+        document.body.classList.remove("has-history");
+
         modMMhelpers.checkIsMMformatJmdisplayed(jmDisplayed, "dialogSetRoot");
     }
     jmDisplayed.select_node(jmDisplayed.get_root());
@@ -1575,8 +1578,10 @@ export async function pageSetup() {
             modMMhelpers.checkIsFullMindmapDisplayState(mindmapData, "SHARED");
             // const jm = await displayOurMindmap(objMindData);
             const jm = await displayOurMindmap(objMS);
+
             jm.NOT_SAVEABLE = "This mindmap was shared by another user";
-            document.getElementById("mm4i-btn-history")?.remove();
+            // document.getElementById("mm4i-btn-history")?.remove();
+            document.body.classList.remove("has-history");
             // modJsmindDraggable.setOurJm(jm);
 
             const objOther = mindmapData.other;

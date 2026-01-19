@@ -1286,6 +1286,7 @@
     <style id="style-history">
         /* History */
         #mm4i-btn-history {
+            display: none;
             position: fixed;
             bottom: 0;
             left: 0;
@@ -1293,6 +1294,10 @@
             background-color: #c0ca33;
             background-color: lightseagreen;
             color: black;
+        }
+
+        body.has-history #mm4i-btn-history {
+            display: flex;
         }
 
         #mm4i-undo-redo-div {
@@ -1868,7 +1873,7 @@
 
             modMMhelpers.setUndoRedoTreeStyle(settingUndoRedoTree.value);
 
-            const mindmapKey = await modJsEditCommon.pageSetup();
+            let mindmapKey = await modJsEditCommon.pageSetup();
             const aboutLink = "https://lborgman.github.io/mm4i/";
             modJsEditCommon.addToPageMenu("About", aboutLink);
 
@@ -2498,9 +2503,10 @@
 
             const modUndo = await importFc4i("undo-redo-tree");
             document.addEventListener(modUndo.getRecordEventName(), evt => {
-                if (evt.detail.key == mindmapKey) {
-                    updateHistoryPanel();
-                }
+                mindmapKey = evt.detail.key;
+                // if ((evt.detail.key == mindmapKey) || document.body.classList.contains("has-history")) {
+                updateHistoryPanel();
+                // }
             });
 
 

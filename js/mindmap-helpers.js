@@ -80,7 +80,10 @@ export function getUndoRedoTreeStyle() { return undoRedoTreeStyle; }
 export async function startUndoRedo(jmDisplayed) {
     const keyName = getJmDisplayKey(jmDisplayed);
     // console.warn("startUndoRedo", { keyName });
-    if (!isValidMindmapKey(keyName)) return; // FIX-ME: temporary, should not happen!
+    if (!isValidMindmapKey(keyName)) {
+        debugger;
+        return; // FIX-ME: temporary, should not happen!
+    }
 
     // FIX-ME: remove par jmDisplayed
     // @ts-ignore
@@ -132,6 +135,7 @@ export async function startUndoRedo(jmDisplayed) {
     checkIsFullMindmapDisplayState(objInitialState, "startUndoRedo");
     const modUndo = await importFc4i("undo-redo-tree");
     modUndo.addUndoRedo(keyName, objInitialState, funBranch);
+    document.body.classList.add("has-history");
 }
 
 export async function getCurrentFullMindmapDisplayState() {
@@ -177,7 +181,7 @@ async function wantToSave_NOT_SAVEABLE(jmDisplayed, actionTopic) {
     checkIsMMformatJmdisplayed(jmDisplayed, "wantToSave");
     if (hasValidKey()) return true;
     if (jmDisplayed.NOT_SAVEABLE == true) return false;
-    debugger;
+    // debugger;
     const isExpandOrCollapse =
         actionTopic.startsWith("Expand ")
         ||
@@ -206,6 +210,27 @@ function getJmDisplayKey(jmDisplayed) {
     if (jmName == undefined) throw Error("jmName == undefined");
     const [keyMM] = jmName.split("/");
     return keyMM;
+}
+export async function save_NOT_SAVEABLE(jmDisplayed) {
+    // debugger;
+    delete jmDisplayed.NOT_SAVEABLE;
+    const keyStore = getNextMindmapKey();
+    const mindToStore = jmDisplayed.get_data("node_array");
+    mindToStore.key = keyStore;
+    mindToStore.meta.name = keyStore;
+    jmDisplayed.mind.name = keyStore;
+
+    const marker = /** @type {HTMLDivElement} */ (document.getElementById("generated-marker"));
+    if (!marker) throw Error(`Did not find "generated-marker"`);
+    marker.style.opacity = "1";
+    marker.style.transition = "left 1s, opacity 2s";
+    marker.style.opacity = "0.5";
+    marker.style.left = "70px";
+    marker.style.backgroundColor = "yellowgreen";
+
+    await checkInappAndSaveMindmap(keyStore, mindToStore);
+    // await startUndoRedo(keyStore, jmDisplayed);
+    await startUndoRedo(jmDisplayed);
 }
 
 /**
@@ -275,24 +300,8 @@ function askSave_NOT_SAVEABLE(jmDisplayed) {
                 if (!res) return false;
             }
             // debugger;
-
-            delete jmDisplayed.NOT_SAVEABLE;
-            const keyStore = getNextMindmapKey();
-            mindToStore.key = keyStore;
-            mindToStore.meta.name = keyStore;
-            jmDisplayed.mind.name = keyStore;
-
-            const marker = /** @type {HTMLDivElement} */ (document.getElementById("generated-marker"));
-            if (!marker) throw Error(`Did not find "generated-marker"`);
-            marker.style.opacity = "1";
-            marker.style.transition = "left 1s, opacity 2s";
-            marker.style.opacity = "0.5";
-            marker.style.left = "70px";
-            marker.style.backgroundColor = "yellowgreen";
-
-            await checkInappAndSaveMindmap(keyStore, mindToStore);
-            // await startUndoRedo(keyStore, jmDisplayed);
-            await startUndoRedo(jmDisplayed);
+            await save_NOT_SAVEABLE(jmDisplayed);
+            // not imp
             return true;
         } else {
             jmDisplayed.NOT_SAVEABLE = true;
@@ -322,21 +331,23 @@ function askSave_NOT_SAVEABLE(jmDisplayed) {
  * @param {string} [privacy]
  * @returns 
  */
-async function saveMindmapPlusUndoRedo(jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
-    switch (typeof jmDisplayed.NOT_SAVEABLE) {
-        case "undefined":
+export async function saveMindmapPlusUndoRedo(jmDisplayed, actionTopic, lastUpdated, lastSynced, privacy) {
+    if (actionTopic != "SAVE") {
+        if (!(await wantToSave_NOT_SAVEABLE(jmDisplayed, actionTopic))) return;
+    } else {
+        const keyName = getJmDisplayKey(jmDisplayed);
+        if (isValidMindmapKey(keyName)) {
             debugger;
-            break;
-        case "string":
-            debugger;
-            break;
-        case "boolean":
-            debugger;
-            break;
-        default:
-            debugger;
+            throw Error(`keyName == "${keyName}" was valid!`);
+        }
+        delete jmDisplayed.NOT_SAVEABLE;
+        const keyStore = getNextMindmapKey();
+        // jmDisplayed.key = keyStore;
+        // jmDisplayed.meta.name = keyStore;
+        jmDisplayed.mind.name = keyStore;
+
+        await startUndoRedo(jmDisplayed);
     }
-    if (!(await wantToSave_NOT_SAVEABLE(jmDisplayed, actionTopic))) return;
     const keyName = getJmDisplayKey(jmDisplayed);
 
     checkIsMMformatJmdisplayed(jmDisplayed, "saveMindmapPlusUndoRedoX");

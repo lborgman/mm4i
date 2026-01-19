@@ -958,17 +958,16 @@ export async function generateMindMap(fromLink) {
         }
         try {
             // throw "TEST MY ERROR";
-            let cleaned, jsonAI;
+            let cleaned, jsonAI, strAIonlyJson;
             if (tofLastResAI == "string") {
                 const res = getJsonFromAIstr(resAI);
-                const strAIonlyJson = res.strAIjson;
+                strAIonlyJson = res.strAIjson;
                 cleaned = res.cleaned;
                 jsonAI = JSON.parse(strAIonlyJson);
             } else {
                 jsonAI = resAI;
             }
 
-            // const jsonAI = tofResAI == "string" ? JSON.parse(strAIonlyJson) : resAI;
             const nodeArray = nodeArrayFromAI2jsmindFormat(jsonAI);
             const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
             if (res.isValid) {
@@ -2362,9 +2361,11 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
         modJsEditCommon.addScrollIntoViewOnSelect();
         jm.select_node(jm.get_root());
         setTimeout(() => modJsEditCommon.scrollSelectedNodeIntoView(), 500);
+
         jm.NOT_SAVEABLE = "This mindmap is made by an AI";
-        // jm.MIND_STORE_FORMAT = mindInStoreFormat;
-        document.getElementById("mm4i-btn-history")?.remove();
+        // document.getElementById("mm4i-btn-history")?.remove();
+        document.body.classList.remove("has-history");
+
         // addShareMarker
         const addAIgeneratedMarker = () => {
             // const btnReplay = modMdc.mkMDCiconButton("replay", "Try again");
@@ -2381,9 +2382,15 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
             eltTellGenerated.classList.add("generated-marker");
             eltTellGenerated.classList.add("marker-at-bottom");
             document.body.appendChild(eltTellGenerated);
-            eltTellGenerated.addEventListener("click", evt => {
+            eltTellGenerated.addEventListener("click", async evt => {
                 evt.stopImmediatePropagation();
-                alert("not implemented yet");
+                // alert("not implemented yet");
+                // debugger;
+                const jmDisplayed = await modMMhelpers.getJmDisplayed()
+                console.log({ jd: jmDisplayed });
+                // debugger;
+                // modMMhelpers.saveMindmapPlusUndoRedo(jmDisplayed, "SAVE");
+                modMMhelpers.save_NOT_SAVEABLE(jmDisplayed);
             })
         }
         addAIgeneratedMarker();
