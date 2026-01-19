@@ -249,7 +249,8 @@ function askSave_NOT_SAVEABLE(jmDisplayed) {
             mkElt("p", undefined, msgNS),
             mkElt("p", undefined, "Do you want to save it?")
         ]);
-        const ans = await modMdc.mkMDCdialogConfirm(body, "Yes", "No");
+        // const ans = await modMdc.mkMDCdialogConfirm(body, "Yes", "No");
+        const ans = true;
         if (ans) {
             // debugger;
 
@@ -296,7 +297,8 @@ function askSave_NOT_SAVEABLE(jmDisplayed) {
                     btnOk.inert = true;
                     checkValidName();
                 });
-                const res = await modMdc.mkMDCdialogConfirm(body);
+                // const res = await modMdc.mkMDCdialogConfirm(body);
+                res = true;
                 if (!res) return false;
             }
             // debugger;
