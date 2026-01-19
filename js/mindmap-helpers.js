@@ -224,8 +224,8 @@ export async function save_NOT_SAVEABLE(jmDisplayed) {
     if (!marker) throw Error(`Did not find "generated-marker"`);
     marker.style.opacity = "1";
     marker.style.transition = "left 1s, opacity 2s";
-    marker.style.opacity = "0.5";
-    marker.style.left = "70px";
+    marker.style.opacity = "0.7";
+    marker.style.left = "55px";
     marker.style.backgroundColor = "yellowgreen";
 
     await checkInappAndSaveMindmap(keyStore, mindToStore);
@@ -233,6 +233,12 @@ export async function save_NOT_SAVEABLE(jmDisplayed) {
     await startUndoRedo(jmDisplayed);
 
     const modMdc = await importFc4i("util-mdc");
+    const spanText = marker.firstElementChild;
+    if (!spanText) throw Error("Did not find spanText");
+    spanText.textContent = "Saved from AI";
+    const spanIcon = marker.lastElementChild;
+    if (!spanIcon) throw Error("Did not find spanIcon");
+    modMdc.replaceMDCicon("playlist_add_check", spanIcon);
     modMdc.mkMDCsnackbar("Saving mindmap...", 4 * 1000, { "background-color": "blue", "color": "white" });
 
 }

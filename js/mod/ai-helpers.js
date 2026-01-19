@@ -348,7 +348,7 @@ export async function generateMindMap(fromLink) {
     let promInpLink;
     async function debouncedCheckInpLink() {
         const p = modTools.callDebouncedGemini(checkInpLink, 300);
-        console.log("debounce", p);
+        // console.log("debounce", p);
         promInpLink = p;
         return p;
     }
