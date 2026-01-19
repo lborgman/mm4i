@@ -2425,7 +2425,7 @@ export class CustomRenderer4jsMind {
         let thumbShiftX, thumbShiftY;
         let thumbStartX, thumbStartY;
         function onThumbDown(evts) {
-            console.log("onThumbDown", { evts });
+            // console.log("onThumbDown", { evts });
             evts.preventDefault(); // prevent selection start (browser action)
 
             const bcrThumb = thumb.getBoundingClientRect();
@@ -2439,7 +2439,7 @@ export class CustomRenderer4jsMind {
             thumb.setPointerCapture(evts.pointerId);
             thumb.onpointermove = onThumbMove;
             thumb.onpointerup = evts => {
-                console.log("onpointerup", { evts });
+                // console.log("onpointerup", { evts });
                 thumb.onpointermove = null;
                 thumb.onpointerup = null;
                 newBcrC = eltCopied.getBoundingClientRect();

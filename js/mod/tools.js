@@ -314,7 +314,7 @@ async function getWebBrowserInfo() {
     }
 
     const env = await detectEnvironment();
-    console.log(env);
+    console.log("env", env);
     return env;
 }
 export const promWebBrowserInfo = getWebBrowserInfo();
@@ -2729,7 +2729,7 @@ export function localISOtime(when = undefined) {
     return localISO;
 }
 
-console.log("localISOtime", localISOtime());
+// console.log("localISOtime", localISOtime());
 
 
 // From Grok. You can't currently link to a Grok chat. 
@@ -4213,7 +4213,7 @@ async function fetchResponseViaUnblocker(url, opts = {}) {
         if (!apiKey) {
             // throw new Error("ScrapeUnblocker API key not set");
             const ans = await dialogUnblockerAPIkey();
-            if (!ans) return ;
+            if (!ans) return;
             continue;
         }
 
@@ -4251,7 +4251,7 @@ async function fetchResponseViaUnblocker(url, opts = {}) {
             resp.headers.forEach(h => console.log("header h:", h));
             debugger;
             const ans = await dialogUnblockerAPIkey();
-            if (!ans) return ;
+            if (!ans) return;
             continue;
         } catch (err) {
             console.error("%cProxy failed:", "color:red;font-weight:bold;", err);

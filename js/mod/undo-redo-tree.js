@@ -336,9 +336,10 @@ export class UndoRedoTreeWithDiff {
 
     if (this.#historyRecordFun == undefined) {
       const evtRecordAction = new CustomEvent(eventRecordActionName, { detail: { key: this.#historyKey } });
-      console.log("document.dispatchEvent(evtRecordAction)", evtRecordAction);
+      // console.log("document.dispatchEvent(evtRecordAction)", evtRecordAction);
       document.dispatchEvent(evtRecordAction);
     } else {
+      throw Error("#historyRecordFun is obsolote");
       console.log(`Callihng #historyRecordFun(${this.#historyKey})`);
       this.#historyRecordFun(this.#historyKey);
     }

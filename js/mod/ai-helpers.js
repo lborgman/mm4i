@@ -2387,7 +2387,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
                 // alert("not implemented yet");
                 // debugger;
                 const jmDisplayed = await modMMhelpers.getJmDisplayed()
-                console.log({ jd: jmDisplayed });
+                // console.log({ jd: jmDisplayed });
                 // debugger;
                 // modMMhelpers.saveMindmapPlusUndoRedo(jmDisplayed, "SAVE");
                 modMMhelpers.save_NOT_SAVEABLE(jmDisplayed);

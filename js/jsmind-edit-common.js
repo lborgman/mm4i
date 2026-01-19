@@ -940,7 +940,7 @@ const modZoomMove = await importFc4i("zoom-move");
 function connectFsm(nOut) {
     // const n = parseInt(prompt("nOut", nOut || 99));
     const n = 9;
-    console.log(`%cn==${n}`, "font-size:40px;color:orange;");
+    console.log(`%cn==${n}`, "color:orange;");
     ourFsm?.hook_any_action(fsmEvent);
     if (n > 98) return;
     ourFsm?.hook_any_transition((...args) => {
@@ -975,7 +975,7 @@ function connectFsm(nOut) {
 
     // const useMoveMove = confirm("Use startGrabMoveMove");
     const useMoveMove = true;
-    console.log({ useMoveMove });
+    console.log("useMoveMove", useMoveMove);
     ourFsm?.post_hook_entry("c_Move", (hookData) => {
         // const { eltJmnode, pointerType } = hookData.data;
         const { eltJmnode } = hookData.data;
@@ -2538,7 +2538,7 @@ export async function doExpanding(eltExpander) {
         // const childLast = nc[nc.length - 1];
         // console.log({ childFirst, childLast });
         setTimeout(() => {
-            console.log("setTimeout, scroll first");
+            // console.log("setTimeout, scroll first");
             const resScrollFirst = scrollNodeIntoView(childFirst);
             console.log({ resScrollFirst });
             // FIX-ME: What to do with childLast???
@@ -3019,7 +3019,7 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
             ])
             const answerIsDelete = await modMdc.mkMDCdialogConfirm(body, "Delete", "Cancel");
             if (answerIsDelete) {
-                console.log("*** del mm");
+                // console.log("*** del mm");
                 const eltLi = btnDelete.closest("li");
                 eltLi.style.backgroundColor = "red";
                 eltLi.style.opacity = 1;

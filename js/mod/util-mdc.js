@@ -854,7 +854,7 @@ export async function mkMDCslider(min, max, now, step, label, onChange, onInput,
             range: { min, max },
             step
         });
-        console.log({ slider });
+        // console.log({ slider });
         slider.on("change", (values, handle) => {
             console.log(`Final value for handle ${handle} is: ${values[handle]}`);
             onChange(values[handle]);
