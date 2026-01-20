@@ -6370,3 +6370,50 @@ https://www.lib.ncsu.edu/text-and-data-mining/scholarly-apis-datasets
 
 
 */
+
+
+/**
+ * Scroll behavior suggested by Grok.
+ * I added the class.
+ */
+export class ChatLikeScroll {
+
+    /**
+     * 
+     * @param {HTMLDivElement} container 
+     * @param {HTMLDivElement} target 
+     * @param {number} tolerance - in px
+     */
+    constructor(container, target, tolerance) {
+        this.container = container;
+        this.target = target;
+        this.tolerance = tolerance;
+    }
+
+    #isNearBottom() {
+        return this.container.scrollHeight - this.container.scrollTop - this.container.clientHeight <= this.tolerance;
+    }
+
+    scrollToBottom(smooth = true) {
+        // Option 1: scrollIntoView – very convenient
+        this.target.scrollIntoView({
+            block: "end",
+            behavior: smooth ? "smooth" : "auto",
+            inline: "nearest"
+        });
+
+        // Option 2: explicit scrollTo (sometimes more predictable)
+        // container.scrollTo({
+        //     top: container.scrollHeight - container.clientHeight,
+        //     behavior: smooth ? "smooth" : "auto"
+        // });
+    }
+
+    // Whenever you append content (message, row, etc.)
+    onNewContentAdded() {
+        if (this.#isNearBottom()) {
+            this.scrollToBottom(true);
+        }
+        // If user has scrolled up → do NOT auto-scroll (classic chat behavior)
+    }
+}

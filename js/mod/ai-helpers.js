@@ -959,6 +959,7 @@ export async function generateMindMap(fromLink) {
 
             divError.style.display = "";
             console.error("tellError", txt);
+            window.outputScroller.scrollToBottom();
             debugger;
         }
         try {
@@ -1838,6 +1839,8 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
     btnGo.addEventListener("click", async (evt) => {
         evt.stopPropagation();
 
+        window.outputScroller.scrollToBottom();
+
         // const userPrompt = await getAIprompt();
         const res = await getAIpromptAndErrors();
         if (res == undefined) throw Error("res is undefined");
@@ -2305,6 +2308,12 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
         divWays,
     ]);
     modMdc.mkMDCdialogAlert(body, "Close");
+
+    const c = divWays.closest("div.mdc-dialog__content");
+    const t = c.firstElementChild;
+    const outputScroller = new modTools.ChatLikeScroll(c, t, 30);
+    window.outputScroller = outputScroller;
+    // outputeScroller.scrollToBottom();
 
     checkInpLink(); // Necessary elements are connected to the DOM here
 
@@ -2794,6 +2803,7 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
         let s10 = 0;
         let msStart = Date.now();
         const tmrAlive = setInterval(() => {
+            window.outputScroller.scrollToBottom();
             const s10new = Math.floor((Date.now() - msStart) / (10 * 1000));
             if (s10new > s10) {
                 s10 = s10new;
