@@ -222,11 +222,12 @@ export async function save_NOT_SAVEABLE(jmDisplayed) {
 
     const marker = /** @type {HTMLDivElement} */ (document.getElementById("generated-marker"));
     if (!marker) throw Error(`Did not find "generated-marker"`);
-    marker.style.opacity = "1";
-    marker.style.transition = "left 1s, opacity 2s";
-    marker.style.opacity = "0.7";
-    marker.style.left = "55px";
-    marker.style.backgroundColor = "yellowgreen";
+    // marker.style.opacity = "1";
+    // marker.style.transition = "left 1s, opacity 2s";
+    // marker.style.opacity = "0.7";
+    // marker.style.left = "55px";
+    // marker.style.backgroundColor = "yellowgreen";
+    marker.classList.add("saved");
 
     await checkInappAndSaveMindmap(keyStore, mindToStore);
     // await startUndoRedo(keyStore, jmDisplayed);
