@@ -2944,7 +2944,14 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
     const spanTitle = mkElt("span", undefined, ["Mindmaps", spanSubTitle]);
     spanTitle.style.display = "inline-flex";
     spanTitle.style.flexDirection = "column";
-    const eltTitle = mkElt("h2", undefined, spanTitle);
+
+    const spanButtons = mkElt("span");
+    spanButtons.style.display = "inline-flex";
+    spanButtons.style.gap = "10px";
+    spanButtons.style.marginLeft = "20px";
+
+
+    const eltTitle = mkElt("h2", undefined, [spanTitle, spanButtons]);
     if (parMindmapKeyNotFound) {
         if (info) {
             debugger; // eslint-disable-line no-debugger
@@ -3049,13 +3056,29 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
             await modMMhelpers.createAndShowNewMindmap();
         }));
 
+        // const btnSort = modMdc.mkMDCfab(eltIconSort, "Sort list", true);
+        // btnSort.addEventListener("click", () => { alert("sort is not ready yet"); });
+        // spanButtons.appendChild(btnSort);
+
+        const eltIconSort = modMdc.mkMDCicon("sort");
+        const btnSort2 = modMdc.mkMDCbutton("", undefined, eltIconSort);
+        btnSort2.title = "Sort";
+        btnSort2.style.height = "40px";
+        btnSort2.style.aspectRatio = "1 / 1";
+        btnSort2.style.minWidth = "unset";
+        btnSort2.addEventListener("click", () => { alert("sort is not ready yet"); });
+        spanButtons.appendChild(btnSort2);
+
+        spanButtons.appendChild(btnSort2);
+
         const eltIconNew = modMdc.mkMDCicon("add");
         const btnFabNew = modMdc.mkMDCfab(eltIconNew, "Create new mindmap", true);
         btnFabNew.addEventListener("click", () => {
             modMMhelpers.createAndShowNewMindmap();
         });
-        btnFabNew.style.marginLeft = "40px";
-        eltTitle.appendChild(btnFabNew);
+        // btnFabNew.style.marginLeft = "40px";
+        // eltTitle.appendChild(btnFabNew);
+        spanButtons.appendChild(btnFabNew);
 
         const eltIconGenAI = modMdc.mkMDCicon("add_link");
         const btnFabGenAI = modMdc.mkMDCfab(eltIconGenAI, "Make mindmap with AI from link", true);
@@ -3070,8 +3093,9 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
             eltDialogOpen.remove();
             modAIhelpers.generateMindMap();
         });
-        btnFabGenAI.style.marginLeft = "20px";
-        eltTitle.appendChild(btnFabGenAI);
+        // btnFabGenAI.style.marginLeft = "20px";
+        // eltTitle.appendChild(btnFabGenAI);
+        spanButtons.appendChild(btnFabGenAI);
     }
     const ul = modMdc.mkMDCmenuUl(arrLiMenu);
     ul.classList.add("mindmap-list");
