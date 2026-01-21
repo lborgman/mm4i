@@ -2341,7 +2341,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
             }
         });
         // rootNode.topic = `${rootNode.topic} (w/ ${nameUsedAI})`;
-        rootNode.topic = `AI::${rootNode.topic}`;
+        rootNode.topic = `AI: ${rootNode.topic}`;
         const rootNotes = rootNode.shapeEtc?.notes;
         // Insert source data
         let arrMdRootNotes = [

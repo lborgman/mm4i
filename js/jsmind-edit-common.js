@@ -2981,95 +2981,143 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
         info = info || "";
     }
 
-    arrMindmapsHits = arrMindmapsHits || await dbMindmaps.DBgetAllMindmaps();
-    const arrToShow = arrMindmapsHits.map(mh => {
-        const key = mh.key;
-        const j = mh.jsmindmap;
-        const hits = mh.hits;
-        const topic = modMMhelpers.getRootTopic(j);
-        /**
-         * 
-         * @param {Object} j 
-         * @returns {string}
-         */
-        function _getRootTopic(j) {
-            switch (j.format) {
-                case "node_tree":
-                    // topic = j.data.topic;
-                    return j.data.topic;
-                    break;
-                case "node_array":
-                    // topic = j.data[0].topic;
-                    return j.data[0].topic;
-                    break;
-                case "freemind":
-                    const s = j.data;
-                    // topic = s.match(/<node .*?TEXT="([^"]*)"/)[1];
-                    return s.match(/<node .*?TEXT="([^"]*)"/)[1];
-                    break;
-                default:
-                    throw Error(`Unknown mindmap format: ${j.format}`);
+    const divUlMM = mkElt("div");
+    async function updateDivUlMM() {
+        arrMindmapsHits = arrMindmapsHits || await dbMindmaps.DBgetAllMindmaps();
+        const arrMMtoShow = arrMindmapsHits.map(mh => {
+            const key = mh.key;
+            const j = mh.jsmindmap;
+            const hits = mh.hits;
+            const topic = modMMhelpers.getRootTopic(j);
+            /**
+             * 
+             * @param {Object} j 
+             * @returns {string}
+             */
+            function _getRootTopic(j) {
+                switch (j.format) {
+                    case "node_tree":
+                        // topic = j.data.topic;
+                        return j.data.topic;
+                        break;
+                    case "node_array":
+                        // topic = j.data[0].topic;
+                        return j.data[0].topic;
+                        break;
+                    case "freemind":
+                        const s = j.data;
+                        // topic = s.match(/<node .*?TEXT="([^"]*)"/)[1];
+                        return s.match(/<node .*?TEXT="([^"]*)"/)[1];
+                        break;
+                    default:
+                        throw Error(`Unknown mindmap format: ${j.format}`);
+                }
             }
-        }
-        return { key, topic, hits };
-    });
-    const arrPromLiMenu = arrToShow.map(async m => {
-        // https://stackoverflow.com/questions/43033988/es6-decide-if-object-or-promise
-        const topic = await Promise.resolve(m.topic);
-        const btnDelete = await modMdc.mkMDCiconButton("delete_forever", "Delete mindmap");
-        btnDelete.addEventListener("click", errorHandlerAsyncEvent(async evt => {
-            evt.stopPropagation();
-            const eltQdelete = mkElt("span", undefined, ["Delete mindmap ", mkElt("b", undefined, topic), "?"]);
-            const body = mkElt("div", undefined, [
-                eltQdelete,
-                mkElt("p", undefined, `Please note that this action cannot be undone!`)
-            ])
-            const answerIsDelete = await modMdc.mkMDCdialogConfirm(body, "Delete", "Cancel");
-            if (answerIsDelete) {
-                // console.log("*** del mm");
-                const eltLi = btnDelete.closest("li");
-                eltLi.style.backgroundColor = "red";
-                eltLi.style.opacity = 1;
-                eltLi.style.transition = "opacity 1s, height 1s, scale 1s";
-                eltLi.style.opacity = 0;
-                eltLi.style.height = 0;
-                eltLi.style.scale = 0;
-                const dbMindmaps = await importFc4i("db-mindmaps");
-                dbMindmaps.DBremoveMindmap(m.key);
-                setTimeout(() => eltLi.remove(), 1000);
-            }
-        }));
-
-        const eltA = funMkEltLinkMindmap(topic, m.key, m.hits, provider);
-
-        const eltMm = mkElt("div", undefined, [eltA, btnDelete]);
-        const li = modMdc.mkMDCmenuItem(eltMm);
-        li.addEventListener("click", () => {
-            closeDialog();
+            return { key, topic, hits };
         });
-        return li;
-    });
-    const arrLiMenu = await Promise.all(arrPromLiMenu);
+        const arrPromMMliMenu = arrMMtoShow.map(async m => {
+            // https://stackoverflow.com/questions/43033988/es6-decide-if-object-or-promise
+            const topic = await Promise.resolve(m.topic);
+            const btnDelete = await modMdc.mkMDCiconButton("delete_forever", "Delete mindmap");
+            btnDelete.addEventListener("click", errorHandlerAsyncEvent(async evt => {
+                evt.stopPropagation();
+                const eltQdelete = mkElt("span", undefined, ["Delete mindmap ", mkElt("b", undefined, topic), "?"]);
+                const body = mkElt("div", undefined, [
+                    eltQdelete,
+                    mkElt("p", undefined, `Please note that this action cannot be undone!`)
+                ])
+                const answerIsDelete = await modMdc.mkMDCdialogConfirm(body, "Delete", "Cancel");
+                if (answerIsDelete) {
+                    // console.log("*** del mm");
+                    const eltLi = btnDelete.closest("li");
+                    eltLi.style.backgroundColor = "red";
+                    eltLi.style.opacity = 1;
+                    eltLi.style.transition = "opacity 1s, height 1s, scale 1s";
+                    eltLi.style.opacity = 0;
+                    eltLi.style.height = 0;
+                    eltLi.style.scale = 0;
+                    const dbMindmaps = await importFc4i("db-mindmaps");
+                    dbMindmaps.DBremoveMindmap(m.key);
+                    setTimeout(() => eltLi.remove(), 1000);
+                }
+            }));
+
+            const eltA = funMkEltLinkMindmap(topic, m.key, m.hits, provider);
+
+            const eltMm = mkElt("div", undefined, [eltA, btnDelete]);
+            const li = modMdc.mkMDCmenuItem(eltMm);
+            li.addEventListener("click", () => {
+                closeDialog();
+            });
+            return li;
+        });
+        const arrMMliMenu = await Promise.all(arrPromMMliMenu);
+        const ulMM = modMdc.mkMDCmenuUl(arrMMliMenu);
+        ulMM.classList.add("mindmap-list");
+        divUlMM.textContent = "";
+        divUlMM.appendChild(ulMM);
+    }
+
     if (showNew) {
         const liNew = modMdc.mkMDCmenuItem("New mindmap");
         liNew.addEventListener("click", errorHandlerAsyncEvent(async () => {
             await modMMhelpers.createAndShowNewMindmap();
         }));
 
-        // const btnSort = modMdc.mkMDCfab(eltIconSort, "Sort list", true);
-        // btnSort.addEventListener("click", () => { alert("sort is not ready yet"); });
-        // spanButtons.appendChild(btnSort);
-
         const eltIconSort = modMdc.mkMDCicon("sort");
-        const btnSort2 = modMdc.mkMDCbutton("", undefined, eltIconSort);
-        btnSort2.title = "Sort";
-        btnSort2.style.height = "40px";
-        btnSort2.style.aspectRatio = "1 / 1";
-        btnSort2.style.minWidth = "unset";
-        btnSort2.addEventListener("click", () => { alert("sort is not ready yet"); });
-        spanButtons.appendChild(btnSort2);
+        const btnSortMm = modMdc.mkMDCbutton("", undefined, eltIconSort);
+        btnSortMm.title = "Sort";
+        btnSortMm.style.height = "40px";
+        btnSortMm.style.aspectRatio = "1 / 1";
+        btnSortMm.style.minWidth = "unset";
+        btnSortMm.addEventListener("click", () => {
+            const idSortMenu = "menu-sort-mm-list";
+            if (removeMenu()) return;
+            function removeMenu() {
+                const oldMenu = document.getElementById(idSortMenu);
+                if (!oldMenu) return false;
+                oldMenu.remove();
+                return true;
+            }
+            const liAddChild = mkMenuItem("by Name", () => {
+                removeMenu();
+                alert("not ready")
+            });
+            const liSortByAge = mkMenuItem("by Age", () => {
+                removeMenu();
+                alert("not ready")
+            });
+            const arrSortMenu = [
+                liAddChild,
+                liSortByAge
+            ];
+            const ulMenu = modMdc.mkMDCmenuUl(arrSortMenu);
 
-        spanButtons.appendChild(btnSort2);
+            const divSortMenu = modMdc.mkMDCmenuDiv();
+            divSortMenu.id = idSortMenu;
+            divSortMenu.classList.add("is-menu-div");
+            divSortMenu.classList.add("mm4i-context-menu");
+
+            divSortMenu.textContent = "";
+            divSortMenu.appendChild(ulMenu);
+
+            const bcrBtn = btnSortMm.getBoundingClientRect();
+            divSortMenu.style.position = "fixed";
+            divSortMenu.style.top = `${bcrBtn.top + 40}px`;
+            divSortMenu.style.left = `${bcrBtn.left}px`;
+            document.body.appendChild(divSortMenu);
+
+            divSortMenu.style.opacity = "1";
+            divSortMenu.style.backgroundColor = "#fff";
+            divSortMenu.style.textTransform = "none";
+
+            divSortMenu.classList.toggle("display-block");
+
+            window.d = divSortMenu;
+        });
+        spanButtons.appendChild(btnSortMm);
+
+        spanButtons.appendChild(btnSortMm);
 
         const eltIconNew = modMdc.mkMDCicon("add");
         const btnFabNew = modMdc.mkMDCfab(eltIconNew, "Create new mindmap", true);
@@ -3093,16 +3141,14 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
             eltDialogOpen.remove();
             modAIhelpers.generateMindMap();
         });
-        // btnFabGenAI.style.marginLeft = "20px";
-        // eltTitle.appendChild(btnFabGenAI);
         spanButtons.appendChild(btnFabGenAI);
     }
-    const ul = modMdc.mkMDCmenuUl(arrLiMenu);
-    ul.classList.add("mindmap-list");
+
+    updateDivUlMM();
     const body = mkElt("div", { id: "div-dialog-mindmaps" }, [
         eltTitle,
         info,
-        ul,
+        divUlMM,
     ]);
 
     const btnClose = modMdc.mkMDCdialogButton("Close", "close", true);
