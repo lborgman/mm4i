@@ -19,6 +19,10 @@ if (!jsMind) { throw Error("jsMind is not setup"); }
 const modMMhelpers = await importFc4i("mindmap-helpers");
 const modMdc = await importFc4i("util-mdc");
 const modTools = await importFc4i("toolsJs");
+const modLocalSettings = await importFc4i("local-settings");
+const settingSortMm = new modLocalSettings.LocalSetting("mm4i-", "sortmm", "Name");
+console.log({ settingSortMm });
+// debugger;
 
 
 const modMm4iFsm = await (async () => {
@@ -2982,7 +2986,7 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
     }
 
     const divUlMM = mkElt("div");
-    async function updateDivUlMM() {
+    async function updateDivUlMM(sortBy) {
         arrMindmapsHits = arrMindmapsHits || await dbMindmaps.DBgetAllMindmaps();
         const arrMMtoShow = arrMindmapsHits.map(mh => {
             const key = mh.key;
@@ -3015,6 +3019,25 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
             }
             return { key, topic, hits };
         });
+        arrMMtoShow.sort((a, b) => {
+            switch (sortBy) {
+                case "Name":
+                    const nameA = a.topic;
+                    const nameB = b.topic;
+                    return nameA.localeCompare(nameB);
+                    debugger;
+                    break;
+                case "Age":
+                    const ageA = a.key;
+                    const ageB = b.key;
+                    // return ageA.localeCompare(ageB);
+                    return ageB.localeCompare(ageA);
+                    debugger;
+                    break;
+                default:
+                    throw Error(`Unknown sortBy == "${sortBy}"`);
+            }
+        })
         const arrPromMMliMenu = arrMMtoShow.map(async m => {
             // https://stackoverflow.com/questions/43033988/es6-decide-if-object-or-promise
             const topic = await Promise.resolve(m.topic);
@@ -3079,13 +3102,37 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
                 oldMenu.remove();
                 return true;
             }
-            const liAddChild = mkMenuItem("by Name", () => {
+
+            // const liAddChild = mkMenuItem("by Name", () => {
+            // class settingsmm4i
+            const mkEltBy = (by) => {
+                const icon = modMdc.mkMDCicon("check_small");
+                if (settingSortMm.valueS != by) {
+                    icon.style.opacity = "0";
+                }
+                const eltBy = mkElt("span", undefined, [
+                    icon,
+                    `by ${by}`
+                ]);
+                eltBy.style.display = "inline-flex";
+                eltBy.style.gap = "2px";
+                eltBy.style.marginLeft = "-10px";
+                return eltBy
+            }
+            const eltByName = mkEltBy("Name");
+            const eltByAge = mkEltBy("Age");
+
+            const liAddChild = mkMenuItem(eltByName, () => {
                 removeMenu();
-                alert("not ready")
+                settingSortMm.value = "Name";
+                updateDivUlMM("Name");
+                // alert("not ready")
             });
-            const liSortByAge = mkMenuItem("by Age", () => {
+            const liSortByAge = mkMenuItem(eltByAge, () => {
                 removeMenu();
-                alert("not ready")
+                settingSortMm.value = "Age";
+                updateDivUlMM("Age");
+                // alert("not ready")
             });
             const arrSortMenu = [
                 liAddChild,
@@ -3144,7 +3191,7 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
         spanButtons.appendChild(btnFabGenAI);
     }
 
-    updateDivUlMM();
+    updateDivUlMM(settingSortMm.valueS);
     const body = mkElt("div", { id: "div-dialog-mindmaps" }, [
         eltTitle,
         info,
