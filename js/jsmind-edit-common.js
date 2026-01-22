@@ -2547,6 +2547,12 @@ export async function doExpanding(eltExpander) {
             console.log({ resScrollFirst });
             // FIX-ME: What to do with childLast???
         }, 1000);
+    } else {
+        // const parent = node.parent;
+        // console.log({ parent });
+        // debugger;
+        jmDisplayed.select_node(node);
+        scrollNodeIntoView(node);
     }
     const topic = node.topic;
     const theChange = !node.expanded ? "Collapse" : "Expand";
@@ -3152,7 +3158,10 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
             divSortMenu.style.position = "fixed";
             divSortMenu.style.top = `${bcrBtn.top + 40}px`;
             divSortMenu.style.left = `${bcrBtn.left}px`;
-            document.body.appendChild(divSortMenu);
+
+            // document.body.appendChild(divSortMenu);
+            const divContainer = btnSortMm.closest("div.mdc-dialog__container")
+            divContainer.appendChild(divSortMenu);
 
             divSortMenu.style.opacity = "1";
             divSortMenu.style.backgroundColor = "#fff";
