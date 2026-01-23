@@ -2390,6 +2390,8 @@ export function _OLDreplaceMDCicon(newIconName, spanIcon) {
 /**
  * @param {string} newIconName 
  * @param {HTMLElement} eltWithIcon 
+ * 
+ * @return {HTMLSpanElement}
  */
 export function replaceMDCicon(newIconName, eltWithIcon) {
     addToUsedSymbols(newIconName);
@@ -2406,6 +2408,7 @@ export function replaceMDCicon(newIconName, eltWithIcon) {
         spanIcon = arrSpanIcon[0];
     }
     spanIcon.textContent = newIconName;
+    return spanIcon;
 }
 
 // The font icons does not work offline (and does not scale well).

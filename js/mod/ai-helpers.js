@@ -64,7 +64,7 @@ const tempType2temperature = (tempType) => {
 }
 
 const settingProceedAPI = new SettingsMm4iAI("proceed-api", true);
-const settingNotifyReadySec = new SettingsMm4iAI("notify-ready-api", 10);
+const settingNotifyReadySec = new SettingsMm4iAI("notify-ready-api", 40);
 
 /** @type {string|Object} resAI */ let lastResAI;
 /** @type {string} */ let tofLastResAI;
@@ -1841,8 +1841,12 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
 
         window.outputScroller.scrollToBottom();
 
-        // const userPrompt = await getAIprompt();
+        document.documentElement.classList.add("ai-fetching");
+        // modMdc.replaceMDCicon("download_2", btnGo);
+        modMdc.replaceMDCicon("downloading", btnGo);
         const res = await getAIpromptAndErrors();
+        document.documentElement.classList.remove("ai-fetching");
+
         if (res == undefined) throw Error("res is undefined");
         if (res.data.err) {
             //// FIX-ME:
@@ -1923,14 +1927,20 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
         const callingAPI = wayToCallAIisAPI(nameAI);
         if (callingAPI) {
             document.documentElement.classList.add("ai-in-progress");
-            modMdc.replaceMDCicon("stop", btnGo);
+            // modMdc.replaceMDCicon("stop", btnGo);
+            const spanIcon = modMdc.replaceMDCicon("progress_activity", btnGo);
+            // btnGo.classList.add("spin");
+            spanIcon.classList.add("spin");
         }
         // await callNamedAI(nameAI, promptAI, handleAIres);
         await callNamedAI(nameAI, userPrompt, handleAIres);
 
         if (callingAPI) {
+            debugger; // FIX-ME: too early!
             document.documentElement.classList.remove("ai-in-progress");
-            modMdc.replaceMDCicon("play_arrow", btnGo);
+            // modMdc.replaceMDCicon("play_arrow", btnGo);
+            const spanIcon = modMdc.replaceMDCicon("done_all", btnGo);
+            spanIcon.classList.remove("spin");
         } else {
             setTimeout(() => setCliboardInert(false), 10 * 1000);
         }

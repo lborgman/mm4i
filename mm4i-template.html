@@ -24,6 +24,121 @@
         }
     </style>
     -->
+    <style id="general">
+        .display-none {
+            display: none;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Use animation-duration for speed!  */
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+
+        .spin-once {
+            animation: spin 1s linear forwards;
+        }
+
+        .spin-once-quick {
+            animation: spin 0.5s linear forwards;
+        }
+
+
+        /* For background-color */
+        .rainbow-pulse {
+            animation: rainbowPulse 5s infinite ease-in-out;
+            background: linear-gradient(90deg, #ff4d4d, #ffcc00, #33cc33, #3399ff, #cc33ff);
+            background-size: 300% 300%;
+        }
+
+        @keyframes rainbowPulse {
+            0% {
+                background-position: 0% 50%;
+                /* transform: scale(1); */
+            }
+
+            50% {
+                background-position: 100% 50%;
+                /* transform: scale(1.06); */
+            }
+
+            100% {
+                background-position: 0% 50%;
+                /* transform: scale(1); */
+            }
+        }
+
+
+        /* For color */
+        .glow-pulse {
+            color: #a78bfa;
+            /* purple-400 */
+            text-shadow: 0 0 2px currentColor;
+            animation: glowPulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes glowPulse {
+
+            0%,
+            100% {
+                color: #a78bfa;
+                text-shadow: 0 0 2px rgba(167, 139, 250, 0.5);
+            }
+
+            50% {
+                color: #c4b5fd;
+                /* purple-300 — lighter */
+                text-shadow: 0 0 5px rgba(167, 139, 250, 0.9);
+            }
+        }
+
+
+        /* https://css-tricks.com/almanac/functions/c/color-mix/ */
+        @keyframes pulse-text-relative {
+
+            0%,
+            100% {
+                color: currentColor;
+            }
+
+            50% {
+                color: color-mix(in oklab, currentColor 50%, var(--pulse-mix-color, red) 50%);
+            }
+        }
+
+        .pulse-text {
+            animation: pulse-text-relative 2.5s ease-in-out infinite;
+        }
+
+
+        /* elt.style.setProperty("--pulse-mix-color", "green") */
+
+        /* Example variants */
+        .pulse-text-white {
+            --pulse-mix-color: #fff;
+        }
+
+        .pulse-text-black {
+            --pulse-mix-color: #000;
+        }
+
+        .pulse-text-green {
+            --pulse-mix-color: green;
+        }
+
+        .pulse-text-yellow {
+            --pulse-mix-color: yellow;
+        }
+
+        .pulse-text-blue {
+            --pulse-mix-color: #00f;
+        }
+    </style>
     <style id="style-vk">
         /* https://polypane.app/css-specificity-calculator/ */
         /* https://web.dev/learn/css/specificity */
@@ -192,6 +307,12 @@
 
     <script src="./init-error.js"></script>
 
+    <script id="general-script">
+        function spinOnce(elt) {
+            elt.style.animation = "none";
+            // elt.offsetWidth = 
+        }
+    </script>
     <script id="add-og">
         /* Add OG: */
 
@@ -1695,6 +1816,12 @@
         .ai-in-progress {
             #btn-ai-go {
                 color: red;
+            }
+        }
+
+        .ai-fetching {
+            #btn-ai-go {
+                color: yellow;
             }
         }
 
