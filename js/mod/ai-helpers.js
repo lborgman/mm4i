@@ -1936,11 +1936,10 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
         await callNamedAI(nameAI, userPrompt, handleAIres);
 
         if (callingAPI) {
-            debugger; // FIX-ME: too early!
-            document.documentElement.classList.remove("ai-in-progress");
-            // modMdc.replaceMDCicon("play_arrow", btnGo);
-            const spanIcon = modMdc.replaceMDCicon("done_all", btnGo);
-            spanIcon.classList.remove("spin");
+            // debugger; // FIX-ME: too early!
+            // document.documentElement.classList.remove("ai-in-progress");
+            // const spanIcon = modMdc.replaceMDCicon("done_all", btnGo);
+            // spanIcon.classList.remove("spin");
         } else {
             setTimeout(() => setCliboardInert(false), 10 * 1000);
         }
@@ -2873,12 +2872,21 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
 
         clearInterval(tmrAlive);
         console.log({ res });
-        if (res instanceof Error) {
+        document.documentElement.classList.remove("ai-in-progress");
+        const btnGo2 = document.getElementById("btn-ai-go");
+        if (!btnGo2) throw Error(`Did not find "btn-ai-go"`);
+        let wasError = res instanceof Error;
+        debugger;
+        const modMdc = await importFc4i("util-mdc");
+        if (wasError) {
             console.error(res);
             document.documentElement.classList.add("ai-response-error");
             divGoStatus.textContent = `${nameAI}: ${res.message}`;
             // @ts-ignore
             divUserSteps.textContent = "";
+            const spanIcon = modMdc.replaceMDCicon("running_with_errors", btnGo2);
+            spanIcon.classList.remove("spin");
+            btnGo2.style.color = "red";
         } else {
             if (secElapsed > settingNotifyReadySec.valueN) {
                 modTools.showNotification(`${nameAI} is ready`, `Elapsed time: ${strElapsed}`);
@@ -2887,6 +2895,8 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
             document.documentElement.classList.add("has-ai-response");
             divGoStatus.textContent = `${nameAI} answered (${parseFloat(secElapsed).toFixed(0)}s)`;
             logEstimateAItokens(res, "callNamedAI");
+            const spanIcon = modMdc.replaceMDCicon("done_all", btnGo2);
+            spanIcon.classList.remove("spin");
             handleRes(res);
         }
     }
