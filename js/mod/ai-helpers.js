@@ -2891,7 +2891,9 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
             btnGo2.style.color = "red";
         } else {
             if (secElapsed > settingNotifyReadySec.valueN) {
-                modTools.showNotification(`${nameAI} is ready`, `Elapsed time: ${strElapsed}`);
+                if (!modTools.appCanShowNotificationItself()) {
+                    modTools.showNotification(`${nameAI} is ready`, `Elapsed time: ${strElapsed}`);
+                }
             }
             // divGoStatus.style.color = "green";
             document.documentElement.classList.add("has-ai-response");

@@ -3163,7 +3163,15 @@ export function mkTextareaGrowWrap(textarea) {
 }
 
 
-
+/**
+ * Return true if a popup message in the app will be visible to the user.
+ *  
+ * @returns {boolean}
+ */
+export function appCanShowNotificationItself() {
+    // Check if document is visible and has focus
+    return document.hasFocus() && document.visibilityState === 'visible';
+}
 export async function requestNotificationPermission() {
     if (!('Notification' in window)) {
         console.log('Notifications not supported in this browser');
