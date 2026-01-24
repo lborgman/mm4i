@@ -3170,7 +3170,9 @@ export function mkTextareaGrowWrap(textarea) {
  */
 export function appCanShowNotificationItself() {
     // Check if document is visible and has focus
-    return document.hasFocus() && document.visibilityState === 'visible';
+    const canShow = document.hasFocus() && document.visibilityState === 'visible';
+    console.log("%cappCanShowNotificationItself", "color:red; font-size:20px", canShow)
+    return canShow;
 }
 export async function requestNotificationPermission() {
     if (!('Notification' in window)) {

@@ -64,7 +64,7 @@ const tempType2temperature = (tempType) => {
 }
 
 const settingProceedAPI = new SettingsMm4iAI("proceed-api", true);
-const settingNotifyReadySec = new SettingsMm4iAI("notify-ready-api", 40);
+const settingNotifyReadySec = new SettingsMm4iAI("notify-ready-api", 10);
 
 /** @type {string|Object} resAI */ let lastResAI;
 /** @type {string} */ let tofLastResAI;
@@ -2884,17 +2884,20 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
             console.error(res);
             document.documentElement.classList.add("ai-response-error");
             divGoStatus.textContent = `${nameAI}: ${res.message}`;
+            if (!modTools.appCanShowNotificationItself()) {
+                modTools.showNotification(`${nameAI}: ${res.message}`);
+            }
             // @ts-ignore
             divUserSteps.textContent = "";
             const spanIcon = modMdc.replaceMDCicon("running_with_errors", btnGo2);
             spanIcon.classList.remove("spin");
             btnGo2.style.color = "red";
         } else {
-            if (secElapsed > settingNotifyReadySec.valueN) {
-                if (!modTools.appCanShowNotificationItself()) {
-                    modTools.showNotification(`${nameAI} is ready`, `Elapsed time: ${strElapsed}`);
-                }
+            // if (secElapsed > settingNotifyReadySec.valueN) {
+            if (!modTools.appCanShowNotificationItself()) {
+                modTools.showNotification(`${nameAI} is ready`, `Elapsed time: ${strElapsed}`);
             }
+            // }
             // divGoStatus.style.color = "green";
             document.documentElement.classList.add("has-ai-response");
             divGoStatus.textContent = `${nameAI} answered (${parseFloat(secElapsed).toFixed(0)}s)`;
