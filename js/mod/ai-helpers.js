@@ -1797,6 +1797,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
         divUserSteps.appendChild(mkElt("div", undefined, "Steps:"));
         getWhatToDoForUser(nameAI, divUserSteps);
         divEltsAI.classList.add("show-only-selected-ai");
+        window.outputScroller.scrollToBottom();
     }
     {
         const currentAIname = /** @type {string} */ (settingUsedAIname.value);
@@ -1808,6 +1809,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
             const currentAIname = /** @type {string} */ (settingUsedAIname.value);
             const radCurrentAI = divEltsAI.querySelector(`input[type=radio][value="${currentAIname}"]`);
             radCurrentAI.checked = true;
+            window.outputScroller.scrollToBottom();
         } else {
             radCurrentAI.checked = true;
         }
