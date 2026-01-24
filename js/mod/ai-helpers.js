@@ -2794,7 +2794,7 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
     const { way: wayToCallAI } = getWayToCallAI(nameAI);
     switch (wayToCallAI) {
         case "API":
-            callAIapi(nameAI);
+            await callAIapi(nameAI);
             break;
         case "web":
             callAIweb(nameAI);

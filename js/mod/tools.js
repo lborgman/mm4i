@@ -6271,31 +6271,58 @@ export function extractArticleText(strHtml) {
     // const eltMetaDesc = /** @type {HTMLMetaElement} */ (doc.querySelector("meta[name=description]"));
     // const metaDescription = eltMetaDesc?.content || "";
 
+    function eltSeemsOk(el) {
+        if (!el) return false;
+        const txtTrimmed = el.textContent.split("\n").map(l => l.trim()).join(" ").replaceAll(/\s+/g, " ");
+        if (txtTrimmed.length < 1000) return false;
+        return true;
+    }
     const articleText = (() => {
+        const selectors = [
+            'article',
+            'main', '[role="main"]',
+            '.article-body', '.article-content', '.body',
+            'body',
+        ];
+        let eltFound;
+        for (let i = 0; i < selectors.length; i++) {
+            const selector = selectors[i];
+            console.log({ selector });
+            const eltLoop = doc.querySelector(selector);
+            if (eltSeemsOk(eltLoop)) {
+                eltFound = eltLoop;
+                console.log({ eltFound });
+                break;
+            }
+        }
+        /*
         // 1. Primary: <article> (precise for content)
         let el = doc.querySelector('article');
-        if (!el) {
+        if (eltSeemsOk(el)) {
             // 2. Fallback: <main> (broad coverage)
             el = doc.querySelector('main, [role="main"]');
         }
-        if (!el) {
+        if (eltSeemsOk(el)) {
             // 3. Science/news hybrids
             el = doc.querySelector('.article-body, .article-content, .body');
         }
-        if ((!el) || (el.textContent.length < 1000)) {
+        if (eltSeemsOk(el)) {
             // 4. PsyPost, etc
             el = doc.querySelector('body');
         }
+        */
 
-        if (el) {
+        if (eltFound) {
             // const clone = el.cloneNode(true);
-            const clone = el;
+            const clone = eltFound;
             // Clean up (tailored for science: refs, figs)
             clone.querySelectorAll(
                 'meta, script, style, nav, header, footer, aside, .ad, .references, figure, .fig, .supplementary'
             ).forEach(x => x.remove());
             // let text = (clone.innerText || clone.textContent).trim();
-            let text = clone.textContent.trim();
+
+            // let text = clone.textContent.trim();
+            const text = clone.textContent.trim().split("\n").map(l => l.trim()).join(" ").replaceAll(/\s+/g, " ");
 
             // Not sure how to use this!
             /*
@@ -6307,7 +6334,9 @@ export function extractArticleText(strHtml) {
             */
 
             // return text.length > 1000 ? text.slice(0, 18000) : null;
-            if (text.length < 1000) throw new ArticleTextError("Article text less than 1000 chars");
+
+            // Should not happen now:
+            // if (text.length < 1000) throw new ArticleTextError("Article text less than 1000 chars");
             return text.slice(0, 18000);
         }
 
