@@ -323,7 +323,9 @@ export async function generateMindMap(fromLink) {
     /** @type {Promise<string>|undefined} */
     let promFetch;
 
-    let doIitNow;
+    let doItNow;
+    let doItNowIsPending = false;
+    console.log("%cdoItNow", "color:red; font-size:30px;", doItNow);
 
     // const eltStatus = mkElt("div", undefined, "(empty)");
     const eltStatus = mkElt("div");
@@ -402,21 +404,24 @@ export async function generateMindMap(fromLink) {
         // FIX-ME: some race condition here???
         // is automated
         setTimeout(async () => {
-            const sharedTo = modTools.getSharedToParams();
+            // const sharedTo = modTools.getSharedToParams();
+            const sharedTo = true;
             if (sharedTo) {
-                if (typeof doIitNow != "boolean") {
-                    doIitNow = await modMdc.mkMDCdialogConfirm("proceed immediately?", "Yes", "No");
+                if (typeof doItNow != "boolean" && !doItNowIsPending) {
+                    doItNowIsPending = true;
+                    doItNow = await modMdc.mkMDCdialogConfirm("proceed immediately?", "Yes", "No");
+                    doItNowIsPending = false;
                 }
             } else {
-                doIitNow = false;
+                doItNow = false;
             }
-            console.log({ doIitNow });
+            console.log({ doIitNow: doItNow });
             await modTools.wait4mutations(document.body);
             const divWays = document.getElementById("div-ways");
             if (!divWays) throw Error(`Could not find element "div-ways"`);
             divWays.style.display = "block";
             await modTools.wait4mutations(document.body);
-            if (doIitNow) btnGo.click();
+            if (doItNow) btnGo.click();
         });
         return true;
     }
