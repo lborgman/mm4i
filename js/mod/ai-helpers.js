@@ -409,7 +409,12 @@ export async function generateMindMap(fromLink) {
             if (sharedTo) {
                 if (typeof doItNow != "boolean" && !doItNowIsPending) {
                     doItNowIsPending = true;
-                    doItNow = await modMdc.mkMDCdialogConfirm("proceed immediately?", "Yes", "No");
+                    // currentAI
+                    const currentAIname = /** @type {string} */ (settingUsedAIname.value);
+                    const body = mkElt("div", undefined, [
+                        `Proceed with current AI (${currentAIname})?`,
+                    ]);
+                    doItNow = await modMdc.mkMDCdialogConfirm(body, "Yes", "No");
                     doItNowIsPending = false;
                 }
             } else {
