@@ -323,6 +323,8 @@ export async function generateMindMap(fromLink) {
     /** @type {Promise<string>|undefined} */
     let promFetch;
 
+    let doIitNow;
+
     // const eltStatus = mkElt("div", undefined, "(empty)");
     const eltStatus = mkElt("div");
     eltStatus.style.minHeight = "1.25em";
@@ -398,9 +400,24 @@ export async function generateMindMap(fromLink) {
         btnGo.inert = false;
 
         // FIX-ME: some race condition here???
-        const divWays = document.getElementById("div-ways");
-        if (!divWays) throw Error(`Could not find element "div-ways"`);
-        divWays.style.display = "block";
+        // is automated
+        setTimeout(async () => {
+            const sharedTo = modTools.getSharedToParams();
+            if (sharedTo) {
+                if (typeof doIitNow != "boolean") {
+                    doIitNow = await modMdc.mkMDCdialogConfirm("proceed immediately?");
+                }
+            } else {
+                doIitNow = false;
+            }
+            console.log({ doIitNow });
+            await modTools.wait4mutations(document.body);
+            const divWays = document.getElementById("div-ways");
+            if (!divWays) throw Error(`Could not find element "div-ways"`);
+            divWays.style.display = "block";
+            await modTools.wait4mutations(document.body);
+            if (doIitNow) btnGo.click();
+        });
         return true;
     }
     // @ts-ignore
@@ -962,9 +979,9 @@ export async function generateMindMap(fromLink) {
             window.outputScroller.scrollToBottom();
             debugger;
         }
+        let cleaned, jsonAI, strAIonlyJson;
         try {
             // throw "TEST MY ERROR";
-            let cleaned, jsonAI, strAIonlyJson;
             if (tofLastResAI == "string") {
                 const res = getJsonFromAIstr(resAI);
                 strAIonlyJson = res.strAIjson;
@@ -1528,6 +1545,7 @@ export async function generateMindMap(fromLink) {
         const nameAI = k;
         // @ts-ignore
         const { company, urlDescription, qW, qA, android, urlImg, urlChat, isPWA, fun, urlAPIkey } = v;
+        if (!fun) return;
         const canReadYouTube = v.canReadYouTube;
         // const { qA, qW, android, urlImg, isPWA } = v; // "Gemini"
         const radAI = mkElt("input", { type: "radio", name: "ai", value: k });
@@ -1579,7 +1597,22 @@ export async function generateMindMap(fromLink) {
         wayIndicator.style.color = "blue";
         wayIndicator.style.display = "inline-flex";
         wayIndicator.style.alignItems = "center";
-        const lblAI = mkElt("label", undefined, [radAI, imgAI, eltAIname, wayIndicator]);
+
+        const iconKey = modMdc.mkMDCicon("key");
+        iconKey.classList.add("icon-has-key");
+        const iconKeyOff = modMdc.mkMDCicon("key_off");
+        iconKeyOff.classList.add("icon-no-key");
+
+        const eltAIend = mkElt("span", undefined, [wayIndicator, iconKey, iconKeyOff]);
+        eltAIend.classList.add("elt-ai-end");
+
+        const keyAPI = getUserAPIkeyForAI(nameAI);
+        const hasCommonKey = nameAI == "groq";
+        const hasKey = keyAPI || hasCommonKey;
+        if (hasKey) { eltAIend.classList.add("has-key"); }
+
+        // const lblAI = mkElt("label", undefined, [radAI, imgAI, eltAIname, wayIndicator]);
+        const lblAI = mkElt("label", undefined, [radAI, imgAI, eltAIname, eltAIend]);
         lblAI.classList.add("elt-ai-label");
         const sumAI = mkElt("summary", undefined, "");
         sumAI.classList.add("elt-ai-summary");
@@ -2494,14 +2527,16 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
     checkIsAIchoosen();
     // if (currentAIname == "") { return; }
 
+    /*
     if (isAutomatedAI(currentAIname)) {
         if (settingProceedAPI.value) {
-            const doIitNow = confirm(`AI ${currentAIname} is automated. Make mindmap directly?`);
+            // const doIitNow = confirm(`AI ${currentAIname} is automated. Make mindmap directly?`);
             if (!doIitNow) return;
             // "go"
             callNamedAI(currentAIname, promptAI);
         }
     }
+    */
 
 
     /**
@@ -3559,12 +3594,12 @@ async function callMistralAPI(userPrompt, apiKey) {
     const endpoint = "https://api.mistral.ai/v1/chat/completions"; // Verify endpoint in Mistral's docs
 
     const mistralModels = [
-        "mistral-small-3.1",
-        "mistral-medium-3",
+        // As of 2025-01-24
+        "mistral-small-latest",
+        "mistral-medium-latest",
         "mistral-large-latest",
-        "magistral-small",
-        "pixtral-latest",    // for multimodal tasks
-        "codestral-latest"  // for code generation
+        // "pixtral-latest",    // for multimodal tasks
+        // "codestral-latest"  // for code generation
     ];
 
     const requestBody = {

@@ -1711,8 +1711,10 @@
         }
 
         .elt-ai-label {
-            display: flex;
-            flex-direction: row;
+            /* display: flex; */
+            /* flex-direction: row; */
+            display: grid;
+            grid-template-columns: min-content min-content max-content 1fr;
             align-items: center;
             gap: 5px;
             margin-right: 30px;
@@ -1758,10 +1760,6 @@
             border-radius: 60px 4px 4px 60px;
         }
 
-        .elt-ai-name {
-            opacity: 0.5;
-        }
-
         .elt-ai-img {
             border-radius: 50%;
             height: 20px;
@@ -1769,6 +1767,36 @@
             background-size: cover;
             background-position: top left;
         }
+
+        .elt-ai-name {
+            opacity: 0.5;
+        }
+
+        .elt-ai-end {
+            display: inline-flex;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .icon-has-key {
+            display: none;
+            color: green;
+        }
+
+        .icon-no-key {
+            color: deepskyblue;
+        }
+
+        .elt-ai-end.has-key {
+            .icon-has-key {
+                display: unset;
+            }
+
+            .icon-no-key {
+                display: none;
+            }
+        }
+
 
 
         .elt-ai:has(input:checked) {
