@@ -405,7 +405,7 @@ export async function generateMindMap(fromLink) {
             const sharedTo = modTools.getSharedToParams();
             if (sharedTo) {
                 if (typeof doIitNow != "boolean") {
-                    doIitNow = await modMdc.mkMDCdialogConfirm("proceed immediately?");
+                    doIitNow = await modMdc.mkMDCdialogConfirm("proceed immediately?", "Yes", "No");
                 }
             } else {
                 doIitNow = false;
