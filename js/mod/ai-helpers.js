@@ -500,14 +500,13 @@ export async function generateMindMap(fromLink) {
             } else {
                 doItNow = false;
             }
-            // if (!doItNow) return;
-            // console.log({ doIitNow: doItNow });
+            inpLink.blur();
             await modTools.wait4mutations(document.body);
             const divWays = document.getElementById("div-ways");
             if (!divWays) throw Error(`Could not find element "div-ways"`);
             divWays.style.display = "block";
             await modTools.wait4mutations(document.body);
-            setTimeout(() => btnGo.focus(), 1000);
+            // setTimeout(() => btnGo.focus(), 1000);
             if (doItNow) btnGo.click();
         });
         return true;
