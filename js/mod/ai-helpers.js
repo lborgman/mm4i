@@ -63,8 +63,8 @@ const tempType2temperature = (tempType) => {
     }
 }
 
-const settingProceedAPI = new SettingsMm4iAI("proceed-api", true);
-const settingNotifyReadySec = new SettingsMm4iAI("notify-ready-api", 10);
+const settingProceedAPI = new SettingsMm4iAI("proceed-api", false);
+const settingNotifyReadySec = new SettingsMm4iAI("notify-ready-api", 30);
 
 /** @type {string|Object} resAI */ let lastResAI;
 /** @type {string} */ let tofLastResAI;
@@ -325,7 +325,7 @@ export async function generateMindMap(fromLink) {
 
     let doItNow;
     let doItNowIsPending = false;
-    console.log("%cdoItNow", "color:red; font-size:30px;", doItNow);
+    // console.log("%cdoItNow", "color:red; font-size:30px;", doItNow);
 
     // const eltStatus = mkElt("div", undefined, "(empty)");
     const eltStatus = mkElt("div");
@@ -412,14 +412,39 @@ export async function generateMindMap(fromLink) {
                     // currentAI
                     const currentAIname = /** @type {string} */ (settingUsedAIname.value);
                     const body = mkElt("div", undefined, [
-                        `Proceed with current AI (${currentAIname})?`,
+                        mkElt("h3", undefined, "Mindmaps 4 Internet"),
+                        mkElt("p", undefined, `Proceed with current AI (${currentAIname})?`),
                     ]);
-                    doItNow = await modMdc.mkMDCdialogConfirm(body, "Yes", "No");
+                    /** @type {HTMLButtonElement} */ let btnYes;
+                    const getYesBtn = (elt) => {
+                        btnYes = elt;
+                        checkRemaining();
+                    }
+                    const msStart = performance.now();
+                    let secRemaining = 7;
+                    const msWait = secRemaining * 1000;
+                    function checkRemaining() {
+                        const msElapsed = performance.now() - msStart;
+                        const msRemaining = msWait - msElapsed;
+                        const sec = Math.floor(msRemaining / 1000);
+                        if (sec != secRemaining) {
+                            secRemaining = sec;
+                            const strYes = `Yes (${sec})`;
+                            const lastChild = btnYes.lastElementChild;
+                            if (!lastChild) return;
+                            lastChild.textContent = strYes;
+                            // debugger;
+                        }
+                        if (secRemaining <= 0) { btnYes.click(); }
+                        if (secRemaining > 0) requestAnimationFrame(checkRemaining);
+                    }
+                    doItNow = await modMdc.mkMDCdialogConfirm(body, "Yes", "No", undefined, getYesBtn);
                     doItNowIsPending = false;
                 }
             } else {
                 doItNow = false;
             }
+            if (!doItNow) return;
             console.log({ doIitNow: doItNow });
             await modTools.wait4mutations(document.body);
             const divWays = document.getElementById("div-ways");
@@ -1207,11 +1232,11 @@ export async function generateMindMap(fromLink) {
         "Notify if took > ", inpNotify, " seconds"
     ]);
     const eltDivAIautomated = mkElt("div", { class: "mdc-card" }, [
-        mkElt("b", undefined, "For Automated AIs:"),
+        mkElt("div", undefined, lblNotify),
+        // mkElt("b", undefined, "For Automated AIs:"),
         lblProceed,
-        // mkElt("div", undefined, btnNotifyTest)
-        mkElt("div", undefined, lblNotify)
     ]);
+    // doItNow
     eltDivAIautomated.id = "div-ai-automated";
 
     const divOptions = mkElt("div", undefined, [eltDivAIautomated]);
@@ -2923,7 +2948,7 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
         const btnGo2 = document.getElementById("btn-ai-go");
         if (!btnGo2) throw Error(`Did not find "btn-ai-go"`);
         let wasError = res instanceof Error;
-        debugger;
+        // debugger;
         const modMdc = await importFc4i("util-mdc");
         if (wasError) {
             console.error(res);
