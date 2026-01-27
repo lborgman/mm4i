@@ -321,7 +321,9 @@ export async function generateMindMap(fromLink) {
     initAItextarea = onAItextareaInput;
 
     /** @type {Promise<string>|undefined} */
-    let promFetch;
+    // let promFetch;
+    /** @type {Object.<String, Promise<string>>} */
+    const promFetch = {}; // cache
 
     let doItNow = false;
     let doItNowIsPending = false;
@@ -340,12 +342,12 @@ export async function generateMindMap(fromLink) {
         divPrompt.inert = true;
         btnGo.inert = true;
         // FIX-ME: cancel fetch
-        promFetch = undefined;
+        // promFetch = undefined;
         debouncedCheckInpLink();
     });
     inpLink.addEventListener("change", async () => {
         // FIX-ME: cancel fetch
-        promFetch = undefined;
+        // promFetch = undefined;
         debouncedCheckInpLink();
     });
 
@@ -505,6 +507,7 @@ export async function generateMindMap(fromLink) {
             if (!divWays) throw Error(`Could not find element "div-ways"`);
             divWays.style.display = "block";
             await modTools.wait4mutations(document.body);
+            setTimeout(() => btnGo.focus(), 1000);
             if (doItNow) btnGo.click();
         });
         return true;
@@ -607,9 +610,9 @@ export async function generateMindMap(fromLink) {
 
         if (!needToFetch) { return makeReturnPromptData("link", linkSource); }
 
-        promFetch = promFetch ||
+        promFetch[linkSource] = promFetch[linkSource] ||
             modTools.fetchIt(linkSource);
-        const obj = await promFetch;
+        const obj = await promFetch[linkSource];
         const content = obj.content;
         return makeReturnPromptData("text", content);
     }
@@ -765,11 +768,17 @@ export async function generateMindMap(fromLink) {
         */
     }
 
+    // @return {Promise<AIpromptData>}
+    /* @type {Object.<String, Promise<string>>} */
+    // const promFetch = {}; // cache
+
     async function getAIprompt() {
         const linkSource = inpLink.value.trim();
-        const promptData = await getAIpromptData(linkSource);
+        // const promptData = await getAIpromptData(linkSource);
+        promFetch[linkSource] = promFetch[linkSource] || await getAIpromptData(linkSource);
         // console.log({ promptData });
-        const prompt = makeAIprompt(promptData);
+        // const prompt = makeAIprompt(promptData);
+        const prompt = makeAIprompt(promFetch[linkSource]);
         return prompt;
     }
     async function getAIpromptAndErrors() {
