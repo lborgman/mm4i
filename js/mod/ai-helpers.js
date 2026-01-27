@@ -323,7 +323,7 @@ export async function generateMindMap(fromLink) {
     /** @type {Promise<string>|undefined} */
     let promFetch;
 
-    let doItNow;
+    let doItNow = false;
     let doItNowIsPending = false;
     // console.log("%cdoItNow", "color:red; font-size:30px;", doItNow);
 
@@ -407,7 +407,8 @@ export async function generateMindMap(fromLink) {
             // const sharedTo = modTools.getSharedToParams();
             const sharedTo = true;
             if (sharedTo) {
-                if (typeof doItNow != "boolean" && !doItNowIsPending) {
+                // if (typeof doItNow != "boolean" && !doItNowIsPending) {
+                if (!doItNowIsPending) {
                     doItNowIsPending = true;
                     // currentAI
                     const currentAIname = /** @type {string} */ (settingUsedAIname.value);
@@ -444,8 +445,8 @@ export async function generateMindMap(fromLink) {
             } else {
                 doItNow = false;
             }
-            if (!doItNow) return;
-            console.log({ doIitNow: doItNow });
+            // if (!doItNow) return;
+            // console.log({ doIitNow: doItNow });
             await modTools.wait4mutations(document.body);
             const divWays = document.getElementById("div-ways");
             if (!divWays) throw Error(`Could not find element "div-ways"`);
