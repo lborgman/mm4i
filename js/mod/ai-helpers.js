@@ -412,9 +412,61 @@ export async function generateMindMap(fromLink) {
                     doItNowIsPending = true;
                     // currentAI
                     const currentAIname = /** @type {string} */ (settingUsedAIname.value);
+                    const infoAI = infoAIs[currentAIname];
+                    const urlImg = infoAI.urlImg;
+                    const imgAI = mkElt("span", { class: "elt-ai-img" });
+                    if (currentAIname == "Le Chat") {
+                        imgAI.style.backgroundSize = "contain";
+                    }
+                    imgAI.style.backgroundImage = `url(${urlImg})`;
+
+                    // const iconAI = modMdc.mkMDCicon("info"); // FIX-ME:
+                    const eltCurrent = mkElt("span", undefined, [imgAI, currentAIname]);
+                    eltCurrent.classList.add("elt-ai");
+                    eltCurrent.style.display = "inline-flex";
+                    eltCurrent.style.alignItems = "center";
+                    // eltCurrent.style.justifyContent = "flex-start";
+                    eltCurrent.style.gap = "5px";
+                    eltCurrent.style.paddingLeft = "6px";
+                    eltCurrent.style.paddingRight = "6px";
+                    eltCurrent.style.width = "fit-content";
+                    // eltCurrent.style.backgroundColor = "#0006";
+                    // eltCurrent.style.borderRadius = "50%";
+                    // eltCurrent.style.borderRadius = "18px";
+                    // eltCurrent.style.padding = "6px";
+                    // eltCurrent.style.marginLeft = "20px";
+                    // btn-ai-go
+                    // elt-ai-img
+                    // infoAIs
+                    // const btnDownload = modMdc.mkMDCiconButton("downloading", "Get mindmap", 40);
+                    const iconDownload = modMdc.mkMDCicon("downloading");
+                    // iconDownload.style.padding = "4px";
+                    const spanDownload = mkElt("span", undefined, iconDownload);
+                    spanDownload.style.backgroundColor = "#0006";
+                    spanDownload.style.color = "yellow";
+                    spanDownload.style.display = "flex";
+                    spanDownload.style.justifyContent = "center";
+                    spanDownload.style.alignItems = "center";
+                    spanDownload.style.padding = "4px";
+                    spanDownload.style.borderRadius = "50%";
+                    // FIX-ME: save the download!
+                    modTools.fetchIt(linkSource).then(_d => {
+                        // debugger;
+                        spanDownload.style.color = "greenyellow";
+                    });
+                    const divState = mkElt("div", undefined, [
+                        spanDownload,
+                        eltCurrent,
+                    ]);
+                    divState.style.display = "flex";
+                    divState.style.justifyContent = "flex-start";
+                    divState.style.gap = "20px";
                     const body = mkElt("div", undefined, [
                         mkElt("h3", undefined, "Mindmaps 4 Internet"),
-                        mkElt("p", undefined, `Proceed with current AI (${currentAIname})?`),
+                        divState,
+                        mkElt("p", undefined, [
+                            `Proceed with current AI?`,
+                        ]),
                     ]);
                     /** @type {HTMLButtonElement} */ let btnYes;
                     const getYesBtn = (elt) => {
@@ -422,7 +474,7 @@ export async function generateMindMap(fromLink) {
                         checkRemaining();
                     }
                     const msStart = performance.now();
-                    let secRemaining = 7;
+                    let secRemaining = 17;
                     const msWait = secRemaining * 1000;
                     function checkRemaining() {
                         const msElapsed = performance.now() - msStart;
@@ -436,8 +488,9 @@ export async function generateMindMap(fromLink) {
                             lastChild.textContent = strYes;
                             // debugger;
                         }
-                        if (secRemaining <= 0) { btnYes.click(); }
                         if (secRemaining > 0) requestAnimationFrame(checkRemaining);
+                        return; // FIX-ME:
+                        if (secRemaining <= 0) { btnYes.click(); }
                     }
                     doItNow = await modMdc.mkMDCdialogConfirm(body, "Yes", "No", undefined, getYesBtn);
                     doItNowIsPending = false;
