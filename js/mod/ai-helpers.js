@@ -1694,6 +1694,8 @@ export async function generateMindMap(fromLink) {
         wayIndicator.style.color = "blue";
         wayIndicator.style.display = "inline-flex";
         wayIndicator.style.alignItems = "center";
+        wayIndicator.style.display = "none";
+
 
         const iconKey = modMdc.mkMDCicon("key");
         iconKey.classList.add("icon-has-key");
@@ -1715,7 +1717,8 @@ export async function generateMindMap(fromLink) {
         sumAI.classList.add("elt-ai-summary");
         const showCompany = company ? company : "unknown";
 
-        // const eltLabelCurrentWay = mkElt("b", undefined, `What you must do (${way}${q}): `);
+        const eltCurrentWay = mkElt("div");
+        /*
         const eltLabelCurrentWay = mkElt("b", undefined, `${way}${q}, what to do: `);
         const eltCurrentWay = mkElt("div", undefined, eltLabelCurrentWay);
         eltCurrentWay.style = `
@@ -1755,6 +1758,7 @@ export async function generateMindMap(fromLink) {
                 eltCurrentWay.append(`ERROR: no instructions yet for "${way}"`);
 
         }
+        */
 
         const eltCompany = urlDescription ?
             // mkElt("span", undefined, "HAVE urlDescription")
@@ -1768,7 +1772,7 @@ export async function generateMindMap(fromLink) {
             mkElt("span", undefined, `${nameAI} (from ${showCompany})`);
         const divDetAIcontent = mkElt("div", undefined, [
             eltCompany,
-            eltCurrentWay,
+            // eltCurrentWay,
         ]);
         divDetAIcontent.classList.add("elt-ai-det-content");
         if (nameAI == "HuggingFace") {
@@ -1792,35 +1796,45 @@ export async function generateMindMap(fromLink) {
             });
             // @ts-ignore
             const lblYourAPIkey = mkElt("label", undefined, [`Your API key for ${nameAI}: `, inpAPIkey]);
+            lblYourAPIkey.style.display = "flex";
+            lblYourAPIkey.style.flexDirection = "column";
+            lblYourAPIkey.style.gap = "5px";
+
             inpAPIkey.style.width = "100%";
 
-            const divAPIinfo = mkElt("div", undefined, [
-                // mkElt("div", undefined, "Automation needs an API key.")
-                "Automation needs an API key. "
+            const aAPIkey = mkElt("a", {
+                href: urlAPIkey,
+                target: "_blank"
+            }, `here`);
+            const divNeedsAPIkey = mkElt("div", undefined, [
+                mkElt("div", undefined, [
+                    mkElt("b", undefined, nameAI),
+                    ` needs an API key.`,
+                    " Get a key ", aAPIkey
+                    // here
+                ])
             ]);
-            if (urlAPIkey) {
-                const aAPIkey = mkElt("a", {
-                    href: urlAPIkey,
-                    target: "_blank"
-                }, `here`);
-                if (nameAI == "groq") {
-                    const commonKey = getCommonAPIkey("groq");
-                    const free = commonKey != "";
-                    const divGroqExtra = mkElt("div", undefined, [
-                        mkElt("p", undefined, [
-                            `groq is our default AI because it is much faster than the others.
-                            For groq we try to provide free use. `,
-                            mkElt("i", { style: (free ? "color:green" : "color:red") },
-                                (!free) ?
-                                    `However at the moment you must get your own API key for croq.`
-                                    :
-                                    "Right now you do not need your own API key for croq."
-                            )
-                        ]),
-                    ]);
-                    divGroqExtra.id = "div-groq-extra";
-                    divAPIinfo.insertBefore(divGroqExtra, divAPIinfo.firstChild);
-                    /*
+            divNeedsAPIkey.classList.add("div-api-need-key");
+
+            let free = false;
+            if (nameAI == "groq") {
+                const commonKey = getCommonAPIkey("groq");
+                free = commonKey != "";
+                const divGroqExtra = mkElt("div", undefined, [
+                    mkElt("div", undefined, [
+                        mkElt("b", undefined, nameAI),
+                        ` is our default AI because it is much faster than the others.
+                            And we can provide free use of it at the moment.
+                            `,
+                    ]),
+                    mkElt("div", undefined, [
+                        `However it is not always very precise.
+                        We suggest you use the option "careful" below.`
+                    ]),
+                ]);
+                divGroqExtra.id = "div-groq-extra";
+                divDetAIcontent.appendChild(divGroqExtra);
+                /*
 UTC Time Window,Likelihood of Rate Limits / Slowdowns on Free Tier,Notes
 16:00 – 00:00 UTC,Very High,Peak period
 00:00 – 04:00 UTC,High,US evening + early Asia overlap
@@ -1838,18 +1852,27 @@ RPM (Requests Per Minute),30,Max API calls per minute,"Rapid loops or chat strea
 TPM (Tokens Per Minute),"6,000",Max input + output tokens processed per minute,"A single prompt/output combo over ~6K tokens (e.g., long context or verbose responses) exceeds it—most frequent cause for 429s"
 RPD (Requests Per Day),"14,400",Max API calls per 24 hours,"Fine for light dev, but batch jobs add up"
 TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent to ~80–100 medium-length chats; resets daily
-                    */
-                }
-                const spanAPIkeyInfo = mkElt("span", undefined, [" You can get your own API key ", aAPIkey, "."]);
-                divAPIinfo.appendChild(spanAPIkeyInfo);
-
-            } else {
-                divAPIinfo.appendChild(mkElt("span", undefined, ` (Where to get it for ${nameAI}?)`));
+                */
             }
-            divDetAIcontent.appendChild(divAPIinfo);
-            divDetAIcontent.appendChild(lblYourAPIkey);
+            console.log(nameAI, free);
+            if (!free) {
+                console.log("--- adding you can get...");
+                // const spanAPIkeyInfo = mkElt("span", undefined, [" You can get your own API key ", aAPIkey, "."]);
+                // divAPIinfo.appendChild(spanAPIkeyInfo);
+
+                // divNeedsAPIkey.appendChild(lblYourAPIkey);
+                divDetAIcontent.appendChild(divNeedsAPIkey);
+                divDetAIcontent.appendChild(lblYourAPIkey);
+            }
+
+            // } else {
+            // divAPIinfo.appendChild(mkElt("span", undefined, ` (Where to get it for ${nameAI}?)`));
+            // }
+
+            //divDetAIcontent.appendChild(divAPIinfo);
+            // divDetAIcontent.appendChild(lblYourAPIkey);
             if (nameAI == "groq") {
-                const divTemperature = mkElt("p", undefined, "AI working style:");
+                const divTemperature = mkElt("div", undefined, mkElt("b", undefined, `Choose ${nameAI} working style:`));
                 divTemperature.id = "div-llm-temperature";
                 divDetAIcontent.appendChild(divTemperature);
 

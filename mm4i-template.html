@@ -1726,15 +1726,18 @@
         }
 
         .elt-ai.ai-default .elt-ai-label::after {
-            content: "Default";
+            content: "Free";
             font-size: 0.8rem;
             font-style: italic;
             position: absolute;
-            top: 2px;
-            left: 140px;
+            top: 25px;
+            /* bottom: 20px; */
+            /* left: 140px; */
+            right: 40px;
             padding: 4px;
             border-radius: 4px;
             background: greenyellow;
+            background: gold;
         }
 
 
@@ -1747,6 +1750,7 @@
         .elt-ai-det-content {
             margin-left: 25px;
             margin-top: 10px;
+            margin-bottom: 10px;
             border-top: 0.5px solid;
             display: flex;
             gap: 15px;
@@ -1793,6 +1797,12 @@
             }
 
             .icon-no-key {
+                display: none;
+            }
+        }
+
+        .elt-ai .elt-ai-end.has-key {
+            .icon-has-key {
                 display: none;
             }
         }
