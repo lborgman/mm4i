@@ -41,6 +41,7 @@ const settingPuterAImodel = new SettingsMm4iAI("puter-ai-model", "");
 // const settingHuggingFaceAImodel = new SettingsMm4iAI("hugging-face-ai-model", "");
 const settingUsedAIname = new SettingsMm4iAI("used-ai-name", "groq");
 
+
 const settingTemperatureType = new SettingsMm4iAI("ai-temperature-type", "careful");
 const arrTemperatureTypes = ["careful", "normal", "creative"];
 /**
@@ -63,6 +64,30 @@ const tempType2temperature = (tempType) => {
             return 0.15;
     }
 }
+
+
+// Suggested models for summaries by Claude AI 2026-01
+const groqModels = [
+    {
+        name: "GPT-OSS 120B",
+        id: "openai/gpt-oss-120b",
+        description: "Highest quality (largest model) - Slower"
+    },
+    {
+        name: "Llama 3.3 70B Versatile",
+        id: "llama-3.3-70b-versatile",
+        description: "Best all-around for summaries - Fast"
+    },
+    {
+        name: "Qwen 3 32B",
+        id: "qwen/qwen3-32b",
+        description: "Good balance, higher request limits - Very fast"
+    },
+];
+const defaultGroqModel = groqModels[0].id;
+const settingGroqModel = new SettingsMm4iAI("ai-groq-model", defaultGroqModel);
+
+
 
 const settingProceedAPI = new SettingsMm4iAI("proceed-api", false);
 const settingNotifyReadySec = new SettingsMm4iAI("notify-ready-api", 30);
@@ -1914,6 +1939,25 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
             //divDetAIcontent.appendChild(divAPIinfo);
             // divDetAIcontent.appendChild(lblYourAPIkey);
             if (nameAI == "groq") {
+
+                const divGroqModels = mkElt("div", undefined, mkElt("b", undefined, `Choose groq model:`));
+                divGroqModels.id = "div-groq-models";
+                divDetAIcontent.appendChild(divGroqModels);
+                const groqModel = settingGroqModel.valueS;
+                groqModels.forEach(model => {
+                    const rad = mkElt("input", { type: "radio", name: "groq-model", value: model.id });
+                    if (model.id == groqModel) rad.checked = true;
+                    const lbl = mkElt("label", undefined, [rad, model.description]);
+                    const div = mkElt("div", undefined, lbl);
+                    divGroqModels.appendChild(div);
+                });
+                divGroqModels.addEventListener("change", evt => {
+                    const newModel = evt.target.value;
+                    console.log({ newTemp: newModel });
+                    settingGroqModel.value = newModel;
+                });
+
+
                 const divTemperature = mkElt("div", undefined, mkElt("b", undefined, `Choose ${nameAI} working style:`));
                 divTemperature.id = "div-llm-temperature";
                 divDetAIcontent.appendChild(divTemperature);
@@ -2115,8 +2159,8 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
             await modMdc.mkMDCdialogConfirm(body, "OK");
             debugger;
             const eltsAInoKey = document.getElementById("elts-ai");
-            const spanAInames = [... eltsAInoKey?.querySelectorAll("span.elt-ai-name")]
-            const spanAIname =spanAInames.find(e => e.textContent == nameAI);
+            const spanAInames = [...eltsAInoKey?.querySelectorAll("span.elt-ai-name")]
+            const spanAIname = spanAInames.find(e => e.textContent == nameAI);
             console.log(spanAIname);
             debugger;
             const eltAI = spanAIname.closest("div.elt-ai");
@@ -4092,7 +4136,7 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
         const temperature = tempType2temperature(settingTemperatureType.valueS);
         const postBody =
         {
-            model: 'llama-3.1-8b-instant',
+            model: settingGroqModel.valueS,
             messages: [message0],
             max_tokens: 3000,
             temperature: temperature
