@@ -36,6 +36,7 @@ class SettingsMm4iAI extends modLocalSettings.LocalSetting {
      */
     constructor(key, defaultValue) { super("mm4i-settings-ai-", key, defaultValue); }
 }
+const settingOnlyYourAIs = new SettingsMm4iAI("only-your-ai-s", true);
 const settingPuterAImodel = new SettingsMm4iAI("puter-ai-model", "");
 // const settingHuggingFaceAImodel = new SettingsMm4iAI("hugging-face-ai-model", "");
 const settingUsedAIname = new SettingsMm4iAI("used-ai-name", "groq");
@@ -200,7 +201,8 @@ const infoAIs = {
         urlDescription: "https://console.groq.com/",
         fun: callGroqAPI,
         urlAPIkey: "https://console.groq.com/keys",
-        urlImg: "./img/groq-image.svg"
+        urlImg: "./img/groq-image.svg",
+        freeAI: true
     }),
 
     "Hugging Face": mkAIinfo({
@@ -1271,14 +1273,30 @@ export async function generateMindMap(fromLink) {
     divEltsAI.id = "elts-ai";
     divEltsAI.style.marginBottom = "10px";
 
+    /*
     const btnShowAllAIs = modMdc.mkMDCbutton("All AI:s", "outlined");
     btnShowAllAIs.id = "btn-show-all-ais";
     btnShowAllAIs.addEventListener("click", evt => {
         evt.stopPropagation();
         const e = document.getElementById("elts-ai");
         if (!e) throw Error("Could not find #elts-ai");
-        e.classList.remove("show-only-selected-ai");
+        e.classList.remove("only-your-ai-s");
     });
+    */
+    // const chkUseableAIs = mkElt("input", {type:"checkbox"});
+    const chkYourAIs = settingOnlyYourAIs.getInputElement();
+    chkYourAIs.addEventListener("change", _evt => {
+        const div = document.getElementById("elts-ai");
+        if (!div) return;
+        const cl = div.classList;
+        if (chkYourAIs.checked) {
+            cl.add("only-your-ai-s");
+        } else {
+            cl.remove("only-your-ai-s");
+        }
+    });
+    const lblYourAIs = mkElt("label", undefined, [chkYourAIs, "Only your AI:s"]);
+
 
 
     // the ai options
@@ -1293,10 +1311,29 @@ export async function generateMindMap(fromLink) {
     const lblNotify = mkElt("label", undefined, [
         "Notify if took > ", inpNotify, " seconds"
     ]);
+    const divInfoYourAIs = mkElt("p", undefined,
+        `Your available AI:s are our free AI and those for which you have added your own API key.`
+    );
+
+    const iconUseableAIs = modMdc.mkMDCicon("info");
+    iconUseableAIs.style.marginLeft = "20px";
+    iconUseableAIs.addEventListener("click", evt => {
+        evt.stopImmediatePropagation();
+        eltDivAIautomated.appendChild(divInfoYourAIs);
+    }
+
+    )
+    const divUsebleAIs = mkElt("div", undefined, [
+        lblYourAIs,
+        iconUseableAIs,
+        // divInfoUseableAIs
+    ]);
+    divUsebleAIs.style.display = "flex";
+
     const eltDivAIautomated = mkElt("div", { class: "mdc-card" }, [
         mkElt("div", undefined, lblNotify),
-        // mkElt("b", undefined, "For Automated AIs:"),
-        lblProceed,
+        divUsebleAIs,
+        // lblProceed,
     ]);
     // doItNow
     eltDivAIautomated.id = "div-ai-automated";
@@ -1304,8 +1341,8 @@ export async function generateMindMap(fromLink) {
     const divOptions = mkElt("div", undefined, [eltDivAIautomated]);
     divOptions.style.marginLeft = "20px";
     divOptions.style.paddingBottom = "20px";
-    const sumOptions = mkElt("summary", undefined, "Options");
-    sumOptions.style = "position:absolute; right:0; top:0";
+    const sumOptions = mkElt("summary", undefined, "Options for AI:s");
+    sumOptions.style = "NOposition:absolute; right:0; top:0";
     const detOptions = mkElt("details", undefined, [
         sumOptions,
         divOptions,
@@ -1316,13 +1353,17 @@ export async function generateMindMap(fromLink) {
     const spanH = mkElt("span"); // This is just for the height!
     spanH.style = "width:0px;height:40px;background:red;display:inline-block;";
 
+    /*
     const divB = mkElt("div", undefined, [
         spanH,
         btnShowAllAIs,
     ]);
     divB.style.display = "flex";
+    */
+
     const divShowAllAIs = mkElt("div", undefined, [
-        divB,
+        // divB,
+        // lblUsebleAIs,
         detOptions
     ]);
     divShowAllAIs.style =
@@ -1641,7 +1682,7 @@ export async function generateMindMap(fromLink) {
         const [k, v] = e;
         const nameAI = k;
         // @ts-ignore
-        const { company, urlDescription, qW, qA, android, urlImg, urlChat, isPWA, fun, urlAPIkey } = v;
+        const { company, urlDescription, qW, qA, android, urlImg, urlChat, isPWA, fun, urlAPIkey, freeAI } = v;
         if (!fun) return;
         const canReadYouTube = v.canReadYouTube;
         // const { qA, qW, android, urlImg, isPWA } = v; // "Gemini"
@@ -1709,6 +1750,7 @@ export async function generateMindMap(fromLink) {
         const hasCommonKey = nameAI == "groq";
         const hasKey = keyAPI || hasCommonKey;
         if (hasKey) { eltAIend.classList.add("has-key"); }
+
 
         // const lblAI = mkElt("label", undefined, [radAI, imgAI, eltAIname, wayIndicator]);
         const lblAI = mkElt("label", undefined, [radAI, imgAI, eltAIname, eltAIend]);
@@ -1894,6 +1936,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
                 });
             }
         }
+        /*
         if (isAndroid) {
             if (android) {
                 let strCan = "Can start Android app";
@@ -1909,6 +1952,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
                 divDetAIcontent.appendChild(mkElt("span", undefined, strCan));
             }
         }
+        */
 
 
         const detAI = mkElt("details", undefined, [
@@ -1917,6 +1961,8 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
         ]);
         const eltAI = mkElt("div", undefined, [lblAI, detAI]);
         eltAI.classList.add("elt-ai");
+        if (hasKey) { eltAI.classList.add("ai-your"); } // elt-ai
+        if (freeAI) { eltAI.classList.add("ai-free"); }
         if (canReadYouTube) { eltAI.classList.add("ai-can-read-youtube"); }
         if (nameAI == settingUsedAIname.defaultValue()) {
             eltAI.classList.add("ai-default");
@@ -1949,7 +1995,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
         divUserSteps.textContent = "";
         divUserSteps.appendChild(mkElt("div", undefined, "Steps:"));
         getWhatToDoForUser(nameAI, divUserSteps);
-        divEltsAI.classList.add("show-only-selected-ai");
+        divEltsAI.classList.add("only-your-ai-s");
         window.outputScroller.scrollToBottom();
     }
     {
@@ -2051,30 +2097,59 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
 
         setCliboardInert(true);
 
+        const infoThisAI = infoAIs[nameAI];
+        if (!infoThisAI) { throw Error(`Did not find info for AI "${nameAI}"`); }
+
         const { way } = getWayToCallAI(nameAI);
         if (way != "API") {
             await modTools.copyTextToClipboard(userPrompt);
             divGoStatus.textContent = "Copied prompt. ";
-            // document.documentElement.classList.add("have-ai-on-clipboard");
-            // mayHaveAIonClipboard();
+        }
+        const isAPI = way == "API";
+        if (!isAPI) throw Error(`way: ${way} !== "API"`);
+
+        const keyAPI = getAPIkeyForAI(nameAI);
+        if (!keyAPI || keyAPI.length < 6) {
+            // alert(`You need an API key for ${nameAI}, I will show you!`);
+            const body = mkElt("p", undefined, `You need an API key for ${nameAI}, I will show you!`);
+            await modMdc.mkMDCdialogConfirm(body, "OK");
+            debugger;
+            const eltsAInoKey = document.getElementById("elts-ai");
+            const spanAInames = [... eltsAInoKey?.querySelectorAll("span.elt-ai-name")]
+            const spanAIname =spanAInames.find(e => e.textContent == nameAI);
+            console.log(spanAIname);
+            debugger;
+            const eltAI = spanAIname.closest("div.elt-ai");
+            const sum = eltAI.querySelector("details summary");
+            const det = sum.parentElement;
+            det.open = true;
+            const divInfo = det.querySelector("div.div-api-need-key");
+            divInfo.style.backgroundColor = "orange";
+            divInfo.style.padding = "4px";
+            divInfo.style.borderRadius = "3px";
+            const inp = det.querySelector("input");
+            await modTools.wait4mutations(eltAI);
+            inp.focus();
+            eltAI.scrollIntoView();
+            return;
         }
 
-        const isAPI = way == "API";
-        // setCSSforAIautomated(isAPI);
-        // setCSSforAIonClipboard(!isAPI);
-        // setCSSforAIonClipboard(true);
 
         nameUsedAI = nameAI
+        /*
         if (nameAI == "none") {
             divGoStatus.append(", no AI selected. Go to the AI you want and paste the prompt there.");
             return;
         }
+        */
 
         // if (nameAI != "PuterJs" && nameAI != "HuggingFace") {
+        /*
         if (nameAI != "PuterJs") {
             const infoThisAI = infoAIs[nameAI];
             if (!infoThisAI) { throw Error(`Did not find info for AI "${nameAI}"`); }
         }
+        */
 
         // getWhatToDoForUser(nameAI, divUserSteps);
 
@@ -2389,6 +2464,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
             listAPI.appendChild(divAPIinfo);
             listAPI.appendChild(lbl);
         }
+        /*
         if (isAndroid) {
             if (android) {
                 const listAndroid = mkElt("list");
@@ -2398,6 +2474,8 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
                 listAndroid.appendChild(mkElt("span", undefined, strCan));
             }
         }
+        */
+        /*
         if (urlChat) {
             if (qW) {
                 const listWeb = mkElt("list");
@@ -2406,6 +2484,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
                 listWeb.appendChild(mkElt("span", undefined, strCan));
             }
         }
+        */
 
         const numDetails = ulAIdetails.childElementCount;
         // console.log(nameAI, { numDetails });
@@ -2880,6 +2959,7 @@ async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
  */
 function getWayToCallAI(nameAI) {
     if (typeof nameAI != "string") throw Error("nameAI was not string");
+    return { way: "API", copyQ: false, hasWebAPI: false }
     if (nameAI == "groq") {
         return { way: "API", copyQ: false, hasWebAPI: false }
     }
