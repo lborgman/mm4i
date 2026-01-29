@@ -4161,9 +4161,30 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
 
     if (!response.ok) {
         const errorText = await response.text();
-        const errorJson = JSON.parse(errorText);
-        console.log({ errorJson });
+        let errorJson;
         debugger;
+        try {
+            errorJson = JSON.parse(errorText);
+            console.log({ errorJson });
+        } catch (err) {
+            throw Error(`errotText was not JSON: ${errorText}`)
+        }
+        let errObj;
+        try {
+            errObj = JSON.parse(errorJson.error)
+        } catch (err) {
+            throw Error(`errotJson.error was not JSON: ${errorJson.error}`)
+        }
+        switch (errObj.code) {
+            case "json_validate_failed":
+                return handleErrorText(response.status, `failed_generation: ${errObj.failed_generation}`);
+            default:
+                {
+                    const code = errObj.code;
+                    const message = errObj.message;
+                    return handleErrorText(response.status, `Unknown err code: ${code}, "${message}"`);
+                }
+        }
         return handleErrorText(response.status, errorText);
     }
     /**
@@ -4430,20 +4451,20 @@ function fixMalformedJSON1(str) {
 function _testFixMalformedJSON1() {
     debugger; // eslint-disable-line no-debugger
     const malformedJSON = `{
-    "id": 3,
-    "name": "Mindfulness",
-    "parentid": 1,
-    "notes":**
-**Present-Moment Awareness**
-- Focusing on the body and breath
-- Observing thoughts and emotions
-- Practicing non-judgment
+                        "id": 3,
+                        "name": "Mindfulness",
+                        "parentid": 1,
+                        "notes":**
+** Present - Moment Awareness**
+                    - Focusing on the body and breath
+                    - Observing thoughts and emotions
+                    - Practicing non - judgment
 ## Mindfulness Techniques
-- Mindfulness meditation
-- Body scan
-- Walking meditation
+                    - Mindfulness meditation
+                    - Body scan
+                    - Walking meditation
 "
-}`;
+} `;
 
     const fixedJSON = fixMalformedJSON1(malformedJSON);
     console.log('Fixed JSON 1:', fixedJSON);
@@ -4472,7 +4493,7 @@ function fixMalformedJSON2(str) {
             .replace(/\t/g, '\\t');
 
         // Return properly formatted
-        return `"notes": "${cleanValue}"${ending}`;
+        return `"notes": "${cleanValue}"${ending} `;
     });
 }
 
@@ -4480,20 +4501,20 @@ function fixMalformedJSON2(str) {
 function _testFixMalformedJSON2() {
     // Example usage
     const malformedJSON = `{
-    "id": 3,
-    "name": "Mindfulness",
-    "parentid": 1,
-    "notes":**
-**Present-Moment Awareness**
-- Focusing on the body and breath
-- Observing thoughts and emotions
-- Practicing non-judgment
+                    "id": 3,
+                        "name": "Mindfulness",
+                            "parentid": 1,
+                                "notes":**
+** Present - Moment Awareness **
+                        - Focusing on the body and breath
+                            - Observing thoughts and emotions
+                                - Practicing non - judgment
 ## Mindfulness Techniques
-- Mindfulness meditation
-- Body scan
-- Walking meditation
-"
-}`;
+                        - Mindfulness meditation
+                            - Body scan
+                                - Walking meditation
+                    "
+                } `;
 
     const fixedJSON = fixMalformedJSON2(malformedJSON);
     console.log('Fixed JSON 2:', fixedJSON);
@@ -4522,7 +4543,7 @@ function fixMalformedJSON3(str) {
             .replace(/\t/g, '\\t');
 
         // Return properly formatted
-        return `"notes": "${cleanValue}"${ending}`;
+        return `"notes": "${cleanValue}"${ending} `;
     });
 
     // Second, fix "notes" arrays - convert them to a single string
@@ -4546,20 +4567,20 @@ function fixMalformedJSON3(str) {
 function _testFixMalformedJSON3() {
     // Example usage - Test 1: Unquoted notes value
     const malformedJSON1 = `{
-    "id": 3,
-    "name": "Mindfulness",
-    "parentid": 1,
-    "notes":**
-**Present-Moment Awareness**
-- Focusing on the body and breath
-- Observing thoughts and emotions
-- Practicing non-judgment
+                    "id": 3,
+                        "name": "Mindfulness",
+                            "parentid": 1,
+                                "notes":**
+** Present - Moment Awareness **
+                        - Focusing on the body and breath
+                            - Observing thoughts and emotions
+                                - Practicing non - judgment
 ## Mindfulness Techniques
-- Mindfulness meditation
-- Body scan
-- Walking meditation
-"
-}`;
+                        - Mindfulness meditation
+                            - Body scan
+                                - Walking meditation
+                    "
+                } `;
 
     console.log('Test 1(3): Unquoted notes value');
     const fixedJSON1 = fixMalformedJSON3(malformedJSON1);
@@ -4574,11 +4595,11 @@ function _testFixMalformedJSON3() {
 
     // Test 2: Array notes value
     const malformedJSON2 = `{
-    "id": 4,
-    "name": "Acceptance",
-    "parentid": 1,
-    "notes": ["First paragraph with text", "Second paragraph with more text", "Third paragraph"]
-}`;
+                    "id": 4,
+                        "name": "Acceptance",
+                            "parentid": 1,
+                                "notes": ["First paragraph with text", "Second paragraph with more text", "Third paragraph"]
+                } `;
 
     console.log('\nTest 2(3): Array notes value');
     const fixedJSON2 = fixMalformedJSON3(malformedJSON2);
