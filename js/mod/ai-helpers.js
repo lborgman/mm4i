@@ -1763,18 +1763,45 @@ export async function generateMindMap(fromLink) {
         wayIndicator.style.display = "none";
 
 
-        const iconKey = modMdc.mkMDCicon("key");
-        iconKey.classList.add("icon-has-key");
-        const iconKeyOff = modMdc.mkMDCicon("key_off");
-        iconKeyOff.classList.add("icon-no-key");
+        function mkIconHasKey() {
+            const iconKey = modMdc.mkMDCicon("key");
+            iconKey.classList.add("icon-has-key");
+            return iconKey;
+        }
+        function mkIconKeyOff() {
+            const iconKeyOff = modMdc.mkMDCicon("key_off");
+            iconKeyOff.classList.add("icon-no-key");
+            return iconKeyOff;
+        }
+        function mkIconFreeKey() {
+            let iconFreeKey;
+            iconFreeKey = modMdc.mkMDCicon("loyalty");
+            iconFreeKey = modMdc.mkMDCicon("lock_open");
+            iconFreeKey = modMdc.mkMDCicon("favorite");
 
-        const eltAIend = mkElt("span", undefined, [wayIndicator, iconKey, iconKeyOff]);
+            iconFreeKey.classList.add("icon-free-key");
+            return iconFreeKey;
+        }
+
+        // const iconKey = modMdc.mkMDCicon("key");
+        const iconKey = mkIconHasKey();
+
+        // const iconKeyOff = modMdc.mkMDCicon("key_off");
+        const iconKeyOff = mkIconKeyOff();
+        const iconKeyFree = mkIconFreeKey();
+
+        const eltAIend = mkElt("span", undefined, [wayIndicator, iconKey, iconKeyOff, iconKeyFree]);
         eltAIend.classList.add("elt-ai-end");
 
         const keyAPI = getUserAPIkeyForAI(nameAI);
         const hasCommonKey = nameAI == "groq";
-        const hasKey = keyAPI || hasCommonKey;
-        if (hasKey) { eltAIend.classList.add("has-key"); }
+        // const hasKey = keyAPI || hasCommonKey;
+        const hasKey = keyAPI;
+        if (freeAI) {
+            eltAIend.classList.add("ai-free");
+        } else {
+            if (hasKey) { eltAIend.classList.add("has-key"); }
+        }
 
 
         // const lblAI = mkElt("label", undefined, [radAI, imgAI, eltAIname, wayIndicator]);
@@ -4612,4 +4639,54 @@ function _testFixMalformedJSON3() {
     } catch (e) {
         console.error('Parse error:', e.message);
     }
+}
+
+
+/**
+ * Parses error responses from various AI API providers into a standardized format.
+ * Handles different error formats from OpenAI, Groq, Anthropic, Google, Mistral, and others.
+ * 
+ * @param {Response} response - The fetch Response object from the API call
+ * @returns {Promise<{status: number, message: string, type: string|null, code: string|null, raw: Object}>} 
+ *          Normalized error object
+ */
+async function parseAIError(response) {
+    const status = response.status;
+
+    let data;
+    try {
+        data = await response.json();
+    } catch (e) {
+        // Response body isn't valid JSON or is empty
+        return {
+            status,
+            message: `HTTP ${status}: ${response.statusText || 'Unknown error'}`,
+            type: null,
+            code: null,
+            raw: null
+        };
+    }
+
+    let message = "Unknown error";
+    let errorType = null;
+    let errorCode = null;
+
+    if (data.error) {
+        if (typeof data.error === 'object') {
+            // OpenAI, Groq, DeepSeek, Anthropic, Google Gemini style
+            // Format: { error: { message: "...", type: "...", code: "..." } }
+            message = data.error.message || message;
+            errorType = data.error.type;
+            errorCode = data.error.code;
+        } else if (typeof data.error === 'string') {
+            // Simple string error format
+            message = data.error;
+        }
+    } else if (data.message) {
+        // Mistral style
+        // Format: { message: "..." }
+        message = data.message;
+    }
+
+    return { status, message, type: errorType, code: errorCode, raw: data };
 }

@@ -1686,6 +1686,7 @@
             .elt-ai.ai-free {
                 display: unset;
             }
+
             .elt-ai.ai-your {
                 display: unset;
             }
@@ -1733,20 +1734,20 @@
             font-size: 2rem;
         }
 
+        /*
         .elt-ai.ai-default .elt-ai-label::after {
-            content: "Free";
+            content: "Default";
             font-size: 0.8rem;
             font-style: italic;
             position: absolute;
             top: 25px;
-            /* bottom: 20px; */
-            /* left: 140px; */
             right: 40px;
             padding: 4px;
             border-radius: 4px;
             background: greenyellow;
             background: gold;
         }
+        */
 
 
         .elt-ai-summary {
@@ -1797,6 +1798,22 @@
 
         .icon-no-key {
             color: deepskyblue;
+        }
+
+        .icon-free-key {
+            display: none;
+            color: goldenrod;
+        }
+
+
+        .elt-ai-end.ai-free {
+            .icon-free-key {
+                display: unset;
+            }
+
+            .icon-no-key {
+                display: none;
+            }
         }
 
         .elt-ai-end.has-key {

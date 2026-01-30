@@ -2808,6 +2808,7 @@ async function checkWoff2icons(action) {
     // const setIconsWoff2 = new Set(hasWoffIcons ? woffIconsList.split(",") : undefined);
     const setIconsWoff2 = setIconsInWoffFile;
     setIconsWoff2.add("edit"); // FIX-ME: mapping codepoints problem
+    setIconsWoff2.add("favorite"); // FIX-ME: mapping codepoints problem
 
     const setIconsMissing = new Set();
     setIconsUsed.forEach(sym => {
