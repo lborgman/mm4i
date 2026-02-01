@@ -85,7 +85,7 @@ const groqModels = [
     },
 ];
 const defaultGroqModel = groqModels[0].id;
-const settingGroqModel = new SettingsMm4iAI("ai-groq-model", defaultGroqModel);
+// const settingGroqModel = new SettingsMm4iAI("ai-groq-model", defaultGroqModel);
 
 
 
@@ -224,7 +224,8 @@ const infoAIs = {
     "groq": mkAIinfo({
         company: "groq",
         urlDescription: "https://console.groq.com/",
-        fun: callGroqAPI,
+        // fun: callGroqAPI,
+        fun: "generic",
         urlAPIkey: "https://console.groq.com/keys",
         urlImg: "./img/groq-image.svg",
         freeAI: true
@@ -1101,8 +1102,19 @@ export async function generateMindMap(fromLink) {
             divError.style.display = "";
             console.error("tellError", txt);
             window.outputScroller.scrollToBottom();
+
+            // FIX-ME: It might help to try again sometimes.
+            // But how to inform about that??
+            modMdc.replaceMDCicon("restart_alt", btnGo);
+
             debugger;
         }
+        // FIX-ME: jst get the icon:
+        {
+            const tempIcon = modMdc.mkMDCicon("restart_alt");
+            console.log({ tempIcon });
+        }
+
         let cleaned, jsonAI, strAIonlyJson;
         try {
             // throw "TEST MY ERROR";
@@ -1763,31 +1775,12 @@ export async function generateMindMap(fromLink) {
         wayIndicator.style.display = "none";
 
 
-        function mkIconHasKey() {
-            const iconKey = modMdc.mkMDCicon("key");
-            iconKey.classList.add("icon-has-key");
-            return iconKey;
-        }
-        function mkIconKeyOff() {
-            const iconKeyOff = modMdc.mkMDCicon("key_off");
-            iconKeyOff.classList.add("icon-no-key");
-            return iconKeyOff;
-        }
-        function mkIconFreeKey() {
-            let iconFreeKey;
-            iconFreeKey = modMdc.mkMDCicon("loyalty");
-            iconFreeKey = modMdc.mkMDCicon("lock_open");
-            iconFreeKey = modMdc.mkMDCicon("favorite");
-
-            iconFreeKey.classList.add("icon-free-key");
-            return iconFreeKey;
-        }
 
         // const iconKey = modMdc.mkMDCicon("key");
         const iconKey = mkIconHasKey();
 
         // const iconKeyOff = modMdc.mkMDCicon("key_off");
-        const iconKeyOff = mkIconKeyOff();
+        const iconKeyOff = mkIconNeedsKey();
         const iconKeyFree = mkIconFreeKey();
 
         const eltAIend = mkElt("span", undefined, [wayIndicator, iconKey, iconKeyOff, iconKeyFree]);
@@ -1966,11 +1959,11 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
             //divDetAIcontent.appendChild(divAPIinfo);
             // divDetAIcontent.appendChild(lblYourAPIkey);
             if (nameAI == "groq") {
-
                 const divGroqModels = mkElt("div", undefined, mkElt("b", undefined, `Choose groq model:`));
                 divGroqModels.id = "div-groq-models";
                 divDetAIcontent.appendChild(divGroqModels);
-                const groqModel = settingGroqModel.valueS;
+                // const groqModel = settingGroqModel.valueS;
+                const groqModel = getModelAI("groq");
                 groqModels.forEach(model => {
                     const rad = mkElt("input", { type: "radio", name: "groq-model", value: model.id });
                     if (model.id == groqModel) rad.checked = true;
@@ -1981,7 +1974,8 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
                 divGroqModels.addEventListener("change", evt => {
                     const newModel = evt.target.value;
                     console.log({ newTemp: newModel });
-                    settingGroqModel.value = newModel;
+                    // settingGroqModel.value = newModel;
+                    setModelAI("groq", newModel);
                 });
 
 
@@ -3103,12 +3097,14 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
         case "API":
             await callAIapi(nameAI);
             break;
+        /*
         case "web":
             callAIweb(nameAI);
             break;
         case "android-app":
             callAIandroidApp(nameAI);
             break;
+        */
         default:
             throw Error(`Did not handle AI way "${wayToCallAI}"`);
     }
@@ -3163,13 +3159,26 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
         const infoThisAI = infoAIs[nameAI];
         const keyAPI = getAPIkeyForAI(nameAI);
         const funAPI = infoThisAI.fun;
-        if (typeof funAPI != "function") throw Error(`typeof funAPI == "${typeof funAPI}"`);
+        if (funAPI !== "generic") {
+            if (typeof funAPI != "function") throw Error(`typeof funAPI == "${typeof funAPI}"`);
+        }
+
+        let res;
+        if (funAPI == "generic" || (location.hostname == "localhost" && confirm(`Test callAPI with ${nameAI}?`))) {
+            const testOptions = {
+                temperature: tempType2temperature(settingTemperatureType.valueS),
+                max_tokens: 3000,
+                model: getModelAI("groq"),
+                forceJSON: true,
+                apiKey: keyAPI
+            }
+            res = await callAI(nameAI.toLowerCase(), promptAI, testOptions);
+        } else {
+            res = await funAPI(promptAI, keyAPI);
+        }
 
 
-        // const msStart = Date.now();
-        //
-        const res = await funAPI(promptAI, keyAPI);
-        //
+
         const msStop = Date.now();
         const msElapsed = msStop - msStart;
         const secElapsed = msElapsed / 1000;
@@ -3399,7 +3408,6 @@ function getAPIkeyForAI(nameAI) {
     const APIkey = userAPIkey || getCommonAPIkey(nameAI);
     return APIkey;
 }
-
 /**
  * 
  * @param {string} nameAI 
@@ -3410,6 +3418,65 @@ function setAPIkeyForAI(nameAI, apiKey) {
     return localStorage.setItem(key, apiKey);
 }
 
+
+// settingGroqModel
+// const settingGroqModel = new SettingsMm4iAI("ai-groq-model", defaultGroqModel);
+/** @type {Object.<string, SettingsMm4iAI>} */
+const objSettingsModels = {
+    "groq": new SettingsMm4iAI("ai-groq-model", defaultGroqModel),
+    "gemini": new SettingsMm4iAI("ai-gemini-model", "gemini-2.5-flash"),
+};
+/**
+ * 
+ * @param {string} nameAI 
+ * @param {string} model 
+ */
+function setModelAI(nameAI, model) {
+    // debugger;
+    const setting = objSettingsModels[nameAI]
+    setting.value = model;
+}
+/**
+ * 
+ * @param {string} nameAI 
+ * @returns {string}
+ */
+function getModelAI(nameAI) {
+    // debugger;
+    const setting = objSettingsModels[nameAI]
+    return setting.valueS;
+
+}
+
+
+const defaultGroqTemperature = 0.1; // careful
+/** @type {Object.<string, SettingsMm4iAI>} */
+const objSettingsTemperatures = {
+    "groq": new SettingsMm4iAI("ai-groq-temperature", defaultGroqTemperature),
+};
+
+
+
+/**
+ * 
+ * @param {string} nameAI 
+ * @param {number} temperature 
+ */
+function setTemperatureAI(nameAI, temperature) {
+    // debugger;
+    const setting = objSettingsTemperatures[nameAI]
+    setting.value = temperature;
+}
+/**
+ * 
+ * @param {string} nameAI 
+ * @returns {number}
+ */
+function getTemperatureAI(nameAI) {
+    // debugger;
+    const setting = objSettingsTemperatures[nameAI]
+    return setting.valueN;
+}
 
 
 
@@ -4104,6 +4171,8 @@ async function callHuggingFaceAIapi(userPrompt, apiKey, options = {}) {
 
 /** @type {CallAIapiWithOptions} */
 async function callGroqAPI(userPrompt, apiKey, options = {}) {
+    debugger;
+
     /////////// For tests
     const badFailedGenerate =
         "{\"error\":\"{\\\"error\\\":{\\\"message\\\":\\\"Failed to generate JSON. Please adjust your prompt. See 'failed_generation' for more details.\\\",\\\"type\\\":\\\"invalid_request_error\\\",\\\"code\\\":\\\"json_validate_failed\\\",\\\"failed_generation\\\":\\\"{\\\\n  \\\\\\\"id\\\\\\\":1,\\\\n   \\\\\\\"name\\\\\\\":\\\\\\\"Self-compassion\\\\\\\",\\\\n   \\\\\\\"notes\\\\\\\":\\\\\\\"\\\\\\\\n**Definition**\\\\\\\\nSelf-compassion is the practice of treating oneself with kindness, understanding, and acceptance when experiencing suffering or personal failure.\\\\\\\"\\\\n   },\\\\n   \\\\\\\"id\\\\\\\":2,\\\\n   \\\\\\\"name\\\\\\\":\\\\\\\"Components\\\\\\\",\\\\n   \\\\\\\"parentid\\\\\\\":1,\\\\n   \\\\\\\"notes\\\\\\\":\\\\\\\"\\\\\\\\n**Three Main Components**\\\\\\\\n1. **Self-kindness**: treating oneself with kindness and care.\\\\\\\\n2. **Common humanity**: recognizing that all humans experience suffering and imperfection.\\\\\\\\n3. **Mindfulness**: being present and aware of one's experiences without judgment.\\\\\\\"\\\\n   },\\\\n   \\\\\\\"id\\\\\\\":3,\\\\n   \\\\\\\"name\\\\\\\":\\\\\\\"Benefits\\\\\\\",\\\\n   \\\\\\\"parentid\\\\\\\":1,\\\\n   \\\\\\\"notes\\\\\\\":\\\\\\\"\\\\\\\\n**Positive Effects**\\\\\\\\n1. **Reduced stress and anxiety**\\\\\\\\n2. **Improved emotional regulation**\\\\\\\\n3. **Increased resilience**\\\\\\\\n4. **Better relationships**\\\\\\\"\\\\n   },\\\\n   \\\\\\\"id\\\\\\\":4,\\\\n   \\\\\\\"name\\\\\\\":\\\\\\\"Techniques\\\\\\\",\\\\n   \\\\\\\"parentid\\\\\\\":1,\\\\n   \\\\\\\"notes\\\\\\\":\\\\\\\"\\\\\\\\n**Practical Strategies**\\\\\\\\n1. **Mindful breathing**\\\\\\\\n2. **Self-compassion meditation**\\\\\\\\n3. **Journaling**\\\\\\\\n4. **Physical self-care\\\\\\\"\\\\n   },\\\\n   \\\\\\\"id\\\\\\\":5,\\\\n   \\\\\\\"name\\\\\\\":\\\\\\\"Challenges\\\\\\\",\\\\n   \\\\\\\"parentid\\\\\\\":1,\\\\n   \\\\\\\"notes\\\\\\\":\\\\\\\"\\\\\\\\n**Common Obstacles**\\\\\\\\n1. **Self-criticism**\\\\\\\\n2. **Perfectionism**\\\\\\\\n3. **Difficulty with self-acceptance\\\\\\\"\\\\n   },\\\\n   \\\\\\\"id\\\\\\\":6,\\\\n   \\\\\\\"name\\\\\\\":\\\\\\\"Research\\\\\\\",\\\\n   \\\\\\\"parentid\\\\\\\":1,\\\\n   \\\\\\\"notes\\\\\\\":\\\\\\\"\\\\\\\\n**Scientific Studies**\\\\\\\\n1. **Increased self-compassion leads to improved mental health\\\\\\\"\\\\n2. **Self-compassion is linked to increased life satisfaction\\\\\\\"\\\\\\\\n3. **Mindfulness-based interventions increase self-compassion\\\\\\\"\\\\n   }\\\"}}\\n\"}";
@@ -4163,7 +4232,8 @@ async function callGroqAPI(userPrompt, apiKey, options = {}) {
         const temperature = tempType2temperature(settingTemperatureType.valueS);
         const postBody =
         {
-            model: settingGroqModel.valueS,
+            // model: settingGroqModel.valueS,
+            model: getModelAI("groq"),
             messages: [message0],
             max_tokens: 3000,
             temperature: temperature
@@ -4689,4 +4759,307 @@ async function parseAIError(response) {
     }
 
     return { status, message, type: errorType, code: errorCode, raw: data };
+}
+
+
+
+const modMdc = await importFc4i("util-mdc");
+function mkIconHasKey() {
+    const iconNameHasKey = "key";
+    const iconHasKey = modMdc.mkMDCicon(iconNameHasKey);
+    iconHasKey.classList.add("icon-has-key");
+    return iconHasKey;
+}
+function mkIconNeedsKey() {
+    const iconNameKeyOff = "key_off";
+    const iconKeyOff = modMdc.mkMDCicon("key_off");
+    iconKeyOff.classList.add("icon-need-key");
+    return iconKeyOff;
+}
+function mkIconFreeKey() {
+    // const iconNameFreeKey = "loyalty";
+    // const iconNameFreeKey = "lock_open";
+    const iconNameFreeKey = "favorite";
+
+    const iconFreeKey = modMdc.mkMDCicon(iconNameFreeKey);
+    iconFreeKey.classList.add("icon-free-key");
+    return iconFreeKey;
+}
+
+
+/**
+ * Returns an appropriate temperature value for LLM generation based on the desired mode
+ * and whether structured (JSON-like) output is requested.
+ *
+ * Lower values produce more deterministic/reliable output;
+ * higher values increase creativity and variability.
+ *
+ * @param {"careful" | "normal" | "creative"} mode - Controls the creativity level
+ *   - "careful"   → very deterministic / low variation
+ *   - "normal"    → balanced (default behavior in most UIs)
+ *   - "creative"  → more diverse / imaginative responses
+ * @param {boolean} [isStructuredOutput=false] - Whether the model is expected to produce
+ *   structured output (JSON, function calling, YAML, etc.)
+ *   When `true`, uses much lower temperatures to improve format reliability.
+ * @returns {number} Temperature value between 0.0 and 1.0 (inclusive) suitable for most LLM providers
+ *
+ * @example
+ * ```js
+ * // Typical chat / free-form text
+ * getTemperature("normal")           // → 0.3
+ * getTemperature("creative")         // → 0.5
+ *
+ * // JSON mode / tool calling / structured output
+ * getTemperature("careful", true)    // → 0.0
+ * getTemperature("normal", true)     // → 0.1
+ * getTemperature("creative", true)   // → 0.2
+ *
+ * // Unknown mode falls back gracefully
+ * getTemperature("aggressive")       // → 0.3 (same as "normal")
+ * ```
+ */
+function getTemperature(mode, isStructuredOutput = true) {
+    if (isStructuredOutput) {
+        // These work for ALL providers: OpenAI, Groq, DeepSeek, Anthropic, Mistral, Gemini
+        return {
+            "careful": 0.0,    // Completely deterministic
+            "normal": 0.1,     // Minimal variation
+            "creative": 0.2    // Still creative in content, not format
+        }[mode] ?? (() => { throw Error(`Unknown mode: "${mode}`) })();
+    }
+
+    // For text summaries - also works for ALL providers
+    return {
+        "careful": 0.15,
+        "normal": 0.3,
+        "creative": 0.5
+    }[mode] ?? (() => { throw Error(`Unknown mode: "${mode}`) })();
+}
+
+
+/**
+ * Universal AI API caller supporting multiple providers
+ * Handles OpenAI, Groq, DeepSeek, Mistral, Anthropic (Claude), and Google Gemini
+ * 
+ * @param {string} provider - AI provider: 'openai', 'groq', 'deepseek', 'mistral', 'anthropic', 'gemini'
+ * @param {string} usersPrompt - The user's prompt/question
+ * @param {Object} options - Configuration options
+ * @param {string} options.model - Model ID (e.g., 'llama-3.3-70b-versatile', 'claude-sonnet-4-5-20250929')
+ * @param {string} options.apiKey - API key for the provider
+ * @param {number} options.temperature - Temperature (0.0-1.0), default 0.3
+ * @param {number} options.maxTokens - Maximum tokens in response
+ * @param {boolean} options.forceJSON - Force JSON output format
+ * param {boolean} options.isStructuredOutput - Indicates structured output (auto-lowers temp)
+ * @returns {Promise<string>} The AI response text
+ */
+async function callAI(provider, usersPrompt, options) {
+    // const isStructured = options.forceJSON || options.isStructuredOutput;
+    // const temperature = isStructured ? 0.1 : (options.temperature || 0.3);
+
+    const temperature = options.temperature;
+    if (isNaN(temperature)) throw Error(`options.temperature is "${options.temperature}"`)
+
+    const model = options.model;
+    if (!model) {
+        throw new Error('Model is required in options');
+    }
+
+    // Build messages array from user prompt
+    const messages = [
+        { role: 'user', content: usersPrompt }
+    ];
+
+    // Provider configurations
+    const configs = {
+        openai: {
+            url: "https://api.openai.com/v1/chat/completions",
+            extractResponse: (data) => data.choices[0].message.content,
+            headers: {
+                "Authorization": `Bearer ${options.apiKey}`,
+                "Content-Type": "application/json"
+            }
+        },
+        groq: {
+            // url: "https://api.groq.com/openai/v1/chat/completions",
+
+            url: "https://mm4i.vercel.app/api/call-groq",
+            extractResponse: (data) => data.json,
+
+            // const endpointVercel = "https://mm4i.vercel.app/api/call-groq";
+            // const endpointGroq = 'https://api.groq.com/openai/v1/chat/completions';
+            // const endpointLocalhostVercel = "http://localhost:8090/api/call-groq";
+            // let endpoint = endpointVercel;
+            headers: {
+                "Authorization": `Bearer ${options.apiKey}`,
+                "Content-Type": "application/json"
+            }
+        },
+        deepseek: {
+            url: "https://api.deepseek.com/v1/chat/completions",
+            extractResponse: (data) => data.choices[0].message.content,
+            headers: {
+                "Authorization": `Bearer ${options.apiKey}`,
+                "Content-Type": "application/json"
+            }
+        },
+        mistral: {
+            url: "https://api.mistral.ai/v1/chat/completions",
+            extractResponse: (data) => data.choices[0].message.content,
+            headers: {
+                "Authorization": `Bearer ${options.apiKey}`,
+                "Content-Type": "application/json"
+            }
+        },
+        anthropic: {
+            url: "https://api.anthropic.com/v1/messages",
+            extractResponse: (data) => data.content[0].text,
+            headers: {
+                "x-api-key": options.apiKey,
+                "anthropic-version": "2023-06-01",
+                "Content-Type": "application/json"
+            }
+        },
+        gemini: {
+            // url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${options.apiKey}`,
+            // callGeminiAPI
+            url: "https://generativelanguage.googleapis.com/v1beta/openai/",
+            extractResponse: (data) => data.candidates[0].content.parts[0].text,
+            headers: {
+                "Content-Type": "application/json"
+            }
+        }
+    };
+
+    const config = configs[provider];
+    if (!config) {
+        throw new Error(`Unknown provider: ${provider}`);
+    }
+
+    // Build request body based on provider
+    let body;
+
+    switch (provider) {
+        case 'openai':
+        case 'groq':
+        case 'deepseek':
+        case 'mistral':
+        case "gemini":
+            body = {
+                model: model,
+                messages: messages,
+                temperature: temperature
+            };
+            if (options.maxTokens) {
+                body.max_tokens = options.maxTokens;
+            }
+            if (options.forceJSON) {
+                body.response_format = { type: "json_object" };
+            }
+            break;
+
+        case 'anthropic':
+            body = {
+                model: model,
+                messages: messages,
+                temperature: temperature,
+                max_tokens: options.maxTokens || 1024  // Required for Claude
+            };
+            // Claude doesn't have response_format, so we rely on low temp + good prompting
+            break;
+
+        case 'OLDgemini':
+            body = {
+                contents: messages.map(msg => ({
+                    parts: [{ text: msg.content }]
+                })),
+                generationConfig: {
+                    temperature: temperature
+                }
+            };
+            if (options.maxTokens) {
+                body.generationConfig.maxOutputTokens = options.maxTokens;
+            }
+            if (options.forceJSON) {
+                body.generationConfig.responseMimeType = "application/json";
+            }
+            break;
+    }
+
+    // Make API request
+    let response;
+    let tryCORSproxy = false;
+    let errName;
+    try {
+        response = await fetch(config.url, {
+            method: "POST",
+            headers: config.headers,
+            body: JSON.stringify(body)
+        });
+    } catch (err) {
+        console.warn({ err });
+        errName = err.name;
+        debugger;
+    }
+
+    if (!response) {
+        if (errName != "TypeError") throw Error(`fetch error was "${errName}`);
+        try {
+            response = modTools.fetchResponseViaCORSproxy(config.url, {
+                method: "POST",
+                headers: config.headers,
+                body: JSON.stringify(body)
+            });
+        } catch (err) {
+            debugger;
+            console.error(err);
+            errName = err.name;
+            throw Error(`fetch via CORS error was "${errName}`);
+        }
+    }
+
+
+    const data = await response.json();
+
+    // Handle errors
+    if (!response.ok) {
+        // Create a mock response object since we've already parsed the JSON
+        const mockResponse = {
+            ok: false,
+            status: response.status,
+            statusText: response.statusText,
+            json: async () => data
+        };
+        const error = await parseAIError(mockResponse);
+        throw new Error(`${provider} API Error (${error.status}): ${error.message}`);
+    }
+
+    // Extract response based on provider
+    // let result;
+    // deepseek
+    const extractResponse = config.extractResponse;
+    // result = data.choices[0].message.content;
+    const result = extractResponse(data);
+    /*
+    switch (provider) {
+        case 'openai':
+        case 'groq':
+        case 'deepseek':
+        case 'mistral':
+            result = data.choices[0].message.content;
+            break;
+ 
+        case 'anthropic':
+            result = data.content[0].text;
+            break;
+ 
+        case 'gemini':
+            result = data.candidates[0].content.parts[0].text;
+            break;
+ 
+        default:
+            throw new Error(`Unknown provider: ${provider}`);
+    }
+    */
+
+    return result;
 }

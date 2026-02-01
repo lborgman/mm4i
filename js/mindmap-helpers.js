@@ -1324,7 +1324,8 @@ export function isValidMindmapNodeArray(nodeArray) {
     // Collect all node IDs and check for uniqueness
     const idSet = new Set();
     for (const node of nodeArray) {
-        if (!node.id) {
+        // node.id might be 0 so check for undefined here:
+        if (node.id == undefined) {
             return { isValid: false, error: `Node missing id: ${JSON.stringify(node)}` };
         }
         if (idSet.has(node.id)) {

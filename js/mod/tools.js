@@ -3463,7 +3463,7 @@ async function OLDfetchResponseViaCORSproxy(url, opts = {}) {
 }
 
 // New version suggested by Claude:
-async function fetchResponseViaCORSproxy(url, opts = {}) {
+export async function fetchResponseViaCORSproxy(url, opts = {}) {
     const proxy = opts.proxyName || "mm4i";
     const signal = opts.signal;
     if (!nameProxies.includes(proxy)) throw new Error(`Unknown proxy: ${proxy}. Use: ${nameProxies.join(", ")}`);
