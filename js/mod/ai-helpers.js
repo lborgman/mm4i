@@ -4726,7 +4726,7 @@ async function parseAIError(response) {
     let data;
     try {
         data = await response.json();
-    } catch (e) {
+    } catch (_err) {
         // Response body isn't valid JSON or is empty
         return {
             status,
@@ -4851,6 +4851,8 @@ function getTemperature(mode, isStructuredOutput = true) {
  * @param {boolean} options.forceJSON - Force JSON output format
  * param {boolean} options.isStructuredOutput - Indicates structured output (auto-lowers temp)
  * @returns {Promise<string>} The AI response text
+ * 
+ * @throws Will throw on argument error or any error in calling AI
  */
 async function callAI(provider, usersPrompt, options) {
     // const isStructured = options.forceJSON || options.isStructuredOutput;
@@ -4922,9 +4924,10 @@ async function callAI(provider, usersPrompt, options) {
         gemini: {
             // url: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${options.apiKey}`,
             // callGeminiAPI
-            url: "https://generativelanguage.googleapis.com/v1beta/openai/",
+            url: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
             extractResponse: (data) => data.candidates[0].content.parts[0].text,
             headers: {
+                "x-goog-api-key": options.apiKey,
                 "Content-Type": "application/json"
             }
         }
@@ -4987,8 +4990,8 @@ async function callAI(provider, usersPrompt, options) {
 
     // Make API request
     let response;
-    let tryCORSproxy = false;
-    let errName;
+    // let tryCORSproxy = false;
+    // let errName;
     try {
         response = await fetch(config.url, {
             method: "POST",
@@ -4997,11 +5000,46 @@ async function callAI(provider, usersPrompt, options) {
         });
     } catch (err) {
         console.warn({ err });
-        errName = err.name;
         debugger;
+        // Just rethrow the error and hope it had some info.
+        // It may be CORS, of course, with no useful info.
+        // Remember to add a CORS proxy. Have not seen any need for it here yet.
+        // errName = err.name;
+        throw err;
+    }
+    if (!response) { throw Error("The response object is == undefined"); }
+
+    // Handle errors
+    if (!response.ok) {
+        /*
+        // Create a mock response object since we've already parsed the JSON
+        const mockResponse = {
+            ok: false,
+            status: response.status,
+            statusText: response.statusText,
+            json: async () => data
+        };
+        */
+        const parsedError = await parseAIError(response);
+        throw new Error(`${provider} API Error (${parsedError.status}): ${parsedError.message}`);
     }
 
-    if (!response) {
+
+    let responseJson;
+    responseJson = await response.json();
+    console.log({ responseJson });
+    debugger;
+    if (Array.isArray(responseJson)) {
+        if (responseJson.length == 1) {
+            const rj0 = responseJson[0];
+            if (rj0.error) {
+                debugger;
+            }
+        }
+    }
+
+    /*
+    if (receivedError) {
         if (errName != "TypeError") throw Error(`fetch error was "${errName}`);
         try {
             response = modTools.fetchResponseViaCORSproxy(config.url, {
@@ -5016,22 +5054,11 @@ async function callAI(provider, usersPrompt, options) {
             throw Error(`fetch via CORS error was "${errName}`);
         }
     }
+    */
 
 
-    const data = await response.json();
-
-    // Handle errors
-    if (!response.ok) {
-        // Create a mock response object since we've already parsed the JSON
-        const mockResponse = {
-            ok: false,
-            status: response.status,
-            statusText: response.statusText,
-            json: async () => data
-        };
-        const error = await parseAIError(mockResponse);
-        throw new Error(`${provider} API Error (${error.status}): ${error.message}`);
-    }
+    // const data = await response.json();
+    const data = responseJson;
 
     // Extract response based on provider
     // let result;
