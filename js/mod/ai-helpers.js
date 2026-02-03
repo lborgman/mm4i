@@ -53,16 +53,42 @@ const tempType2temperature = (tempType) => {
     switch (tempType) {
         // case "careful": return 0.2;
         case "careful": return 0.15;
+
         // case "normal": return 0.4;
         case "normal": return 0.3;
+
         // Too many errors with 1.0
         // case "creative": return 0.6;
         case "creative": return 0.5;
+
         default:
             console.error(`Bad tempType: "${tempType}"`);
             settingTemperatureType.reset();
             return 0.15;
     }
+}
+
+function makeDivChooseTemperature() {
+    const divTemperature = mkElt("div", undefined, mkElt("b", undefined, `Choose working style for AI:s`));
+    divTemperature.id = "div-llm-temperature";
+
+    const tempType = settingTemperatureType.valueS;
+    // check tempType
+    tempType2temperature(tempType);
+
+    arrTemperatureTypes.forEach(tt => {
+        const rad = mkElt("input", { type: "radio", name: "llm-temperature", value: tt });
+        if (tt == tempType) rad.checked = true;
+        const lbl = mkElt("label", undefined, [rad, tt]);
+        const div = mkElt("div", undefined, lbl);
+        divTemperature.appendChild(div);
+    });
+    divTemperature.addEventListener("change", evt => {
+        const newTemp = evt.target.value;
+        console.log({ newTemp });
+        settingTemperatureType.value = newTemp;
+    });
+    return divTemperature;
 }
 
 
@@ -71,17 +97,17 @@ const groqModels = [
     {
         name: "GPT-OSS 120B",
         id: "openai/gpt-oss-120b",
-        description: "Highest quality (largest model) - Slower"
+        description: "Slower - Highest quality"
     },
     {
         name: "Llama 3.3 70B Versatile",
         id: "llama-3.3-70b-versatile",
-        description: "Best all-around for summaries - Fast"
+        description: "Fast - Good quality"
     },
     {
         name: "Qwen 3 32B",
         id: "qwen/qwen3-32b",
-        description: "Good balance, higher request limits - Very fast"
+        description: "Very fast - More often available"
     },
 ];
 const defaultGroqModel = groqModels[0].id;
@@ -1359,36 +1385,40 @@ export async function generateMindMap(fromLink) {
         "Notify if took > ", inpNotify, " seconds"
     ]);
     const divInfoYourAIs = mkElt("p", undefined,
-        `Your available AI:s are our free AI and those for which you have added your own API key.`
+        `Show only your available AI:s.
+         These are our free AI:s plus those for which you have added your own API key.`
     );
+    divInfoYourAIs.classList.add("display-none");
+    divInfoYourAIs.style.marginLeft = "20px";
 
     const iconUseableAIs = modMdc.mkMDCicon("info");
     iconUseableAIs.style.marginLeft = "20px";
+    iconUseableAIs.style.cursor = "pointer";
     iconUseableAIs.addEventListener("click", evt => {
         evt.stopImmediatePropagation();
-        eltDivAIautomated.appendChild(divInfoYourAIs);
+        // eltDivAIautomated.appendChild(divInfoYourAIs);
+        divInfoYourAIs.classList.toggle("display-none");
     }
 
     )
     const divUsebleAIs = mkElt("div", undefined, [
         lblYourAIs,
         iconUseableAIs,
-        // divInfoUseableAIs
     ]);
     divUsebleAIs.style.display = "flex";
 
     const eltDivAIautomated = mkElt("div", { class: "mdc-card" }, [
         mkElt("div", undefined, lblNotify),
         divUsebleAIs,
-        // lblProceed,
+        divInfoYourAIs,
+        makeDivChooseTemperature(),
     ]);
-    // doItNow
     eltDivAIautomated.id = "div-ai-automated";
 
     const divOptions = mkElt("div", undefined, [eltDivAIautomated]);
     divOptions.style.marginLeft = "20px";
     divOptions.style.paddingBottom = "20px";
-    const sumOptions = mkElt("summary", undefined, "Options for AI:s");
+    const sumOptions = mkElt("summary", undefined, "Options for our AI:s");
     sumOptions.style = "NOposition:absolute; right:0; top:0";
     const detOptions = mkElt("details", undefined, [
         sumOptions,
@@ -1920,13 +1950,9 @@ export async function generateMindMap(fromLink) {
                 const divGroqExtra = mkElt("div", undefined, [
                     mkElt("div", undefined, [
                         mkElt("b", undefined, nameAI),
-                        ` is our default AI because it is much faster than the others.
-                            And we can provide free use of it at the moment.
-                            `,
-                    ]),
-                    mkElt("div", undefined, [
-                        `However it is not always very precise.
-                        We suggest you use the option "careful" below.`
+                        ` is our default AI because it is much faster the other AI:s we have tested.
+                        (However other AI:s might make better mindmaps.)
+                        `,
                     ]),
                 ]);
                 divGroqExtra.id = "div-groq-extra";
@@ -1958,7 +1984,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
                 divDetAIcontent.appendChild(lblYourAPIkey);
             }
             if (nameAI == "groq") {
-                const divGroqModels = mkElt("div", undefined, mkElt("b", undefined, `Choose groq model:`));
+                const divGroqModels = mkElt("div", undefined, mkElt("b", undefined, `Choose groq model`));
                 divGroqModels.id = "div-groq-models";
                 divDetAIcontent.appendChild(divGroqModels);
                 // const groqModel = settingGroqModel.valueS;
@@ -1977,27 +2003,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
                     setModelAI("groq", newModel);
                 });
 
-
-                const divTemperature = mkElt("div", undefined, mkElt("b", undefined, `Choose ${nameAI} working style:`));
-                divTemperature.id = "div-llm-temperature";
-                divDetAIcontent.appendChild(divTemperature);
-
-                const tempType = settingTemperatureType.valueS;
-                // check tempType
-                tempType2temperature(tempType);
-
-                arrTemperatureTypes.forEach(tt => {
-                    const rad = mkElt("input", { type: "radio", name: "llm-temperature", value: tt });
-                    if (tt == tempType) rad.checked = true;
-                    const lbl = mkElt("label", undefined, [rad, tt]);
-                    const div = mkElt("div", undefined, lbl);
-                    divTemperature.appendChild(div);
-                });
-                divTemperature.addEventListener("change", evt => {
-                    const newTemp = evt.target.value;
-                    console.log({ newTemp });
-                    settingTemperatureType.value = newTemp;
-                });
+                // divDetAIcontent.appendChild(makeDivChooseTemperature());
             }
         }
         /*
