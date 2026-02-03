@@ -125,7 +125,7 @@ function hideDragContainerIndicator() {
 
 /** @type {number} */ let pointerMoveStartTime;
 export async function handleSimilarPointerStart() {
-    console.log("%chandleSimilarPointerStart", "font-size:28px;");
+    console.log("%chandleSimilarPointerStart", "font-size:18px;");
     const savedStartPointerPos = await modTools.getAndClearStartPointerPos();
     start.x = savedStartPointerPos.startPageX;
     start.y = savedStartPointerPos.startPageY;

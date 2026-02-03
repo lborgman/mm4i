@@ -1951,23 +1951,12 @@ RPD (Requests Per Day),"14,400",Max API calls per 24 hours,"Fine for light dev, 
 TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent to ~80–100 medium-length chats; resets daily
                 */
             }
-            console.log(nameAI, free);
+            // console.log(nameAI, free);
             if (!free) {
-                console.log("--- adding you can get...");
-                // const spanAPIkeyInfo = mkElt("span", undefined, [" You can get your own API key ", aAPIkey, "."]);
-                // divAPIinfo.appendChild(spanAPIkeyInfo);
-
-                // divNeedsAPIkey.appendChild(lblYourAPIkey);
+                // console.log("--- adding you can get...");
                 divDetAIcontent.appendChild(divNeedsAPIkey);
                 divDetAIcontent.appendChild(lblYourAPIkey);
             }
-
-            // } else {
-            // divAPIinfo.appendChild(mkElt("span", undefined, ` (Where to get it for ${nameAI}?)`));
-            // }
-
-            //divDetAIcontent.appendChild(divAPIinfo);
-            // divDetAIcontent.appendChild(lblYourAPIkey);
             if (nameAI == "groq") {
                 const divGroqModels = mkElt("div", undefined, mkElt("b", undefined, `Choose groq model:`));
                 divGroqModels.id = "div-groq-models";
@@ -3841,7 +3830,7 @@ function logEstimateAItokens(objJson, where) {
     try {
         const numTokens = estimateAItokens(objJson);
         console.log(`%cEstimated num AI tokens (${where}): ${numTokens}`,
-            "background:blue;color:yellowgreen;font-size:24px;");
+            "background:blue;color:yellowgreen;");
         return numTokens;
     } catch (error) {
         const errorMsg = String(error);
@@ -5100,7 +5089,7 @@ async function callAIgeneric(provider, usersPrompt, options) {
     // responseJson = await response.json();
     let responseJson = JSON.parse(txtResult);
     console.log({ responseJson });
-    debugger;
+    // debugger;
     if (Array.isArray(responseJson)) {
         if (responseJson.length == 1) {
             const rj0 = responseJson[0];

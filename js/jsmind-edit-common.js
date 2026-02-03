@@ -21,7 +21,7 @@ const modMdc = await importFc4i("util-mdc");
 const modTools = await importFc4i("toolsJs");
 const modLocalSettings = await importFc4i("local-settings");
 const settingSortMm = new modLocalSettings.LocalSetting("mm4i-", "sortmm", "Name");
-console.log({ settingSortMm });
+// console.log({ settingSortMm });
 // debugger;
 
 
@@ -944,7 +944,7 @@ const modZoomMove = await importFc4i("zoom-move");
 function connectFsm(nOut) {
     // const n = parseInt(prompt("nOut", nOut || 99));
     const n = 9;
-    console.log(`%cn==${n}`, "color:orange;");
+    // console.log(`%cn==${n}`, "color:orange;");
     ourFsm?.hook_any_action(fsmEvent);
     if (n > 98) return;
     ourFsm?.hook_any_transition((...args) => {
@@ -989,10 +989,9 @@ function connectFsm(nOut) {
         const eltScroll = jmnodes.closest("div.zoom-move");
 
         if (useMoveMove) {
-            // funStopScroll = startGrabMoveMove(eltScroll);
-            // funStopScroll = modZoomMove.handleSimilarPointerStart;
             funStopScroll = modZoomMove.handleSimilarPointerStart();
         } else {
+            throw Error(`useMoveMove == ${useMoveMove}`);
             funStopScroll = startGrabMove(eltScroll);
         }
     });

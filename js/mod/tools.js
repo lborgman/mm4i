@@ -3171,7 +3171,7 @@ export function mkTextareaGrowWrap(textarea) {
 export function appCanShowNotificationItself() {
     // Check if document is visible and has focus
     const canShow = document.hasFocus() && document.visibilityState === 'visible';
-    console.log("%cappCanShowNotificationItself", "color:red; font-size:20px", canShow)
+    console.log("%cappCanShowNotificationItself", "color:red;", canShow);
     return canShow;
 }
 export async function requestNotificationPermission() {
@@ -3493,7 +3493,7 @@ export async function fetchResponseViaCORSproxy(url, opts = {}) {
     const u = new URL(proxyToUse);
     u.searchParams.set("url", url);
     const urlProxied = u.href;
-    console.log(`%cFetching via ${proxy}: `, "background-color:blue;color:white;", url, urlProxied, headers);
+    // console.log(`%cFetching via ${proxy}: `, "background-color:blue;color:white;", url, urlProxied, headers);
 
     let res;
     try {
@@ -6007,7 +6007,7 @@ const knownUrlBlock = {
 knownUrlBlock["wiley.com"] = 'scrapingBlockWithWA';
 knownUrlBlock["cell.com"] = 'corsBlock';
 
-console.log("================", { knownUrlBlock });
+// console.log("================ knownUrlBlock", knownUrlBlock);
 
 export class FetchItError extends Error {
     // @ts-ignore
@@ -6031,7 +6031,7 @@ export async function fetchIt(url) {
      * @throws {Error}
      */
     const fetchBlockType = async (blockType) => {
-        console.log(`------------ trying "${blockType}"`);
+        console.warn(`------------ trying "${blockType}"`);
         let content = "";
         switch (blockType) {
             case "notBlocked":
