@@ -170,11 +170,21 @@ function _getAIinfoComment(aiInfo, key) {
  * @type {Object<string,aiInfo>}
  */
 const infoAIs = {
+    "deepseek": mkAIinfo({
+        company: "deepseek Face",
+        urlDescription: "https://www.deepseek.com/en/",
+        // Don't use deepseek, it requires you to register a payment method!
+        // fun: "generic",
+        urlImg: "https://cdn.deepseek.com/platform/favicon.png",
+        urlAPIkey: "https://platform.deepseek.com/api_keys",
+    }),
+
     "HuggingFace": mkAIinfo({
         company: "Hugging Face",
         urlDescription: "https://huggingface.co/",
         // callHuggingFaceAPI
-        fun: callHuggingFaceInference,
+        // fun: callHuggingFaceInference,
+        fun: "generic",
         urlImg: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
         urlAPIkey: "https://huggingface.co/settings/tokens",
     }),
@@ -3163,16 +3173,26 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
             if (typeof funAPI != "function") throw Error(`typeof funAPI == "${typeof funAPI}"`);
         }
 
-        let res;
+        let res, resError;
         if (funAPI == "generic" || (location.hostname == "localhost" && confirm(`Test callAPI with ${nameAI}?`))) {
-            const testOptions = {
-                temperature: tempType2temperature(settingTemperatureType.valueS),
+            const model = getModelAI(nameAI);
+            if (!model) throw Error(`Did not find model for AI "${nameAI}"`);
+            const temperature = tempType2temperature(settingTemperatureType.valueS);
+            if (!temperature) throw Error(`Did not find temperature for AI "${nameAI}"`);
+            const genericOptions = {
+                temperature,
                 max_tokens: 3000,
-                model: getModelAI("groq"),
+                model,
                 forceJSON: true,
                 apiKey: keyAPI
             }
-            res = await callAI(nameAI.toLowerCase(), promptAI, testOptions);
+            try {
+                res = await callAIgeneric(nameAI.toLowerCase(), promptAI, genericOptions);
+            } catch (err) {
+                console.error(err);
+                resError = err;
+                debugger;
+            }
         } else {
             res = await funAPI(promptAI, keyAPI);
         }
@@ -3192,15 +3212,23 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
         document.documentElement.classList.remove("ai-in-progress");
         const btnGo2 = document.getElementById("btn-ai-go");
         if (!btnGo2) throw Error(`Did not find "btn-ai-go"`);
-        let wasError = res instanceof Error;
+        let wasError = (!res) || res instanceof Error;
         // debugger;
         const modMdc = await importFc4i("util-mdc");
         if (wasError) {
-            console.error(res);
+            console.error({ res, resError });
             document.documentElement.classList.add("ai-response-error");
-            divGoStatus.textContent = `${nameAI}: ${res.message}`;
+            debugger;
+            let ourErrMessage;
+            if (res) {
+                ourErrMessage = `${nameAI}: ${res.message}`;
+            } else {
+                ourErrMessage = `${nameAI}: ${resError.toString()}`;
+            }
+            divGoStatus.textContent = ourErrMessage;
             if (!modTools.appCanShowNotificationItself()) {
-                modTools.showNotification(`${nameAI}: ${res.message}`);
+                // modTools.showNotification(`${nameAI}: ${res.message}`);
+                modTools.showNotification(ourErrMessage);
             }
             // @ts-ignore
             divUserSteps.textContent = "";
@@ -3425,6 +3453,9 @@ function setAPIkeyForAI(nameAI, apiKey) {
 const objSettingsModels = {
     "groq": new SettingsMm4iAI("ai-groq-model", defaultGroqModel),
     "gemini": new SettingsMm4iAI("ai-gemini-model", "gemini-2.5-flash"),
+    // "deepseek": new SettingsMm4iAI("ai-deepseek-model", "deepseek-chat"),
+    // "deepseek": new SettingsMm4iAI("ai-deepseek-model", "deepseek-reasoner"),
+    "HuggingFace": new SettingsMm4iAI("ai-huggingface-model", "deepseek-reasoner"),
 };
 /**
  * 
@@ -4717,15 +4748,17 @@ function _testFixMalformedJSON3() {
  * Handles different error formats from OpenAI, Groq, Anthropic, Google, Mistral, and others.
  * 
  * @param {Response} response - The fetch Response object from the API call
+ * @param {string} txtResult - await response.text();
  * @returns {Promise<{status: number, message: string, type: string|null, code: string|null, raw: Object}>} 
  *          Normalized error object
  */
-async function parseAIError(response) {
+async function parseAIError(response, txtResult) {
+    if (response.ok) throw Error(`response.ok == true`);
     const status = response.status;
 
-    let data;
+    let dataError;
     try {
-        data = await response.json();
+        dataError = await response.json();
     } catch (_err) {
         // Response body isn't valid JSON or is empty
         return {
@@ -4741,24 +4774,24 @@ async function parseAIError(response) {
     let errorType = null;
     let errorCode = null;
 
-    if (data.error) {
-        if (typeof data.error === 'object') {
+    if (dataError.error) {
+        if (typeof dataError.error === 'object') {
             // OpenAI, Groq, DeepSeek, Anthropic, Google Gemini style
             // Format: { error: { message: "...", type: "...", code: "..." } }
-            message = data.error.message || message;
-            errorType = data.error.type;
-            errorCode = data.error.code;
-        } else if (typeof data.error === 'string') {
+            message = dataError.error.message || message;
+            errorType = dataError.error.type;
+            errorCode = dataError.error.code;
+        } else if (typeof dataError.error === 'string') {
             // Simple string error format
-            message = data.error;
+            message = dataError.error;
         }
-    } else if (data.message) {
+    } else if (dataError.message) {
         // Mistral style
         // Format: { message: "..." }
-        message = data.message;
+        message = dataError.message;
     }
 
-    return { status, message, type: errorType, code: errorCode, raw: data };
+    return { status, message, type: errorType, code: errorCode, raw: dataError };
 }
 
 
@@ -4852,9 +4885,9 @@ function getTemperature(mode, isStructuredOutput = true) {
  * param {boolean} options.isStructuredOutput - Indicates structured output (auto-lowers temp)
  * @returns {Promise<string>} The AI response text
  * 
- * @throws Will throw on argument error or any error in calling AI
+ * @throws Will throw on any error
  */
-async function callAI(provider, usersPrompt, options) {
+async function callAIgeneric(provider, usersPrompt, options) {
     // const isStructured = options.forceJSON || options.isStructuredOutput;
     // const temperature = isStructured ? 0.1 : (options.temperature || 0.3);
 
@@ -4930,6 +4963,31 @@ async function callAI(provider, usersPrompt, options) {
                 "x-goog-api-key": options.apiKey,
                 "Content-Type": "application/json"
             }
+        },
+        /*
+        huggingface: {
+            url: "https://api-inference.huggingface.co/models/", // Model added dynamically
+            headers: {
+                "Authorization": `Bearer ${options.apiKey}`,
+                "Content-Type": "application/json"
+            },
+            extractResponse: (data) => {
+                // HF returns array of objects with 'generated_text'
+                if (Array.isArray(data) && data[0]?.generated_text) {
+                    return data[0].generated_text;
+                }
+                // Some models return just text
+                return data;
+            }
+        }
+        */
+        huggingface: {
+            url: "https://router.huggingface.co/v1/chat/completions",
+            headers: {
+                "Authorization": `Bearer ${options.apiKey}`,
+                "Content-Type": "application/json"
+            },
+            extractResponse: (data) => data.choices[0].message.content
         }
     };
 
@@ -4940,13 +4998,13 @@ async function callAI(provider, usersPrompt, options) {
 
     // Build request body based on provider
     let body;
-
     switch (provider) {
         case 'openai':
         case 'groq':
         case 'deepseek':
         case 'mistral':
         case "gemini":
+        case "huggingface":
             body = {
                 model: model,
                 messages: messages,
@@ -4959,7 +5017,6 @@ async function callAI(provider, usersPrompt, options) {
                 body.response_format = { type: "json_object" };
             }
             break;
-
         case 'anthropic':
             body = {
                 model: model,
@@ -4968,6 +5025,19 @@ async function callAI(provider, usersPrompt, options) {
                 max_tokens: options.maxTokens || 1024  // Required for Claude
             };
             // Claude doesn't have response_format, so we rely on low temp + good prompting
+            break;
+        case 'OLDhuggingface':
+            // HF uses different format and URL includes model
+            config.url = `https://api-inference.huggingface.co/models/${model}`;
+            body = {
+                inputs: usersPrompt,  // Not "messages"!
+                parameters: {
+                    max_new_tokens: options.maxTokens || 500,
+                    temperature: temperature,
+                    return_full_text: false
+                }
+            };
+            // HF doesn't support response_format for JSON forcing
             break;
 
         case 'OLDgemini':
@@ -4986,6 +5056,8 @@ async function callAI(provider, usersPrompt, options) {
                 body.generationConfig.responseMimeType = "application/json";
             }
             break;
+        default:
+            throw Error(`provider body - did not find "${provider}"`)
     }
 
     // Make API request
@@ -4999,7 +5071,7 @@ async function callAI(provider, usersPrompt, options) {
             body: JSON.stringify(body)
         });
     } catch (err) {
-        console.warn({ err });
+        console.error({ err }, config.url, config.headers);
         debugger;
         // Just rethrow the error and hope it had some info.
         // It may be CORS, of course, with no useful info.
@@ -5009,24 +5081,24 @@ async function callAI(provider, usersPrompt, options) {
     }
     if (!response) { throw Error("The response object is == undefined"); }
 
+    let txtResult;
+    try {
+        txtResult = await response.text();
+        console.log({ txtResult });
+    } catch (e) {
+        throw new Error(`response.text() failed (${response.status}): ${e.toString()}`);
+    }
+
     // Handle errors
     if (!response.ok) {
-        /*
-        // Create a mock response object since we've already parsed the JSON
-        const mockResponse = {
-            ok: false,
-            status: response.status,
-            statusText: response.statusText,
-            json: async () => data
-        };
-        */
-        const parsedError = await parseAIError(response);
+        const parsedError = await parseAIError(response, txtResult);
         throw new Error(`${provider} API Error (${parsedError.status}): ${parsedError.message}`);
     }
 
 
-    let responseJson;
-    responseJson = await response.json();
+    // let responseJson;
+    // responseJson = await response.json();
+    let responseJson = JSON.parse(txtResult);
     console.log({ responseJson });
     debugger;
     if (Array.isArray(responseJson)) {
