@@ -632,7 +632,7 @@ export async function generateMindMap(fromLink) {
                     const surface = /** @type {HTMLDivElement} */ (body.closest("div.mdc-dialog__surface"));
                     if (!surface) throw Error("Did not find surface");
                     surface.style = `
-                        background-color: yellow;
+                        background-color: greenyellow;
                         border-top-left-radius: 100px;
                     `;
                 });
