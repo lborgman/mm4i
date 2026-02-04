@@ -634,6 +634,8 @@ export async function generateMindMap(fromLink) {
                     surface.style = `
                         background-color: greenyellow;
                         border-top-left-radius: 100px;
+                        border-top-right-radius: 100px;
+                        border-bottom-left-radius: 80px;
                     `;
                     const dialog = /** @type {HTMLDivElement} */ (body.closest("div.mdc-dialog"));
                     if (!dialog) throw Error("Did not find dialog");
