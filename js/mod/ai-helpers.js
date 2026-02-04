@@ -574,9 +574,12 @@ export async function generateMindMap(fromLink) {
                 `;
                 eltLogo.src = "./img/mm4i.svg";
 
+                const divTitle = mkElt("b", undefined, "Mindmaps 4 Internet");
+                divTitle.style.fontSize = "1.2em";
                 const divLogo = mkElt("div", undefined, [
                     eltLogo,
-                    mkElt("b", undefined, "Mindmaps 4 Internet"),
+                    divTitle,
+                    mkElt("i", undefined, "Make mindmap from link")
                 ]);
                 divLogo.style = `
                     display: flex;
