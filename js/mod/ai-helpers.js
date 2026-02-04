@@ -373,6 +373,8 @@ const txtBtnCopyCliboard = "I've copied AI answer";
 
 /** @type {function|undefined} */
 let initAItextarea;
+let alreadyAskedProceed = false;
+
 /**
  * 
  * @param {string} fromLink 
@@ -472,8 +474,9 @@ export async function generateMindMap(fromLink) {
         // setTimeout(async () => { });
         //return true;
     }
-
     async function askProceedWhenSharedTo() {
+        if (alreadyAskedProceed) return;
+        alreadyAskedProceed = true;
         // return; // FIX-ME:
         const sharedTo = modTools.getSharedToParams();
         // const sharedTo = true;
@@ -571,7 +574,14 @@ export async function generateMindMap(fromLink) {
         inpLink.blur();
         await modTools.wait4mutations(document.body);
         const divWays = document.getElementById("div-ways");
-        if (!divWays) throw Error(`Could not find element "div-ways"`);
+        if (!divWays) {
+            // Bug in the old material-components-web.js I am using:
+            // throw Error(`Could not find element "div-ways"`);
+            // debugger;
+            // FIX-ME: this is a workaround that might have some trouble:
+            setTimeout(() => { generateMindMap(fromLink); }, 500);
+            return;
+        }
         divWays.style.display = "block";
         await modTools.wait4mutations(document.body);
         // setTimeout(() => btnGo.focus(), 1000);
