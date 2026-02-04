@@ -102,12 +102,12 @@ const groqModels = [
     {
         name: "Llama 3.3 70B Versatile",
         id: "llama-3.3-70b-versatile",
-        description: "Fast - Good quality"
+        description: "Faster - Good quality"
     },
     {
         name: "Qwen 3 32B",
         id: "qwen/qwen3-32b",
-        description: "Very fast - More often available"
+        description: "Fastest - More often available"
     },
 ];
 const defaultGroqModel = groqModels[0].id;
@@ -469,112 +469,115 @@ export async function generateMindMap(fromLink) {
 
         // FIX-ME: some race condition here???
         // is automated
-        setTimeout(async () => {
-            // const sharedTo = modTools.getSharedToParams();
-            const sharedTo = true;
-            if (sharedTo) {
-                // if (typeof doItNow != "boolean" && !doItNowIsPending) {
-                if (!doItNowIsPending) {
-                    doItNowIsPending = true;
-                    // currentAI
-                    const currentAIname = /** @type {string} */ (settingUsedAIname.value);
-                    const infoAI = infoAIs[currentAIname];
-                    const urlImg = infoAI.urlImg;
-                    const imgAI = mkElt("span", { class: "elt-ai-img" });
-                    if (currentAIname == "Le Chat") {
-                        imgAI.style.backgroundSize = "contain";
-                    }
-                    imgAI.style.backgroundImage = `url(${urlImg})`;
-
-                    // const iconAI = modMdc.mkMDCicon("info"); // FIX-ME:
-                    const eltCurrent = mkElt("span", undefined, [imgAI, currentAIname]);
-                    eltCurrent.classList.add("elt-ai");
-                    eltCurrent.style.display = "inline-flex";
-                    eltCurrent.style.alignItems = "center";
-                    // eltCurrent.style.justifyContent = "flex-start";
-                    eltCurrent.style.gap = "5px";
-                    eltCurrent.style.paddingLeft = "6px";
-                    eltCurrent.style.paddingRight = "6px";
-                    eltCurrent.style.width = "fit-content";
-                    // eltCurrent.style.backgroundColor = "#0006";
-                    // eltCurrent.style.borderRadius = "50%";
-                    // eltCurrent.style.borderRadius = "18px";
-                    // eltCurrent.style.padding = "6px";
-                    // eltCurrent.style.marginLeft = "20px";
-                    // btn-ai-go
-                    // elt-ai-img
-                    // infoAIs
-                    // const btnDownload = modMdc.mkMDCiconButton("downloading", "Get mindmap", 40);
-                    const iconDownload = modMdc.mkMDCicon("downloading");
-                    // iconDownload.style.padding = "4px";
-                    const spanDownload = mkElt("span", undefined, iconDownload);
-                    spanDownload.style.backgroundColor = "#0006";
-                    spanDownload.style.color = "yellow";
-                    spanDownload.style.display = "flex";
-                    spanDownload.style.justifyContent = "center";
-                    spanDownload.style.alignItems = "center";
-                    spanDownload.style.padding = "4px";
-                    spanDownload.style.borderRadius = "50%";
-                    // FIX-ME: save the download!
-                    modTools.fetchIt(linkSource).then(_d => {
-                        // debugger;
-                        spanDownload.style.color = "greenyellow";
-                    });
-                    const divState = mkElt("div", undefined, [
-                        spanDownload,
-                        eltCurrent,
-                    ]);
-                    divState.style.display = "flex";
-                    divState.style.justifyContent = "flex-start";
-                    divState.style.gap = "20px";
-                    const body = mkElt("div", undefined, [
-                        mkElt("h3", undefined, "Mindmaps 4 Internet"),
-                        divState,
-                        mkElt("p", undefined, [
-                            `Proceed with current AI?`,
-                        ]),
-                    ]);
-                    /** @type {HTMLButtonElement} */ let btnYes;
-                    const getYesBtn = (elt) => {
-                        btnYes = elt;
-                        checkRemaining();
-                    }
-                    const msStart = performance.now();
-                    let secRemaining = 17;
-                    const msWait = secRemaining * 1000;
-                    function checkRemaining() {
-                        const msElapsed = performance.now() - msStart;
-                        const msRemaining = msWait - msElapsed;
-                        const sec = Math.floor(msRemaining / 1000);
-                        if (sec != secRemaining) {
-                            secRemaining = sec;
-                            const strYes = `Yes (${sec})`;
-                            const lastChild = btnYes.lastElementChild;
-                            if (!lastChild) return;
-                            lastChild.textContent = strYes;
-                            // debugger;
-                        }
-                        if (secRemaining > 0) requestAnimationFrame(checkRemaining);
-                        return; // FIX-ME:
-                        if (secRemaining <= 0) { btnYes.click(); }
-                    }
-                    doItNow = await modMdc.mkMDCdialogConfirm(body, "Yes", "No", undefined, getYesBtn);
-                    doItNowIsPending = false;
-                }
-            } else {
-                doItNow = false;
-            }
-            inpLink.blur();
-            await modTools.wait4mutations(document.body);
-            const divWays = document.getElementById("div-ways");
-            if (!divWays) throw Error(`Could not find element "div-ways"`);
-            divWays.style.display = "block";
-            await modTools.wait4mutations(document.body);
-            // setTimeout(() => btnGo.focus(), 1000);
-            if (doItNow) btnGo.click();
-        });
-        return true;
+        // setTimeout(async () => { });
+        //return true;
     }
+
+    async function askProceedWhenSharedTo() {
+        // return; // FIX-ME:
+        const sharedTo = modTools.getSharedToParams();
+        // const sharedTo = true;
+        if (!sharedTo) return;
+        if (sharedTo) {
+            // if (typeof doItNow != "boolean" && !doItNowIsPending) {
+            if (!doItNowIsPending) {
+                doItNowIsPending = true;
+                // currentAI
+                const currentAIname = /** @type {string} */ (settingUsedAIname.value);
+                const infoAI = infoAIs[currentAIname];
+                const urlImg = infoAI.urlImg;
+                const imgAI = mkElt("span", { class: "elt-ai-img" });
+                if (currentAIname == "Le Chat") {
+                    imgAI.style.backgroundSize = "contain";
+                }
+                imgAI.style.backgroundImage = `url(${urlImg})`;
+
+                const eltCurrentAI = mkElt("span", undefined, [imgAI, currentAIname]);
+                eltCurrentAI.classList.add("elt-ai");
+                eltCurrentAI.style.display = "inline-flex";
+                eltCurrentAI.style.alignItems = "center";
+                eltCurrentAI.style.gap = "5px";
+                eltCurrentAI.style.paddingLeft = "6px";
+                eltCurrentAI.style.paddingRight = "6px";
+                eltCurrentAI.style.width = "fit-content";
+
+                const iconDownloading = modMdc.mkMDCicon("downloading");
+                // iconDownload.style.padding = "4px";
+                const spanDownloadInfo = mkElt("span", undefined, iconDownloading);
+                spanDownloadInfo.style.backgroundColor = "#0006";
+                spanDownloadInfo.style.color = "yellow";
+                spanDownloadInfo.style.display = "flex";
+                spanDownloadInfo.style.justifyContent = "center";
+                spanDownloadInfo.style.alignItems = "center";
+                spanDownloadInfo.style.padding = "4px";
+                spanDownloadInfo.style.borderRadius = "50%";
+                // FIX-ME: save the download!
+                // modTools.fetchIt(linkSource).then(_d => {
+                modTools.fetchIt(fromLink).then(_d => {
+                    // debugger;
+                    spanDownloadInfo.style.color = "greenyellow";
+                });
+                const divState = mkElt("div", undefined, [
+                    spanDownloadInfo,
+                    eltCurrentAI,
+                ]);
+                divState.style.display = "flex";
+                divState.style.justifyContent = "flex-start";
+                divState.style.gap = "20px";
+                const body = mkElt("div", undefined, [
+                    mkElt("h3", undefined, "Mindmaps 4 Internet"),
+                    divState,
+                    mkElt("p", undefined, [
+                        `Proceed with current AI?`,
+                    ]),
+                ]);
+                    /** @type {HTMLButtonElement} */ let btnYes;
+                const getYesBtn = (elt) => {
+                    btnYes = elt;
+                    checkRemaining();
+                }
+                const msStart = performance.now();
+                let secRemaining = 17;
+                const msWait = secRemaining * 1000;
+                function checkRemaining() {
+                    const msElapsed = performance.now() - msStart;
+                    const msRemaining = msWait - msElapsed;
+                    const sec = Math.floor(msRemaining / 1000);
+                    if (sec != secRemaining) {
+                        secRemaining = sec;
+                        const strYes = `Yes (${sec})`;
+                        const lastChild = btnYes.lastElementChild;
+                        if (!lastChild) return;
+                        lastChild.textContent = strYes;
+                        // debugger;
+                    }
+                    if (secRemaining > 0) {
+                        // FIX-ME: The background dialog is not updating before this dialog is closed.
+                        //   setTimeout did not help
+                        // setTimeout(() => {
+                        requestAnimationFrame(checkRemaining);
+                        // }, 10);
+                    }
+                    return; // FIX-ME:
+                    if (secRemaining <= 0) { btnYes.click(); }
+                }
+                await modTools.wait4mutations(document.body, 200);
+                doItNow = await modMdc.mkMDCdialogConfirm(body, "Yes", "No", undefined, getYesBtn);
+                doItNowIsPending = false;
+            }
+        } else {
+            doItNow = false;
+        }
+        inpLink.blur();
+        await modTools.wait4mutations(document.body);
+        const divWays = document.getElementById("div-ways");
+        if (!divWays) throw Error(`Could not find element "div-ways"`);
+        divWays.style.display = "block";
+        await modTools.wait4mutations(document.body);
+        // setTimeout(() => btnGo.focus(), 1000);
+        if (doItNow) btnGo.click();
+    };
+
     // @ts-ignore
     async function _isReachableUrl(url) {
         let reachable = false;
@@ -1856,7 +1859,7 @@ export async function generateMindMap(fromLink) {
             flex-wrap: wrap;
             gap: 5px;
             `;
-
+ 
         getWhatToDoForUser(nameAI, eltCurrentWay);
         switch (way) {
             case "API":
@@ -1883,7 +1886,7 @@ export async function generateMindMap(fromLink) {
                 break;
             default:
                 eltCurrentWay.append(`ERROR: no instructions yet for "${way}"`);
-
+ 
         }
         */
 
@@ -1964,12 +1967,12 @@ UTC Time Window,Likelihood of Rate Limits / Slowdowns on Free Tier,Notes
 04:00 – 12:00 UTC,Medium,Asia/Japan daytime traffic
 12:00 – 16:00 UTC,Low → Medium,Generally quieter
 05:00 – 14:00 UTC,Lowest congestion,Best window for free-tier users (especially weekends)
-
-
-
+ 
+ 
+ 
 Free-Tier Limits for llama-3.1-8b-instant
 These are enforced per organization/account and reset periodically (RPM/TPM every minute; RPD/TPD every 24 hours from your first request). Exceeding any can cause immediate throttling, regardless of overall traffic.
-
+ 
 Limit Type,Value,What It Means,Common Pitfall
 RPM (Requests Per Minute),30,Max API calls per minute,"Rapid loops or chat streams (e.g., multiple messages in a session) hit this quick"
 TPM (Tokens Per Minute),"6,000",Max input + output tokens processed per minute,"A single prompt/output combo over ~6K tokens (e.g., long context or verbose responses) exceeds it—most frequent cause for 429s"
@@ -2796,6 +2799,12 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
     checkIsAIchoosen();
     // if (currentAIname == "") { return; }
 
+
+    setTimeout(() => {
+        askProceedWhenSharedTo();
+    }, 100);
+
+
     /*
     if (isAutomatedAI(currentAIname)) {
         if (settingProceedAPI.value) {
@@ -3365,7 +3374,7 @@ function nodeArrayFromAI2jsmindFormat(aiJson) {
     /////// find root
     // @ts-ignore
     let root_node;
-
+ 
     ////// find root children
     // @ts-ignore
     root_node.isroot = true;
@@ -4015,7 +4024,7 @@ const prompt = `
 7. Preserve escaped newlines (\n) inside string values for JSON validity; they should represent Markdown line breaks when rendered.
 8. ----
 `;
-
+ 
 callMistralAPI(prompt, "YOUR_API_KEY")
     .then(response => {
         if (response instanceof Error) {
@@ -4031,7 +4040,7 @@ callMistralAPI(prompt, "YOUR_API_KEY")
             }
         }
     });
-
+ 
 */
 
 
@@ -4117,7 +4126,7 @@ async function callHuggingFaceAPI(userPrompt, apiKey) {
 // Example usage:
 const prompt = "Summarize the key points of Thích Nhất Hạnh's teachings in 3 bullet points.";
 const hfToken = "YOUR_HUGGING_FACE_TOKEN"; // Replace with your token
-
+ 
 callHuggingFaceAPI(prompt, hfToken)
     .then(response => {
         if (response instanceof Error) {
@@ -4739,8 +4748,7 @@ function _testFixMalformedJSON3() {
 
 
 /**
- * Parses error responses from various AI API providers into a standardized format.
- * Handles different error formats from OpenAI, Groq, Anthropic, Google, Mistral, and others.
+* Handles different error formats from OpenAI, Groq, Anthropic, Google, Mistral, and others.
  * 
  * @param {Response} response - The fetch Response object from the API call
  * @param {string} txtResult - await response.text();
