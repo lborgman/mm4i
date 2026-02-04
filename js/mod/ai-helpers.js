@@ -497,28 +497,68 @@ export async function generateMindMap(fromLink) {
 
                 const eltCurrentAI = mkElt("span", undefined, [imgAI, currentAIname]);
                 eltCurrentAI.classList.add("elt-ai");
-                eltCurrentAI.style.display = "inline-flex";
-                eltCurrentAI.style.alignItems = "center";
-                eltCurrentAI.style.gap = "5px";
-                eltCurrentAI.style.paddingLeft = "6px";
-                eltCurrentAI.style.paddingRight = "6px";
-                eltCurrentAI.style.width = "fit-content";
+                eltCurrentAI.style = `
+                display : inline-flex;
+                alignItems : center;
+                gap : 5px;
+                paddingLeft : 6px;
+                paddingRight : 6px;
+                width : fit-content;
+                `;
 
                 const iconDownloading = modMdc.mkMDCicon("downloading");
                 // iconDownload.style.padding = "4px";
                 const spanDownloadInfo = mkElt("span", undefined, iconDownloading);
-                spanDownloadInfo.style.backgroundColor = "#0006";
-                spanDownloadInfo.style.color = "yellow";
-                spanDownloadInfo.style.display = "flex";
-                spanDownloadInfo.style.justifyContent = "center";
-                spanDownloadInfo.style.alignItems = "center";
-                spanDownloadInfo.style.padding = "4px";
-                spanDownloadInfo.style.borderRadius = "50%";
+                spanDownloadInfo.style = `
+                NObackground-color : #0006;
+                color : goldenrod;
+                display : flex;
+                justifyContent : center;
+                alignItems : center;
+                padding : 4px;
+                border-radius : 50%;
+                `;
+                const divInfo = mkElt("div", undefined, [`Proceed with current AI?`]);
+                divInfo.style.opacity = "0";
                 // FIX-ME: save the download!
                 // modTools.fetchIt(linkSource).then(_d => {
                 modTools.fetchIt(fromLink).then(_d => {
                     // debugger;
-                    spanDownloadInfo.style.color = "greenyellow";
+                    setTimeout(() => {
+                        spanDownloadInfo.style.color = "green";
+                        divInfo.style.opacity = "1";
+                    }, 500);
+                }).catch(async err => {
+                    console.log(err);
+                    divInfo.textContent = "";
+                    const aLink = mkElt("a", { href: fromLink, target: "_blank" }, fromLink);
+                    const divErrorInfo = mkElt("div", undefined, [
+                        "Could not find link:",
+                        aLink
+                    ]);
+                    divInfo.appendChild(divErrorInfo);
+                    divInfo.style.opacity = "1";
+                    divErrorInfo.style = `
+                        display: flex;
+                        flex-direction: column;
+                        overflow-wrap: anywhere;
+                        background: black;
+                        color: white;
+                        padding: 6px;
+                        border-radius: 4px;
+                    `;
+                    await modTools.wait4mutations(document.body);
+                    await modTools.waitSeconds(0.5);
+                    // getYes
+                    const btnOK = /** @type {HTMLButtonElement} */ (btnYes.nextElementSibling);
+                    if (!btnOK) throw Error("Could not find btnOK");
+                    await modTools.waitSeconds(0.1);
+                    const eltOKlabel = btnOK.querySelector("span.mdc-button__label");
+                    if (!eltOKlabel) throw Error("Could not find OK label element");
+                    eltOKlabel.textContent = "Close";
+                    btnOK.focus();
+                    btnYes.inert = true;
+                    btnYes.style.opacity = "0";
                 });
                 const divState = mkElt("div", undefined, [
                     spanDownloadInfo,
@@ -527,14 +567,32 @@ export async function generateMindMap(fromLink) {
                 divState.style.display = "flex";
                 divState.style.justifyContent = "flex-start";
                 divState.style.gap = "20px";
-                const body = mkElt("div", undefined, [
-                    mkElt("h3", undefined, "Mindmaps 4 Internet"),
-                    divState,
-                    mkElt("p", undefined, [
-                        `Proceed with current AI?`,
-                    ]),
+                const eltLogo = mkElt("img");
+                eltLogo.style = `
+                    aspect-ratio: 1/1;
+                    height: 60px;
+                `;
+                eltLogo.src = "./img/mm4i.svg";
+
+                const divLogo = mkElt("div", undefined, [
+                    eltLogo,
+                    mkElt("b", undefined, "Mindmaps 4 Internet"),
                 ]);
-                    /** @type {HTMLButtonElement} */ let btnYes;
+                divLogo.style = `
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    margin: 20px 0px;
+                `;
+                const body = mkElt("div", undefined, [
+                    divLogo,
+                    divState,
+                    divInfo,
+                ]);
+                body.id = "proceed-dialog";
+
+                /** @type {HTMLButtonElement} */ let btnYes;
                 const getYesBtn = (elt) => {
                     btnYes = elt;
                     checkRemaining();
