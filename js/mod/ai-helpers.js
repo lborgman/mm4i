@@ -635,6 +635,11 @@ export async function generateMindMap(fromLink) {
                         background-color: greenyellow;
                         border-top-left-radius: 100px;
                     `;
+                    const dialog = /** @type {HTMLDivElement} */ (body.closest("div.mdc-dialog"));
+                    if (!dialog) throw Error("Did not find dialog");
+                    dialog.style = `
+                        backdrop-filter: blur(3px);
+                    `;
                 });
                 doItNow = await modMdc.mkMDCdialogConfirm(body, "Yes", "No", undefined, getYesBtn);
                 doItNowIsPending = false;
