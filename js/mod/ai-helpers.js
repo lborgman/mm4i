@@ -52,7 +52,8 @@ const arrTemperatureTypes = ["careful", "normal", "creative"];
 const tempType2temperature = (tempType) => {
     switch (tempType) {
         // case "careful": return 0.2;
-        case "careful": return 0.15;
+        // case "careful": return 0.15;
+        case "careful": return 0.1;
 
         // case "normal": return 0.4;
         case "normal": return 0.3;
@@ -626,6 +627,15 @@ export async function generateMindMap(fromLink) {
                     if (secRemaining <= 0) { btnYes.click(); }
                 }
                 await modTools.wait4mutations(document.body, 200);
+                setTimeout(async () => {
+                    await modTools.wait4connected(body);
+                    const surface = /** @type {HTMLDivElement} */ (body.closest("div.mdc-dialog__surface"));
+                    if (!surface) throw Error("Did not find surface");
+                    surface.style = `
+                        background-color: yellow;
+                        border-top-left-radius: 100px;
+                    `;
+                });
                 doItNow = await modMdc.mkMDCdialogConfirm(body, "Yes", "No", undefined, getYesBtn);
                 doItNowIsPending = false;
             }
@@ -3530,7 +3540,17 @@ const objSettingsModels = {
     "gemini": new SettingsMm4iAI("ai-gemini-model", "gemini-2.5-flash"),
     // "deepseek": new SettingsMm4iAI("ai-deepseek-model", "deepseek-chat"),
     // "deepseek": new SettingsMm4iAI("ai-deepseek-model", "deepseek-reasoner"),
-    "HuggingFace": new SettingsMm4iAI("ai-huggingface-model", "deepseek-reasoner"),
+
+
+    ///////// "HuggingFace"
+    // Can't be used:
+    // "HuggingFace": new SettingsMm4iAI("ai-huggingface-model", "meta-llama/Llama-3.1-8B-Instruct:hf-inference"),
+
+    ///// Option 1: Don't specify provider (auto-routing)
+    // model: "HuggingFaceTB/SmolLM3-3B"
+    "HuggingFace": new SettingsMm4iAI("ai-huggingface-model", "HuggingFaceTB/SmolLM3-3B"),
+    // model: "deepseek-ai/DeepSeek-V3-0324"
+    // "HuggingFace": new SettingsMm4iAI("ai-huggingface-model", "deepseek-ai/DeepSeek-V3-0324"),
 };
 /**
  * 
