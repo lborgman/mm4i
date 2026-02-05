@@ -331,6 +331,31 @@ export async function generateMindMap(fromLink) {
 
     /** @type {string|null} */
     let youTubeVideoId = null;
+    /**
+     * 
+     * @param {boolean} yes 
+     */
+    function setGenerationAvailable(yes) {
+        const tofYes = typeof yes;
+        if (tofYes != "boolean") throw Error(`tofYes == "${tofYes}"`);
+        if (yes) {
+            divPrompt.inert = false;
+            btnGo.inert = false;
+            if (modTools.isExpandedHeightExpander(divWaysExpandable)) {
+                divWays.classList.add("ai-generation-available");
+            } else {
+                modTools.expandHeightExpander(divWaysExpandable);
+                setTimeout(() => {
+                    divWays.classList.add("ai-generation-available");
+                }, 1000);
+            }
+        } else {
+            divPrompt.inert = true;
+            btnGo.inert = true;
+            divWays.classList.remove("ai-generation-available");
+        }
+    }
+
     async function checkInpLink() {
         const modPWA = await importFc4i("pwa");
         if (!(await modPWA.PWAhasInternet())) {
@@ -344,22 +369,24 @@ export async function generateMindMap(fromLink) {
         const linkSource = inpLink.value.trim();
 
         youTubeVideoId = modTools.isValidYouTubeID(linkSource) ? linkSource : modTools.getYouTubeVideoId(linkSource);
-        // console.log({ youTubeVideoId });
         if (youTubeVideoId) {
             eltDialogContent.classList.add("is-youtube-video");
 
             const eltLogo = mkEltYouTubeLogo("18px");
             eltStatus.appendChild(eltLogo);
-            divWays.style.display = "unset";
-            btnGo.inert = false;
+            // divWays.style.display = "unset";
+            // btnGo.inert = false;
+            // divWays.classList.add("ai-generation-available");
+            setGenerationAvailable(true);
             return;
         }
         eltDialogContent.classList.remove("is-youtube-video");
 
-        // const b = divPrompt;
         if (linkSource.trim().length == 0) {
-            divPrompt.inert = true;
-            btnGo.inert = true;
+            // divPrompt.inert = true;
+            // btnGo.inert = true;
+            // divWays.classList.remove("ai-generation-available");
+            setGenerationAvailable(false);
             return false;
         }
 
@@ -367,18 +394,12 @@ export async function generateMindMap(fromLink) {
         eltStatus.textContent = "";
         if (vu != true) {
             eltStatus.append(vu.message);
-            divPrompt.inert = true;
-            btnGo.inert = true;
+            // divPrompt.inert = true;
+            // btnGo.inert = true;
+            setGenerationAvailable(false);
             return false;
         }
-        divPrompt.inert = false;
-        btnGo.inert = false;
-        divWays.style.display = "unset";
-
-        // FIX-ME: some race condition here???
-        // is automated
-        // setTimeout(async () => { });
-        //return true;
+        setGenerationAvailable(true);
     }
     async function askProceedWhenSharedTo() {
         if (alreadyAskedProceed) return;
@@ -581,6 +602,7 @@ export async function generateMindMap(fromLink) {
             return;
         }
         divWays2.style.display = "block";
+        divWays2.classList.add("ai-generation-available");
         await modTools.wait4mutations(document.body);
         // setTimeout(() => btnGo.focus(), 1000);
         if (doItNow) btnGo.click();
@@ -1773,8 +1795,16 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
     });
     /** @param {string} nameAI */
     function setAIchoosen(nameAI) {
-        // btnGo.inert = false;
-        btnGo.inert = !modTools.isValidUrlFormat(inpLink.value.trim());
+        const validUrlFormat = modTools.isValidUrlFormat(inpLink.value.trim());
+        /*
+        btnGo.inert = !validUrlFormat;
+        if (validUrlFormat) {
+            divWays.classList.add("ai-generation-available");
+        } else {
+            divWays.classList.remove("ai-generation-available");
+        }
+        */
+        setGenerationAvailable(validUrlFormat == true);
         const isAuto = isAutomatedAI(nameAI);
         setCSSforAIautomated(isAuto);
         setCSSforAIonClipboard(!isAuto);
@@ -2311,7 +2341,8 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
         divTabForGo
     ]);
     divWays.id = "div-ways";
-    divWays.style.display = "none";
+    // divWays.style.display = "none";
+    const divWaysExpandable = modTools.mkHeightExpander(divWays);
 
 
 
@@ -2321,7 +2352,8 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
         // eltNotReady,
         mkElt("h2", undefined, "Make mindmap from link"),
         mkElt("div", undefined, cardInput),
-        divWays,
+        // divWays,
+        divWaysExpandable
     ]);
     modMdc.mkMDCdialogAlert(body, "Close");
 
@@ -2523,7 +2555,6 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
      * @returns 
      */
     function tellIfAIisChoosen(b, nameAI) {
-        // console.log("tellIfAIisChoosen", { b, nameAI });
         // btnGo.inert = !b;
         if (b) {
             document.documentElement.classList.add("ai-is-choosen");

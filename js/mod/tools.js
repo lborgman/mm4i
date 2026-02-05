@@ -1329,7 +1329,7 @@ export function getUrllNotValidMsg(id) {
  * @param {string} strUrl 
  * @param {string} protocol 
  * @param {boolean} [mustCheckTLD]
- * @returns 
+ * @returns {Promise<true|Object>} 
  */
 export async function isValidUrlFormat(strUrl, protocol, mustCheckTLD = true) {
     /**
@@ -2656,6 +2656,10 @@ function checkIsHeightExpander(divExpander) {
     if (!divExpanderContent.classList.contains("height-expander-content")) {
         tellError('divExpanderContent does not have class ".height-expander-content"');
     }
+}
+export function isExpandedHeightExpander(divExpander) {
+    checkIsHeightExpander(divExpander);
+    return divExpander.classList.contains("expanded");
 }
 export function expandHeightExpander(divExpander) {
     checkIsHeightExpander(divExpander);
