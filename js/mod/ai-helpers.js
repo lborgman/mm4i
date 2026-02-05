@@ -160,20 +160,19 @@ function _getFirebaseApp() {
  * @typedef {Object.<string, any>} aiInfo
  * @property {string} company
  * @property {string} urlDescription
- * @property {boolean} [qW]
- * @property {boolean} [qA]
+ * property {boolean} [qW]
+ * property {boolean} [qA]
  * @property {string} [comment]
- * @property {string} [urlChat]
- * @property {boolean} [isPWA] - is urlChat a PWA?
+ * property {string} [urlChat]
+ * property {boolean} [isPWA] - is urlChat a PWA?
  * @property {string} [urlImg]
- * @property {string} [android]
- * @property {string} [pkg]
+ * property {string} [android]
+ * property {string} [pkg]
  * @property {funCallAI} [fun]
  * @property {string} [urlAPIkey]
  */
 
 /**
- * 
  * @param {aiInfo} aiInfo
  * @returns {aiInfo}
  */
@@ -197,183 +196,87 @@ function _getAIinfoComment(aiInfo, key) {
  * @type {Object<string,aiInfo>}
  */
 const infoAIs = {
+    /*
     "deepseek": mkAIinfo({
         company: "deepseek Face",
         urlDescription: "https://www.deepseek.com/en/",
-        // Don't use deepseek, it requires you to register a payment method!
+        // Requires you to register a payment method!
         // fun: "generic",
         urlImg: "https://cdn.deepseek.com/platform/favicon.png",
         urlAPIkey: "https://platform.deepseek.com/api_keys",
     }),
-
-    "HuggingFace": mkAIinfo({
-        company: "Hugging Face",
-        urlDescription: "https://huggingface.co/",
-        // callHuggingFaceAPI
-        // fun: callHuggingFaceInference,
-        fun: "generic",
-        urlImg: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
-        urlAPIkey: "https://huggingface.co/settings/tokens",
-    }),
+    */
     "Gemini": mkAIinfo({
         company: "Google",
         urlDescription: "https://gemini.google/about/",
-        fun: callGeminiAPI,
-        pkg: "com.google.android.apps.bard",
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Google-gemini-icon.svg",
-        urlChat: "gemini.google.com/app",
-        isPWA: false, // 2025-10-04
         canReadYouTube: true,
-        urlAPIkey: "https://support.gemini.com/hc/en-us/articles/360031080191-How-do-I-create-an-API-key"
+        urlAPIkey: "https://support.gemini.com/hc/en-us/articles/360031080191-How-do-I-create-an-API-key",
+        fun: callGeminiAPI,
     }),
     "ChatGPT": mkAIinfo({
         company: "OpenAI",
         urlDescription: "https://openai.com/index/chatgpt/",
-        android: "intent://chat.openai.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.openai.chatgpt;end;",
-        fun: callOpenAIapi,
-        pkg: "com.openai.chatgpt",
-        qA: true,
-        qW: true,
-        urlChat: "chatgpt.com",
-        isPWA: false, // 2025-10-04
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b5/ChatGPT_logo_Square.svg"
+        // Requires you to register a payment method!
+        // fun: callOpenAIapi,
     }),
     "Claude": mkAIinfo({
         company: "Anthropic",
         urlDescription: "https://www.anthropic.com/",
-        pkg: "com.anthropic.claude",
-        urlChat: "claude.ai",
-        isPWA: true, // 2025-10-04
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Claude_AI_symbol.svg"
+        // Requires you to register a payment method!
     }),
     "Grok": mkAIinfo({
         company: "xAI",
         urlDescription: "https://x.ai/grok",
-        // fun: callGrokApi, // The other version seems better, but I can not test with a valid key
-        fun: callOpenAIapi,
-        pkg: "ai.x.grok",
-        qW: true,
-        urlChat: "grok.com/chat",
-        isPWA: true, // 2025-10-04
         urlImg: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Grok-feb-2025-logo.svg"
+        // Requires you to register a payment method!
+        // fun: callOpenAIapi,
     }),
 
     "groq": mkAIinfo({
         company: "groq",
         urlDescription: "https://console.groq.com/",
+        urlImg: "./img/groq-image.svg",
+        urlAPIkey: "https://console.groq.com/keys",
         // fun: callGroqAPI,
         fun: "generic",
-        urlAPIkey: "https://console.groq.com/keys",
-        urlImg: "./img/groq-image.svg",
         freeAI: true
     }),
 
+    /*
+    // Can't be used for production, very slow
     "Hugging Face": mkAIinfo({
         company: "Hugging FAce",
         urlDescription: "https://huggingface.co/",
+        urlImg: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg",
+        // Requires you to register a payment method!
         fun: callHuggingFaceAPI,
-        // pkg: "ai.x.grok",
-        // qW: true,
-        // urlChat: "grok.com/chat",
-        isPWA: false, // 2025-10-12, dummy
-        urlImg: "https://huggingface.co/front/assets/huggingface_logo-noborder.svg"
     }),
-
+    */
 
     "Le Chat": mkAIinfo({
         company: "Mistral",
         urlDescription: "https://mistral.ai/products/le-chat",
-        // fun: callGrokApi, // The other version seems better, but I can not test with a valid key
-        // fun: callOpenAIapi,
-        fun: callMistralAPI,
+        urlImg: "./img/mistral-ai-rainbow.svg",
         urlAPIkey: "https://console.mistral.ai/",
-        // pkg: "ai.x.grok",
-        qW: false,
-        urlChat: "chat.mistral.ai/",
-        isPWA: false, // 2025-10-11
-        urlImg: "./img/mistral-ai-rainbow.svg"
+        // Requires you to register a payment method!
+        // fun: callMistralAPI,
     }),
-
-
 
     "Perplexity": mkAIinfo({
         company: "Perplexity",
         urlDescription: "https://www.perplexity.ai/hub/getting-started",
-        android: "intent://perplexity.sng.link/A6awk/ppas?q=PLACEHOLDER#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;end;",
-        qW: true,
-        pkg: "ai.perplexity.app.android",
-        urlChat: "perplexity.ai",
-        isPWA: false, // 2025-10-04
-        urlImg: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Perplexity_AI_logo.svg"
+        urlImg: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Perplexity_AI_logo.svg",
     }),
-}
-/**
- * @type {Object<string,string[][]>}
- */
-const testIntentsAI = {
-    "Gemini":
-        [
-            [
-                'intent://search/#Intent;scheme=app;package=com.google.android.googlequicksearchbox;end;',
-                "Opens Google Play"
-            ],
-            [
-                "intent://gemini.google.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.google.gemini;end;",
-                "Opens Google Play"
-            ],
-            [
-                "intent://gemini.google.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.google.android.apps.gemini;end;",
-                "Opens Google Play"
-            ],
-        ],
-    "ChatGPT":
-        [
-            [
-                "intent://chat.openai.com/?q=PLACEHOLDER#Intent;scheme=https;package=com.openai.chatgpt;end;",
-                "Opens android app and q works"
-            ],
-        ],
-    "Claude": [],
-    "Grok":
-        [
-            [
-                "intent://#Intent;package=ai.x.grok;end;",
-                "Opens Google play"
-            ],
-            [
-                "https://play.google.com/store/apps/details?id=ai.x.grok",
-                "Does nothing"
-            ],
-            [
-                "intent://#Intent;component=ai.x.grok/.MainActivity;end",
-                "Does nothing"
-            ],
-            [
-                "https://play.google.com/store/apps/details?id=ai.x.grok",
-                "Does nothing"
-            ],
-            [
-                "https://play.google.com/store/apps/details?id=ai.x.grok",
-            ],
-            [
-                "market://details?id=ai.x.grok",
-                "Opens https://market.android.com/details?id=ai.x.grok;"
-            ],
-        ],
-    "Perplexity":
-        [
-            [
-                "intent://perplexity.sng.link/A6awk/ppas?q=PLACEHOLDER#Intent;scheme=singular-perplexity;package=ai.perplexity.app.android;end;",
-                "Starts app, but q does not work"
-            ],
-        ]
 }
 
 
 const txtBtnCopyCliboard = "I've copied AI answer";
 
-/** @type {function|undefined} */
-let initAItextarea;
+/* @type {function|undefined} */
+// let initAItextarea;
 let alreadyAskedProceed = false;
 
 /**
@@ -385,7 +288,7 @@ export async function generateMindMap(fromLink) {
     // const modMMhelpers = await importFc4i("mindmap-helpers");
     const inpLink = modMdc.mkMDCtextFieldInput(undefined, "text");
     const tfLink = modMdc.mkMDCtextField("Link to article/video", inpLink);
-    initAItextarea = onAItextareaInput;
+    // initAItextarea = onAItextareaInput;
 
     /** @type {Promise<string>|undefined} */
     // let promFetch;
@@ -1490,10 +1393,17 @@ export async function generateMindMap(fromLink) {
     const lblNotify = mkElt("label", undefined, [
         "Notify if took > ", inpNotify, " seconds"
     ]);
-    const divInfoYourAIs = mkElt("p", undefined,
-        `Show only your available AI:s.
-         These are our free AI:s plus those for which you have added your own API key.`
-    );
+    const divInfoYourAIs = mkElt("div", undefined, [
+        mkElt("p", undefined,
+            `Show only your available AI:s.
+            These are our free AI:s plus those for which you have added your own API key.`
+        ),
+        mkElt("p", undefined,
+            `We include only AI:s that have a truly free tier.
+            (If you must supply a payment method we do not include it here.)
+            `
+        ),
+    ]);
     divInfoYourAIs.classList.add("display-none");
     divInfoYourAIs.style.marginLeft = "20px";
 
@@ -1563,302 +1473,6 @@ export async function generateMindMap(fromLink) {
     divInfoYouTubeAIs.id = "div-youtube-info-ais";
     divInfoYouTubeAIs.classList.add("youtube-show");
     divEltsAI.appendChild(divInfoYouTubeAIs);
-
-
-    // Add Hugging Face first - no, I can not get it to work here???
-    // await addHuggingFace();
-    // async function addHuggingFace() {
-    //     const imgAI = mkElt("span", { class: "elt-ai-img" });
-    //     const urlImg = "https://huggingface.co/front/assets/huggingface_logo-noborder.svg";
-    //     imgAI.style.backgroundImage = `url(${urlImg})`;
-    //     imgAI.style.display = "none";
-    //     const nameIcon = "smart_toy";
-    //     const iconWay = modMdc.mkMDCicon(nameIcon);
-    //     const wayIndicator = mkElt("i", undefined, [iconWay]);
-    //     wayIndicator.style.color = "lightseagreen";
-    //     const radAI = mkElt("input", { type: "radio", name: "ai", value: "HuggingFace" });
-
-    //     const longNameModel = /** @type {string} */ (settingPuterAImodel.value);
-    //     const tofLongNM = typeof longNameModel;
-    //     if (tofLongNM != "string") throw Error(`typeof longNameModel = "${tofLongNM}"`);
-    //     const nameModel = longNameModel.slice(11);
-    //     const [provider, model] = nameModel.split("/");
-    //     const niceProvider = makeNiceProviderName(provider);
-    //     const divModel = mkElt("div", undefined, [
-    //         mkElt("b", undefined, `${niceProvider}: `), model]);
-    //     wayIndicator.style.color = "lightskyblue";
-    //     divModel.style.fontSize = "0.8rem";
-    //     const divHeader = mkElt("div", undefined, [wayIndicator, "Hugging Face "]);
-    //     divHeader.style.display = "flex";
-    //     divHeader.style.gap = "10px";
-    //     divHeader.style.marginBottom = "-10px";
-
-    //     const divHuggingFace = mkElt("div", undefined, [
-    //         divHeader,
-    //         divModel,
-    //     ]);
-
-    //     const eltAIlabel = mkElt("label", undefined, [radAI, imgAI, divHuggingFace]);
-    //     eltAIlabel.classList.add("elt-ai-label");
-
-    //     // "details"
-    //     const sumAI = mkElt("summary", undefined, "");
-    //     sumAI.classList.add("elt-ai-summary");
-    //     sumAI.style.top = "20px";
-
-    //     // "Automated"
-    //     const iconAutomated = modMdc.mkMDCicon("smart_toy");
-    //     iconAutomated.style.color = "goldenrod";
-    //     iconAutomated.style.fontSize = "1.4rem";
-    //     const eltInfoAutomated = mkElt("div", undefined, [
-    //         mkElt("p", undefined, [
-    //             iconAutomated,
-    //             ` The AI:s below are automated here. 
-    //         This means that when they are ready the mindmap will be created automatically.
-    //     `]),
-    //         mkElt("p", undefined, [
-    //             `These AI:s are handled by `,
-    //             mkElt("a", { href: "https://huggingface.co/", target: "_blank" }, "https://huggingface.co/"),
-    //             ` - a service that helps me automate.
-    //         (I am not in any way involved in payments. And I do not get anything.)
-    //     `]),
-    //         mkElt("p", undefined, [
-    //             `TODO: describe Hugging Face
-    //         `
-    //         ])
-    //     ]);
-
-
-
-    //     /** @type {HTMLDivElement} */
-    //     const divHuggingFaceModels = mkElt("div", undefined, [
-    //         mkElt("h3", undefined, "AI models")
-    //     ]);
-
-    //     const modPutinModels = await importFc4i("puter-ai-models");
-    //     const arrModels = modPutinModels.getModels();
-    //     const oldModel = settingPuterAImodel.value;
-    //     let providerGroup = "";
-    //     /** @type {HTMLDivElement} */
-    //     let divProvider;
-    //     arrModels.sort().forEach( /** @param {string} fullNameModel */(fullNameModel) => {
-    //         const radModel = mkElt("input", { type: "radio", name: "puter-model", value: fullNameModel });
-    //         const longName = fullNameModel.slice(11);
-    //         const [provider, nameModel] = longName.split("/");
-    //         if (provider != providerGroup) {
-    //             providerGroup = provider;
-    //             // divPuterModels.appendChild( mkElt("div", { style: "font-size:1.3rem; font-weight:bold;" }, `${provider}:`));
-    //             divProvider = /** @type {HTMLDivElement} */ mkElt("div");
-    //             const detailsProvider = mkElt("details", undefined, [
-    //                 mkElt("summary", undefined, makeNiceProviderName(provider)),
-    //                 divProvider
-    //             ]);
-    //             divHuggingFaceModels.appendChild(detailsProvider)
-    //         }
-    //         const lblModel = mkElt("label", undefined, [radModel, " ", nameModel]);
-    //         // divPuterModels.appendChild(mkElt("div", undefined, lblModel));
-    //         divProvider.appendChild(mkElt("div", undefined, lblModel));
-    //         if (oldModel == fullNameModel) {
-    //             radModel.checked = true;
-    //             const eltDetails = lblModel.closest("details");
-    //             if (!eltDetails) throw Error("Did not find <details>");
-    //             eltDetails.open = true;
-    //         }
-    //     });
-
-    //     /** * @param {MouseEvent} evt - The mouse event triggered by the click.  */
-    //     divHuggingFaceModels.addEventListener("click", evt => {
-    //         evt.stopPropagation();
-    //         evt.stopImmediatePropagation();
-    //         if (!(evt.target instanceof HTMLElement)) { return; }
-    //         const trg = evt.target;
-    //         const tn = trg.tagName;
-    //         if (tn != "INPUT") return;
-    //         // const nameModel = trg.value;
-    //         const nameModel = (/** @type {HTMLInputElement} */ (trg)).value;
-    //         console.log({ nameModel });
-    //         settingPuterAImodel.value = nameModel;
-    //     });
-
-
-    //     const detInfoAutomated = mkElt("details", { style: "color:lightskyblue; margin-top:20px;" }, [
-    //         mkElt("summary", { style: "color:lightskyblue" }, "Info about these AI models"),
-    //         eltInfoAutomated,
-    //     ]);
-
-    //     const divDetAIcontent = mkElt("div", undefined, [
-    //         "Much more to come here!",
-    //         detInfoAutomated,
-    //         divHuggingFaceModels,
-    //     ]);
-    //     divDetAIcontent.classList.add("elt-ai-det-content");
-
-    //     const detAI = mkElt("details", undefined, [
-    //         sumAI,
-    //         // mkElt("div", undefined, [ "More to come!", ]),
-    //         divDetAIcontent
-    //     ]);
-
-
-    //     const eltAI = mkElt("div", undefined, [eltAIlabel, detAI]);
-    //     eltAI.classList.add("elt-ai");
-    //     eltAI.id = "elt-ai-puter";
-    //     divEltsAI.appendChild(eltAI);
-    // }
-
-    // Add puter alternative - unfortunately to slow to be usable here 
-    // await _addPuter();
-    // async function _addPuter() {
-    //     const imgAI = mkElt("span", { class: "elt-ai-img" });
-    //     const urlImg = "./ext/puter/puter.svg";
-    //     imgAI.style.backgroundImage = `url(${urlImg})`;
-    //     imgAI.style.display = "none";
-    //     const nameIcon = "smart_toy";
-    //     const iconWay = modMdc.mkMDCicon(nameIcon);
-    //     const wayIndicator = mkElt("i", undefined, [iconWay]);
-    //     wayIndicator.style.color = "lightseagreen";
-    //     const radAI = mkElt("input", { type: "radio", name: "ai", value: "PuterJs" });
-
-    //     const longNameModel = /** @type {string} */ (settingPuterAImodel.value);
-    //     const tofLongNM = typeof longNameModel;
-    //     if (tofLongNM != "string") throw Error(`typeof longNameModel = "${tofLongNM}"`);
-    //     const nameModel = longNameModel.slice(11);
-    //     const [provider, model] = nameModel.split("/");
-    //     const niceProvider = makeNiceProviderName(provider);
-    //     const divModel = mkElt("div", undefined, [
-    //         mkElt("b", undefined, `${niceProvider}: `), model]);
-    //     wayIndicator.style.color = "cyan";
-    //     wayIndicator.style.color = "lightseagreen";
-    //     wayIndicator.style.color = "lightskyblue";
-    //     // divModel.marginLeft = "10px";
-    //     divModel.style.fontSize = "0.8rem";
-    //     const divHeader = mkElt("div", undefined, [wayIndicator, "Automated "]);
-    //     divHeader.style.display = "flex";
-    //     // divHeader.style.justifyContent = "space-between";
-    //     divHeader.style.gap = "10px";
-    //     divHeader.style.marginBottom = "-10px";
-
-    //     const divPuter = mkElt("div", undefined, [
-    //         divHeader,
-    //         divModel,
-    //     ]);
-
-    //     const eltAIlabel = mkElt("label", undefined, [radAI, imgAI, divPuter]);
-    //     eltAIlabel.classList.add("elt-ai-label");
-
-    //     // "details"
-    //     const sumAI = mkElt("summary", undefined, "");
-    //     sumAI.classList.add("elt-ai-summary");
-    //     sumAI.style.top = "20px";
-
-    //     // "Automated"
-    //     const iconAutomated = modMdc.mkMDCicon("smart_toy");
-    //     iconAutomated.style.color = "goldenrod";
-    //     iconAutomated.style.fontSize = "1.4rem";
-    //     const eltInfoAutomated = mkElt("div", undefined, [
-    //         mkElt("p", undefined, [
-    //             iconAutomated,
-    //             ` The AI:s below are automated here. 
-    //         This means that when they are ready the mindmap will be created automatically.
-    //     `]),
-    //         mkElt("p", undefined, [
-    //             `These AI:s are handled by `,
-    //             mkElt("a", { href: "https://puter.com/settings", target: "_blank" }, "https://puter.com"),
-    //             ` - a service that helps me automate.
-    //         (I am not in any way involved in payments. And I do not get anything.)
-    //     `]),
-    //         mkElt("p", undefined, [
-    //             `Puter takes care of paying for these AI:s.
-    //         You will have to pay through Puter.
-    //         I am not involved in any way in that.
-    //         Click the link above to find out more.
-    //         `
-    //         ]),
-    //         mkElt("p", undefined, [
-    //             `You can probably create a few mindmaps each day for free.
-    //         I am not sure about that.
-    //         `
-    //         ]),
-    //     ]);
-
-
-
-    //     /** @type {HTMLDivElement} */
-    //     const divPuterModels = mkElt("div", undefined, [
-    //         mkElt("h3", undefined, "AI models")
-    //     ]);
-
-    //     const modPutinModels = await importFc4i("puter-ai-models");
-    //     const arrModels = modPutinModels.getModels();
-    //     const oldModel = settingPuterAImodel.value;
-    //     let providerGroup = "";
-    //     /** @type {HTMLDivElement} */
-    //     let divProvider;
-    //     arrModels.sort().forEach( /** @param {string} fullNameModel */(fullNameModel) => {
-    //         const radModel = mkElt("input", { type: "radio", name: "puter-model", value: fullNameModel });
-    //         const longName = fullNameModel.slice(11);
-    //         const [provider, nameModel] = longName.split("/");
-    //         if (provider != providerGroup) {
-    //             providerGroup = provider;
-    //             // divPuterModels.appendChild( mkElt("div", { style: "font-size:1.3rem; font-weight:bold;" }, `${provider}:`));
-    //             divProvider = /** @type {HTMLDivElement} */ mkElt("div");
-    //             const detailsProvider = mkElt("details", undefined, [
-    //                 mkElt("summary", undefined, makeNiceProviderName(provider)),
-    //                 divProvider
-    //             ]);
-    //             divPuterModels.appendChild(detailsProvider)
-    //         }
-    //         const lblModel = mkElt("label", undefined, [radModel, " ", nameModel]);
-    //         // divPuterModels.appendChild(mkElt("div", undefined, lblModel));
-    //         divProvider.appendChild(mkElt("div", undefined, lblModel));
-    //         if (oldModel == fullNameModel) {
-    //             radModel.checked = true;
-    //             const eltDetails = lblModel.closest("details");
-    //             if (!eltDetails) throw Error("Did not find <details>");
-    //             eltDetails.open = true;
-    //         }
-    //     });
-
-    //     /** * @param {MouseEvent} evt - The mouse event triggered by the click.  */
-    //     divPuterModels.addEventListener("click", evt => {
-    //         evt.stopPropagation();
-    //         evt.stopImmediatePropagation();
-    //         if (!(evt.target instanceof HTMLElement)) { return; }
-    //         const trg = evt.target;
-    //         const tn = trg.tagName;
-    //         if (tn != "INPUT") return;
-    //         // const nameModel = trg.value;
-    //         const nameModel = (/** @type {HTMLInputElement} */ (trg)).value;
-    //         console.log({ nameModel });
-    //         settingPuterAImodel.value = nameModel;
-    //     });
-
-
-    //     const detInfoAutomated = mkElt("details", { style: "color:lightskyblue; margin-top:20px;" }, [
-    //         mkElt("summary", { style: "color:lightskyblue" }, "Info about these AI models"),
-    //         eltInfoAutomated,
-    //     ]);
-
-    //     const divDetAIcontent = mkElt("div", undefined, [
-    //         "Much more to come here!",
-    //         detInfoAutomated,
-    //         divPuterModels,
-    //     ]);
-    //     divDetAIcontent.classList.add("elt-ai-det-content");
-
-    //     const detAI = mkElt("details", undefined, [
-    //         sumAI,
-    //         // mkElt("div", undefined, [ "More to come!", ]),
-    //         divDetAIcontent
-    //     ]);
-
-
-    //     const eltAI = mkElt("div", undefined, [eltAIlabel, detAI]);
-    //     eltAI.classList.add("elt-ai");
-    //     eltAI.id = "elt-ai-puter";
-    //     divEltsAI.appendChild(eltAI);
-    // }
-
 
 
     Object.entries(infoAIs).forEach(e => { // "elt-ai"
@@ -2008,10 +1622,6 @@ export async function generateMindMap(fromLink) {
             // eltCurrentWay,
         ]);
         divDetAIcontent.classList.add("elt-ai-det-content");
-        if (nameAI == "HuggingFace") {
-            divDetAIcontent.appendChild(mkElt("span", undefined, nameAI));
-            // https://huggingface.co/settings/billing
-        }
 
         if (fun) {
             // const listAPI = mkElt("div");
@@ -2312,22 +1922,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
 
 
         nameUsedAI = nameAI
-        /*
-        if (nameAI == "none") {
-            divGoStatus.append(", no AI selected. Go to the AI you want and paste the prompt there.");
-            return;
-        }
-        */
 
-        // if (nameAI != "PuterJs" && nameAI != "HuggingFace") {
-        /*
-        if (nameAI != "PuterJs") {
-            const infoThisAI = infoAIs[nameAI];
-            if (!infoThisAI) { throw Error(`Did not find info for AI "${nameAI}"`); }
-        }
-        */
-
-        // getWhatToDoForUser(nameAI, divUserSteps);
 
 
         const callingAPI = wayToCallAIisAPI(nameAI);
@@ -2952,188 +2547,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
 
 // infoAI =
 
-/**
- * 
- * @param {string} nameAI
- * @returns {Promise<string|null>}
- */
-async function dialogEditIntentUrl(nameAI) {
-    const arrIntentUrl = testIntentsAI[nameAI];
-    if (!arrIntentUrl) throw Error(`Could not find testIntentsAI["${nameAI}"]`);
-    if (arrIntentUrl.length == 0) {
-        // @ts-ignore
-        return `https://${infoAIs[nameAI].url}`;
-    }
 
-
-    const keyIntentChoice = "mm4i-indentUrl-choice";
-    const keyLastIntent = "mm4i-indentUrl-last";
-
-    const divIntents = mkElt("div");
-    const strOldIdx = localStorage.getItem(keyIntentChoice);
-    const oldIdx = strOldIdx == null ? 0 : parseInt(strOldIdx);
-    /** @param {string} strIntent @param {number} idx */
-    // @ts-ignore
-    const addIntentAlt = (strIntent, comment, idx) => {
-        // @ts-ignore
-        const rad = mkElt("input", { type: "radio", name: "rad-intent", value: idx });
-        // @ts-ignore
-        if (idx == oldIdx) { rad.checked = true; }
-        const spanIntent = mkElt("span", undefined, strIntent);
-        spanIntent.style = `
-            overflow-wrap: anywhere;
-            `;
-        const spanComment = mkElt("span", undefined, comment);
-        spanComment.style = `color:red;`;
-        const spanEntry = mkElt("span", undefined, [spanIntent, spanComment])
-        spanEntry.style = `
-            display: flex;
-            flex-direction: column;
-            `;
-        const lbl = mkElt("label", undefined, [rad, spanEntry]);
-        lbl.style = `
-            display: flex;
-            gap: 5px;
-            `;
-        const div = mkElt("div", { class: "mdc-card" }, lbl);
-        div.style = `
-            margin-bottom: 10px;
-            padding: 8px 12px 8px 4px;
-            `;
-        divIntents.appendChild(div);
-        return div;
-    }
-    const len = arrIntentUrl.length;
-    for (let idx = 0; idx < len; idx++) {
-        const int = arrIntentUrl[idx];
-        const int0 = int[0];
-        const int1 = int[1];
-        addIntentAlt(int0, int1, idx);
-    }
-    const lastIntentUrl = localStorage.getItem(keyLastIntent);
-    if (lastIntentUrl) {
-        const div = addIntentAlt(lastIntentUrl, "Last used edited", -1);
-        div.style = `
-            color: darkcyan;
-            `;
-    }
-
-
-    const eltTA = mkElt("textarea");
-    eltTA.style = `
-        width: 100%;
-        height: 8rem;
-        `;
-
-    let origIndentUrl = null;
-
-    // @ts-ignore
-    const updateEltTA = (idx) => {
-        const useIdx = Math.min(idx, arrIntentUrl.length - 1); // FIX-ME: Temp fix
-        const origIndentUrlEntry = arrIntentUrl[useIdx];
-        const origIndentUrl = idx == -1 ? localStorage.getItem(keyLastIntent) : origIndentUrlEntry[0];
-        if (origIndentUrl == null) throw Error(`origIndentUrl==null, ${idx}`);
-        const arrIntent = origIndentUrl
-            .split(";")
-            .filter(l => l.trim() != "")
-            .map(l => {
-                return l.trim() + ";\n";
-            });
-
-        // @ts-ignore
-        eltTA.value = arrIntent.join("");
-    }
-    updateEltTA(oldIdx);
-    divIntents.addEventListener("input", () => {
-        const currRad = divIntents.querySelector("input:checked");
-        // @ts-ignore
-        const currIdx = currRad.value;
-        updateEltTA(currIdx);
-    });
-
-    const body = mkElt("div", undefined, [
-        mkElt("h2", undefined, "Edit intent url"),
-        divIntents,
-        eltTA
-    ]);
-    body.style = `
-        width: calc(100vw - 80px);
-        `;
-    const modMdc = await importFc4i("util-mdc");
-    const ans = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel");
-    if (ans) {
-        const inp = divIntents.querySelector("input:checked") || divIntents.querySelector("input");
-        // @ts-ignore
-        const idx = inp.value;
-        console.log({ idx });
-        if (idx != -1) { localStorage.setItem(keyIntentChoice, idx); }
-        // @ts-ignore
-        const val = eltTA.value;
-        // @ts-ignore
-        const arr = val.split("\n").map(l => l.trim());
-        const newIntentUrl = arr.join("");
-        const same = newIntentUrl == origIndentUrl;
-        console.log({ same, newIntentUrl, origIndentUrl });
-        localStorage.removeItem(keyLastIntent);
-        if (!same || idx == -1) { localStorage.setItem(keyLastIntent, newIntentUrl); }
-        return newIntentUrl;
-    }
-    return null;
-}
-
-/**
- * 
- * @param {string} intentUrl 
- * @param {string} nameAI 
- * @param {string} promptAI 
- * @returns 
- */
-async function launchIntentWithIframe(intentUrl, nameAI, promptAI) {
-    let appLaunched = false;
-    // const infoThisAI = infoAI[nameAI];
-    // if (!infoThisAI) throw Error(`Could not find info for AI "${nameAI}"`);
-    const urlFallBack = mkUrlChat(nameAI, promptAI);
-
-    // Create a hidden iframe
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    // Append the iframe to the body
-    document.body.appendChild(iframe);
-
-    // Set the iframe's src to the intent URL
-    const src = intentUrl;
-    if (src == null) return;
-
-
-    // Listen for visibility changes with the 'once' option
-    document.addEventListener('visibilitychange', checkVisibility);
-    function checkVisibility() {
-        document.removeEventListener('visibilitychange', checkVisibility);
-        console.log("checkVisibility, document.hidden", document.hidden);
-        appLaunched = true;
-        if (document.hidden) {
-            appLaunched = true;
-        }
-    }
-
-    // Set a timer to check for the fallback
-    console.log("starting setTimeout");
-    setTimeout(function () {
-        // alert(`in setTimeout check appLaunched, ${appLaunched}`);
-        // Clean up
-        iframe.remove();
-        document.removeEventListener('visibilitychange', checkVisibility);
-
-        // If the app was not launched, open the fallback in a new tab
-        if (!appLaunched) {
-            window.open(urlFallBack, 'AIWINDOW', "noopener,noreferrer");
-        }
-    }, 4 * 1000);
-
-    console.log(">>>>>> Before iframe.src = src");
-    iframe.src = src;
-    console.log(">>>>>> After iframe.src = src");
-}
 
 /**
  * @param {string} nameAI - AI name
@@ -3562,17 +2976,7 @@ const objSettingsModels = {
     "gemini": new SettingsMm4iAI("ai-gemini-model", "gemini-2.5-flash"),
     // "deepseek": new SettingsMm4iAI("ai-deepseek-model", "deepseek-chat"),
     // "deepseek": new SettingsMm4iAI("ai-deepseek-model", "deepseek-reasoner"),
-
-
-    ///////// "HuggingFace"
-    // Can't be used:
-    // "HuggingFace": new SettingsMm4iAI("ai-huggingface-model", "meta-llama/Llama-3.1-8B-Instruct:hf-inference"),
-
-    ///// Option 1: Don't specify provider (auto-routing)
-    // model: "HuggingFaceTB/SmolLM3-3B"
-    "HuggingFace": new SettingsMm4iAI("ai-huggingface-model", "HuggingFaceTB/SmolLM3-3B"),
-    // model: "deepseek-ai/DeepSeek-V3-0324"
-    // "HuggingFace": new SettingsMm4iAI("ai-huggingface-model", "deepseek-ai/DeepSeek-V3-0324"),
+    // "HuggingFace": new SettingsMm4iAI("ai-huggingface-model", "HuggingFaceTB/SmolLM3-3B"),
 };
 /**
  * 
@@ -4156,43 +3560,6 @@ callMistralAPI(prompt, "YOUR_API_KEY")
  
 */
 
-
-// https://huggingface.co/
-// "HuggingFace"
-/** @type {CallAIapi} */
-async function callHuggingFaceInference(userPrompt, apiKey) {
-    debugger;
-    const modHuggingFace = await importFc4i("huggingface-inference");
-    const InferenceClient = modHuggingFace.InferenceClient;
-    // const InferenceClient = modHuggingFace.chatCompletion;
-    const client = new InferenceClient(apiKey);
-    // const model = "mistralai/Mistral-7B-Instruct-v0.2"; // Change to any Hugging Face model
-    // const model = "HuggingFaceH4/zephyr-7b-beta"; // (fast, conversational, great for structured outputs).
-    // const model = "microsoft/DialoGPT-large"; //  (reliable for text gen, smaller footprint).
-    // const model = "gpt2"; // (ultra-light fallback for testing).
-
-    // Grok: Use a model confirmed to work with chatCompletion on the free Inference API. Recommended:
-    // const model = "HuggingFaceH4/zephyr-7b-beta"; // (optimized for conversational tasks, reliable on free tier).
-    // const model = "mistralai/Mixtral-8x7B-Instruct-v0.1"; // (if available, great for JSON tasks; check for cold starts).
-    // const model = "meta-llama/Llama-3.2-3B-Instruct"; // (newer, may require gated access approval).
-
-    // const model = "facebook/bart-large";
-    const model = "gpt2"; // (ultra-light fallback for testing).
-    try {
-        const strJson = await client.chatCompletion({
-            model,
-            inputs: userPrompt,
-        });
-        console.log({ strJson });
-        return strJson;
-    } catch (err) {
-        if (err instanceof modHuggingFace.InferenceClientProviderApiError) {
-            debugger;
-        }
-        const msg = String(err);
-        return Error(msg);
-    }
-}
 
 /** @type {CallAIapi} */
 async function callHuggingFaceAPI(userPrompt, apiKey) {
