@@ -577,10 +577,25 @@ export async function generateMindMap(fromLink) {
 
                 const divTitle = mkElt("b", undefined, "Mindmaps 4 Internet");
                 divTitle.style.fontSize = "1.2em";
+                const aYourLink = mkElt("a",
+                    {
+                        href: fromLink,
+                        target: "_blank",
+                        tabindex: "-1",
+                     }, "Your link");
+                aYourLink.title = "Open your link in a new tab";
+                aYourLink.style = `
+                    color: currentColor;
+                    text-decoration: none;
+                `;
+
                 const divLogo = mkElt("div", undefined, [
                     eltLogo,
                     divTitle,
-                    mkElt("i", undefined, "Make mindmap from link")
+                    mkElt("i", undefined, [
+                        // "Your link",
+                        aYourLink,
+                        " => mindmap"])
                 ]);
                 divLogo.style = `
                     display: flex;
