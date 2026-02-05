@@ -350,6 +350,7 @@ export async function generateMindMap(fromLink) {
 
             const eltLogo = mkEltYouTubeLogo("18px");
             eltStatus.appendChild(eltLogo);
+            divWays.style.display = "unset";
             btnGo.inert = false;
             return;
         }
@@ -372,6 +373,7 @@ export async function generateMindMap(fromLink) {
         }
         divPrompt.inert = false;
         btnGo.inert = false;
+        divWays.style.display = "unset";
 
         // FIX-ME: some race condition here???
         // is automated
@@ -485,7 +487,7 @@ export async function generateMindMap(fromLink) {
                         href: fromLink,
                         target: "_blank",
                         tabindex: "-1",
-                     }, "Your link");
+                    }, "Your link");
                 aYourLink.title = "Open your link in a new tab";
                 aYourLink.style = `
                     color: currentColor;
@@ -569,16 +571,16 @@ export async function generateMindMap(fromLink) {
         }
         inpLink.blur();
         await modTools.wait4mutations(document.body);
-        const divWays = document.getElementById("div-ways");
-        if (!divWays) {
+        const divWays2 = document.getElementById("div-ways");
+        if (!divWays2) {
             // Bug in the old material-components-web.js I am using:
-            // throw Error(`Could not find element "div-ways"`);
+            // throw Error(`Could not find element "NOdiv-ways"`);
             // debugger;
             // FIX-ME: this is a workaround that might have some trouble:
             setTimeout(() => { generateMindMap(fromLink); }, 500);
             return;
         }
-        divWays.style.display = "block";
+        divWays2.style.display = "block";
         await modTools.wait4mutations(document.body);
         // setTimeout(() => btnGo.focus(), 1000);
         if (doItNow) btnGo.click();
