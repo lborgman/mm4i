@@ -1962,10 +1962,22 @@
             filter: blur(1px) grayscale(1) opacity(0.5);
             transition: filter 0.7s;
         }
+
         #div-ways.ai-generation-available {
             filter: blur(0px) grayscale(0) opacity(1);
         }
 
+        #div-status-link-validation {
+            padding: 4px 0px 4px 8px;
+            border-radius: 3px;
+            min-height: calc(2 * 4px + 24px);
+            background-color: yellow;
+            transition: background-color 2s;
+        }
+
+        #div-status-link-validation.link-validated {
+            background-color: yellowgreen;
+        }
     </style>
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind@0.5/es6/jsmind.js"></script> -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind/es6/jsmind.js"></script> -->

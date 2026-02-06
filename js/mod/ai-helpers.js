@@ -78,14 +78,17 @@ function makeDivChooseTemperature() {
     tempType2temperature(tempType);
 
     arrTemperatureTypes.forEach(tt => {
-        const rad = mkElt("input", { type: "radio", name: "llm-temperature", value: tt });
+        const rad = /** @type {HTMLInputElement} */
+            (mkElt("input", { type: "radio", name: "llm-temperature", value: tt }));
         if (tt == tempType) rad.checked = true;
         const lbl = mkElt("label", undefined, [rad, tt]);
         const div = mkElt("div", undefined, lbl);
         divTemperature.appendChild(div);
     });
     divTemperature.addEventListener("change", evt => {
-        const newTemp = evt.target.value;
+        const target = /** @type {HTMLInputElement} */ (evt.target);
+        if (!target) throw Error("divTemperature.addEventListener, !target");
+        const newTemp = target.value;
         console.log({ newTemp });
         settingTemperatureType.value = newTemp;
     });
@@ -301,9 +304,10 @@ export async function generateMindMap(fromLink) {
 
     // const eltStatus = mkElt("div", undefined, "(empty)");
     const eltStatus = mkElt("div");
-    eltStatus.style.minHeight = "1.25em";
-    eltStatus.style.lineHeight = "normal";
-    eltStatus.style.backgroundColor = "yellowgreen";
+    eltStatus.id = "div-status-link-validation";
+    // eltStatus.style.minHeight = "1.25em";
+    // eltStatus.style.lineHeight = "normal";
+    // eltStatus.style.backgroundColor = "yellowgreen";
     if (fromLink) {
         inpLink.value = fromLink;
         checkInpLink();
@@ -321,11 +325,14 @@ export async function generateMindMap(fromLink) {
         debouncedCheckInpLink();
     });
 
+    /** @type {undefined|Promise<boolean>} */
     let promInpLink;
     async function debouncedCheckInpLink() {
         const p = modTools.callDebouncedGemini(checkInpLink, 300);
-        // console.log("debounce", p);
         promInpLink = p;
+        // console.log("debounce promInpLink", promInpLink);
+        // @ts-ignore
+        window.p = p;
         return p;
     }
 
@@ -341,6 +348,7 @@ export async function generateMindMap(fromLink) {
         if (yes) {
             divPrompt.inert = false;
             btnGo.inert = false;
+            eltStatus.classList.add("link-validated");
             if (modTools.isExpandedHeightExpander(divWaysExpandable)) {
                 divWays.classList.add("ai-generation-available");
             } else {
@@ -353,14 +361,19 @@ export async function generateMindMap(fromLink) {
             divPrompt.inert = true;
             btnGo.inert = true;
             divWays.classList.remove("ai-generation-available");
+            eltStatus.classList.remove("link-validated");
         }
     }
 
+    /**
+     * 
+     * @returns {Promise<boolean>}
+     */
     async function checkInpLink() {
         const modPWA = await importFc4i("pwa");
         if (!(await modPWA.PWAhasInternet())) {
             eltStatus.textContent = "No internet connection";
-            return;
+            return true;
         }
 
         const eltDialogContent = inpLink.closest("div.mdc-dialog__content");
@@ -371,21 +384,14 @@ export async function generateMindMap(fromLink) {
         youTubeVideoId = modTools.isValidYouTubeID(linkSource) ? linkSource : modTools.getYouTubeVideoId(linkSource);
         if (youTubeVideoId) {
             eltDialogContent.classList.add("is-youtube-video");
-
             const eltLogo = mkEltYouTubeLogo("18px");
             eltStatus.appendChild(eltLogo);
-            // divWays.style.display = "unset";
-            // btnGo.inert = false;
-            // divWays.classList.add("ai-generation-available");
             setGenerationAvailable(true);
-            return;
+            return true;
         }
         eltDialogContent.classList.remove("is-youtube-video");
 
         if (linkSource.trim().length == 0) {
-            // divPrompt.inert = true;
-            // btnGo.inert = true;
-            // divWays.classList.remove("ai-generation-available");
             setGenerationAvailable(false);
             return false;
         }
@@ -399,12 +405,14 @@ export async function generateMindMap(fromLink) {
             setGenerationAvailable(false);
             return false;
         }
+        eltStatus.textContent = "Ok, choose AI below";
         setGenerationAvailable(true);
+        return true;
     }
+
     async function askProceedWhenSharedTo() {
         if (alreadyAskedProceed) return;
         alreadyAskedProceed = true;
-        // return; // FIX-ME:
         const sharedTo = modTools.getSharedToParams();
         // const sharedTo = true;
         if (!sharedTo) return;
@@ -1455,7 +1463,16 @@ export async function generateMindMap(fromLink) {
     ]);
     eltDivAIautomated.id = "div-ai-automated";
 
-    const divOptions = mkElt("div", undefined, [eltDivAIautomated]);
+    const cardPrompt = mkElt("p", { class: "mdc-card display-flex" }, [
+        divPrompt,
+    ]);
+    cardPrompt.style.padding = `10px`;
+
+
+    const divOptions = mkElt("div", undefined, [
+        eltDivAIautomated,
+        mkElt("div", undefined, cardPrompt),
+    ]);
     divOptions.style.marginLeft = "20px";
     divOptions.style.paddingBottom = "20px";
     const sumOptions = mkElt("summary", undefined, "Options for our AI:s");
@@ -1984,11 +2001,6 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
 
 
 
-    const cardPrompt = mkElt("p", { class: "mdc-card display-flex" }, [
-        divPrompt,
-    ]);
-    cardPrompt.style.padding = `10px`;
-
 
     const btnEasyWay = modMdc.mkMDCbutton("Make mindmap", "raised");
 
@@ -2113,7 +2125,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
 
 
     const divTabForGo = mkElt("div", undefined, [
-        mkElt("div", undefined, cardPrompt),
+        // mkElt("div", undefined, cardPrompt),
         divEltsAI,
         divGo,
         divError,

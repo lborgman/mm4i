@@ -105,8 +105,19 @@ export class MoveEltAtFixedSpeed {
     }
 
 }
+
+/**
+ * Handles element movement when dragging near container borders.
+ * @class MoveAtDragBorder
+ */
 export class MoveAtDragBorder {
     #deleted = false;
+    /**
+     * Creates an instance of MoveAtDragBorder.
+     * @param {HTMLDivElement} elt2move - The container or element to monitor.
+     * @param {number} moveBorderWidth
+     * @param {HTMLDivElement} elt2show
+     */
     constructor(elt2move, moveBorderWidth, elt2show) {
         // console.log("MoveAtDragBorder elt2move", elt2move);
         checkIsConnected(elt2move, MoveAtDragBorder.name);

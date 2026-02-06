@@ -31,10 +31,11 @@ const modMm4iFsm = await (async () => {
     return await importFc4i("mm4i-fsm");
 })();
 const ourFsm = modMm4iFsm.fsm;
-window["ourFsm"] = ourFsm;
+// window["ourFsm"] = ourFsm;
 
 modTools.addPosListeners();
 
+/** @type{Object|undefined} */
 let instMoveAtDragBorder;
 
 
@@ -136,6 +137,12 @@ class PointHandle {
         this.#eltPointHandle.style.pointerEvents = "none"; // FIX-ME: why???
     }
     get element() { return this.#eltPointHandle; }
+    /**
+     * 
+     * @param {HTMLElement} eltJmnode 
+     * @param {*} pointerType 
+     * @returns 
+     */
     initializePointHandle = async (eltJmnode, pointerType) => {
         const jmnodeDragged = eltJmnode;
         if (!jmnodeDragged) return;
@@ -182,14 +189,19 @@ class PointHandle {
             debugger; // eslint-disable-line no-debugger
             // FIX-ME:
         }
-        posPointHandle = {
+        posPointHandle =
+        /** @type {PosPointHandle} */
+        (
+        {
             start: {
                 clientX: startX,
                 clientY: startY,
                 jmnodeDragged,
             },
             current: {}
-        };
+        }
+        );
+
         eltJmnodeFrom = jmnodeDragged;
 
         // Avoid scaling: FIX-ME:
@@ -211,6 +223,7 @@ class PointHandle {
         }
         // if (eltOverJmnode) { }
         modJsmindDraggable.stopNow();
+        // @ts-ignore - for undefined (which will anyway throw an error)
         instMoveAtDragBorder.hideMover();
     }
     setupPointHandle() {
@@ -221,6 +234,7 @@ class PointHandle {
         // this.#jmnodesPointHandle = elt;
     }
     teardownPointHandle() {
+        // @ts-ignore - for undefined (which will anyway throw an error)
         instMoveAtDragBorder.stopMoving();
         this.teardownPointHandleAndAct();
     }
@@ -265,6 +279,7 @@ class PointHandle {
             // modJsmindDraggable.setPointerDiff(diffX, diffY);
             modJsmindDraggable.nextHereIamMeansStart(eltJmnodeFrom);
             this.#state = "move";
+            // @ts-ignore - for undefined (which will anyway throw an error)
             instMoveAtDragBorder.showMover();
             return;
         }
@@ -338,14 +353,11 @@ theDragTouchAccWay = "pointHandle"; // FIX-ME:
 /////////////////////////////////////////////////////
 
 /**
- * @typedef {Object}
- * @property {number} dTop - target top
- * @property {number} dBottom
- * @property {number} dLeft
- * @property {number} dRight
- * @property {number} startX
- * @property {number} startY
- * */
+ * @typedef {Object} PosPointHandle
+ * @property {Object} start
+ * @property {Object} current
+ */
+/** @type {PosPointHandle|undefined} */
 let posPointHandle;
 
 
@@ -364,6 +376,7 @@ function requestCheckPointerHandleMove() {
     }
     requestAnimationFrame(requestCheckPointerHandleMove);
 }
+/** @type {HTMLElement|undefined} */
 let eltJmnodeFrom;
 // let eltOverJmnode;
 let movePointHandleProblem = false;
@@ -387,6 +400,7 @@ function movePointHandle() {
         const top = clientY + posPointHandle.diffY - PointHandle.sizePointHandle / 2;
         sp.top = `${top}px`;
         modJsmindDraggable.hiHereIam(left, top);
+        // @ts-ignore - for undefined (which will anyway throw an error)
         instMoveAtDragBorder.checkPointerPos(clientX, clientY)
     } catch (err) {
         movePointHandleProblem = true;
@@ -1186,6 +1200,7 @@ async function addDragBorders(jmDisplayed) {
     const eltShow = eltJmnodes.closest("div.jsmind-inner");
     const modMoveHelp = await importFc4i("move-help");
     try {
+        // @ts-ignore - I know it exist here
         instMoveAtDragBorder?.markDeleted();
         instMoveAtDragBorder = new modMoveHelp.MoveAtDragBorder(eltScroll, 60, eltShow);
     } catch (err) {
