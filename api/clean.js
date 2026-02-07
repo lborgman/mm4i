@@ -49,6 +49,9 @@ export default async function handler(req, res) {
       body { background-color: #121212; color: #efefef; }
       th, td { border-color: #444; }
     }
+
+    /* Google docs */
+    #banners { display: none; }
   </style>
 </head>
 <body>
