@@ -993,6 +993,7 @@ function connectFsm(nOut) {
 
     // const useMoveMove = confirm("Use startGrabMoveMove");
     const useMoveMove = true;
+    // const useMoveMove = false;
     console.log("useMoveMove", useMoveMove);
     ourFsm?.post_hook_entry("c_Move", (hookData) => {
         // const { eltJmnode, pointerType } = hookData.data;
@@ -1005,6 +1006,7 @@ function connectFsm(nOut) {
         if (useMoveMove) {
             funStopScroll = modZoomMove.handleSimilarPointerStart();
         } else {
+            return;
             throw Error(`useMoveMove == ${useMoveMove}`);
             funStopScroll = startGrabMove(eltScroll);
         }
