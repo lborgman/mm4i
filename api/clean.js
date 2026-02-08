@@ -33,6 +33,8 @@ export default async function handler(req, res) {
     return res.status(500).send(`Error getting document text.`);
   }
 
+  html = html.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gi, "");
+
   html = html.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, (match, cssContent) => {
     const sanitizedCss = cssContent
       .replace(/([-+]?\d+(?:\.\d+)?)(pt|px)/gi, (m, value, unit) => {
