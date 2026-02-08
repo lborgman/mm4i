@@ -4,11 +4,20 @@ export default async function handler(req, res) {
   // 1. Basic check for the URL parameter
   if (!url) {
     // return res.status(400).send("Add ?url=YOUR_GOOGLE_PUB_LINK to the end of your address.");
-    const u = prompt("Your Goggle Doc published to web link:");
-    const U = new URL(location);
-    U.searchParams.set("url", u);
-    location.href = U.href;
+    // Instead of crashing with prompt(), we send a simple instruction
+    return res.status(200).send(`
+      <script>
+        const u = prompt("Please paste your Google Doc 'Published to Web' link:");
+        if (u) {
+          const U = new URL(window.location);
+          U.searchParams.set("url", u);
+          window.location.href = U.href;
+        }
+      </script>
+      <p>Redirecting to prompt...</p>
+    `);
   }
+
 
   try {
     // 2. Fetch the "ridiculous" HTML from Google
