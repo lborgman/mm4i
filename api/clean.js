@@ -18,64 +18,102 @@ export default async function handler(req, res) {
     `);
   }
 
-
+  /** @type {string|undefined} */
+  let html;
+  let response;
   try {
     // 2. Fetch the "ridiculous" HTML from Google
-    const response = await fetch(url);
-    const html = await response.text();
-
-    // 3. Extract ONLY the content inside <body>...</body> to avoid nested <html> tags
-    const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
-    let bodyContent = bodyMatch ? bodyMatch[1] : html;
-
-    // 4. Remove Google's <style> blocks from inside the content
-    bodyContent = bodyContent.replace(/<style[\s\S]*?<\/style>/gi, "");
-
-    // 5. Wrap in a clean HTML5 shell with your base styles
-    const finalPage = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clean View</title>
-  <style>
-    /* BASIC FOUNDATION - Adjust these details yourself! */
-    body { 
-      /* No font-size defined: respects user/browser choice */
-      max-width: 42rem; 
-      margin: 0 auto; 
-      padding: 1.5rem; 
-      NOline-height: 1.6; 
-      NOfont-family: system-ui, -apple-system, sans-serif; 
-      color: #1a1a1a;
-      NOword-wrap: break-word;
-    }
-    
-    /* Responsive Images & Tables */
-    img { max-width: 100%; height: auto; border-radius: 4px; }
-    table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
-    th, td { border: 1px solid #ddd; padding: 8px; }
-
-    /* Dark Mode Support */
-    @media (prefers-color-scheme: dark) {
-      body { background-color: #121212; color: #efefef; }
-      th, td { border-color: #444; }
-    }
-
-    /* Google docs */
-    #banners { display: none; }
-  </style>
-</head>
-<body>
-  ${bodyContent}
-</body>
-</html>`;
-
-    res.setHeader('Content-Type', 'text/html');
-    return res.status(200).send(finalPage);
-
+    response = await fetch(url);
   } catch (error) {
-    return res.status(500).send("Error fetching document. Make sure it is 'Published to the Web'.");
+    return res.status(500).send(`Error fetching document. Make sure it is 'Published to the Web'.`);
   }
+  try {
+    html = await response.text();
+  } catch (error) {
+    return res.status(500).send(`Error getting document text.`);
+  }
+
+  html = html.replace("<head>",
+    `
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    `
+  );
+
+//#region Old code
+/*
+      // 3. Extract ONLY the content inside <body>...</body> to avoid nested <html> tags
+      const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+      let bodyContent = bodyMatch ? bodyMatch[1] : html;
+  
+      // 4. Remove Google's <style> blocks from inside the content
+      bodyContent = bodyContent.replace(/<style[\s\S]*?<\/style>/gi, "");
+  
+      // 5. Wrap in a clean HTML5 shell with your base styles
+      const finalPage = `
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clean View</title>
+    <style>
+      / * BASIC FOUNDATION - Adjust these details yourself! * /
+      body { 
+        / * No font-size defined: respects user/browser choice * /
+        max-width: 42rem; 
+        margin: 0 auto; 
+        padding: 1.5rem; 
+        NOline-height: 1.6; 
+        NOfont-family: system-ui, -apple-system, sans-serif; 
+        color: #1a1a1a;
+        NOword-wrap: break-word;
+      }
+      
+      / * Responsive Images & Tables * /
+      img { max-width: 100%; height: auto; border-radius: 4px; }
+      table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
+      th, td { border: 1px solid #ddd; padding: 8px; }
+  
+      / * Dark Mode Support * /
+      @media (prefers-color-scheme: dark) {
+        body { background-color: #121212; color: #efefef; }
+        th, td { border-color: #444; }
+      }
+  
+      / * Google docs * /
+      #banners { display: none; }
+    </style>
+  </head>
+  <body>
+    ${bodyContent}
+  </body>
+  </html>`;
+  */
+//#endregion
+
+  html = html.replace(/<style\b[^>]*>([\s\S]*?)<\/style>/gi, (match, cssContent) => {
+    const sanitizedCss = cssContent
+      .replace(/([-+]?\d+(?:\.\d+)?)(pt|px)/gi, (m, value, unit) => {
+        const numValue = parseFloat(value);
+
+        // If the value is 0, no unit is needed
+        if (numValue === 0) return '0';
+
+        /* THE RATIO:
+           Google Docs uses 12pt as the standard '100%' font size.
+           In browsers, 1rem is the '100%' font size.
+           Therefore: Value / 12 = rem
+        */
+        const remValue = (numValue / 12).toFixed(3);
+
+        return `${remValue}rem`;
+      });
+
+    return `<style>${sanitizedCss}</style>`;
+  });
+  res.setHeader('Content-Type', 'text/html');
+  return res.status(200).send(finalPage);
+
 }
