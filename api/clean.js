@@ -123,6 +123,5 @@ export default async function handler(req, res) {
     return `<style>${sanitizedCss}</style>`;
   });
   res.setHeader('Content-Type', 'text/html');
-  return res.status(200).send(finalPage);
-
+  return res.status(200).send(html);
 }
