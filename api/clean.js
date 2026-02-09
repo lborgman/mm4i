@@ -61,7 +61,7 @@ export default async function handler(req, res) {
     <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clean Google Doc HTML</title>
+
     `
   );
   html = html.replace("</head>",
@@ -90,19 +90,27 @@ export default async function handler(req, res) {
         th, td { border-color: #444; }
       }
   
-      / * Google docs * /
-      #banners { display: none; }
+      / * Google docs banner * /
+      html body #banners { display: none !important; }
+
+      / * Our banner * /
+      #our-banner {
+        background:yellowgreen;
+        padding:6px;
+      }
     </style>
     </head>
     `
   );
-  /*
   html = html.replace("<body>", 
     `
     <body>
-    <div id="versio-banner" style="background:orange; padding:6px;">Version: 0.1</div>
+    <div id="our-banner">
+      clean.js Version: 0.1
+    </div>
     `
   );
+  /*
   */
 
   //#region Old code
