@@ -94,6 +94,10 @@ export default async function handler(req, res) {
         background-color: unset !important;
         color: unset !important;
       }
+      :root #contents {
+        padding: unset !important;
+      }
+
 
       /* Our banner */
       :root #our-banner {
@@ -109,7 +113,7 @@ export default async function handler(req, res) {
     `
     <body>
     <div id="our-banner">
-      clean.js Version: 0.24
+      clean.js Version: 0.25
     </div>
     `
   );
