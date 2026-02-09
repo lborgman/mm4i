@@ -76,7 +76,7 @@ export default async function handler(req, res) {
         padding: 1.5rem; 
         NOline-height: 1.6; 
         NOfont-family: system-ui, -apple-system, sans-serif; 
-        color: #1a1a1a;
+        NOcolor: #1a1a1a;
         NOword-wrap: break-word;
       }
       
@@ -89,10 +89,8 @@ export default async function handler(req, res) {
       /* Google docs fixes */
       html body #banners { display: none !important; }
       NOhtml body #contents { padding: unset !important; }
-      :root * {
-        padding: unset !important;
-      }
       :root .doc-content {
+        padding: unset !important;
         background-color: unset !important;
         color: unset !important;
       }
@@ -111,7 +109,7 @@ export default async function handler(req, res) {
     `
     <body>
     <div id="our-banner">
-      clean.js Version: 0.23
+      clean.js Version: 0.24
     </div>
     `
   );
