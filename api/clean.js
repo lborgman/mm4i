@@ -194,9 +194,33 @@ export default async function handler(req, res) {
         :root #our-banner {
             background-color: yellowgreen !important;
             color: darkgreen !important;
-            padding: 6px !important;
+            padding: 8px !important;
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 100%;
+            opacity: 1;
+            transition: opacity 1s 3s;
         }
     </style>
+    <script>
+        window.addEventListener('DOMContentLoaded', function () {
+            const eltBanner = document.getElementById('our-banner');
+            eltBanner.style.opacity = "0";
+
+            const contents = document.getElementById('contents');
+            const docContent = document.querySelector('.doc-content');
+            if (!contents) {
+                console.warn('Warning: #contents element not found - Google Docs structure may have changed');
+            }
+            if (!docContent) {
+                console.warn('Warning: .doc-content element not found - Google Docs structure may have changed');
+            }
+            if (!contents || !docContent) {
+              alert("Google Docs HTML output have changed format. (So clean.js must be updated.))");
+            }
+        });
+    </script>
 </head>
     `
   );
@@ -204,7 +228,7 @@ export default async function handler(req, res) {
     `
     <body>
     <div id="our-banner">
-      clean.js Version: 0.29
+      clean.js Version: 0.30
     </div>
     `
   );
