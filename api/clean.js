@@ -61,6 +61,7 @@ export default async function handler(req, res) {
     <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light">
 
     `
   );
@@ -84,11 +85,6 @@ export default async function handler(req, res) {
       table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
       th, td { border: 1px solid #ddd; padding: 8px; }
   
-      /* Dark Mode Support */
-      @media (prefers-color-scheme: dark) {
-        body { background-color: #121212; color: #efefef; }
-        th, td { border-color: #444; }
-      }
   
       /* Google docs fixes */
       html body #banners { display: none !important; }
@@ -107,7 +103,7 @@ export default async function handler(req, res) {
     `
     <body>
     <div id="our-banner">
-      clean.js Version: 0.15
+      clean.js Version: 0.2
     </div>
     `
   );
