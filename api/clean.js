@@ -74,6 +74,12 @@ export default async function handler(req, res) {
 
         /* Dark mode styles */
         @media (prefers-color-scheme: dark) {
+            /* Adjust highlighted text for dark mode */
+            [class*='c'][style*='background-color'] {
+              filter: brightness(0.7) saturate(0.8);
+              color: #e8e8e8 !important; /* Make text light colored */
+            }
+
             body {
                 background-color: #1a1a1a !important;
                 color: #e8e8e8 !important;
@@ -228,7 +234,7 @@ export default async function handler(req, res) {
     `
     <body>
     <div id="our-banner">
-      clean.js Version: 0.30
+      clean.js Version: 0.31
     </div>
     `
   );
