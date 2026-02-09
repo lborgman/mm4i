@@ -67,9 +67,9 @@ export default async function handler(req, res) {
   html = html.replace("</head>",
     `
     <style>
-      / * BASIC FOUNDATION - Adjust these details yourself! * /
+      /* BASIC FOUNDATION - Adjust these details yourself! */
       body { 
-        / * No font-size defined: respects user/browser choice * /
+        /* No font-size defined: respects user/browser choice */
         max-width: 42rem; 
         margin: 0 auto; 
         padding: 1.5rem; 
@@ -79,21 +79,21 @@ export default async function handler(req, res) {
         NOword-wrap: break-word;
       }
       
-      / * Responsive Images & Tables * /
+      /* Responsive Images & Tables */
       img { max-width: 100%; height: auto; border-radius: 4px; }
       table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
       th, td { border: 1px solid #ddd; padding: 8px; }
   
-      / * Dark Mode Support * /
+      /* Dark Mode Support */
       @media (prefers-color-scheme: dark) {
         body { background-color: #121212; color: #efefef; }
         th, td { border-color: #444; }
       }
   
-      / * Google docs banner * /
+      /* Google docs banner */
       html body #banners { display: none !important; }
 
-      / * Our banner * /
+      /* Our banner */
       #our-banner {
         background:yellowgreen;
         padding:6px;
