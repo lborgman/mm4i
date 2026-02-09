@@ -91,7 +91,10 @@ export default async function handler(req, res) {
       NOhtml body #contents { padding: unset !important; }
       :root * {
         padding: unset !important;
+      }
+      :root .doc-content {
         background-color: unset !important;
+        color: unset !important;
       }
 
       /* Our banner */
@@ -108,7 +111,7 @@ export default async function handler(req, res) {
     `
     <body>
     <div id="our-banner">
-      clean.js Version: 0.22
+      clean.js Version: 0.23
     </div>
     `
   );
