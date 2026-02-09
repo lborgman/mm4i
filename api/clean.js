@@ -114,6 +114,12 @@ export default async function handler(req, res) {
                 border-color: #444 !important;
             }
 
+            /* Adjust highlighted text for dark mode */
+            [class*='c'][style*='background-color'] {
+              filter: brightness(0.7) saturate(0.8);
+              color: #e8e8e8 !important; /* Make text light colored */
+            }
+
             /* Banners and footer */
             #banners,
             #banners #title-banner {
@@ -198,7 +204,7 @@ export default async function handler(req, res) {
     `
     <body>
     <div id="our-banner">
-      clean.js Version: 0.28
+      clean.js Version: 0.29
     </div>
     `
   );
