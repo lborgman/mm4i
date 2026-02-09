@@ -88,13 +88,17 @@ export default async function handler(req, res) {
   
       /* Google docs fixes */
       html body #banners { display: none !important; }
-      html body #contents { padding: unset !important; }
+      NOhtml body #contents { padding: unset !important; }
+      :root * {
+        padding: unset !important;
+        background-color: unset !important;
+      }
 
       /* Our banner */
-      #our-banner {
-        background:yellowgreen;
-        color: darkgreen;
-        padding:6px;
+      :root #our-banner {
+        background-color: yellowgreen !important;
+        color: darkgreen !important;
+        padding:6px !important;
       }
     </style>
     </head>
@@ -104,7 +108,7 @@ export default async function handler(req, res) {
     `
     <body>
     <div id="our-banner">
-      clean.js Version: 0.21
+      clean.js Version: 0.22
     </div>
     `
   );
