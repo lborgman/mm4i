@@ -90,8 +90,9 @@ export default async function handler(req, res) {
         th, td { border-color: #444; }
       }
   
-      /* Google docs banner */
+      /* Google docs fixes */
       html body #banners { display: none !important; }
+      html body #contents { padding: unset !important; }
 
       /* Our banner */
       #our-banner {
@@ -106,7 +107,7 @@ export default async function handler(req, res) {
     `
     <body>
     <div id="our-banner">
-      clean.js Version: 0.1
+      clean.js Version: 0.15
     </div>
     `
   );
