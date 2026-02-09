@@ -65,50 +65,133 @@ export default async function handler(req, res) {
 
     `
   );
+
+
   html = html.replace("</head>",
     `
-    <style>
-      /* BASIC FOUNDATION - Adjust these details yourself! */
-      body { 
-        /* No font-size defined: respects user/browser choice */
-        max-width: 42rem; 
-        margin: 0 auto; 
-        padding: 1.5rem; 
-        NOline-height: 1.6; 
-        NOfont-family: system-ui, -apple-system, sans-serif; 
-        NOcolor: #1a1a1a;
-        NOword-wrap: break-word;
-      }
-      
-      /* Responsive Images & Tables */
-      img { max-width: 100%; height: auto; border-radius: 4px; }
-      table { width: 100%; border-collapse: collapse; display: block; overflow-x: auto; }
-      th, td { border: 1px solid #ddd; padding: 8px; }
-  
-  
-      /* Google docs fixes */
-      html body #banners { display: none !important; }
-      NOhtml body #contents { padding: unset !important; }
-      :root .doc-content {
-        padding: unset !important;
-        background-color: unset !important;
-        color: unset !important;
-      }
-      :root #contents {
-        padding: unset !important;
-        background-color: unset !important;
-        color: unset !important;
-      }
+        <style>
+        /* BASIC FOUNDATION - Adjust these details yourself! */
+
+        /* Dark mode styles */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1a1a1a !important;
+                color: #e8e8e8 !important;
+            }
+
+            /* Main content area */
+            #contents {
+                background-color: #1a1a1a !important;
+                color: #e8e8e8 !important;
+            }
+
+            .doc-content {
+                background-color: #2a2a2a !important;
+                color: #e8e8e8 !important;
+            }
+
+            /* Force all text elements to light colors */
+            p,
+            li,
+            span,
+            div {
+                color: #e8e8e8 !important;
+            }
+
+            /* All headings */
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                color: #ffffff !important;
+            }
+
+            /* Tables */
+            th,
+            td {
+                border-color: #444 !important;
+            }
+
+            /* Banners and footer */
+            #banners,
+            #banners #title-banner {
+                background: #2a2a2a !important;
+                border-bottom-color: #444 !important;
+                color: #e8e8e8 !important;
+            }
+
+            #footer {
+                background: #2a2a2a !important;
+                border-bottom-color: #444 !important;
+                color: #e8e8e8 !important;
+            }
+        }
 
 
-      /* Our banner */
-      :root #our-banner {
-        background-color: yellowgreen !important;
-        color: darkgreen !important;
-        padding:6px !important;
-      }
+        body {
+            /* No font-size defined: respects user/browser choice */
+            max-width: 42rem;
+            margin: 0 auto;
+            padding: 1.5rem;
+            NOline-height: 1.6;
+            NOfont-family: system-ui, -apple-system, sans-serif;
+            NOcolor: #1a1a1a;
+            NOword-wrap: break-word;
+        }
+
+        /* Responsive Images & Tables */
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            display: block;
+            overflow-x: auto;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+
+
+        /* Google docs fixes */
+        html body #banners {
+            display: none !important;
+        }
+
+        NOhtml body #contents {
+            padding: unset !important;
+        }
+
+        :root .doc-content {
+            padding: unset !important;
+            background-color: unset !important;
+            color: unset !important;
+        }
+
+        :root #contents {
+            padding: unset !important;
+            background-color: unset !important;
+            color: unset !important;
+        }
+
+
+        /* Our banner */
+        :root #our-banner {
+            background-color: yellowgreen !important;
+            color: darkgreen !important;
+            padding: 6px !important;
+        }
     </style>
-    </head>
+</head>
     `
   );
   html = html.replace("<body>", 
