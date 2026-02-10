@@ -1,12 +1,13 @@
-const version = "0.49";
+// @ts-check
+const version = "0.55";
 export default async function handler(req, res) {
-  const vercel_env = process.env.VERCEL_ENV;
+  const host = (req.headers.host || '').toLowerCase();
+  const isVercelDev = host.includes('localhost') || host.includes('127.0.0.1');
   function consoleLog(...msg) {
+    if (!isVercelDev) return;
     console.log(...msg);
   }
-  consoleLog(`=============== clean.js ${version}`, vercel_env);
-  consoleLog('%cVERCEL_ENV =', "color:red;", process.env.VERCEL_ENV);
-  consoleLog('NODE_ENV =', process.env.NODE_ENV);
+  consoleLog(`=============== clean.js ${version}`, isVercelDev);
 
   let { url } = req.query;
 
@@ -76,8 +77,8 @@ export default async function handler(req, res) {
     return `<style>${sanitizedCss}</style>`;
   });
 
-  const arrClassesOld = getBackgroundClassesFromHtml(html);
-  consoleLog("arrClassesOld:", arrClassesOld);
+  // const arrClassesOld = getBackgroundClassesFromHtml(html);
+  // consoleLog("arrClassesOld:", arrClassesOld);
   const arrClasses = [];
   arrStyles.forEach(strStyle => getBackgroundClassesFromStyle(strStyle, arrClasses));
   consoleLog("arrClasses:", arrClasses);
@@ -100,20 +101,16 @@ export default async function handler(req, res) {
         /* BASIC FOUNDATION - Adjust these details yourself! */
 
         ${colorClassSelector} {
-          padding: 1px;
-          border-radius: 2px;
+          padding: 2px;
+          border-radius: 3px;
         }
 
         /* Dark mode styles */
         @media (prefers-color-scheme: dark) {
             /* Adjust highlighted text for dark mode */
-            /*
-            html body #contents .doc-content [class*='c'][style*='background-color'] {
-              filter: invert(1) !important;
-            }
-            */
+            /* filter as suggested by Microsoft Copilot */
             ${colorClassSelector} {
-              filter: invert(1);
+              filter: invert(1) hue-rotate(160deg) brightness(0.95) contrast(1.05);
             }
 
             body {
@@ -283,48 +280,15 @@ export default async function handler(req, res) {
 
 
 
-  function getBackgroundSelector(html) {
-    const bgClasses = getBackgroundClassesFromHtml(html)
-    return bgClasses.join(", ");
-  }
-  function getBackgroundClassesFromHtml(html) {
-    const tofHtml = typeof html;
-    const posStyle = html.search("<style");
-    consoleLog("getBackgroundClassesFromHtml", posStyle, tofHtml, html.length);
-    // Assume no comments that we have to take care of.
-    // And assume the <style>-tag has no attributes.
 
-    // const regex = /<style>([^<]*?)<\/style>/gms;
-    // const regex = /<style>(.*?)<\/style>/gms;
-    // const regex = /<style>([\s\S]*?)<\/style>/gm;
 
-    //   .replace(/<scrip\b[^>]*>([\s\S]*?)<\/scrip>/gi, "");
-    const regex = /<style\b[^>]*>([\s\S]*?)<\/style>/gi;
-
-    let match;
-    const strStyles = [];
-    while ((match = regex.exec(html))) {
-      strStyles.push(match[1]); // e.g., 'c4'
-    }
-    consoleLog("----- G strStyles.length", strStyles.length);
-    const bgClasses = [];
-    strStyles.forEach(strStyle => getBackgroundClassesFromStyle(strStyle, bgClasses));
-    return bgClasses;
-  }
   function getBackgroundClassesFromStyle(googleStyle, bgClasses) {
-    const regex = /\.(c\d+)\s*{[^}]*background-color:\s*([^;]+)/g;
-
+    // Google Docs does not always add ";" so scan until "}"
+    const regex = /\.(c\d+)\s*{[^}]*background-color:\s*([^}]+)/g;
     let match;
     while (match = regex.exec(googleStyle)) {
       bgClasses.push(match[1]); // e.g., 'c4'
     }
 
-    // Generate dark mode CSS
-    const darkModeRules = bgClasses.map(className =>
-      `.${className} { filter: invert(1) !important; }`
-    ).join('\n');
-
-    // Inject into @media block
-    return darkModeRules;
   }
 }
