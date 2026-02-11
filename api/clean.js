@@ -1,5 +1,5 @@
 // @ts-check
-const version = "0.55";
+const version = "0.56";
 export default async function handler(req, res) {
   const host = (req.headers.host || '').toLowerCase();
   const isVercelDev = host.includes('localhost') || host.includes('127.0.0.1');
@@ -291,4 +291,6 @@ export default async function handler(req, res) {
     }
 
   }
+
+
 }
