@@ -4203,6 +4203,7 @@ function fixMalformedJSON3(str) {
         return `"notes": "${cleanValue}"${ending} `;
     });
 
+    // FIX-ME: the \n:s
     // Second, fix "notes" arrays - convert them to a single string
     str = str.replace(/"notes"\s*:\s*\[([\s\S]*?)\]/g, (match, arrayContent) => {
         // Extract all string values from the array
