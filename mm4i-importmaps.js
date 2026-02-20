@@ -112,6 +112,8 @@ const cacheImportFc4i = new Map();
         "db-mindmaps": "./js/db-mindmaps.js",
         // "db-fc4i": "./js/db-fc4i.js",
 
+        "donate": "./js/mod/donate.js",
+
         "toast-ui-helpers": "./js/mod/toast-ui-helpers.js",
 
         // "jsmind": "https://cdn.jsdelivr.net/npm/jsmind@0.8.5/es6/jsmind.js",

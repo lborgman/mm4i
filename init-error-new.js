@@ -3,8 +3,9 @@ const INIT_ERROR_VER = "0.1.8";
 if (!document.currentScript) throw Error("init-error.js must not be loaded as a module");
 
 // Simple tagged console logger
-window.logConsoleHereIs = (msg) =>
-    console.log(`%c${msg}`, "color:white; background-color:blue; padding: 0px 5px;");
+window.logConsoleHereIs = (msg) => {
+    // console.log(`%c${msg}`, "color:white; background-color:blue; padding: 0px 5px;");
+}
 
 window.logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
 
