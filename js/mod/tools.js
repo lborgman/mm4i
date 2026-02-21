@@ -3681,22 +3681,23 @@ async function dialogUnblockerAPIkey(unblockData) {
         return mkElt("p", undefined, `(There is something wrong here: "${errMsg}", ${errStatus}`);
     })();
 
-    const btnClipboard = mkElt("button", undefined, "I have copied the page to the clipboard");
+    const btnClipboard = mkElt("button", undefined, "Click me when it is there!");
+    btnClipboard.style = `
+        padding: 4px;
+        border-radius: 8px;
+        background: greenyellow;
+        cursor: pointer;
+    `;
     const eltClipboard = mkElt("p", undefined, [
         mkElt("div", undefined, "As a workaround you can copy the web page to the clipboard:"),
         btnClipboard,
     ]);
+
+    let dlg;
+    /** @type {string|undefined} */
+    let clipboardText;
     btnClipboard.addEventListener("click", async evt => {
         evt.stopPropagation();
-        /*
-        try {
-            await navigator.clipboard.writeText("hej");
-        } catch (err) {
-            console.error(err);
-            debugger;
-            return;
-        }
-        */
         let txt;
         try {
             txt = await navigator.clipboard.readText();
@@ -3711,11 +3712,11 @@ async function dialogUnblockerAPIkey(unblockData) {
             alert(`Clipboard text length < 1000`);
             return;
         }
-        if (confirm("error here")) {
-            throw Error("clipboard");
-        } else {
-            debugger;
-        }
+        // console.log({ dlg });
+        console.log("BEFORE closing dialogUnblockerAPIkey");
+        // debugger;
+        clipboardText = txt;
+        dlg.mdc.close();
     });
     eltClipboard.style = `
         background-color: yellowgreen;
@@ -3724,7 +3725,7 @@ async function dialogUnblockerAPIkey(unblockData) {
     `;
 
     const body = mkElt("div", undefined, [
-        mkElt("h2", undefined, "Publisher blocked access"),
+        mkElt("h2", undefined, "NEW Publisher blocked access"),
         mkElt("p", undefined, [
             eltPublisherDilemma,
             eltUserInfo,
@@ -3734,10 +3735,56 @@ async function dialogUnblockerAPIkey(unblockData) {
             lblAPIkey
         ]),
     ]);
-    const getOkButton = (elt) => { btnOK = elt; btnOK.inert = true; }
-    const ans = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel", undefined, getOkButton);
-    return ans;
+    // const getOkButton = (elt) => { btnOK = elt; btnOK.inert = true; }
+    // const ans = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel", undefined, getOkButton);
+    // return ans;
+
+
+    const btnClose = modMdc.mkMDCdialogButton("Close", "confirm", true);
+    const arrBtns = [btnClose];
+    const eltActions = modMdc.mkMDCdialogActions(arrBtns);
+    dlg = await modMdc.mkMDCdialog(body, eltActions);
+    return await new Promise((resolve) => {
+        /*
+        dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async (evt) => {
+            // evt.stopPropagation();
+            if (funCheckSave) console.warn("MDCDialog:closing", evt);
+            if (funCheckSave) {
+                if (funCheckSave(false)) {
+                    const confirmed = await mkMDCdialogConfirm("You have made changes. Do you want to save them?", "save", "discard");
+                    console.log({ confirmed });
+                    funCheckSave(true);
+                }
+            }
+        }));
+        */
+        dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async evt => {
+            // if (funCheckSave) console.warn("MDCDialog:closed", evt);
+            if (clipboardText) {
+                console.log("BEFORE resolve cliboardText");
+                resolve(clipboardText);
+                // debugger;
+                return;
+            }
+            const action = evt.detail.action;
+            switch (action) {
+                case "confirm":
+                    resolve(true);
+                    // resolve(funResolve());
+                    break;
+                case "close":
+                    resolve(false);
+                    break;
+                default:
+                    throw Error(`error in mkMDCdialogConfirm, action is ${action}`)
+            }
+        }));
+    });
+
 }
+
+/** @type {UnblockStatus|undefined} */
+let statusUnblock;
 
 /**
  *
@@ -3751,6 +3798,8 @@ async function dialogUnblockerAPIkey(unblockData) {
 // This version lets the CORS proxy call serp
 async function fetchResponseViaUnblocker(url, opts = {}) {
     console.log(`%cFetching via unblocker: `, "background-color:blue;color:white;", url);
+    statusUnblock = undefined;
+
 
     let n = 0;
     while (n++ < 10) {
@@ -3789,38 +3838,32 @@ async function fetchResponseViaUnblocker(url, opts = {}) {
         try {
             console.log("%cAttempting CORS proxy with serpKey", "color:green;font-weight:bold;");
             resp = await fetch(urlWithSerp, reqInit);
-            console.log("%cProxy response:", "color:green;", {
-                status: resp.status,
-                ok: resp.ok
-            });
-            if (resp.ok) return resp;
-            // resp.headers.forEach(h => console.log("header h:", h));
-            const status = resp.status;
-            const errorMessage = await resp.text();
-            console.log({ errorMessage });
-            const quotaExceeded = errorMessage.startsWith("Quota exceeded\n");
-            const unauthorized = errorMessage.startsWith("Unauthorized\n")
-            debugger;
-            /** @type {UnblockStatus} */
-            const statusUnblock = {
-                status,
-                errorMessage,
-                quotaExceeded,
-                unauthorized,
-            };
-            try {
-                const ans = await dialogUnblockerAPIkey(statusUnblock);
-                if (!ans) return;
-            } catch (err) {
-                console.log({ err });
-                debugger;
-            }
-            continue;
         } catch (err) {
             console.error("%cProxy failed:", "color:red;font-weight:bold;", err);
             debugger;
             throw err;
         }
+        console.log("%cProxy response:", "color:green;", {
+            status: resp.status,
+            ok: resp.ok
+        });
+        if (resp.ok) return resp;
+        const status = resp.status;
+        const errorMessage = await resp.text();
+        console.log({ errorMessage });
+        const quotaExceeded = errorMessage.startsWith("Quota exceeded\n");
+        const unauthorized = errorMessage.startsWith("Unauthorized\n")
+
+        /** @type {UnblockStatus} */
+        statusUnblock = {
+            status,
+            errorMessage,
+            quotaExceeded,
+            unauthorized,
+        };
+        console.log("BEFORE return fetchResponseViaUnblocker");
+        return;
+        // continue;
 
     }
     // ... rest of your error handling code
@@ -3845,13 +3888,15 @@ export async function test_unblocker() {
  * @param {Object} [opts]
  * param {string} [opts.proxyName]
  * @param {AbortSignal} [opts.signal]
- * @returns {Promise<string>} HTML string
+ * @returns {Promise<string|undefined>} HTML string
  */
 
 async function fetchPageViaUnblocker(url, opts) {
     try {
         const response = await fetchResponseViaUnblocker(url, opts);
-        if (response == undefined) throw Error("respone == undefined (from fetchResponseViaProxy");
+        // if (response == undefined) throw Error("respone == undefined (from fetchResponseViaProxy");
+        console.log("AFTER fetchResponseViaUnblocker");
+        if (response == undefined) return;
         // response.headers.forEach(h => console.log("unblocker h", h));
         if (!response.ok) {
             throw new FetchItError(`Unblocker failed, status ${response.status} `)
@@ -5674,22 +5719,26 @@ export async function fetchIt(url) {
             */
             case "unBlockerNeeded":
                 content = await fetchPageViaUnblocker(url);
+                console.log("AFTER fetchPageViaUnblocker");
                 return { content, blockType, url, corsStatus }
                 break;
             default:
                 throw Error(`Bad block type: "${blockType}"`);
         }
     }
-    /** @param {string} blockType */
+
+    /*
+     * @param {string} blockType
     const logBlockType = (blockType) => {
         const s3 = `%cknownUrlBlock["${host}"]='${blockType};'`;
         console.log(s3, "color:white;background:darkblue;font-size:18px;padding:4px;");
     }
-    /**
+    */
+
+    /*
      * @param {string} blockType 
      * @returns {Promise<string>} 
      * @throws {Error}
-     */
     const _fetchAndLogBlockType = async (blockType) => {
         try {
             const content = await fetchBlockType(blockType);
@@ -5697,6 +5746,7 @@ export async function fetchIt(url) {
             return content;
         } catch (err) { throw err; }
     }
+    */
     const knownBlock = knownUrlBlock[host];
     // let currentBlockName = knownBlock || "notBlocked";
     let currentBlockName = knownBlock || "corsBlock";
@@ -5704,42 +5754,11 @@ export async function fetchIt(url) {
     for (let i = currentBlockIdx; i < arrBlockNames.length; i++) {
         const blockName = arrBlockNames[i];
         if (blockName == "finalBlock") {
-            throw Error('blockName == "finalBlock');
-            console.log(`%c${blockName}`, "background:red;font-size:18px;", url);
-            const firstStatusChar = corsStatus.slice(0, 1);
-            switch (firstStatusChar) {
-                // serp
-                case "4":
-                    // https://www.scrapeunblocker.com/serp
-                    if (settingFetchItSerpKey.value) {
-                        // corsblock
-
-                    }
-                    const modMdc = await importFc4i("util-mdc");
-                    const body = mkElt("div", undefined, [
-                        mkElt("h2", undefined, "Article provider blocked browser programs access"),
-                        mkElt("p", undefined, `
-                                This block is probably not meant to block programs like MM4I.
-                                There is a way to get around this block.
-                                Do you want to know more about this?
-                            `)
-                    ]);
-                    const ans = await modMdc.mkMDCdialogConfirm(body, "Yes", "No");
-                    if (ans) {
-                        debugger;
-                        alert("not implemented yet");
-                    } else {
-                        throw new FetchItError(`Server blocked access: ${corsStatus}`, { cause: corsStatus });
-                    }
-                    break;
-                case "5":
-                    throw new FetchItError(`Server has problems: ${corsStatus}`, { cause: corsStatus });
-                    break;
-                default:
-                    throw new FetchItError(`Could not fetch: ${corsStatus}`);
-            }
-            // throw new FetchItError(`Could not fetch: ${corsStatus}`);
-            return { content: null, blockName, corsStatus } // corsStatus
+            const content = await dialogUnblockerAPIkey(statusUnblock);
+            console.log({ content });
+            console.log("AFTER dialogUnblockerAPIkey");
+            debugger;
+            return { content, blockName, url }
         }
         const result = await fetchBlockType(blockName);
         if (result.content) return result;

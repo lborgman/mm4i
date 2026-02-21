@@ -714,9 +714,16 @@ export async function generateMindMap(fromLink) {
 
         if (!needToFetch) { return makeReturnPromptData("link", linkSource); }
 
-        promFetch[linkSource] = promFetch[linkSource] ||
-            modTools.fetchIt(linkSource);
-        const obj = await promFetch[linkSource];
+        promFetch[linkSource] = promFetch[linkSource] || modTools.fetchIt(linkSource);
+        const prom = promFetch[linkSource];
+        console.log({ prom });
+        if (!(prom instanceof Promise)) {
+            debugger;
+            throw Error("prom is not Promise");
+        }
+        // const obj = await promFetch[linkSource];
+        console.log("AFTER modTools.fetchit");
+        const obj = await prom;
         const content = obj.content;
         return makeReturnPromptData("text", content);
     }
@@ -754,6 +761,8 @@ export async function generateMindMap(fromLink) {
                 break;
             case "text":
                 const htmlArticle = promptData.data;
+                const tofArticle = typeof htmlArticle;
+                if (tofArticle != "string") throw (`typeof htmlArticle == ${tofArticle}`)
                 txtArticle = modTools.extractArticleText(htmlArticle);
                 if (!txtArticle) {
                     // debugger;
