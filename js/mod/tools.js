@@ -3655,6 +3655,10 @@ async function dialogUnblockerAPIkey(unblockData) {
         if (!unblockData) return;
         return (unblockData.errorMessage.replaceAll(/\n/g, " ")).trim();
     })();
+    const errStatus = (() => {
+        if (!unblockData) return;
+        return unblockData.status;
+    })();
     const eltUserInfo = (() => {
         if (!unblockData) {
             return mkElt("p", undefined,
@@ -3666,21 +3670,66 @@ async function dialogUnblockerAPIkey(unblockData) {
         }
         if (unblockData.unauthorized) {
             return mkElt("p", undefined, [
-                `We called the serp unblocker, but got "${errMsg}". Your serp API key is invalid.`
+                `We called the serp unblocker, but got "${errMsg}", ${errStatus}. Your serp API key is invalid.`
             ]);
         }
         if (unblockData.quotaExceeded) {
             return mkElt("p", undefined, [
-                `We called the serp unblocker, but got "${errMsg}". Your serp API key quota is exceeded. (Quota is reset monthly.)`
+                `We called the serp unblocker, but got "${errMsg}", ${errStatus}. Your serp API key quota is exceeded. (Quota is reset monthly.)`
             ]);
         }
+        return mkElt("p", undefined, `(There is something wrong here: "${errMsg}", ${errStatus}`);
     })();
+
+    const btnClipboard = mkElt("button", undefined, "I have copied the page to the clipboard");
+    const eltClipboard = mkElt("p", undefined, [
+        mkElt("div", undefined, "As a workaround you can copy the web page to the clipboard:"),
+        btnClipboard,
+    ]);
+    btnClipboard.addEventListener("click", async evt => {
+        evt.stopPropagation();
+        /*
+        try {
+            await navigator.clipboard.writeText("hej");
+        } catch (err) {
+            console.error(err);
+            debugger;
+            return;
+        }
+        */
+        let txt;
+        try {
+            txt = await navigator.clipboard.readText();
+            // console.log({ txt });
+            // debugger;
+        } catch (err) {
+            console.error(err);
+            debugger;
+            return;
+        }
+        if (txt.length < 1000) {
+            alert(`Clipboard text length < 1000`);
+            return;
+        }
+        if (confirm("error here")) {
+            throw Error("clipboard");
+        } else {
+            debugger;
+        }
+    });
+    eltClipboard.style = `
+        background-color: yellowgreen;
+        padding: 15px;
+        border-radius: 8px;
+    `;
+
     const body = mkElt("div", undefined, [
         mkElt("h2", undefined, "Publisher blocked access"),
         mkElt("p", undefined, [
             eltPublisherDilemma,
             eltUserInfo,
         ]),
+        eltClipboard,
         mkElt("p", undefined, [
             lblAPIkey
         ]),
@@ -3759,8 +3808,13 @@ async function fetchResponseViaUnblocker(url, opts = {}) {
                 quotaExceeded,
                 unauthorized,
             };
-            const ans = await dialogUnblockerAPIkey(statusUnblock);
-            if (!ans) return;
+            try {
+                const ans = await dialogUnblockerAPIkey(statusUnblock);
+                if (!ans) return;
+            } catch (err) {
+                console.log({ err });
+                debugger;
+            }
             continue;
         } catch (err) {
             console.error("%cProxy failed:", "color:red;font-weight:bold;", err);
@@ -3795,15 +3849,19 @@ export async function test_unblocker() {
  */
 
 async function fetchPageViaUnblocker(url, opts) {
-    // fetchResponseViaProxy
-    const response = await fetchResponseViaUnblocker(url, opts);
-    if (response == undefined) throw Error("respone == undefined (from fetchResponseViaProxy");
-    response.headers.forEach(h => console.log("unblocker h", h));
-    if (!response.ok) {
-        throw new FetchItError(`Unblocker failed, status ${response.status} `)
+    try {
+        const response = await fetchResponseViaUnblocker(url, opts);
+        if (response == undefined) throw Error("respone == undefined (from fetchResponseViaProxy");
+        // response.headers.forEach(h => console.log("unblocker h", h));
+        if (!response.ok) {
+            throw new FetchItError(`Unblocker failed, status ${response.status} `)
+        }
+        const content = await response.text();
+        return content;
+    } catch (err) {
+        console.log({ err });
+        debugger;
     }
-    const content = await response.text();
-    return content;
 }
 // https://scitechdaily.com/challenging-long-held-theories-evolution-isnt-one-and-done-new-study-suggests/
 
