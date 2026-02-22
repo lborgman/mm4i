@@ -158,6 +158,8 @@ const cacheImportFc4i = new Map();
         "woff2-mdc-symbols": "./js/mod/woff2-mdc-symbols.js",
         "webrtc-2-peers": "./js/mod/webrtc-2-peers.js",
 
+        "supabase-sign-in": "./js/mod/supabase-sign-in.js",
+
         // Tests:
         "pwa": "./pwa.js",
         // "jssm": "https://cdn.jsdelivr.net/npm/jssm@latest/dist/jssm.es6.mjs",
