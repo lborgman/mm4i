@@ -1820,8 +1820,8 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
         setAIchoosen(nameAI);
     });
     /** @param {string} nameAI */
-    function setAIchoosen(nameAI) {
-        const validUrlFormat = modTools.isValidUrlFormat(inpLink.value.trim());
+    async function setAIchoosen(nameAI) {
+        const validUrlFormat = await modTools.isValidUrlFormat(inpLink.value.trim());
         /*
         btnGo.inert = !validUrlFormat;
         if (validUrlFormat) {
