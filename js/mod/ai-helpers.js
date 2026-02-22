@@ -2405,7 +2405,9 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
             }
             const nNotes = n.shapeEtc?.notes;
             if (typeof nNotes == "string") {
-                const notes = `## AI Notes:\n${nNotes}`;
+                // const notes = `## AI Notes:\n${nNotes}`;
+                const n2 = nNotes.replaceAll(/\\n/g, "\n");
+                const notes = `## AI Notes:\n${n2}`;
                 n.shapeEtc.notes = notes;
             }
         });
@@ -2420,7 +2422,9 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
             `*Created by AI at:* ${modTools.localISOtime()}`
         ]
         if (typeof rootNotes == "string") {
-            arrMdRootNotes.push(`\n## AI Notes\n\n${rootNotes}`);
+            // arrMdRootNotes.push(`\n## AI Notes\n\n${rootNotes}`);
+            const n2 = rootNotes.replaceAll(/\\n/g, "\n");
+            arrMdRootNotes.push(`\n## AI Notes\n\n${n2}`);
         } else {
             arrMdRootNotes.push(`\n## AI Notes\n\nNo AI notes found for this node`);
         }
