@@ -169,7 +169,9 @@ setVersionSWfun(theFunVersionDefault)
 
 
 let theUpdateTitle = document.title;
-let theSWurl = "./sw-workbox.js";
+// let theSWurl = "./sw-workbox.js";
+let theSWurl = "./sw-workbox-esm.js";
+// let theSWurl = "./sw-test-esm.js";
 
 
 

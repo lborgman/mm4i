@@ -1,101 +1,94 @@
 #!/usr/bin/env node
-// check-precache.js – 2025 ESM
-// Checks if any precached file is ignored in .gitignore
-
+// check-precaching.js – 2026 Ultimate Debug Version
 import { readFile, access } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import ignore from 'ignore'; // npm install ignore
+import ignore from 'ignore';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const workboxPath = join(__dirname, 'sw-workbox.js');
 const gitignorePath = join(__dirname, '.gitignore');
-const projectRoot = __dirname;
+
+// IMPORTANT: Ensure this points to the folder where your web server (8090) starts
+const projectRoot = resolve(__dirname);
 
 async function main() {
-  // -------------------------------------------------
-  // 1. Load & parse PRECACHE_MANIFEST
-  // -------------------------------------------------
+  console.log(`\n--- Precache Integrity Check [${new Date().toLocaleTimeString('en-GB', { hour12: false })}] ---`);
+
+  // 1. Extract Manifest using "Brute Force"
+  console.log('1. Extract Manifest using "Brute Force"');
+
   const source = await readFile(workboxPath, 'utf8');
-  const lines = source.split('\n');
+  const manifestMatch = source.match(/(\[\s*{\s*["'](?:revision|url)["'][\s\S]*?\])/);
 
-  const startIdx = lines.findIndex(l =>
-    l.trimStart().startsWith('const PRECACHE_MANIFEST')
-  );
-
-  if (startIdx === -1) {
-    console.error('const PRECACHE_MANIFEST not found');
+  if (!manifestMatch) {
+    console.error('❌ Error: Could not find any Workbox manifest array in sw-workbox.js.');
     process.exit(1);
   }
 
-  let raw = '';
-  let braces = 0;
-  let inArray = false;
+  const manifest = JSON.parse(manifestMatch[1]);
+  console.log(`🔍 Found ${manifest.length} entries. Verifying paths...`);
 
-  for (let i = startIdx; i < lines.length; i++) {
-    const line = lines[i];
-    raw += line + '\n';
-    for (const ch of line) {
-      if (ch === '[') { if (!inArray) inArray = true; braces++; }
-      if (ch === ']') braces--;
-    }
-    if (inArray && braces === 0) break;
-  }
+  // 2. Load .gitignore
+  console.log("2. Load .gitignore");
 
-  const jsonStr = raw
-    .replace(/^.*const\s+PRECACHE_MANIFEST\s*=\s*/s, '')
-    .replace(/;?\s*$/, '');
-
-  let manifest;
-  try { manifest = JSON.parse(jsonStr); }
-  catch (err) {
-    console.error('Failed to parse PRECACHE_MANIFEST');
-    console.error(err.message);
-    process.exit(1);
-  }
-
-  // -------------------------------------------------
-  // 2. Map URLs → relative paths (from project root)
-  // -------------------------------------------------
-  const entries = manifest.map(entry => {
-    const url = entry.url.replace(/^\/+/, ''); // "/assets/x.js" → "assets/x.js"
-    const relativePath = join(url); // normalize path separators
-    return { url: entry.url, path: relativePath };
-  });
-
-  // -------------------------------------------------
-  // 3. Load and parse .gitignore
-  // -------------------------------------------------
   let gitignoreContent = '';
-  try {
-    gitignoreContent = await readFile(gitignorePath, 'utf8');
-  } catch (err) {
-    console.warn('.gitignore not found – assuming nothing is ignored');
-  }
-
+  try { gitignoreContent = await readFile(gitignorePath, 'utf8'); } catch (e) { }
   const ig = ignore().add(gitignoreContent);
 
-  // -------------------------------------------------
-  // 4. Check which files are ignored
-  // -------------------------------------------------
-  const ignored = entries.filter(entry =>
-    ig.ignores(entry.path)
-  );
+  let failCount = 0;
+  const issues = [];
 
-  // -------------------------------------------------
-  // 5. Report
-  // -------------------------------------------------
-  console.log(`Checked ${entries.length} precache entries against .gitignore\n`);
+  for (const entry of manifest) {
+    // 🔑 Fix 1: Decode URL (spaces, %20, etc)
+    const decodedUrl = decodeURIComponent(entry.url);
 
-  if (ignored.length === 0) {
-    console.log('All precached files are tracked (not ignored).');
+    // 🔑 Fix 2: Remove leading slashes and dots to prevent "path jump"
+    const cleanedUrl = decodedUrl.replace(/^(\.\/|\/)/, '');
+    if (cleanedUrl.includes(" ")) {
+      console.log(`ERROR: Contains space: ${entry.url}`);
+      failCount++;
+      continue;
+    }
+
+    const fullPath = join(projectRoot, cleanedUrl);
+
+    // 🔬 ADD THIS LINE HERE:
+    if (entry.url.includes('Copy')) console.log(`DEBUG: Checking Copy file at: ${fullPath}`);
+
+    let isMissing = false;
+    try {
+      await access(fullPath);
+    } catch {
+      isMissing = true;
+    }
+
+    const isIgnored = ig.ignores(cleanedUrl);
+
+    // DEBUG: Uncomment the line below if you want to see exactly what it's checking
+    // console.log(`Checking: ${cleanedUrl} -> ${fullPath} [Missing: ${isMissing}, Ignored: ${isIgnored}]`);
+
+    if (isMissing || isIgnored) {
+      failCount++;
+      issues.push({
+        url: entry.url,
+        fullPath: fullPath,
+        reason: isMissing && isIgnored ? 'MISSING & IGNORED' : (isMissing ? 'MISSING' : 'IGNORED')
+      });
+    }
+  }
+
+  if (failCount === 0) {
+    console.log('✅ PASS: All files verified.\n');
+    process.exit(0);
   } else {
-    console.error(`${ignored.length} precached file(s) are IGNORED in .gitignore:`);
-    ignored.forEach(e => {
-      console.error(`  URL: ${e.url}`);
-      console.error(`  Path: ${e.path}\n`);
+    console.error(`❌ FAIL: Found ${failCount} issue(s):\n`);
+    issues.forEach(issue => {
+      console.error(`  [${issue.reason}]`);
+      console.error(`  URL:  ${issue.url}`);
+      console.error(`  DISK: ${issue.fullPath}\n`);
     });
-    process.exit(1); // fail script / CI
+    process.exit(1);
   }
 }
 

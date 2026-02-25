@@ -11,15 +11,34 @@ let pwaFuns;
 
 const logStyle = "background:yellowgreen; color:black; padding:2px; border-radius:2px;";
 const logStrongStyle = logStyle + " font-size:18px;";
+const logErrorStyle = logStrongStyle + " border: 2px solid red;";
+
 // const styleInstallEvents = logStrongStyle + "color:red;";
 function logConsole(..._msg) {
-    // console.log(`%cpwa-nc.js`, logStyle, ..._msg);
+    console.log(`%cpwa-nc.js`, logStyle, ..._msg);
 }
 function logStrongConsole(...msg) {
     console.log(`%cpwa-nc.js`, logStrongStyle, ...msg);
     addScreenDebugRow(...msg);
 }
+function logError(...msg) {
+    console.error(`%cpwa-nc.js`, logErrorStyle, ...msg);
+    alertServiceWorkerError([...msg].join(" -- "));
+    addScreenDebugRow(...msg);
+}
 // function logInstallEvent(...msg) { console.log("%cpwa-nc", styleInstallEvents, ...msg); }
+function alertServiceWorkerError(s) {
+    console.log({ s });
+    alert(
+        `
+App update failed
+=================
+ERROR: "${s}"
+
+This is probably a temporay problem on our side.
+Everything will work as before.
+                `);
+}
 
 
 logStrongConsole(`here is pwa-not-cached.js, module ${PWA_NOT_CACHED_VERSION}`);
@@ -72,6 +91,7 @@ export async function startSW(urlSW) {
             const regSW2 = await navigator.serviceWorker.getRegistrations();
             console.log({ regSW2 });
             navigator.serviceWorker.register("./sw-reset.js");
+            // navigator.serviceWorker.register("./sw-reset.js", { type: "module" });
         })();
         return;
     }
@@ -121,7 +141,7 @@ async function addDebugSWinfo() {
             statesOfReg.forEach(s => {
                 const r = reg[s];
                 if (r !== undefined) {
-                    if (stateOfReg) console.error(`Already state ${stateOfReg}`);
+                    if (stateOfReg) logError(`Already state ${stateOfReg}`);
                     stateOfReg = s;
                     console.log(s, r);
                     if (r) {
@@ -257,11 +277,11 @@ async function setupServiceWorker() {
     wb.addEventListener('Xredundant', (event) => {
         debugger;
         // This is the clean way to detect failure from workbox-window!
-        console.error('🚨 PWA Update Failed (Workbox): The Service Worker became redundant.');
+        logError('🚨 PWA Update Failed (Workbox): The Service Worker became redundant.');
 
         // Log details if available
         if (event.error) {
-            console.error('Failure Details:', event.error);
+            logError('Failure Details:', event.error);
         }
         // You can use analytics to track this failure.
     });
@@ -271,44 +291,33 @@ async function setupServiceWorker() {
         reg.onupdatefound = () => {
             const newSW = reg.installing;
             if (!newSW) {
-                const msg = '[SW] New service worker is not installing';
-                console.error(msg);
+                const msg = 'New service worker is not installing';
+                logError(msg);
                 alert(msg);
                 return;
             }
-            console.log('[SW] New service worker found:', newSW);
+            logConsole('New service worker found:', newSW);
 
             // Track state changes of the installing worker
             newSW.onstatechange = () => {
-                console.log('[SW] State changed:', newSW.state);
+                logConsole('State changed:', newSW.state);
 
                 if (newSW.state === 'installed') {
-                    console.log('[SW] Installed successfully.');
+                    logConsole('Installed successfully.');
                 }
 
                 if (newSW.state === 'redundant') {
                     // 🚨 This means the new SW failed to install or activate
-                    showServiceWorkerInstallError();
+                    logError('redundant', newSW.state);
+                    // alertServiceWorkerError();
                 }
             };
         };
         // } catch (err) {
         // console.error({ err });
-        // showServiceWorkerInstallError();
+        // alertServiceWorkerError();
         // debugger;
         // }
-        function showServiceWorkerInstallError() {
-            alert(
-                `
-App update failed
-=================
-This is probably a temporay problem
-on our side.
-
-You can not do anything about it,
-but everything will work as before.
-                `);
-        }
         // https://web.dev/two-way-communication-guide/
 
         // Can't use wb.messageSW because this goes to the latest registered version, not the active
@@ -332,7 +341,7 @@ but everything will work as before.
 
         // return swRegistration;
     } catch (err) {
-        console.error("Service worker registration failed", { err });
+        logError("Service worker registration failed", { err });
         throw err;
     }
 }
@@ -367,7 +376,8 @@ async function getWorkbox() {
         // https://www.npmjs.com/package/workbox-window
         const urlWorkboxWindow = "https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-window.prod.mjs";
         const modWb = await import(urlWorkboxWindow);
-        instWorkbox = new modWb.Workbox(ourUrlSW);
+        // instWorkbox = new modWb.Workbox(ourUrlSW);
+        instWorkbox = new modWb.Workbox(ourUrlSW, { type: "module" });
     }
     return instWorkbox;
 }
