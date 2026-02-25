@@ -83,8 +83,12 @@ const version = "1.6.7";
 const logStyle = "background:yellowgreen; color:black; padding:2px; border-radius:2px;";
 const logStrongStyle = logStyle + " font-size:18px;";
 const styleInstallEvents = logStrongStyle + "color:red;";
+
+/** @param {...any} msg */
 function logConsole(...msg) { console.log(`%cpwa.js`, logStyle, ...msg); }
+/** @param {...any} msg */
 function logStrongConsole(...msg) { console.warn(`%cpwa.js`, logStrongStyle, ...msg); }
+/** @param {...any} msg */
 function logInstallEvent(...msg) { console.warn("%cpwa.js", styleInstallEvents, ...msg); }
 
 logConsole(`Here is pwa.js, module ${version}`, import.meta.url);
@@ -109,6 +113,7 @@ if (params.length > 0) throw Error("pwa.js should have no parameters");
 if (urlPWA.hash.length > 0) throw Error("pwa.js should have no hash");
 
 const keyVersion = `PWA-version ${import.meta.url}`;
+/** @param {string} version */
 function saveAppVersion(version) { localStorage.setItem(keyVersion, version); }
 function getSavedAppVersion() { return localStorage.getItem(keyVersion); }
 
@@ -131,7 +136,7 @@ export function getVersions() {
     return versions;
 }
 
-
+/** @param  {...any} txt */
 function addScreenDebugRow(...txt) {
     if (!mayLogToScreen) return;
     if (secDebug == undefined) return;
@@ -149,7 +154,7 @@ function addScreenDebugRow(...txt) {
 
 
 
-
+/** @type {Object|undefined} */
 let modNotCached;
 
 
@@ -279,7 +284,7 @@ async function loadNotCached() {
             ourErr = err;
             console.error(err);
         }
-        if (!modNotCached) {
+        if (!!!modNotCached) {
             const dlgErr = startDlgErr("Error loading pwa-not-cached.js", ourErr);
 
             let isFetchError = false;
@@ -426,7 +431,7 @@ function addVersionDialog(theEltVersion) {
 
 }
 
-export function setVersionSWfun(funVersion) {
+export async function setVersionSWfun(funVersion) {
     if (theFunVersion && theFunVersion !== theFunVersionDefault) {
         if (theFunVersion === funVersion) {
             throw Error("setVersionSWfun called 2 times with same argument");
@@ -441,10 +446,20 @@ export function setVersionSWfun(funVersion) {
         saveAppVersion(version);
         if (theFunVersion) { theFunVersion(version); }
     }
+
+    /*
     const messageChannelVersion = new MessageChannel();
     messageChannelVersion.port1.onmessage = (event) => { onGotVersion(event.data); };
     const swController = navigator.serviceWorker.controller;
+    const promReady = swController?.ready;
+    debugger;
     swController?.postMessage({ type: "GET_VERSION" }, [messageChannelVersion.port2]);
+    */
+
+
+    const ans = await sendMessageToSW("", "GET_VERSION")
+    console.log({ ans });
+    onGotVersion(ans.reply);
 }
 
 
@@ -846,7 +861,7 @@ function setupForInstall() {
         logInstallEvent("createEltInstallPromotion START");
 
         // await promiseDOMready();
-        await  new Promise(function (resolve) {
+        await new Promise(function (resolve) {
             const rs = document.readyState;
             if (!["loading", "interactive", "complete"].includes(rs)) throw Error(`Unknown readystate: ${rs}`);
             if (document.readyState === "complete") return resolve(true);
@@ -876,3 +891,107 @@ window.addEventListener("error", evt => {
     console.error("Error in pwa.js", err);
     throw Error("Error in pwa.js", err);
 });
+
+
+
+/**
+ * Sends a message to the service worker, waiting for it to be ready.
+ * Includes detailed logging on failure or slow activation.
+ *
+ * @param {Object} message - The data to send
+ * @param {string} [type='MESSAGE_FROM_CLIENT'] - Message type
+ * @returns {Promise<{sent: boolean, reply?: any, error?: string, details?: object}>}
+ */
+async function sendMessageToSW(message, type = 'MESSAGE_FROM_CLIENT') {
+    const payload = {
+        type,
+        payload: message,
+        sentAt: Date.now(),
+        pageUrl: location.href
+    };
+
+    console.debug('[Client → SW] Preparing message:', payload);
+
+    try {
+        // 1. Check if we already have a controlling SW (fast path)
+        if (navigator.serviceWorker.controller) {
+            console.debug('[Client → SW] Found existing controller → sending immediately');
+            await postMessageAndWaitForReply(navigator.serviceWorker.controller, payload);
+            return { sent: true };
+        }
+
+        console.debug('[Client → SW] No active controller yet → waiting for ready');
+
+        // 2. Wait for an active SW (this can take seconds on first install)
+        const start = performance.now();
+        const registration = await navigator.serviceWorker.ready;
+        const duration = (performance.now() - start).toFixed(0);
+
+        console.debug(`[Client → SW] ready resolved after ${duration} ms`);
+
+        const sw = registration.active;
+
+        if (!sw) {
+            throw new Error('ready resolved but no active worker');
+        }
+
+        console.debug('[Client → SW] Active worker found → sending');
+
+        const reply = await postMessageAndWaitForReply(sw, payload);
+        return { sent: true, reply };
+
+    } catch (err) {
+        const details = {
+            error: err.message,
+            hasController: !!navigator.serviceWorker.controller,
+            readyState: navigator.serviceWorker.ready ? 'exists' : 'rejected',
+            registrations: await getAllRegistrationsInfo(),
+            controllerUrl: navigator.serviceWorker.controller?.scriptURL || null,
+            pageControlled: !!navigator.serviceWorker.controller
+        };
+
+        console.error('[Client → SW] Failed to send message', details, err);
+
+        return {
+            sent: false,
+            error: err.message,
+            details
+        };
+    }
+}
+
+/**
+ * Helper: send message and wait for reply (optional)
+ */
+async function postMessageAndWaitForReply(sw, payload) {
+    return new Promise((resolve, reject) => {
+        const channel = new MessageChannel();
+
+        channel.port1.onmessage = event => {
+            console.debug('[Client ← SW] Reply received:', event.data);
+            resolve(event.data);
+        };
+
+        channel.port1.onmessageerror = reject;
+
+        sw.postMessage(payload, [channel.port2]);
+    });
+}
+
+/**
+ * Helper: gather diagnostic info about all registrations
+ */
+async function getAllRegistrationsInfo() {
+    try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        return regs.map(r => ({
+            scope: r.scope,
+            active: !!r.active,
+            installing: !!r.installing,
+            waiting: !!r.waiting,
+            script: r.active?.scriptURL || r.installing?.scriptURL || r.waiting?.scriptURL
+        }));
+    } catch {
+        return 'failed to get registrations';
+    }
+}

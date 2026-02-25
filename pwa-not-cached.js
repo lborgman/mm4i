@@ -4,9 +4,11 @@
 const PWA_NOT_CACHED_VERSION = "1.2.00";
 export function getVersion() { return PWA_NOT_CACHED_VERSION; }
 
+// @ts-ignore
 const mkElt = window.mkElt;
 
 const doSwReset = false;
+/** @type {Object} */
 let pwaFuns;
 
 const logStyle = "background:yellowgreen; color:black; padding:2px; border-radius:2px;";
@@ -392,6 +394,7 @@ async function updateNow() {
 }
 */
 
+/** @param {Object} objFuns */
 export function setPWAfuns(objFuns) {
     pwaFuns = objFuns;
     if (!window["mkElt"]) {

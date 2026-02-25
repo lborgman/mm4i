@@ -28,6 +28,33 @@ function logError(...msg) {
 
 logStrongConsole(`${SW_VERSION} is here at 01:51`);
 //#endregion LOG
+// 📩 5. MESSAGE HANDLER
+self.addEventListener("message", (evt) => {
+    logConsole("message 0", { evt });
+    if (!evt.data) return;
+
+    if (evt.data.eventType === "ping" || evt.data.eventType === "keyChanged") return;
+
+    const msgType = evt.data.type || "(NO TYPE)";
+    logConsole("message", { evt, msgType });
+    logStrongConsole(`message handler, msgType=="${msgType}"`);
+
+    switch (msgType) {
+        case 'GET_VERSION':
+            if (evt.ports && evt.ports[0]) {
+                evt.ports[0].postMessage(SW_VERSION);
+            }
+            break;
+        case 'SKIP_WAITING':
+            // Note: This is the native self.skipWaiting()
+            self.skipWaiting();
+            break;
+        default:
+            console.error("Unknown message data.type", { evt });
+    }
+});
+logConsole("[SWr] message");
+
 
 if (DEBUG_SW) {
     self.addEventListener('error', event => {
@@ -208,16 +235,16 @@ self.addEventListener('install', event => {
             plugins: [cacheRepairPlugin],
             suppressWarnings: !DEBUG_SW  // from your debug toggle
         })
-            /*
-            .then(() => {
-                console.log('[SW] Precaching completed');
-                self.skipWaiting();
-            })
-            .catch(err => {
-                console.error('[SW] Precaching failed:', err);
-                throw err;  // keep install failing if bad file
-            })
-            */
+        /*
+        .then(() => {
+            console.log('[SW] Precaching completed');
+            self.skipWaiting();
+        })
+        .catch(err => {
+            console.error('[SW] Precaching failed:', err);
+            throw err;  // keep install failing if bad file
+        })
+        */
     );
 });
 
@@ -396,32 +423,6 @@ self.addEventListener('install', event => {
 */
 
 
-
-// 📩 5. MESSAGE HANDLER
-self.addEventListener("message", (evt) => {
-    if (!evt.data) return;
-
-    if (evt.data.eventType === "ping" || evt.data.eventType === "keyChanged") return;
-
-    const msgType = evt.data.type || "(NO TYPE)";
-    logConsole("message", { evt, msgType });
-    logStrongConsole(`message handler, msgType=="${msgType}"`);
-
-    switch (msgType) {
-        case 'GET_VERSION':
-            if (evt.ports && evt.ports[0]) {
-                evt.ports[0].postMessage(SW_VERSION);
-            }
-            break;
-        case 'SKIP_WAITING':
-            // Note: This is the native self.skipWaiting()
-            self.skipWaiting();
-            break;
-        default:
-            console.error("Unknown message data.type", { evt });
-    }
-});
-logConsole("[SWr] message");
 
 // 🚀 6. NAVIGATION ROUTING
 registerRoute(
