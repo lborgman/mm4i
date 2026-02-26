@@ -1,7 +1,7 @@
 // @ts-check
 
 const SUPABASE_SIGN_IN_VER = "0.9.00";
-logConsoleHereIs(`here is supabase-sign-in.js, module,${SUPABASE_SIGN_IN_VER}`);
+console.log(`here is supabase-sign-in.js, module,${SUPABASE_SIGN_IN_VER}`);
 if (document.currentScript) throw Error("import .currentScript"); // is module
 
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
@@ -40,22 +40,29 @@ export async function checkSignedIn() {
     return currentSession;
 }
 
-export async function mkSignInButton() {
+/**
+ * 
+ * @param {string} width 
+ * @returns {HTMLButtonElement}
+ */
+export async function mkSignInButton(width) {
     const currentSession = await getSession();
     const user_metadata = currentSession?.user.user_metadata;
     const avatar_url = user_metadata?.avatar_url || "./img/account_circle.svg";
     const full_name = user_metadata?.full_name;
     // return { avatar_url, full_name }
     // const modMdc = await importFc4i("util-mdc");
-    const btn = mkElt("button");
+    // const btn = mkElt("button");
+    const btn = document.createElement("button");
     btn.style = `
         background-repeat: no-repeat;
         background-size: contain;
         position: fixed;
         top: 0;
         left: 0;
+        border: none;
         z-index: 99999;
-        width: 50px;
+        width: ${width};
         aspect-ratio: 1 / 1;
     `;
     btn.addEventListener("click", async evt => {
@@ -66,6 +73,7 @@ export async function mkSignInButton() {
         } else {
             signOut();
         }
+        setImage();
     });
     setImage();
     document.body.appendChild(btn);
@@ -94,7 +102,8 @@ export async function signInPopup() {
 }
 
 supabase.auth.onAuthStateChange((event, session) => {
-    debugger;
+    // debugger;
+    console.log("SUPABASE AuthStateChange", event);
     if (event === "SIGNED_IN") {
         // updateUserIcon(session);
     } else if (event === "SIGNED_OUT") {

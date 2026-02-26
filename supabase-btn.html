@@ -1,0 +1,29 @@
+<html>
+
+<head>
+    <style>
+        :root {
+            box-sizing: border-box;
+        }
+    </style>
+    <script src="./init-error.js"></script>
+</head>
+
+<body>
+    <script type="module">
+        let w = window.innerWidth + "px";
+        const eltIframe = window.frameElement;
+        if (eltIframe) {
+            const br = eltIframe.getBoundingClientRect();
+            w = br.width + "px";
+        }
+        const m = await import("./js/mod/supabase-sign-in.js");
+        console.log({ m });
+        const b = await m.mkSignInButton(w);
+        console.log({ b });
+        const r = b.getBoundingClientRect();
+        console.log({ r });
+    </script>
+</body>
+
+</html>

@@ -53,7 +53,7 @@ self.addEventListener("message", (evt) => {
             console.error("Unknown message data.type", { evt });
     }
 });
-logConsole("[SWr] message");
+logConsole("message");
 
 
 if (DEBUG_SW) {
@@ -223,6 +223,7 @@ import {
     precacheAndRoute,
     registerRoute,
     clientsClaim,
+    matchPrecache,
 } from "./ext/esm-4-workbox/workbox-bundle.js";
 // logConsole("[SWr] import");
 
@@ -253,7 +254,7 @@ self.addEventListener('install', event => {
 // coreSkipWaiting();
 self.skipWaiting();
 clientsClaim();
-logConsole("[SWr] skip and claim");
+logConsole("skip and claim");
 
 // 🛠️ 3. THE SAFETY PLUGIN
 const cacheRepairPlugin = {
@@ -262,7 +263,7 @@ const cacheRepairPlugin = {
         return null;
     }
 };
-logConsole("[SWr] cacheReapairPlugin");
+logConsole("cacheReapairPlugin");
 
 // 📦 4. PRECACHING
 const arrFiles = [
@@ -377,7 +378,7 @@ const arrFiles = [
     // Trying to install
     */
 ]
-logConsole("[SWr]", { arrFiles });
+logConsole({ arrFiles });
 
 
 
@@ -449,4 +450,4 @@ registerRoute(
         }
     }
 );
-logConsole("[SWr] registerRoute");
+logConsole("registerRoute");
