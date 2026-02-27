@@ -11,18 +11,20 @@
 
 <body>
     <script type="module">
-        let w = window.innerWidth + "px";
         const eltIframe = window.frameElement;
-        if (eltIframe) {
-            const br = eltIframe.getBoundingClientRect();
-            w = br.width + "px";
-        }
+        if (!eltIframe) throw Error("Button is not in an <iframe>");
         const m = await import("./js/mod/supabase-sign-in.js");
-        console.log({ m });
-        const b = await m.mkSignInButton(w);
-        console.log({ b });
-        const r = b.getBoundingClientRect();
-        console.log({ r });
+        const b = await m.mkSignInButton(100);
+        window.addEventListener("message", async (event) => {
+            if (event.origin !== window.location.origin) return;
+            if (event.data.type === "get_token") {
+                const { data: { session } } = await supabase.auth.getSession();
+                event.source.postMessage(
+                    { type: "token", token: session?.access_token ?? null },
+                    window.location.origin
+                );
+            }
+        });
     </script>
 </body>
 
