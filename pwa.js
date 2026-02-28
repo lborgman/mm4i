@@ -459,7 +459,7 @@ export async function setVersionSWfun(funVersion) {
 
     const ans = await sendMessageToSW("", "GET_VERSION")
     console.log({ ans });
-    onGotVersion(ans.reply);
+    onGotVersion(ans.ans);
 }
 
 
