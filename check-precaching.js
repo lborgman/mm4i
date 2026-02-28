@@ -5,8 +5,12 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ignore from 'ignore';
 
+const sw_js = 'sw-workbox-esm.js';
+console.log("\n\ncheck-precaching ======", sw_js);
+
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const workboxPath = join(__dirname, 'sw-workbox.js');
+// const workboxPath = join(__dirname, 'sw-workbox-esm.js');
+const workboxPath = join(__dirname, sw_js);
 const gitignorePath = join(__dirname, '.gitignore');
 
 // IMPORTANT: Ensure this points to the folder where your web server (8090) starts
@@ -22,7 +26,7 @@ async function main() {
   const manifestMatch = source.match(/(\[\s*{\s*["'](?:revision|url)["'][\s\S]*?\])/);
 
   if (!manifestMatch) {
-    console.error('❌ Error: Could not find any Workbox manifest array in sw-workbox.js.');
+    console.error('❌ Error: Could not find any Workbox manifest array in sw-workbox-esm.js.');
     process.exit(1);
   }
 

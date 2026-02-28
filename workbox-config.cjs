@@ -27,6 +27,6 @@ module.exports = {
 		'test.json',
 		'sw-workbox-ai.js',
 	],
-	swSrc: 'sw-input.js',
-	swDest: 'sw-workbox.js',
+	swSrc: 'sw-input-esm.js',
+	swDest: 'sw-workbox-esm.js',
 };
