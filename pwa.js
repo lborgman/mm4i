@@ -916,8 +916,8 @@ async function sendMessageToSW(message, type = 'MESSAGE_FROM_CLIENT') {
         // 1. Check if we already have a controlling SW (fast path)
         if (navigator.serviceWorker.controller) {
             console.debug('[Client → SW] Found existing controller → sending immediately');
-            await postMessageAndWaitForReply(navigator.serviceWorker.controller, payload);
-            return { sent: true };
+            const ans = await postMessageAndWaitForReply(navigator.serviceWorker.controller, payload);
+            return { sent: true, ans };
         }
 
         console.debug('[Client → SW] No active controller yet → waiting for ready');
