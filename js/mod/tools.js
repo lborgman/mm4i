@@ -3596,7 +3596,9 @@ export async function testFetchCORSproxy(url = "https://sr.se") {
 /**
  *  @param {UnblockStatus} [unblockData]
  */
-async function dialogUnblockerAPIkey(unblockData) {
+export async function dialogUnblockerAPIkey(unblockData) {
+    console.log("dialogUnblockerAPIkey", unblockData);
+    debugger;
     const modMdc = await importFc4i("util-mdc");
     let btnOK;
     const inp = settingFetchItSerpKey.getInputElement();
@@ -3693,30 +3695,47 @@ async function dialogUnblockerAPIkey(unblockData) {
         btnClipboard,
     ]);
 
-    let dlg;
+    let dlgOuter;
     /** @type {string|undefined} */
     let clipboardText;
     btnClipboard.addEventListener("click", async evt => {
+        console.log("btnClipboard click", { dlgOuter });
         evt.stopPropagation();
-        let txt;
-        try {
-            txt = await navigator.clipboard.readText();
-            // console.log({ txt });
-            // debugger;
-        } catch (err) {
-            console.error(err);
-            debugger;
-            return;
-        }
-        if (txt.length < 1000) {
-            alert(`Clipboard text length < 1000`);
-            return;
-        }
-        // console.log({ dlg });
-        console.log("BEFORE closing dialogUnblockerAPIkey");
-        // debugger;
+        const eltTextArea = mkElt("textarea");
+        const btnGo = modMdc.mkMDCdialogButton("Call AI", "call-ai", true);
+        const btnCancel = modMdc.mkMDCdialogButton("Cancel", "cancel", true);
+        const arrBtns = [
+            btnGo,
+            btnCancel
+        ];
+        const eltActions = modMdc.mkMDCdialogActions(arrBtns);
+        const body = mkElt("div", undefined, [
+            mkElt("h2", undefined, "Paste web page from clipboard"),
+            eltTextArea,
+        ]);
+        const dlg = await modMdc.mkMDCdialog(body, eltActions);
+        const txt = await new Promise((resolve) => {
+            /*
+            dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async (evt) => {
+            }));
+            */
+            dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async evt => {
+                const action = evt.detail.action;
+                switch (action) {
+                    case "call-ai":
+                        resolve(eltTextArea.value.trim());
+                        break;
+                    case "close":
+                        resolve(null);
+                        break;
+                    default:
+                        throw Error(`error in mdc dialog, action is ${action}`)
+                }
+            }));
+        });
+
         clipboardText = txt;
-        dlg.mdc.close();
+        dlgOuter.mdc.close();
     });
     eltClipboard.style = `
         background-color: yellowgreen;
@@ -3735,15 +3754,11 @@ async function dialogUnblockerAPIkey(unblockData) {
             lblAPIkey
         ]),
     ]);
-    // const getOkButton = (elt) => { btnOK = elt; btnOK.inert = true; }
-    // const ans = await modMdc.mkMDCdialogConfirm(body, "Continue", "Cancel", undefined, getOkButton);
-    // return ans;
-
 
     const btnClose = modMdc.mkMDCdialogButton("Close", "confirm", true);
     const arrBtns = [btnClose];
     const eltActions = modMdc.mkMDCdialogActions(arrBtns);
-    dlg = await modMdc.mkMDCdialog(body, eltActions);
+    dlgOuter = await modMdc.mkMDCdialog(body, eltActions);
     return await new Promise((resolve) => {
         /*
         dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async (evt) => {
@@ -3758,7 +3773,7 @@ async function dialogUnblockerAPIkey(unblockData) {
             }
         }));
         */
-        dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async evt => {
+        dlgOuter.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async evt => {
             // if (funCheckSave) console.warn("MDCDialog:closed", evt);
             if (clipboardText) {
                 console.log("BEFORE resolve cliboardText");
@@ -3892,6 +3907,7 @@ export async function test_unblocker() {
  */
 
 async function fetchPageViaUnblocker(url, opts) {
+    // return; // FIX-ME:
     try {
         const response = await fetchResponseViaUnblocker(url, opts);
         // if (response == undefined) throw Error("respone == undefined (from fetchResponseViaProxy");
@@ -5750,7 +5766,9 @@ export async function fetchIt(url) {
     const knownBlock = knownUrlBlock[host];
     // let currentBlockName = knownBlock || "notBlocked";
     let currentBlockName = knownBlock || "corsBlock";
+    // FIX-ME:
     let currentBlockIdx = arrBlockNames.indexOf(currentBlockName);
+    // currentBlockIdx = arrBlockNames.length - 1;
     for (let i = currentBlockIdx; i < arrBlockNames.length; i++) {
         const blockName = arrBlockNames[i];
         if (blockName == "finalBlock") {
@@ -5813,6 +5831,10 @@ export async function test_fetchIt(oneUrl) {
     //// Totally blocked?
     // await testUrl(false, "https://www.psypost.org/scientists-find-the-biological-footprint-of-social-anxiety-may-reside-partially-in-the-gut/");
     await testUrl(ask, "https://scitechdaily.com/challenging-long-held-theories-evolution-isnt-one-and-done-new-study-suggests/");
+    // https://www.themarginalian.org/2026/02/19/traversal-blue/
+    // https://phys.org/news/2026-02-class-strange-dimensional-particles.html#google_vignette
+    // https://x.com/NobelPrize/status/2017434937779995019
+    // https://www.sciencedirect.com/science/article/pii/S002231662400289X
 }
 export function isVercelDev() {
     const hostname = location.hostname;
