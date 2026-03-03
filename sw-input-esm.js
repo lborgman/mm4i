@@ -1,7 +1,7 @@
 // @ts-check
 
 // @ts-ignore
-const SW_VERSION = "0.2.338-esm";
+const SW_VERSION = "0.2.342-esm";
 
 const DEBUG_SW = true;
 
@@ -42,7 +42,11 @@ self.addEventListener("message", (evt) => {
     switch (msgType) {
         case 'GET_VERSION':
             if (evt.ports && evt.ports[0]) {
-                evt.ports[0].postMessage(SW_VERSION);
+                // evt.ports[0].postMessage(SW_VERSION);
+                // evt.ports[0].postMessage({ type: SW_VERSION });
+                const reply = { GET_VERSION: SW_VERSION };
+                console.log({ reply });
+                evt.ports[0].postMessage(reply);
             }
             break;
         case 'SKIP_WAITING':

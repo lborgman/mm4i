@@ -17,6 +17,7 @@ const urlWoff2File = "./ext/mdc-fonts/my-symbols.woff2";
 // let materialIconsClass = "material-icons";
 let materialIconsClass = "material-symbols-outlined";
 export function getMaterialIconClass() { return materialIconsClass; }
+/** @param {string} className */
 export function setMaterialIconClass(className) {
     if (
         !className.startsWith("material-icons")

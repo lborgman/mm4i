@@ -143,7 +143,7 @@ function addScreenDebugRow(...txt) {
     if (secDebug.parentElement == null) return;
     if (secDebug.textContent.trim() == "") {
         const btnClose = mkElt("button", undefined, "Close debug output");
-        btnClose.addEventListener("click", _evt => secDebug.remove());
+        btnClose.addEventListener("click", () => secDebug.remove());
         const rowClose = mkElt("div", undefined, btnClose);
         secDebug.appendChild(rowClose);
     }
@@ -159,15 +159,25 @@ let modNotCached;
 
 
 let theEltVersion;
+
+/**
+ * @typedef {function(string): (HTMLElement|null)} VersionUpdaterFunction
+ * @description Function that updates the PWA version display in the DOM
+ * @param {string} ver - The version string to display
+ * @returns {HTMLElement|null} The DOM element that was updated, or null if element not found
+ */
+/** @type {VersionUpdaterFunction} */
 const theFunVersionDefault = (ver) => {
     const eltVer = document.getElementById("PWA-version");
     if (!eltVer) {
         logConsole("could not find element #PWA-version");
-        return;
+        return null;
     }
     eltVer.textContent = ver;
     return eltVer;
 }
+
+/** @type {VersionUpdaterFunction|undefined} */
 let theFunVersion;
 setVersionSWfun(theFunVersionDefault)
 
@@ -181,7 +191,9 @@ let theSWurl = "./sw-workbox-esm.js";
 
 
 // Override defaults (call before sw started):
+/** @param {string} strTitle */
 export function setUpdateTitle(strTitle) { theUpdateTitle = strTitle; }
+/** @param {string} urlSw */
 export function setSWurl(urlSw) { theSWurl = urlSw; }
 
 
@@ -189,6 +201,10 @@ export function setSWurl(urlSw) { theSWurl = urlSw; }
 
 class WaitUntil {
     #evtName; #target; #prom; #ready = false;
+    /**
+     * @param {string} evtName 
+     * @param {HTMLElement|undefined} [target]
+     */
     constructor(evtName, target) {
         this.#evtName = evtName;
         this.#target = target || window;
@@ -280,11 +296,15 @@ async function loadNotCached() {
         try {
             modNotCached = await import(hrefNotCached);
         } catch (err) {
-            errCls = err.constructor.name
+            if (err instanceof Error) {
+                errCls = err.name
+            } else {
+                errCls = "(err is non-error)";
+            }
             ourErr = err;
             console.error(err);
         }
-        if (!!!modNotCached) {
+        if (!modNotCached) {
             const dlgErr = startDlgErr("Error loading pwa-not-cached.js", ourErr);
 
             let isFetchError = false;
@@ -310,9 +330,11 @@ async function loadNotCached() {
         logStrongConsole("offline, can't load pwa-not-cached.js");
     }
     waitUntilNotCachedLoaded.tellReady();
+    if (!modNotCached) { throw Error("online but modNotCached did not load"); }
 
-    if (modNotCached?.getSecPleaseWaitUpdating) {
-        secPleaseWaitUpdating = modNotCached.getSecPleaseWaitUpdating();
+    const getSecPleaseWaitUpdating = modNotCached.getSecPleaseWaitUpdating;
+    if (getSecPleaseWaitUpdating) {
+        secPleaseWaitUpdating = getSecPleaseWaitUpdating();
         msPleaseWaitUpdating = 1000 * secPleaseWaitUpdating;
     }
 
@@ -457,9 +479,11 @@ export async function setVersionSWfun(funVersion) {
     */
 
 
-    const ans = await sendMessageToSW("", "GET_VERSION")
+    // const ans = await sendMessageToSW("", "GET_VERSION")
+    const ans = await sendMessageToSWandGetReply("", "GET_VERSION")
     console.log({ ans });
-    onGotVersion(ans.reply);
+    // onGotVersion(ans.reply);
+    onGotVersion(ans);
 }
 
 
@@ -892,7 +916,33 @@ window.addEventListener("error", evt => {
     throw Error("Error in pwa.js", err);
 });
 
+/**
+ * Sends a message to the service worker, waiting for it to be ready.
+ * Includes detailed logging on failure or slow activation.
+ *
+ * @param {Object} message - The data to send
+ * @param {string} type - Message type
+ * @returns {Promise<{sent: boolean, reply?: any, error?: string, details?: object}>}
+ */
 
+async function sendMessageToSWandGetReply(message, type) {
+    const objAnswer = await sendMessageToSW(message, type);
+    const { sent, reply } = objAnswer;
+    const tofSent = typeof sent;
+    if (tofSent !== "boolean") { throw Error(`tofSent == "${tofSent}"`); }
+    if (!sent) {
+        console.error("!sent", { objAnswer });
+        debugger;
+        throw Error("!sent");
+    }
+    const ans = reply[type];
+    // const reply = objAnswer[type];
+    if (!ans) {
+        console.error(`objAnswer["${type}"] == ${reply}`, reply);
+        throw Error(`objAnswer["${type}"] == ${reply}`);
+    }
+    return ans;
+}
 
 /**
  * Sends a message to the service worker, waiting for it to be ready.
@@ -900,7 +950,7 @@ window.addEventListener("error", evt => {
  *
  * @param {Object} message - The data to send
  * @param {string} [type='MESSAGE_FROM_CLIENT'] - Message type
- * @returns {Promise<{sent: boolean, reply?: any, error?: string, details?: object}>}
+ * @returns {Promise<{sent: boolean, type: string, reply?: any, error?: string, details?: object}>}
  */
 async function sendMessageToSW(message, type = 'MESSAGE_FROM_CLIENT') {
     const payload = {
