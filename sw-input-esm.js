@@ -1,7 +1,7 @@
 // @ts-check
 
 // @ts-ignore
-const SW_VERSION = "0.2.344-esm";
+const SW_VERSION = "0.2.345-esm";
 
 const DEBUG_SW = true;
 

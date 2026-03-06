@@ -3822,7 +3822,9 @@ async function fetchResponseViaUnblocker(url, opts = {}) {
         if (!apiKey) {
             // throw new Error("ScrapeUnblocker API key not set");
             const ans = await dialogUnblockerAPIkey();
-            if (!ans) return;
+            // if (!ans) return;
+            // continue;
+            if (ans) return ans;
             continue;
         }
 
@@ -3910,6 +3912,7 @@ async function fetchPageViaUnblocker(url, opts) {
     // return; // FIX-ME:
     try {
         const response = await fetchResponseViaUnblocker(url, opts);
+        if (typeof response == "string") return response;
         // if (response == undefined) throw Error("respone == undefined (from fetchResponseViaProxy");
         console.log("AFTER fetchResponseViaUnblocker");
         if (response == undefined) return;
