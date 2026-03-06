@@ -927,7 +927,7 @@ window.addEventListener("error", evt => {
 
 async function sendMessageToSWandGetReply(message, type) {
     const objAnswer = await sendMessageToSW(message, type);
-    const { sent, reply } = objAnswer;
+    const { sent, answer } = objAnswer;
     const tofSent = typeof sent;
     if (tofSent !== "boolean") { throw Error(`tofSent == "${tofSent}"`); }
     if (!sent) {
@@ -935,11 +935,11 @@ async function sendMessageToSWandGetReply(message, type) {
         debugger;
         throw Error("!sent");
     }
-    const ans = reply[type];
+    const ans = answer[type];
     // const reply = objAnswer[type];
     if (!ans) {
-        console.error(`objAnswer["${type}"] == ${reply}`, reply);
-        throw Error(`objAnswer["${type}"] == ${reply}`);
+        console.error(`objAnswer["${type}"] == ${answer}`, answer);
+        throw Error(`objAnswer["${type}"] == ${answer}`);
     }
     return ans;
 }
@@ -950,7 +950,7 @@ async function sendMessageToSWandGetReply(message, type) {
  *
  * @param {Object} message - The data to send
  * @param {string} [type='MESSAGE_FROM_CLIENT'] - Message type
- * @returns {Promise<{sent: boolean, type: string, reply?: any, error?: string, details?: object}>}
+ * @returns {Promise<{sent: boolean, type: string, answer?: any, error?: string, details?: object}>}
  */
 async function sendMessageToSW(message, type = 'MESSAGE_FROM_CLIENT') {
     const payload = {
@@ -966,8 +966,8 @@ async function sendMessageToSW(message, type = 'MESSAGE_FROM_CLIENT') {
         // 1. Check if we already have a controlling SW (fast path)
         if (navigator.serviceWorker.controller) {
             console.debug('[Client → SW] Found existing controller → sending immediately');
-            const ans = await postMessageAndWaitForReply(navigator.serviceWorker.controller, payload);
-            return { sent: true, ans };
+            const answer = await postMessageAndWaitForReply(navigator.serviceWorker.controller, payload);
+            return { sent: true, answer };
         }
 
         console.debug('[Client → SW] No active controller yet → waiting for ready');

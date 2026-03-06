@@ -1,7 +1,7 @@
 // @ts-check
 
 // @ts-ignore
-const SW_VERSION = "0.2.342-esm";
+const SW_VERSION = "0.2.344-esm";
 
 const DEBUG_SW = true;
 
@@ -231,27 +231,49 @@ import {
 } from "./ext/esm-4-workbox/workbox-bundle.js";
 // logConsole("[SWr] import");
 
-// 2. Register ALL event listeners immediately (before anything else)
+logConsole("2. Register ALL event listeners immediately (before anything else)");
 self.addEventListener('install', event => {
-    // console.log('[SW] Install phase started');
+    logConsole('[SW] Install phase started');
+    logConsole("1. Tell the SW to take over as soon as it's done downloading");
+    self.skipWaiting();
+
+    logConsole("2. Handle the precaching");
     event.waitUntil(
-        precacheAndRoute(arrFiles, {
-            ignoreURLParametersMatching: [/.*/],
-            plugins: [cacheRepairPlugin],
-            suppressWarnings: !DEBUG_SW  // from your debug toggle
+        // Note: In Workbox, we usually don't chain .then() to precacheAndRoute
+        // because it returns void. The actual "waiting" is handled by Workbox internally.
+        Promise.resolve(
+            precacheAndRoute(arrFiles, {
+                ignoreURLParametersMatching: [/.*/],
+                plugins: [cacheRepairPlugin],
+                suppressWarnings: !DEBUG_SW  // from your debug toggle
+            })
+        )
+    );
+    logConsole('[SW] Install phase: skipWaiting() called.');
+});
+
+
+self.addEventListener('activate', event => {
+    logConsole('[SW] Activate phase started');
+
+    event.waitUntil(
+        // logConsole("1. Claim all open tabs immediately");
+        clients.claim().then(async () => {
+            // 2. Find all open window tabs
+            const allClients = await clients.matchAll({ type: 'window' });
+
+            // 3. Force each tab to reload
+            allClients.forEach(client => {
+                // Check if the client still exists and has a navigate method
+                if (client.url && 'navigate' in client) {
+                    logConsole(`[SW] Forcing reload for: ${client.url}`);
+                    client.navigate(client.url);
+                }
+            });
         })
-        /*
-        .then(() => {
-            console.log('[SW] Precaching completed');
-            self.skipWaiting();
-        })
-        .catch(err => {
-            console.error('[SW] Precaching failed:', err);
-            throw err;  // keep install failing if bad file
-        })
-        */
     );
 });
+
 
 // 🛠️ 2. CONFIG & LIFECYCLE
 // setConfig({ debug: true });
