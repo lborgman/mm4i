@@ -9,5 +9,20 @@
       "source": "/",
       "destination": "/api/prerender"
     }
+  ],
+  "headers": [
+    {
+      "source": "/sw-input-esm.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        },
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    }
   ]
 }
