@@ -926,22 +926,21 @@ window.addEventListener("error", evt => {
  */
 
 async function sendMessageToSWandGetReply(message, type) {
-    const objAnswer = await sendMessageToSW(message, type);
-    const { sent, answer } = objAnswer;
+    const objReply = await sendMessageToSW(message, type);
+    const { sent, answer } = objReply;
     const tofSent = typeof sent;
     if (tofSent !== "boolean") { throw Error(`tofSent == "${tofSent}"`); }
     if (!sent) {
-        console.error("!sent", { objAnswer });
+        console.error("!sent", { objReply });
         debugger;
         throw Error("!sent");
     }
-    const ans = answer[type];
-    // const reply = objAnswer[type];
-    if (!ans) {
+    const answerByType = answer[type];
+    if (!answerByType) {
         console.error(`objAnswer["${type}"] == ${answer}`, answer);
         throw Error(`objAnswer["${type}"] == ${answer}`);
     }
-    return ans;
+    return answerByType;
 }
 
 /**
