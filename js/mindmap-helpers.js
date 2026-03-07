@@ -1619,7 +1619,8 @@ export function flattenMindmapClean(tree, { childrenProp = 'children' } = {}) {
         if (!node || typeof node !== 'object') return;
 
         // 1. Stable ID
-        const id = typeof node.id === 'string' && node.id ? node.id : `auto_${counter.value++}`;
+        // const id = typeof node.id === 'string' && node.id ? node.id : `auto_${counter.value++}`;
+        const id = `auto_${counter.value++}`;
 
         // 2. Clean node with required fields
         /** @type {CleanNode} */

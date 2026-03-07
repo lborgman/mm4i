@@ -2915,6 +2915,9 @@ function nodeArrayFromAI2jsmindFormat(aiJson) {
             delete n.text;
             // @ts-ignore
             delete n.name;
+            // @ts-ignore
+            // delete n.expanded;
+            n.expanded = false;
         }
 
         // @ts-ignore
