@@ -305,12 +305,9 @@ export async function generateMindMap(fromLink) {
     // const eltStatus = mkElt("div", undefined, "(empty)");
     const eltStatus = mkElt("div");
     eltStatus.id = "div-status-link-validation";
-    // eltStatus.style.minHeight = "1.25em";
-    // eltStatus.style.lineHeight = "normal";
-    // eltStatus.style.backgroundColor = "yellowgreen";
     if (fromLink) {
         inpLink.value = fromLink;
-        checkInpLink();
+        // checkInpLink();
     }
     inpLink.addEventListener("input", async () => {
         divPrompt.inert = true;
@@ -376,7 +373,13 @@ export async function generateMindMap(fromLink) {
             return true;
         }
 
+        if (!inpLink.isConnected) {
+            throw Error("!inpLink.isConnected");
+        }
         const eltDialogContent = inpLink.closest("div.mdc-dialog__content");
+        if (!eltDialogContent) {
+            throw Error(`eltDialogContent == ${eltDialogContent}`);
+        }
         eltStatus.textContent = "";
 
         const linkSource = inpLink.value.trim();
@@ -2377,6 +2380,7 @@ TPD (Tokens Per Day),"500,000",Max input + output tokens per 24 hours,Equivalent
         divWaysExpandable
     ]);
     modMdc.mkMDCdialogAlert(body, "Close");
+    // checkInpLink();
 
     const c = divWays.closest("div.mdc-dialog__content");
     const t = c.firstElementChild;
