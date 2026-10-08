@@ -190,17 +190,17 @@ class PointHandle {
             // FIX-ME:
         }
         posPointHandle =
-        /** @type {PosPointHandle} */
-        (
-        {
-            start: {
-                clientX: startX,
-                clientY: startY,
-                jmnodeDragged,
-            },
-            current: {}
-        }
-        );
+            /** @type {PosPointHandle} */
+            (
+                {
+                    start: {
+                        clientX: startX,
+                        clientY: startY,
+                        jmnodeDragged,
+                    },
+                    current: {}
+                }
+            );
 
         eltJmnodeFrom = jmnodeDragged;
 
@@ -2196,6 +2196,11 @@ export async function pageSetup() {
         }
         const liCreateMindmap = mkMenuItem("Create Mindmap", createMindMap);
 
+        const importMindMap = () => {
+            modMMhelpers.importMindMapFromFile();
+        }
+        const liImportMindmap = mkMenuItem("Import Mindmap", importMindMap);
+
         const makeMindMapFromLink = async () => {
             const modAIhelpers = await importFc4i("ai-helpers");
             modAIhelpers.generateMindMap();
@@ -2225,7 +2230,8 @@ export async function pageSetup() {
         const liMindmapStairs = mkMenuItem("Mindmap stair paths", modStairs.dialogStairs);
         if (!document.querySelector("jmnode")) { liMindmapStairs.setAttribute("inert", ""); }
 
-        const liMindmapsA = mkMenuItemA("List Mindmaps", "./mm4i.html");
+        // const liMindmapsA = mkMenuItemA("List Mindmaps", "./mm4i.html");
+        const liMindmapsA = mkMenuItemA("List Mindmaps", modMMhelpers.getUrlMindmapsPage());
 
         const liMindmapSync = mkMenuItem("Sync mindmap devices", (async () => {
             const modMm4iReplication = await importFc4i("mm4i-replication");
@@ -2426,6 +2432,7 @@ export async function pageSetup() {
             // liDragAccessibility,
             modMdc.mkMDCmenuItemSeparator(),
             liCreateMindmap,
+            liImportMindmap,
             liMakeMindmapFromLink,
             liEditMindmap,
             liMindmapsA,

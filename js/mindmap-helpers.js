@@ -8,7 +8,27 @@ if (document.currentScript) throw Error("import .currentScript"); // is module
 // const importFc4i = window["importFc4i"];
 // const makeAbsLink = window["makeAbsLink"];
 
-const URL_MINDMAPS_PAGE = "./mm4i.html";
+// FIX-ME: Move to Basic-UI.js:
+export function isLocalhost() {
+    return Boolean(
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname === '[::1]' // IPv6 loopback
+    );
+}
+function usePrerender() {
+    if (isLocalhost()) { return false; }
+    return true;
+}
+export function getUrlMindmapsPage() {
+    if (usePrerender()) {
+        return "./mm4i.html";
+    }
+    return "./mm4i-template.html";
+}
+
+// const URL_MINDMAPS_PAGE = "./mm4i.html";
+const URL_MINDMAPS_PAGE = getUrlMindmapsPage();
 
 const modTools = await importFc4i("toolsJs");
 
@@ -514,6 +534,7 @@ export function showMindmap(key) {
     location.href = url.href;
 }
 
+// sync
 export async function createAndShowNewMindmap() {
     if (arguments.length != 0) throw Error("This function should no longer have a parameter");
     const jsMindMap = await dialogCreateMindMap();
@@ -539,6 +560,84 @@ export async function createAndShowNewMindmap() {
     }
 
     showMindmap(keyName);
+}
+
+export async function importMindMapFromFile() {
+    let fileHandle;
+    try {
+        [fileHandle] = await window.showOpenFilePicker({
+            id: "mindmaps",
+            types: [
+                {
+                    description: "JSON mind maps",
+                    accept: {
+                        "application/json": [".json"]
+                    }
+                }
+            ],
+            excludeAcceptAllOption: true,
+            multiple: false
+        });
+    } catch (err) {
+        console.log({ err });
+        if (!(err instanceof Error)) { debugger; throw err; }
+        if (err.name == "AbortError") {
+            console.log("Aborted by user");
+            return;
+        }
+        throw err;
+    }
+    console.log({ fileHandle });
+    // debugger;
+    let jsonObject;
+    try {
+        const file = await fileHandle.getFile();
+        const text = await file.text();
+        jsonObject = JSON.parse(text);
+        console.log({ jsonObject });
+        // debugger;
+        // return jsonObject;
+    } catch (error) {
+        console.error("Failed to read or parse JSON:", error);
+        return;
+    }
+    // generateMindmap
+    // const nodeArray = nodeArrayFromAI2jsmindFormat(jsonObject);
+    debugger;
+    const nodeArray = nodeArrayFromAI2jsmindFormat(jsonObject.data);
+    console.log({ nodeArray });
+    // const jsMindMap = await dialogCreateMindMap();
+    // const emptyJsmind = getNewMindmap(rootTopic);
+    // const rootTopic = "dummy";
+    nodeArray[0].isroot = true;
+    const rootTopic = nodeArray[0].topic;
+    const ourJsMindMap = getNewMindmap(rootTopic);
+    debugger;
+    ourJsMindMap.data = nodeArray;
+
+
+    const keyName = ourJsMindMap.meta.name;
+    console.log({ ourJsmind: ourJsMindMap, keyName });
+
+    const root = ourJsMindMap.data[0];
+    // root.data = {};
+    // root.data.shapeEtc = {};
+    // root.data.shapeEtc.shape = "jsmind-shape-ellipse";
+    root.shapeEtc = {};
+    root.shapeEtc.shape = "jsmind-shape-ellipse";
+
+    ourJsMindMap.key = keyName;
+    checkIsMMformatStored(ourJsMindMap, "createAndShowNewMindmap");
+
+    // const dbMindmaps = await importFc4i("db-mindmaps");
+    // const key = await dbMindmaps.DBsetMindmap(keyName, jsMindMap);
+    const key = await checkInappAndSaveMindmap(keyName, ourJsMindMap);
+    if (key != keyName) {
+        throw Error(`key:"${key}" != keyName:"${keyName}"`)
+    }
+
+    showMindmap(keyName);
+
 }
 
 export async function getMindmap(key) {
@@ -1624,9 +1723,13 @@ export function flattenMindmapClean(tree, { childrenProp = 'children' } = {}) {
 
         // 2. Clean node with required fields
         /** @type {CleanNode} */
+        const theName = typeof node.name === 'string'
+            ? node.name
+            : (typeof node.topic == "string" ? node.topic: '(no name)');
         const cleanNode = {
             id,
-            name: typeof node.name === 'string' ? node.name : '(no name)'
+            // name: typeof node.name === 'string' ? node.name : '(no name)'
+            name: theName
         };
 
         // 3. Optional: notes (only if present and truthy)
@@ -1698,4 +1801,95 @@ export async function getMindMapKeyFromTopic(rootTopic) {
         }
     });
     return key;
+}
+
+
+/**
+ * Make node array in jsmind format from AI json.
+ *  
+ * @param {Object[]} aiJson 
+ * @returns {Object[]}
+ */
+export function nodeArrayFromAI2jsmindFormat(aiJson) {
+    // https://chatgpt.com/share/68ab0c5c-abe8-8004-8a37-616c5a28c8ce
+
+    // parentId: Grok AI
+    // parent: Claude AI
+
+    ////// .parentId, .parent => .parentid, .text, .name => .topic
+    ////// .notes
+    let aiNodeArray = aiJson;
+    // if (!Array.isArray(aiNodeArray)) throw Error("Expected JSON to be an array");
+    if (!Array.isArray(aiNodeArray)) {
+        aiNodeArray = flattenMindmapClean(aiJson);
+    }
+    const nodeArray = aiNodeArray.map(n => {
+        // @ts-ignore
+        n.expanded = false;
+        // @ts-ignore
+        if (!n.topic) {
+            let topic;
+            // @ts-ignore
+            if (n.text) topic = n.text;
+            // @ts-ignore
+            if (n.name) topic = n.name;
+            if (!topic) throw Error(`!n.text || !n.name: ${JSON.stringify(n)}`);
+            // @ts-ignore
+            n.topic = topic;
+            // @ts-ignore
+            delete n.text;
+            // @ts-ignore
+            delete n.name;
+            // @ts-ignore
+            // delete n.expanded;
+            n.expanded = false;
+        }
+
+        // @ts-ignore
+        const parentid = n.parentId || n.parent || n.parentid;
+        // @ts-ignore
+        delete n.parentId;
+        // @ts-ignore
+        delete n.parentid; // chatGPT
+        // @ts-ignore
+        delete n.parent;
+
+        // @ts-ignore
+        if (parentid && parentid != "") n.parentid = parentid;
+
+        // @ts-ignore
+        const notes = n.notes;
+        if (notes) {
+            const tofNotes = typeof notes;
+            if (tofNotes != "string") { throw Error(`typeof notes == "${tofNotes}`); }
+            const shapeEtc = { notes }
+            // @ts-ignore
+            n.shapeEtc = shapeEtc;
+            // @ts-ignore
+            delete n.notes;
+        }
+
+        return n;
+    });
+
+
+    /*
+    /////// find root
+    // @ts-ignore
+    let root_node;
+ 
+    ////// find root children
+    // @ts-ignore
+    root_node.isroot = true;
+    // @ts-ignore
+    const rootId = root_node.id;
+    // @ts-ignore
+    const rootChildren = [];
+    // @ts-ignore
+    nodeArray.forEach(n => { if (n.parentid == rootId) rootChildren.push(n); });
+    // @ts-ignore
+    rootChildren.forEach(n => n.direction = 1);
+    */
+
+    return nodeArray;
 }

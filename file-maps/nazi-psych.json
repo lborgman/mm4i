@@ -1,0 +1,101 @@
+{
+    "meta": {
+        "name": "Psychological Mechanisms",
+        "author": "Gemini Notebook",
+        "version": "0.3"
+    },
+    "format": "node_tree",
+    "data": {
+        "id": "root",
+        "topic": "Psychological Mechanisms",
+        "children": [
+            {
+                "id": "group_narcissism",
+                "topic": "Group Narcissism & Powerlessness",
+                "direction": "right",
+                "notes": "Research on cognitive mechanisms behind conspiracy theories by **[Prof. Karen Douglas](https://en.wikipedia.org/wiki/Karen_Douglas)**.",
+                "children": [
+                    {
+                        "id": "gn_1",
+                        "topic": "Search for Blame",
+                        "notes": "Conspiracy theories offer an explanation to cope with intense feelings of **powerlessness** and **disillusionment**.\n\n* See also: [Conspiracy Theories & Psychology](https://en.wikipedia.org/wiki/Conspiracy_theory#Psychology)"
+                    },
+                    {
+                        "id": "gn_2",
+                        "topic": "In-Group Narcissism",
+                        "notes": "Narcissistic groups (e.g., *German High Command*) project failure onto external out-groups when reality contradicts their perceived invincibility.\n\n* Related concept: [Collective Narcissism](https://en.wikipedia.org/wiki/Collective_narcissism)"
+                    },
+                    {
+                        "id": "gn_3",
+                        "topic": "Belief Persistence",
+                        "notes": "Conspiracy beliefs resist change once established, leading individuals down escalating *'rabbit holes'*."
+                    }
+                ]
+            },
+            {
+                "id": "amygdala_them_us",
+                "topic": "The Amygdala & 'Them/Us' Hard-Wiring",
+                "direction": "left",
+                "notes": "Neurobiological frameworks from **[Prof. Robert Sapolsky](https://en.wikipedia.org/wiki/Robert_Sapolsky)** (*Behave: The Biology of Humans at Our Best and Worst*).",
+                "children": [
+                    {
+                        "id": "tu_1",
+                        "topic": "Rapid Threat Detection",
+                        "notes": "Processes **fear** and **anger** in split seconds, bypassing slower analytical reasoning in the [frontal cortex](https://en.wikipedia.org/wiki/Frontal_lobe)."
+                    },
+                    {
+                        "id": "tu_2",
+                        "topic": "Ancient Evolutionary Trait",
+                        "notes": "*'Them and Us'* dichotomizing is an evolutionary survival mechanism far older than humanity itself."
+                    },
+                    {
+                        "id": "tu_3",
+                        "topic": "Innate Dichotomizing",
+                        "notes": "Humans have an innate biological pull to divide people into **'Us'** vs. **'Them'** and view *'Thems'* unfavorably."
+                    }
+                ]
+            },
+            {
+                "id": "pseudospeciation_disgust",
+                "topic": "Pseudo-Speciation, Disgust & Recategorization",
+                "direction": "right",
+                "notes": "Research by **[Prof. Robert Sapolsky](https://en.wikipedia.org/wiki/Robert_Sapolsky)** & **[Prof. Susan Fiske](https://en.wikipedia.org/wiki/Susan_Fiske)**.",
+                "children": [
+                    {
+                        "id": "ps_1",
+                        "topic": "Pseudo-Speciation",
+                        "notes": "Defining an out-group as an inherently dangerous, subhuman, or biologically distinct species.\n\n* Concept: [Pseudospeciation](https://en.wikipedia.org/wiki/Pseudospeciation)"
+                    },
+                    {
+                        "id": "ps_2",
+                        "topic": "Insula Activation & Moral Disgust",
+                        "notes": "Using terms like *'vermin'* or *'filthy'* activates both [insula](https://en.wikipedia.org/wiki/Insular_cortex) and [amygdala](https://en.wikipedia.org/wiki/Amygdala), linking out-groups to repulsive physical smells."
+                    },
+                    {
+                        "id": "ps_3",
+                        "topic": "Public Humiliation & Status Shift",
+                        "notes": "Forcing public degradation (e.g., Viennese Jews scrubbing sidewalks) shifts perceived status from *'competent & malevolent'* to *'powerless & malevolent'*\n\n* Framework: [Stereotype Content Model](https://en.wikipedia.org/wiki/Stereotype_content_model)"
+                    }
+                ]
+            },
+            {
+                "id": "proportionality_bias",
+                "topic": "Proportionality Bias & Evolutionary Gossip",
+                "direction": "left",
+                "notes": "Research by **[Prof. Robin Dunbar](https://en.wikipedia.org/wiki/Robin_Dunbar)** & Social Psychology.",
+                "children": [
+                    {
+                        "id": "pb_1",
+                        "topic": "Proportionality Bias",
+                        "notes": "Cognitive tendency to assume that momentous historical disasters (e.g., losing WWI) must have momentous, evil causes.\n\n* See: [Proportionality Bias](https://en.wikipedia.org/wiki/Proportionality_bias)"
+                    },
+                    {
+                        "id": "pb_2",
+                        "topic": "Evolutionary Gossip",
+                        "notes": "Language evolved as social grooming; conspiracy theories function as the ultimate hidden secrets.\n\n* Concept: [Grooming, Gossip, and the Evolution of Language](https://en.wikipedia.org/wiki/Grooming,_Gossip,_and_the_Evolution_of_Language)"
+                    }
+                ]
+            }
+        ]
+    }
+}

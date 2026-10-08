@@ -1217,7 +1217,7 @@ export async function generateMindMap(fromLink) {
                 jsonAI = resAI;
             }
 
-            const nodeArray = nodeArrayFromAI2jsmindFormat(jsonAI);
+            const nodeArray = modMMhelpers.nodeArrayFromAI2jsmindFormat(jsonAI);
             const res = modMMhelpers.isValidMindmapNodeArray(nodeArray);
             if (res.isValid) {
                 // throw "TEST RES NOT VALID ERROR";
@@ -2890,7 +2890,7 @@ function mkUrlChat(nameAI, promptAI) {
  * @param {Object[]} aiJson 
  * @returns {Object[]}
  */
-function nodeArrayFromAI2jsmindFormat(aiJson) {
+function OLDnodeArrayFromAI2jsmindFormat(aiJson) {
     // https://chatgpt.com/share/68ab0c5c-abe8-8004-8a37-616c5a28c8ce
 
     // parentId: Grok AI

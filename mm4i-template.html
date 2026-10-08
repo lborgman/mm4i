@@ -413,9 +413,20 @@
     </script>
 
 
-    <script type="module" src="./pwa.js"></script>
+
     <script type="module" src="./anchors-with-base.js"></script>
     <script src="./mm4i-importmaps.js"></script>
+
+
+    <!-- FIX-ME: -->
+    <!-- <script type="module" src="./pwa.js"></script> -->
+    <script type="module">
+        const modMMhelpers = await importFc4i("mindmap-helpers");
+        // debugger;
+        if (!modMMhelpers.isLocalhost()) {
+            import("./pwa.js");
+        }
+    </script>
 
 
     <script id="share-target">
