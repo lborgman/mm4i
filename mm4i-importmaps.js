@@ -159,6 +159,7 @@ const cacheImportFc4i = new Map();
         "webrtc-2-peers": "./js/mod/webrtc-2-peers.js",
 
         "supabase-sign-in": "./js/mod/supabase-sign-in.js",
+        "export-html": "./js/export-html.js",
 
         // Tests:
         "pwa": "./pwa.js",
@@ -317,7 +318,8 @@ const cacheImportFc4i = new Map();
                 const getRandomString = () => {
                     return encodeURIComponent(Math.random().toString(36).slice(2));
                 }
-                const urlNotCached = new URL(ourImportLink, baseUrl);
+                // const urlNotCached = new URL(ourImportLink, baseUrl);
+                const urlNotCached = new URL(ourImportLink, scriptBaseUrl);
                 urlNotCached.searchParams.set("nocacheRand", getRandomString());
                 objNotCached.href = urlNotCached.href;
                 // importFc4i_nocachenames[ourImportLink] = objNotCached;
@@ -337,7 +339,9 @@ const cacheImportFc4i = new Map();
         isImporting[idOrLink] = getStackTrace();
 
 
-        const prom = import(ourImportLink);
+        // const prom = import(ourImportLink);
+        const prom = import(new URL(ourImportLink, scriptBaseUrl).href);
+
         cacheImportFc4i.set(idOrLink, prom);
         const mod = await prom;
 

@@ -24,6 +24,13 @@
         }
     </style>
     -->
+    <script>
+        const scriptUrlFull = /** @type {HTMLScriptElement|null} */ (document.currentScript)?.src || document.baseURI;
+        console.log({ scriptUrlFull });
+        const scriptBaseUrl = scriptUrlFull.split("?")[0];
+        console.log({ scriptBaseUrl });
+        // debugger;
+    </script>
     <style id="general">
         .display-none {
             display: none;

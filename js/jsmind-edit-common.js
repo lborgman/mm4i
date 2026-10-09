@@ -2201,6 +2201,17 @@ export async function pageSetup() {
         }
         const liImportMindmap = mkMenuItem("Import Mindmap", importMindMap);
 
+        const exportHtmlMap = async () => {
+            // modMMhelpers.importMindMapFromFile();
+            const modExpHtml = await importFc4i("export-html");
+            console.log({ modExpHtml });
+            debugger;
+            modExpHtml.buildPortableHtml();
+            modExpHtml.downloadPortableHtml();
+        }
+        const liExportHtml = mkMenuItem("Export Html Mindmap", exportHtmlMap);
+
+
         const makeMindMapFromLink = async () => {
             const modAIhelpers = await importFc4i("ai-helpers");
             modAIhelpers.generateMindMap();
@@ -2433,6 +2444,7 @@ export async function pageSetup() {
             modMdc.mkMDCmenuItemSeparator(),
             liCreateMindmap,
             liImportMindmap,
+            liExportHtml,
             liMakeMindmapFromLink,
             liEditMindmap,
             liMindmapsA,
