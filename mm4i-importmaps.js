@@ -469,7 +469,8 @@ const cacheImportFc4i = new Map();
     }
     // debugger;
     function funThisIsPortableHtml() {
-        const tofPortable = typeof window.thisIsPortableHtml;
+        const portable = window.thisIsPortableHtml;
+        const tofPortable = typeof portable;
         if (tofPortable == "undefined") { return false; }
         if (tofPortable != "boolean") {
             const msg =`tofPortable=="${tofPortable}"`;
@@ -477,7 +478,7 @@ const cacheImportFc4i = new Map();
             debugger;
             throw Error(msg);
         }
-        return
+        return portable;
     }
     // if ((typeof window.thisIsPortableHtml) == "undefined") {
     if (funThisIsPortableHtml()) {
