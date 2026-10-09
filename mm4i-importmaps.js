@@ -414,12 +414,21 @@ const cacheImportFc4i = new Map();
             const referrer = document.referrer;
             if (referrer.startsWith('android-app://')) return referrer;
         }
-        async function getHasSW() {
+        async function OLDgetHasSW() {
             const arrRegistrations = await navigator.serviceWorker.getRegistrations();
             if (!arrRegistrations) return false;
             if (arrRegistrations.length == 0) return false;
             return true;
         }
+        async function getHasSW() {
+            try {
+                const regs = await navigator.serviceWorker?.getRegistrations();
+                return !!regs?.length;
+            } catch {
+                return false;
+            }
+        }
+
 
         function isAndroidWebView() {
             // https://developer.chrome.com/multidevice/user-agent
@@ -473,7 +482,7 @@ const cacheImportFc4i = new Map();
         const tofPortable = typeof portable;
         if (tofPortable == "undefined") { return false; }
         if (tofPortable != "boolean") {
-            const msg =`tofPortable=="${tofPortable}"`;
+            const msg = `tofPortable=="${tofPortable}"`;
             console.error(msg);
             debugger;
             throw Error(msg);

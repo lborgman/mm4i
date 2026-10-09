@@ -274,10 +274,6 @@ async function getWebBrowserInfo() {
     }
     async function getHasSW() {
         try {
-            // const arrRegistrations = await navigator.serviceWorker.getRegistrations();
-            // if (!arrRegistrations) return false;
-            // if (arrRegistrations.length == 0) return false;
-            // return true;
             const regs = await navigator.serviceWorker?.getRegistrations();
             return !!regs?.length;
         } catch {
