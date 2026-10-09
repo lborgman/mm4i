@@ -14,6 +14,20 @@ export async function buildPortableHtml(baseUrl = new URL(".", location.href).hr
     base.href = baseUrl;
     doc.head.prepend(base);
 
+    doc.querySelectorAll('link[rel="manifest"]').forEach((b) =>{
+        console.log("Removed manifest");
+        b.remove();
+    });
+    debugger;
+
+    const head = doc.querySelector("head");
+    if (!head) {
+        debugger;
+        throw Error("Did not find <head>");
+    }
+    const scriptTellPortable = mkElt("script", undefined, "var thisIsPortableHtml = true");
+    head.prepend(scriptTellPortable);
+
     return "<!doctype html>\n" + doc.documentElement.outerHTML;
 }
 

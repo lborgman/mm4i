@@ -268,8 +268,9 @@
 
 
 
-
+    <!-- 
     <script id="domain-active">
+        // We are not using the domain now!
         // Check if domain is active through https
         // FIX-ME:
         window.isSecure = window.location.hostname == "localhost" || window.location.protocol == "https:"
@@ -285,6 +286,9 @@
             }, 1000);
         }
     </script>
+    -->
+
+
     <!-- https://blog.pixelfreestudio.com/how-to-implement-lazy-loading-in-pwas/ -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -428,10 +432,15 @@
     <!-- FIX-ME: -->
     <!-- <script type="module" src="./pwa.js"></script> -->
     <script type="module">
-        const modMMhelpers = await importFc4i("mindmap-helpers");
-        // debugger;
-        if (!modMMhelpers.isLocalhost()) {
-            import("./pwa.js");
+        debugger;
+        // if ((typeof window.thisIsPortableHtml) == "undefined") {
+        if (!window.funThisIsPortableHtml()) {
+            console.log("!thisIsPortableHtml: importing pwa.js");
+            debugger;
+            const modMMhelpers = await importFc4i("mindmap-helpers");
+            if (!modMMhelpers.isLocalhost()) {
+                import("./pwa.js");
+            }
         }
     </script>
 
@@ -2085,7 +2094,7 @@
         }
     </script>
     <script type="module">
-        if (!window.isSecure) { throw Error("not secure"); }
+        // if (!window.isSecure) { throw Error("not secure"); }
         if (!window.detectedBot) {
             window["logConsoleHereIs"]("here is mm4i.html");
             // console.log("here is mm4i.html");
@@ -2123,12 +2132,14 @@
 
             let calledCheckWebBrowser = false;
             const hasDebug = searchParams.has("debug");
+            console.log({ hasDebug });
             if (hasDebug) {
                 calledCheckWebBrowser = true;
                 modMMhelpers.checkWebBrowser();
             }
             if (!calledCheckWebBrowser) {
-                if (webbrowserInfo.isInApp) {
+                debugger;
+                if (webbrowserInfo?.isInApp) {
                     modMMhelpers.checkWebBrowser();
                 }
             }

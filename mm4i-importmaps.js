@@ -228,13 +228,18 @@ const cacheImportFc4i = new Map();
     async function importFc4i(idOrLink) {
         const oldModule = cacheImportFc4i.get(idOrLink);
         if (oldModule) return oldModule;
-        // if (window["in-app-screen"]) return;
-        const webBrowserInfo = await window["promWebBrowserInfo"];
-        const isInApp = webBrowserInfo.isInApp;
-        const tofIsInApp = typeof isInApp;
-        if (tofIsInApp != "boolean") {
-            debugger; // eslint-disable-line no-debugger
-            throw Error(`tofIsInapp == "${tofIsInApp}"`);
+        let isInApp = false;
+        // if ((typeof window.isPortableHtml) == "undefined") {
+        if (!window.funThisIsPortableHtml()) {
+            const webBrowserInfo = await window["promWebBrowserInfo"];
+            const gotIsInApp = webBrowserInfo?.isInApp;
+            const tofGotIsInApp = typeof gotIsInApp;
+            if (tofGotIsInApp == "boolean") {
+                isInApp = gotIsInApp;
+            } else {
+                // debugger; // eslint-disable-line no-debugger
+                console.warn(`tofGotIsInapp == "${tofGotIsInApp}"`);
+            }
         }
         if (idOrLink.startsWith("https://")) {
             return await import(idOrLink);
@@ -462,14 +467,30 @@ const cacheImportFc4i = new Map();
         // console.log(env);
         return env;
     }
-    const promWebBrowserInfo = getWebBrowserInfo();
-    window["promWebBrowserInfo"] = promWebBrowserInfo;
-    (async () => {
-        const webBrowserInfo = await promWebBrowserInfo;
-        if (webBrowserInfo?.isInApp) {
-            tellOpenInExternalBrowser();
+    // debugger;
+    function funThisIsPortableHtml() {
+        const tofPortable = typeof window.thisIsPortableHtml;
+        if (tofPortable == "undefined") { return false; }
+        if (tofPortable != "boolean") {
+            const msg =`tofPortable=="${tofPortable}"`;
+            console.error(msg);
+            debugger;
+            throw Error(msg);
         }
-    })();
+        return
+    }
+    // if ((typeof window.thisIsPortableHtml) == "undefined") {
+    if (funThisIsPortableHtml()) {
+        console.log("thisIsPortableHtml: defining promWebBrowserInfo");
+        const promWebBrowserInfo = getWebBrowserInfo();
+        window["promWebBrowserInfo"] = promWebBrowserInfo;
+        (async () => {
+            const webBrowserInfo = await promWebBrowserInfo;
+            if (webBrowserInfo?.isInApp) {
+                tellOpenInExternalBrowser();
+            }
+        })();
+    }
 
     const sp = new URLSearchParams(location.search);
     // debugger;

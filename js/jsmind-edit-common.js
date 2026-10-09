@@ -2205,8 +2205,7 @@ export async function pageSetup() {
             // modMMhelpers.importMindMapFromFile();
             const modExpHtml = await importFc4i("export-html");
             console.log({ modExpHtml });
-            debugger;
-            modExpHtml.buildPortableHtml();
+            // modExpHtml.buildPortableHtml();
             modExpHtml.downloadPortableHtml();
         }
         const liExportHtml = mkMenuItem("Export Html Mindmap", exportHtmlMap);
