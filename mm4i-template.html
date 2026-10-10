@@ -2,28 +2,6 @@
 <html lang="en">
 
 <head>
-    <!-- 
-    Removing puter because of some suspicious behavior!
-    <script src="https://js.puter.com/v2/"></script>
-    -->
-
-    <!--
-    <style>
-        /* For virtual keyboard */
-
-        /* Step 1: Hide all elements within the dialog's content. */
-        html.VK_ACTIVE .mdc-dialog__content:has(:focus) * {
-            display: none;
-        }
-
-        /* Step 2: Make the focused element and its ancestors visible again. */
-        /* This rule has a higher specificity to win the cascade. */
-        html.VK_ACTIVE .mdc-dialog__content:has(:focus):has(*) *:has(:focus),
-        html.VK_ACTIVE .mdc-dialog__content:has(:focus):has(*) :focus {
-            display: unset;
-        }
-    </style>
-    -->
     <script>
         const scriptUrlFull = /** @type {HTMLScriptElement|null} */ (document.currentScript)?.src || document.baseURI;
         console.log({ scriptUrlFull });
