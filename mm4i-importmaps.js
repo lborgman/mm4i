@@ -136,7 +136,7 @@ const cacheImportFc4i = new Map();
 
         // "jsmind": "./ext/jsmind/es6/jsmind-mm4i.js",
         // "jsmind": "./ext/jsmind/testing/OKjsmind-mm4i.js",
-        "jsmind": "./ext/jsmind/testing/jsmind-mm4i.js",
+        "jsmind-mm4i": "./ext/jsmind/testing/jsmind-mm4i.js",
         "jsmind-es6": "./ext/jsmind/es6/jsmind.js",
         // dragging
         "mm4i-jsmind.drag-node": "./ext/jsmind/testing/mm4i-jsmind.drag-node.js",

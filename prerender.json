@@ -1717,7 +1717,7 @@
                 modJsmindDraggable.setupNewDragging();
             } else {
                 console.log("%cUsing mm4i jsMind", "color:green; font-size:20px;");
-                const modJsMind = await importFc4i("jsmind");
+                const modJsMind = await importFc4i("jsmind-mm4i");
                 modJsmindDraggable = await importFc4i("mm4i-jsmind.drag-node");
                 window["modJsmindDraggable"] = modJsmindDraggable;
                 modJsmindDraggable.setupNewDragging();

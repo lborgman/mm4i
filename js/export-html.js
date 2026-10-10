@@ -4,6 +4,7 @@
  * @returns {Promise<string>}
  */
 export async function buildPortableHtml(baseUrl = new URL(".", location.href).href) {
+    console.log({ baseUrl });
     const res = await fetch(location.href);
     if (!res.ok) throw new Error(`Failed to fetch page source: HTTP ${res.status}`);
 
@@ -35,16 +36,53 @@ export async function buildPortableHtml(baseUrl = new URL(".", location.href).hr
     const jmDisplayed = await modMMhelpers.getJmDisplayed();
     console.log({ jmDisplayed });
 
-    const mindMapData = jmDisplayed.get_data();
+    const mindMapData = jmDisplayed.get_data("node_array");
     console.log({ mindMapData });
 
     debugger;
     const strMindmap = JSON.stringify(mindMapData, undefined, 4);
+    // const j = JSON.parse(strMindmap);
+    // j.key = "dummy key";
+    // modMMhelpers.checkIsMMformatStored(j, "buildPortableHtml");
+    // const modJsEditCommon = await importFc4i("jsmind-edit-common");
+    // const jm = await modJsEditCommon.displayOurMindmap(j);
+    // console.log({ jm });
+
+    // function removeControlCharsForJson(str) { return str.replace(/[\u0000-\u001F\u007F]/g, ""); }
+
+    // let nWait = 0;
+    // displayIt();
+    async function wait4jsMind() {
+        if (!window.jsMind) {
+            if (++nWait > 50) {
+                alert("network problem");
+                return;
+            }
+            requestAnimationFrame(wait4jsMind);
+            return;
+        }
+        modMMhelpers.checkIsMMformatStored(j, 'portableHtml');
+        const jm = await modJsEditCommon.displayOurMindmap(j);
+    }
+    debugger;
+
+    // const modMMhelpers = importFc4i("mindmap-helpers");
     const js = [
+        "debugger;\n",
         "const str = `",
         strMindmap,
         "`;\n",
-        "console.log({str});\n"
+        "console.log({str});\n",
+        "const str4json = str.replace(/[\\u0000-\\u001F\u007F]/g, '');\n",
+        "const j = JSON.parse(str4json);\n",
+        "j.key = 'dummy portable key';\n",
+        "const modMMhelpers = await importFc4i('mindmap-helpers');\n",
+        "const modJsEditCommon = await importFc4i('jsmind-edit-common');\n",
+        "let nWait = 0;\n",
+        "await wait4jsMind();\n",
+        "modMMhelpers.checkIsMMformatStored(j, 'portableHtml');\n",
+        "const jm = await modJsEditCommon.displayOurMindmap(j);\n",
+        wait4jsMind.toString(),
     ].join("");
 
     const scriptMakeMap = mkElt("script", { id: "script-make-map", type: "module" }, js);
