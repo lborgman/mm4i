@@ -119,10 +119,16 @@ export async function startUndoRedo(jmDisplayed) {
     if (objStored) {
         objBaseMm = objStored;
     } else {
-        const msg = `Did not find mindmap key "${keyName}"`;
-        console.error(msg);
-        debugger;
-        throw Error(msg);
+        if (document.documentElement.contains("portable-map")) {
+            debugger;
+            dbMindmaps.DBsetMindmap(keyName, objBaseMm);
+            debugger;
+        } else {
+            const msg = `Did not find mindmap key "${keyName}"`;
+            console.error(msg);
+            debugger;
+            throw Error(msg);
+        }
     }
     if (undoRedoTreeStyle === undefined) {
         throw Error("setUndoRedoTreeStyle(true/false) has not been called");
@@ -1725,7 +1731,7 @@ export function flattenMindmapClean(tree, { childrenProp = 'children' } = {}) {
         /** @type {CleanNode} */
         const theName = typeof node.name === 'string'
             ? node.name
-            : (typeof node.topic == "string" ? node.topic: '(no name)');
+            : (typeof node.topic == "string" ? node.topic : '(no name)');
         const cleanNode = {
             id,
             // name: typeof node.name === 'string' ? node.name : '(no name)'

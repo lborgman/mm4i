@@ -75,7 +75,7 @@ export async function buildPortableHtml(baseUrl = new URL(".", location.href).hr
         "console.log({str});\n",
         "const str4json = str.replace(/[\\u0000-\\u001F\u007F]/g, '');\n",
         "const j = JSON.parse(str4json);\n",
-        "j.key = 'dummy portable key';\n",
+        "j.key = 'portable-map';\n",
         "await importFc4i('jsmind-mm4i');\n",
         "const modMMhelpers = await importFc4i('mindmap-helpers');\n",
         "const modJsEditCommon = await importFc4i('jsmind-edit-common');\n",
