@@ -76,6 +76,7 @@ export async function buildPortableHtml(baseUrl = new URL(".", location.href).hr
         "const str4json = str.replace(/[\\u0000-\\u001F\u007F]/g, '');\n",
         "const j = JSON.parse(str4json);\n",
         "j.key = 'dummy portable key';\n",
+        "await importFc4i('jsmind-mm4i');\n",
         "const modMMhelpers = await importFc4i('mindmap-helpers');\n",
         "const modJsEditCommon = await importFc4i('jsmind-edit-common');\n",
         "let nWait = 0;\n",
@@ -87,6 +88,8 @@ export async function buildPortableHtml(baseUrl = new URL(".", location.href).hr
 
     const scriptMakeMap = mkElt("script", { id: "script-make-map", type: "module" }, js);
     doc.documentElement.append(scriptMakeMap);
+
+    doc.documentElement.classList.add("portable-map");
 
     return "<!doctype html>\n" + doc.documentElement.outerHTML;
 }

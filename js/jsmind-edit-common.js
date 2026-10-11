@@ -1921,7 +1921,9 @@ export async function pageSetup() {
             });
         }
     }
-    if (!mindInStoredFormat && !sharepostParam) {
+    if (!mindInStoredFormat
+        && !sharepostParam
+        && !document.documentElement.classList.contains("portable-map")) {
         if (funMindmapsDialog) {
             funMindmapsDialog();
         } else {
@@ -2195,11 +2197,13 @@ export async function pageSetup() {
             modMMhelpers.createAndShowNewMindmap();
         }
         const liCreateMindmap = mkMenuItem("Create Mindmap", createMindMap);
+        liCreateMindmap.classList.add("not-in-portable");
 
         const importMindMap = () => {
             modMMhelpers.importMindMapFromFile();
         }
         const liImportMindmap = mkMenuItem("Import Mindmap", importMindMap);
+        liImportMindmap.classList.add("not-in-portable");
 
         const exportHtmlMap = async () => {
             // modMMhelpers.importMindMapFromFile();
@@ -2209,6 +2213,7 @@ export async function pageSetup() {
             modExpHtml.downloadPortableHtml();
         }
         const liExportHtml = mkMenuItem("Export Html Mindmap", exportHtmlMap);
+        liExportHtml.classList.add("not-in-portable");
 
 
         const makeMindMapFromLink = async () => {
@@ -2216,6 +2221,7 @@ export async function pageSetup() {
             modAIhelpers.generateMindMap();
         }
         const liMakeMindmapFromLink = mkMenuItem("Make Mindmap from Link", makeMindMapFromLink);
+        liMakeMindmapFromLink.classList.add("not-in-portable");
 
 
         const liEditMindmap = mkMenuItem("Edit Mindmap", dialogEditMindmap, "Dblclick");
@@ -2242,11 +2248,13 @@ export async function pageSetup() {
 
         // const liMindmapsA = mkMenuItemA("List Mindmaps", "./mm4i.html");
         const liMindmapsA = mkMenuItemA("List Mindmaps", modMMhelpers.getUrlMindmapsPage());
+        liMindmapsA.classList.add("not-in-portable");
 
         const liMindmapSync = mkMenuItem("Sync mindmap devices", (async () => {
             const modMm4iReplication = await importFc4i("mm4i-replication");
             modMm4iReplication.replicationDialog();
         }));
+        liMindmapSync.classList.add("not-in-portable");
 
         // https://www.npmjs.com/package/pinch-zoom-js
 

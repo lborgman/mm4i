@@ -230,7 +230,8 @@ const cacheImportFc4i = new Map();
         if (oldModule) return oldModule;
         let isInApp = false;
         // if ((typeof window.isPortableHtml) == "undefined") {
-        if (!window.funThisIsPortableHtml()) {
+        // if (!window.funThisIsPortableHtml()) {
+        if (!document.documentElement.classList.contains("portable-map")) {
             const webBrowserInfo = await window["promWebBrowserInfo"];
             const gotIsInApp = webBrowserInfo?.isInApp;
             const tofGotIsInApp = typeof gotIsInApp;
@@ -477,7 +478,8 @@ const cacheImportFc4i = new Map();
         return env;
     }
     // debugger;
-    function funThisIsPortableHtml() {
+    /*
+    function OLDfunThisIsPortableHtml() {
         const portable = window.thisIsPortableHtml;
         const tofPortable = typeof portable;
         if (tofPortable == "undefined") { return false; }
@@ -489,8 +491,10 @@ const cacheImportFc4i = new Map();
         }
         return portable;
     }
+    */
     // if ((typeof window.thisIsPortableHtml) == "undefined") {
-    if (funThisIsPortableHtml()) {
+    // if (funThisIsPortableHtml()) {
+    if (document.documentElement.classList.contains("portable-map")) {
         console.log("thisIsPortableHtml: defining promWebBrowserInfo");
         const promWebBrowserInfo = getWebBrowserInfo();
         window["promWebBrowserInfo"] = promWebBrowserInfo;

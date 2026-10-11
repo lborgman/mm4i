@@ -412,7 +412,8 @@
     <script type="module">
         debugger;
         // if ((typeof window.thisIsPortableHtml) == "undefined") {
-        if (!window.funThisIsPortableHtml()) {
+        // if (!window.funThisIsPortableHtml()) {
+        if (!document.documentElement.classList.contains("portable-map")) {
             console.log("!thisIsPortableHtml: importing pwa.js");
             debugger;
             const modMMhelpers = await importFc4i("mindmap-helpers");
@@ -2005,6 +2006,13 @@
 
         #div-status-link-validation.link-validated {
             background-color: yellowgreen;
+        }
+    </style>
+    <style id="style-portable">
+        html.portable-map {
+            .not-in-portable {
+                display: none;
+            }
         }
     </style>
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind@0.5/es6/jsmind.js"></script> -->
