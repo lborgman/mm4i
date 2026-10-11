@@ -119,7 +119,7 @@ export async function startUndoRedo(jmDisplayed) {
     if (objStored) {
         objBaseMm = objStored;
     } else {
-        if (document.documentElement.contains("portable-map")) {
+        if (document.documentElement.classList.contains("portable-map")) {
             debugger;
             dbMindmaps.DBsetMindmap(keyName, objBaseMm);
             debugger;
