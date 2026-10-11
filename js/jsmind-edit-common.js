@@ -1899,6 +1899,8 @@ export async function pageSetup() {
         return true;
     }
 
+    if (document.documentElement.classList.contains("portable-map")) { return; }
+
     if (mindmapKey) {
         if (mindInStoredFormat) {
             modMMhelpers.checkIsMMformatStored(mindInStoredFormat, "pageSetup");
