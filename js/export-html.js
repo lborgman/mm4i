@@ -5,6 +5,13 @@
  */
 export async function buildPortableHtml(baseUrl = new URL(".", location.href).href) {
     console.log({ baseUrl });
+
+    const modMMhelpers = await importFc4i("mindmap-helpers");
+    const jmDisplayed = await modMMhelpers.getJmDisplayed();
+    console.log({ jmDisplayed });
+    const root = jmDisplayed.get_root()
+    const topic = root.topic;
+
     const res = await fetch(location.href);
     if (!res.ok) throw new Error(`Failed to fetch page source: HTTP ${res.status}`);
 
@@ -19,22 +26,27 @@ export async function buildPortableHtml(baseUrl = new URL(".", location.href).hr
         console.log("Removed manifest");
         b.remove();
     });
-    // debugger;
-
-    const head = doc.querySelector("head");
-    if (!head) {
-        debugger;
-        throw Error("Did not find <head>");
+    debugger;
+    const oldMetaDesc = doc.querySelector('meta[name="description"]');
+    if (oldMetaDesc) {
+        console.log("oldMetaDesc:", oldMetaDesc);
+        const newMetaDesc = mkElt("meta", { description: `Minmap topic: ${topic} (portable MM4i)` });
+        oldMetaDesc.replaceWith(newMetaDesc);
     }
-    const scriptTellPortable = mkElt("script", undefined, "var thisIsPortableHtml = true");
-    head.prepend(scriptTellPortable);
+    const oldMetaAuthor = doc.querySelector('meta[name="author"]');
+    if (oldMetaAuthor) {
+        console.log("oldMetaauthor:", oldMetaAuthor);
+        const newMetaAuthor = mkElt("meta", { author: `MM4i` });
+        oldMetaAuthor.replaceWith(newMetaAuthor);
+    }
+
+    // const head = doc.querySelector("head");
+    // if (!head) { debugger; throw Error("Did not find <head>"); }
+    // const scriptTellPortable = mkElt("script", undefined, "var thisIsPortableHtml = true");
+    // head.prepend(scriptTellPortable);
 
     const nodes = jsMind.current.mind.nodes;
     console.log({ nodes });
-
-    const modMMhelpers = await importFc4i("mindmap-helpers");
-    const jmDisplayed = await modMMhelpers.getJmDisplayed();
-    console.log({ jmDisplayed });
 
     const mindMapData = jmDisplayed.get_data("node_array");
     console.log({ mindMapData });
@@ -79,11 +91,11 @@ export async function buildPortableHtml(baseUrl = new URL(".", location.href).hr
         "await importFc4i('jsmind-mm4i');\n",
         "const modMMhelpers = await importFc4i('mindmap-helpers');\n",
         "const modJsEditCommon = await importFc4i('jsmind-edit-common');\n",
-        "let nWait = 0;\n",
-        "await wait4jsMind();\n",
+        // "let nWait = 0;\n",
+        // "await wait4jsMind();\n",
         "modMMhelpers.checkIsMMformatStored(j, 'portableHtml');\n",
         "const jm = await modJsEditCommon.displayOurMindmap(j);\n",
-        wait4jsMind.toString(),
+        // wait4jsMind.toString(),
     ].join("");
 
     const scriptMakeMap = mkElt("script", { id: "script-make-map", type: "module" }, js);
