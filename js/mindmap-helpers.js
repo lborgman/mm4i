@@ -127,6 +127,7 @@ export async function startUndoRedo(jmDisplayed) {
             // dbMindmaps.DBsetMindmap(keyName, objBaseMm);
             dbMindmaps.DBsetMindmap(keyName, objDataMind);
             debugger;
+            objBaseMm = objDataMind;
         } else {
             const msg = `Did not find mindmap key "${keyName}"`;
             console.error(msg);
