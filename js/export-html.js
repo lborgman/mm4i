@@ -27,12 +27,24 @@ export async function buildPortableHtml(baseUrl = new URL(".", location.href).hr
         b.remove();
     });
     debugger;
-    const oldMetaDesc = doc.querySelector('meta[name="description"]');
-    if (oldMetaDesc) {
-        console.log("oldMetaDesc:", oldMetaDesc);
-        const newMetaDesc = mkElt("meta", { description: `Minmap topic: ${topic} (portable MM4i)` });
-        oldMetaDesc.replaceWith(newMetaDesc);
+    const oldTitle = doc.querySelector("title");
+    if (!oldTitle) {
+        const msg = "Did not find <title>";
+        console.error(msg);
+        throw Error(msg);
     }
+    const newTitle = mkElt("title", undefined, `Mindmap: "${topic}"`);
+    oldTitle.replaceWith(newTitle);
+
+    const oldMetaDesc = doc.querySelector('meta[name="description"]');
+    if (!oldMetaDesc) {
+        ocnst msg = 'Did not find <meta name=description>';
+        console.error(msg);
+        throw Error(msg);
+    }
+    const newMetaDesc = mkElt("meta", { description: `Minmap topic: ${topic} (portable MM4i)` });
+    oldMetaDesc.replaceWith(newMetaDesc);
+
     const oldMetaAuthor = doc.querySelector('meta[name="author"]');
     if (oldMetaAuthor) {
         console.log("oldMetaauthor:", oldMetaAuthor);
