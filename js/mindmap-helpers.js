@@ -121,7 +121,11 @@ export async function startUndoRedo(jmDisplayed) {
     } else {
         if (document.documentElement.classList.contains("portable-map")) {
             debugger;
-            dbMindmaps.DBsetMindmap(keyName, objBaseMm);
+            const objDataMind = jmDisplayed.get_data("node_array");
+            objDataMind.meta.name = keyName;
+            objDataMind.key = keyName;
+            // dbMindmaps.DBsetMindmap(keyName, objBaseMm);
+            dbMindmaps.DBsetMindmap(keyName, objDataMind);
             debugger;
         } else {
             const msg = `Did not find mindmap key "${keyName}"`;
@@ -410,7 +414,7 @@ export async function saveMindmapPlusUndoRedo(jmDisplayed, actionTopic, lastUpda
 async function checkInappAndSaveMindmap(keyName, objMindData, lastUpdated, lastSynced, privacy) {
     // const webbrowserInfo = await modTools.promWebBrowserInfo;
     const webbrowserInfo = await window["promWebBrowserInfo"];
-    if (webbrowserInfo.isInApp !== false) {
+    if (webbrowserInfo && webbrowserInfo.isInApp !== false) {
         const modMdc = await importFc4i("util-mdc");
         modMdc.mkMDCsnackbar("Did not save because in-app browser");
         return;
