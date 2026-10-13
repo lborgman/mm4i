@@ -15,17 +15,19 @@ Key features include:
  **visually enhance nodes**,
  **dynamically link nodes** (through the search function),
  create **paths** between nodes (called "stairs"),
- and **create mindmaps with AI**.
+ **create mindmaps with AI (unavailable at the moment)**,
+ and **export mindmaps as html files**.
 
 
 You can start MM4I here:
 
-<a href="https://mm4i.vercel.app/mm4i.html">
-    <!-- https://lborgman.github.io/mm4i/mm4i.html" -->
+<a href="https://lborgman.github.io/mm4i/mm4i.html">
     <figure>
-    <img src="./img/mm4i.svg" width="40px" title="Start Mindmaps 4 Internet">
+      <img src="./img/mm4i.svg" width="40px" title="Start Mindmaps 4 Internet">
     </figure>
 </a>
+
+[Examples](./portable-maps-examples.html)
 
 
 There is not much to learn—just try it. If you think something needs to be explained, please [tell me](https://github.com/lborgman/mm4i/issues).

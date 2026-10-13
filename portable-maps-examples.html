@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GitHub Folder File Lister</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #24292e;
+            font-size: 24px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            background: #f6f8fa;
+            border: 1px solid #d1d5da;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+        }
+
+        li.dir {
+            font-weight: bold;
+            background: #e1f5fe;
+            border-color: #b3e5fc;
+        }
+
+        .icon {
+            margin-right: 8px;
+        }
+
+        a {
+            color: #0366d6;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .error {
+            color: #cb2431;
+            background: #ffeef0;
+            padding: 10px;
+            border-radius: 6px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Portable Mindmaps Examples</h1>
+    <div id="error-message" class="error" style="display: none;"></div>
+    <ul id="file-list">Loading files...</ul>
+
+    <script>
+        // CONFIGURATION: Change these to match your repository
+        const OWNER = 'lborgman';       // e.g., 'octocat'
+        const REPO = 'mm4i';       // e.g., 'hello-world'
+        const PATH = 'portable-maps';       // e.g., 'assets/images' (leave empty '' for root)
+        const BRANCH = 'main';               // e.g., 'main' or 'master'
+
+        async function fetchRepoFiles() {
+            const listElement = document.getElementById('file-list');
+            listElement.innerHTML = ''; // Clear loading text
+            const items = await fetchRepoFileItems({
+                OWNER, REPO, PATH, BRANCH
+            });
+            if (items.length === 0) {
+                listElement.innerHTML = '<li>No files found in this folder.</li>';
+                return;
+            }
+            items.forEach(item => {
+                // console.log({item});
+                const urlBlame = item.html_url;
+                const a = urlBlame.split("/");
+                const fileName = a[a.length - 1];
+                if (fileName == "index.html") { return; }
+                // https://lborgman.github.io/mm4i/portable-maps/portable.html
+                const fileUrl = `https://${OWNER}.github.io/${REPO}/portable-maps/${fileName}`;
+                // console.log("fileUrl:", fileUrl);
+                // debugger;
+                const li = document.createElement('li');
+
+                if (item.type === 'dir') {
+                    li.className = 'dir';
+                    li.innerHTML = `<span class="icon">📁</span><strong>${item.name}/</strong> (Directory)`;
+                } else {
+                    // Create a direct link to view or download the file
+                    // li.innerHTML = `<span class="icon">📄</span><a href="${item.html_url}" target="_blank">${item.name}</a>`;
+                    // Direct link to open the file
+                    li.innerHTML = `<a href="${fileUrl}" target="_blank">${item.name}</a>`;
+                }
+
+                listElement.appendChild(li);
+            });
+
+        }
+        async function fetchRepoFileItems(spec) {
+            const { OWNER, REPO, PATH, BRANCH } = spec;
+            const errorElement = document.getElementById('error-message');
+
+            // GitHub REST API endpoint for repository contents
+            const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}?ref=${BRANCH}`;
+
+            try {
+                const response = await fetch(url);
+
+                if (!response.ok) {
+                    throw new Error(`GitHub API responded with status: ${response.status}`);
+                }
+
+                const data = await response.ok ? await response.json() : [];
+                return data;
+
+                if (data.length === 0) {
+                    return [];
+                }
+
+
+            } catch (error) {
+                listElement.style.display = 'none';
+                errorElement.textContent = `Failed to load files: ${error.message}`;
+                errorElement.style.display = 'block';
+            }
+        }
+
+        // Run the function when the page loads
+        fetchRepoFiles();
+    </script>
+</body>
+
+</html>
