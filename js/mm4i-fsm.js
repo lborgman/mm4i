@@ -10,6 +10,9 @@ const modJssm = await importFc4i("jssm");
 // const modJssm = undefined;
 // console.log({ modJssm });
 
+const isInsideIframe = (window.self !== window.top);
+const upDelay = isInsideIframe? "1000":"500";
+
 export const fsmDeclaration = `
 machine_name     : "mm4i <user@example.com>";
 machine_license  : MIT;
@@ -48,7 +51,8 @@ c_Dblclick after 1 ms => Idle;
 // c_Dblclick => Idle; // does not work
 // c_Dblclick 'up' => Idle; // does not work because of popup
 
-c_Down after 500 ms => c_Move;
+// c_Down after 500 ms => c_Move;
+c_Down after ${upDelay} ms => c_Move;
 c_Move 'up' => Idle;
 // c_Down 'c_down' => c_Zoom;
 c_Down 'start2' => c_Zoom;
