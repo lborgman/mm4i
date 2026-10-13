@@ -11,7 +11,7 @@ const modJssm = await importFc4i("jssm");
 // console.log({ modJssm });
 
 const isInsideIframe = (window.self !== window.top);
-const upDelay = isInsideIframe? "1000":"500";
+const upDelay = isInsideIframe? "2000":"500";
 
 export const fsmDeclaration = `
 machine_name     : "mm4i <user@example.com>";

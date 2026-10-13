@@ -2946,12 +2946,22 @@ async function show4bugLogs() {
         divDebug.appendChild(row);
     });
     const h2 = mkElt("h2", undefined, "logQueue debugging");
+    h2.id = "h2_logQueue";
     h2.style.color = "red";
     const body = mkElt("div", undefined, [
         h2,
         divDebug
     ]);
     const modMdc = await importFc4i("util-mdc");
+    setTimeout(() => {
+        const openedDialog = h2.closest("div.mdc-dialog--open");
+        if (!openedDialog) {
+            debugger;
+            alert("did not find div.mdc-dialog--open");
+        } else {
+            openedDialog.style.zIndex = "9999";
+        }
+    }, 0.5 * 1000);
     modMdc.mkMDCdialogAlert(body);
 }
 
