@@ -38,7 +38,7 @@ export async function buildPortableHtml(baseUrl = new URL(".", location.href).hr
 
     const oldMetaDesc = doc.querySelector('meta[name="description"]');
     if (!oldMetaDesc) {
-        ocnst msg = 'Did not find <meta name=description>';
+        const msg = 'Did not find <meta name=description>';
         console.error(msg);
         throw Error(msg);
     }
