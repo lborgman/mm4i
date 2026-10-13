@@ -121,7 +121,16 @@
                     // Create a direct link to view or download the file
                     // li.innerHTML = `<span class="icon">📄</span><a href="${item.html_url}" target="_blank">${item.name}</a>`;
                     // Direct link to open the file
-                    li.innerHTML = `<a href="${fileUrl}" target="_blank">${item.name}</a>`;
+                    // li.innerHTML = `<a href="${fileUrl}" target="_blank">${item.name}</a>`;
+                    const div = document.createElement("div");
+                    div.innerHTML = `<div><a href="${fileUrl}" target="_blank">${item.name}</a></div>`;
+                    const iframe = document.createElement("iframe");
+                    iframe.src = fileUrl;
+                    iframe.width = 600;
+                    iframe.height = 600;
+                    iframe.style.zoom = "0.3";
+                    div.appendChild(iframe);
+                    li.appendChild(div);
                 }
 
                 listElement.appendChild(li);

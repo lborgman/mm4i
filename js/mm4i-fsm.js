@@ -300,7 +300,18 @@ export async function setupFsmListeners(eltFsm) {
         const target = evt.target;
         if (!eltFsm.contains(target)) return;
 
-        evt.preventDefault();
+
+        ////// FIX-ME: Not sure this will work!
+        // evt.preventDefault();
+        // Check if the script is running embedded or standalone
+        const isInsideIframe = (window.self !== window.top);
+        // ONLY prevent default if safe (standalone full window).
+        // Preventing default inside an iframe kills the trailing pointerup event!
+        if (!isInsideIframe) {
+            evt.preventDefault();
+        }
+
+
         evt.stopImmediatePropagation();
         evt.stopPropagation();
         let actionWhere = "c";
