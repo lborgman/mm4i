@@ -297,7 +297,11 @@ export async function setupFsmListeners(eltFsm) {
     eltFsm.addEventListener("pointerdown", evt => {
         modTools.savePointerdownPos(evt); // pos listener needs this
         // console.log("eltFsm, pointerdown", evt);
-        const target = evt.target;
+
+
+        // FIX-ME: is currentTarget more correct here???
+        // const target = evt.target;
+        const target = evt.currentTarget;
         if (!eltFsm.contains(target)) return;
 
 
