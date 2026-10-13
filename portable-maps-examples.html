@@ -4,18 +4,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Folder File Lister</title>
+    <title>MM4i mindmaps - portable examples</title>
     <style>
-        body {
+        :root {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-size: 16px;
+        }
+
+        body {
             padding: 20px;
             max-width: 600px;
             margin: 0 auto;
+            background-color: black;
         }
 
         h1 {
-            color: #24292e;
-            font-size: 24px;
+            color: #657381;
+            font-size: 1.5rem;
+        }
+
+        p {
+            color: rgb(226, 211, 211);
         }
 
         ul {
@@ -26,7 +35,7 @@
         li {
             padding: 8px 12px;
             margin-bottom: 5px;
-            background: #f6f8fa;
+            background: #dedfe0;
             border: 1px solid #d1d5da;
             border-radius: 6px;
             display: flex;
@@ -62,8 +71,17 @@
 </head>
 
 <body>
+    <a href="https://lborgman.github.io/mm4i/">
+      <img src="./img/mm4i.svg" width="40px" title="- About Mindmaps 4 Internet">
+    </a>
 
-    <h1>Portable Mindmaps Examples</h1>
+    <h1>MM4i Mindmaps - portable examples</h1>
+
+    <p>
+        You can export your MM4i mindmaps as web pages to share with others.
+        Here are some examples.
+    </p>
+
     <div id="error-message" class="error" style="display: none;"></div>
     <ul id="file-list">Loading files...</ul>
 
