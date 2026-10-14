@@ -303,9 +303,10 @@ export async function setupFsmListeners(eltFsm) {
         // console.log("eltFsm, pointerdown", evt);
 
 
-        // FIX-ME: is currentTarget more correct here???
-        // const target = evt.target;
-        const target = evt.currentTarget;
+        //// FIX-ME: is currentTarget more correct here as an AI suggested???
+        // No! Using currentTarget breaks dragging.
+        const target = evt.target;
+        // const target = evt.currentTarget;
         if (!eltFsm.contains(target)) return;
 
 

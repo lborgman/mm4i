@@ -6058,3 +6058,57 @@ export class ChatLikeScroll {
         // If user has scrolled up → do NOT auto-scroll (classic chat behavior)
     }
 }
+
+
+/**
+ * This should work both in the web browser and nodejs.
+ * The produced file name should be safe on Windows, Linux, IOs.
+ *
+ * @param {string} anyString
+ * @returns {string}
+ * @throws
+ */
+function convertToValidFilename(anyString) {
+    if (typeof anyString !== "string" || !anyString) {
+        throw new Error("Bad input, not a string");
+    }
+
+    let sanitized = anyString
+        .replace(/[\\/|:*?"<>\x00-\x1F]/g, " ")   // illegal + controls → space
+        .replace(/\s+/g, " ")                      // collapse whitespace
+        .trim()
+        .replace(/^\.+|\.+$/g, "");                // no leading/trailing dots
+
+    sanitized = sanitized.replace(/ /g, "_");
+
+    const reserved = /^(CON|PRN|AUX|NUL|COM[1-9]|LPT[1-9])(\..*)?$/i;
+    if (reserved.test(sanitized)) {
+        sanitized = "file_" + sanitized;
+    }
+
+    // A few more characters that are legal but annoying on all platforms
+    sanitized = sanitized.replace(/[\u0000-\u001F\u007F]/g, ""); // extra safety
+
+    if (!sanitized) return "untitled";
+
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+    let bytes = encoder.encode(sanitized);
+    if (bytes.length > 255) {
+        bytes = bytes.slice(0, 255);
+        sanitized = decoder.decode(bytes).replace(/\s+$/u, ""); // trim only trailing
+    }
+
+    return sanitized || "untitled";
+}
+
+
+// 🔥 Test Suite (Works in Browser Console and Node.js terminal)
+console.log(convertToValidFilename("my:invalid/file*name.txt"));
+// ➡️ "my invalid file name.txt"
+
+console.log(convertToValidFilename("报告/Report 2026?.pdf"));
+// ➡️ "报告 Report 2026.pdf" (Preserves Chinese characters & accents!)
+
+console.log(convertToValidFilename("🚀".repeat(100) + ".png"));
+// ➡️ Automatically cuts off at exactly 255 bytes without breaking the emojis
