@@ -1,5 +1,15 @@
 // @ts-check
-// https://www.npmjs.com/package/@toast-ui/editor
+
+/*
+  https://www.npmjs.com/package/@toast-ui/editor
+
+  The original toas-ui editor is no longer mantained.
+  Try the licium fork:
+
+  <script src="https://cdn.jsdelivr.net/npm/@licium/editor@3.2.16/dist/toastui-editor.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@licium/editor@3.2.16/dist/toastui-editor.css">
+
+*/
 
 const importFc4i = window["importFc4i"];
 
