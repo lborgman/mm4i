@@ -468,6 +468,7 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
         if (!window["toastUI"]) {
             // <script defer src="./ext/toast-ui/editor/3.2.2.js"></script>
             await window["loadScript"]("./ext/toast-ui/editor/3.2.2.js");
+            // await window["loadScript"]("./ext/toast-ui/editor/licium/3.2.16.js");
             window["toastUI"] = window["toastUI"] || window["toastui"];
         }
 
@@ -488,6 +489,15 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
         editorViewer.addCommand("wysiwyg", "searchCommand", insertSearchCommand);
         editorViewer.addCommand("markdown", "myLinkCommand", insertLinkCommand);
         editorViewer.addCommand("wysiwyg", "myLinkCommand", insertLinkCommand);
+
+        // FIX for toastui editor Enter bug:
+        // https://grok.com/c/36a0faa3-ac8c-4d3c-a028-17a3970f2db5?rid=25e93355-6c9e-483f-8f5d-91788843fc18
+        // Prevent Enter from closing the surrounding MDC dialog
+        editorViewer.on("keydown", (editorType, ev) => {
+            if (ev.key === "Enter") {
+                ev.stopPropagation();
+            }
+        });
 
 
         editorViewer.options.el.classList.add("faked-viewer");
