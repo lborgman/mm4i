@@ -500,9 +500,13 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
         // Is that built into editorViewer, or?
         // Yes, it is! :
         editorViewer.on("keydown", (editorType, ev) => {
+            // Gemini suggests a check for isComposing on Android:
+            if (ev.isComposing) {
+                return;
+            }
             if (ev.key === "Enter") {
                 ev.stopPropagation();
-                alert("Enter");
+                alert("Enter A");
             }
         });
 
