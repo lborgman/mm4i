@@ -492,10 +492,17 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
 
         // FIX for toastui editor Enter bug:
         // https://grok.com/c/36a0faa3-ac8c-4d3c-a028-17a3970f2db5?rid=25e93355-6c9e-483f-8f5d-91788843fc18
+        // Grok does not consider this is a bug. But I do.
         // Prevent Enter from closing the surrounding MDC dialog
+        // editorViewer.addEventListener("keydown", (ev) =>
+        //
+        // I do not understand the parameters here. Why 2 args?
+        // Is that built into editorViewer, or?
+        // Yes, it is! :
         editorViewer.on("keydown", (editorType, ev) => {
             if (ev.key === "Enter") {
                 ev.stopPropagation();
+                alert("Enter");
             }
         });
 
