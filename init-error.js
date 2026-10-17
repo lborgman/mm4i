@@ -109,6 +109,7 @@ window.logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
             color: black;
             font-size: 1rem;
             max-width: 90vw;
+            opacity: 1;
         `;
         btn.addEventListener("click", _evt => dlg.close());
         document.body.appendChild(dlg);

@@ -32,7 +32,7 @@ window.logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
         const stack = errorObj instanceof Error ? errorObj.stack : null;
 
         // Optional custom alert hook
-        if (typeof window["alertError"] === "function") {
+        if (false && typeof window["blertError"] === "function") {
             window["alertError"](message, evt);
             return;
         }
@@ -46,7 +46,7 @@ window.logConsoleHereIs(`here is init-error.js ${INIT_ERROR_VER}`);
 
         // Build dialog
         const dlg = Object.assign(document.createElement("dialog"), {
-            style: "background:red; color:black; font-size:1rem; max-width:90vw;"
+            style: "background:red; color:black; font-size:1rem; max-width:90vw; opacity:1; padding:20px;"
         });
 
         dlg.append(

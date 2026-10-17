@@ -868,7 +868,7 @@ async function popupDialog(title, body, severity) {
     // const hasDialog = Object.getOwnPropertyNames(window).includes("HTMLDialogElement");
     // Use dialog as fallback
     const useDialog = true; // typeof Popup !== "function";
-    let styleDia = "max-width:90vw; max-height:80vh; overflow:auto; color:black; ";
+    let styleDia = "max-width:90vw; max-height:80vh; overflow:auto; color:black; opacity:1; ";
     switch (severity) {
         case "error":
             /*
