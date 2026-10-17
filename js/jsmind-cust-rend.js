@@ -735,7 +735,13 @@ export class CustomRenderer4jsMind {
             return btnSave;
         }
 
-        await modMdc.mkMDCdialogConfirm(body, "close");
+
+        // await modMdc.mkMDCdialogConfirm(body, "close");
+        const modBasic = await importFc4i("basic-ui");
+        body.style.backgroundColor = "white";
+        await modBasic.showDialog(body);
+
+
         // We may have deleted notes, but we can't have added notes here.
         if (currentNotes.length == 0) {
             const eltMark = eltJmnode.querySelector(".has-notes-mark");

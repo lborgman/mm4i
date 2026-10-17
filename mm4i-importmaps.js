@@ -152,7 +152,12 @@ const cacheImportFc4i = new Map();
         "sharing-params": "./src/js/mod/sharing-params.js",
         "move-help": "./js/mod/move-help.js",
         "toolsJs": "./js/mod/tools.js",
+
+
         "util-mdc": "./js/mod/util-mdc.js",
+        "basic-ui": "https://cdn.jsdelivr.net/gh/lborgman/text-and-link@main/basic-ui/new-basic-ui.js",
+
+
         "woff-codepoints": "./js/mod/woff-codepoints.js",
         // "google-symbols-codepoints": "./ext/mdc-fonts/codepoints.js",
         "woff2-mdc-symbols": "./js/mod/woff2-mdc-symbols.js",

@@ -504,7 +504,8 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
             if (ev.key === "Enter") {
                 ev.stopPropagation();
                 ev.stopImmediatePropagation();
-                alert("Enter A");
+                // alert("Enter A");
+                console.log("Enter A", ev);
             }
         });
         editorViewer.on("keyup", (editorType, ev) => {
@@ -512,7 +513,8 @@ async function setupToastUIview(divEditor, initialMD, valuePlaceholder, onChange
             if (ev.key === "Enter") {
                 ev.stopPropagation();
                 ev.stopImmediatePropagation();
-                alert("Enter B");
+                // alert("Enter B");
+                console.log("Enter B", ev);
             }
         });
 
