@@ -265,6 +265,8 @@ export async function save_NOT_SAVEABLE(jmDisplayed) {
     await startUndoRedo(jmDisplayed);
 
     const modMdc = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
+
     const spanText = marker.firstElementChild;
     if (!spanText) throw Error("Did not find spanText");
     spanText.textContent = "Saved from AI";
@@ -287,6 +289,7 @@ function askSave_NOT_SAVEABLE(jmDisplayed) {
         if ("string" != tofNS) throw Error(`typeof NOT_SAVEABLE: "${tofNS}" (not "string")`)
         const msgNS = jmDisplayed.NOT_SAVEABLE;
         const modMdc = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
         const body = mkElt("div", undefined, [
             mkElt("p", undefined, msgNS),
             mkElt("p", undefined, "Do you want to save it?")
@@ -417,6 +420,7 @@ async function checkInappAndSaveMindmap(keyName, objMindData, lastUpdated, lastS
     const webbrowserInfo = await window["promWebBrowserInfo"];
     if (webbrowserInfo && webbrowserInfo.isInApp !== false) {
         const modMdc = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
         modMdc.mkMDCsnackbar("Did not save because in-app browser");
         return;
     }
@@ -684,6 +688,7 @@ export async function getMindmapTopic(key) {
 
 async function dialogCreateMindMap() {
     const modMdc = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
     const dbMindmaps = await importFc4i("db-mindmaps");
 
     const title = mkElt("h2", undefined, "Create new mindmap");
@@ -1353,6 +1358,7 @@ export async function checkWebBrowser() {
 
 
     const modMdc = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
 
     const chkReverseInApp = mkElt("input", { type: "checkbox" });
     const lblReverseInApp = mkElt("label", undefined, ["Pretend revese in-app: ", chkReverseInApp]);

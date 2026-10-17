@@ -10,6 +10,7 @@ const importFc4i = window["importFc4i"];
 
 const modTools = await importFc4i("toolsJs");
 const modMdc = await importFc4i("util-mdc");
+const modBasic = await importFc4i("basic-ui");
 const modCustRend = await importFc4i("jsmind-cust-rend");
 // const modShieldClick = await importFc4i("shield-click");
 
@@ -471,7 +472,7 @@ async function stepPrevNext(forward) {
 
     const toJmnode = toMark.closest("jmnode");
     const jmDisplayed = await getJmDisplayed();
-    const modMMhelpers = await importFc4i("mindmap-helpers") 
+    const modMMhelpers = await importFc4i("mindmap-helpers")
     await modMMhelpers.ensureNodeVisible(toJmnode, jmDisplayed);
     const toNodeid = toJmnode.getAttribute("nodeid");
     jmDisplayed.select_node(toNodeid);

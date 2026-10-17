@@ -256,11 +256,13 @@ export async function alertNoImagesFound() {
         ]),
     ]);
     const modMdc = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
     modMdc.mkMDCdialogAlert(bodyAlert);
 }
 
 export async function mkImageCard(blob, extraClass, debugInfo) {
     const modMdc = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
     const eltImg = mkElt("span", { class: "image-bg-contain image-bg-size mdc-card" });
     // const toFun = typeof funCheckSave;
     // if (toFun != "function") throw Error(`funCheckSave is not funtion (${toFun})`);

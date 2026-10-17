@@ -1489,6 +1489,7 @@ export async function fetchReTLD() {
 export async function copyTextToClipboard(txt, noSnackbar) {
     const addSnackbar = noSnackbar == undefined ? true : !noSnackbar;
     const modMdc = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
     try {
         await navigator.clipboard.writeText(txt);
         if (addSnackbar) modMdc.mkMDCsnackbar('Copied to clipboard');
@@ -1535,6 +1536,7 @@ async function showInfoPermissions(txtWhich) {
         pLink
     ]);
     const modMdc = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
     modMdc.mkMDCdialogAlert(body);
 }
 
@@ -2953,6 +2955,7 @@ async function show4bugLogs() {
         divDebug
     ]);
     const modMdc = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
     setTimeout(() => {
         const openedDialog = h2.closest("div.mdc-dialog--open");
         if (!openedDialog) {
@@ -2973,6 +2976,7 @@ window["fastLog4bugTurnOn"] = turnLog4Bug;
 export async function setupVirtualKeyboardDetection() {
     await promiseDOMready();
     const modMdc = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
 
     if ('virtualKeyboard' in navigator) {
         setTimeout(() => {
@@ -3612,6 +3616,7 @@ export async function dialogUnblockerAPIkey(unblockData) {
     console.log("dialogUnblockerAPIkey", unblockData);
     debugger;
     const modMdc = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
     let btnOK;
     const inp = settingFetchItSerpKey.getInputElement();
     inp.addEventListener("input", evt => {

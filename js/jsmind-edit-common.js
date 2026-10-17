@@ -18,6 +18,7 @@ if (!jsMind) { throw Error("jsMind is not setup"); }
 // FIX-ME: comment out temporary!
 const modMMhelpers = await importFc4i("mindmap-helpers");
 const modMdc = await importFc4i("util-mdc");
+const modBasic = await importFc4i("basic-ui");
 const modTools = await importFc4i("toolsJs");
 const modLocalSettings = await importFc4i("local-settings");
 const settingSortMm = new modLocalSettings.LocalSetting("mm4i-", "sortmm", "Name");

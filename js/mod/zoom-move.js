@@ -96,6 +96,7 @@ async function showDragContainerIndicator() {
     }
 
     const modMdc = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
     const eltIcon = modMdc.mkMDCicon("drag_pan");
     // @ts-ignore
     eltDraggingContainerIndicator = mkElt("div", undefined, eltIcon);

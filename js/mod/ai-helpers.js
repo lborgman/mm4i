@@ -288,6 +288,7 @@ let alreadyAskedProceed = false;
  */
 export async function generateMindMap(fromLink) {
     const modMdc = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
     // const modMMhelpers = await importFc4i("mindmap-helpers");
     const inpLink = modMdc.mkMDCtextFieldInput(undefined, "text");
     const tfLink = modMdc.mkMDCtextField("Link to article/video", inpLink);
@@ -2799,6 +2800,7 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
         let wasError = (!res) || res instanceof Error;
         // debugger;
         const modMdc = await importFc4i("util-mdc");
+        const modBasic = await importFc4i("basic-ui");
         if (wasError) {
             console.error({ res, resError });
             document.documentElement.classList.add("ai-response-error");
@@ -2843,6 +2845,7 @@ async function callNamedAI(nameAI, promptAI, handleRes) {
         const rawIntentUrl = androidIntent ? androidIntent : await dialogEditIntentUrl(nameAI);
         if (rawIntentUrl == null) {
             const modMdc = await importFc4i("util-mdc");
+            const modBasic = await importFc4i("basic-ui");
             modMdc.mkMDCsnackbar("Canceled");
             return;
         }
@@ -3981,6 +3984,7 @@ async function MDCdialogQuickChoices(title, choices, info) {
         divChoices.appendChild(lbl);
     });
     const modMdc = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
     await modMdc.mkMDCdialogConfirm(body, "Continue");
     // debugger;
     const checkedRad = body.querySelector(":checked");
@@ -4347,6 +4351,7 @@ async function parseAIError(response, txtResult) {
 
 
 const modMdc = await importFc4i("util-mdc");
+const modBasic = await importFc4i("basic-ui");
 function mkIconHasKey() {
     const iconNameHasKey = "key";
     const iconHasKey = modMdc.mkMDCicon(iconNameHasKey);

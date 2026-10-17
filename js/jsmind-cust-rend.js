@@ -17,6 +17,7 @@ const wait4mutations = modTools.wait4mutations;
 // FIX-ME: clean up
 const modMMhelpers = await importFc4i("mindmap-helpers");
 const modMdc = await importFc4i("util-mdc");
+const modBasic = await importFc4i("basic-ui");
 const modColorTools = await importFc4i("color-tools");
 const modToastUIhelpers = await importFc4i("toast-ui-helpers");
 

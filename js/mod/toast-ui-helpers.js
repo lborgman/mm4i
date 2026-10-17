@@ -18,6 +18,7 @@ const mkElt = window["mkElt"];
 const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
 const modTools = await importFc4i("toolsJs");
 const modMdc = await importFc4i("util-mdc");
+const modBasic = await importFc4i("basic-ui");
 
 const TOASTUI_HELPERS_VER = "0.0.0";
 window["logConsoleHereIs"](`here is toast-ui-helpers.js, module,${TOASTUI_HELPERS_VER}`);
