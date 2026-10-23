@@ -433,11 +433,11 @@
     <script id="share-target">
         /*
         window.addEventListener('DOMContentLoaded', async () => {
-            const modMdc = await importFc4i("util-mdc");
+            const modMdcOLD = await importFc4i("util-mdc");
             const modTools = await importFc4i("toolsJs");
             const sharedTo = modTools.getSharedToParams();
             const logStr = sharedTo ? JSON.stringify(sharedTo) : "NO SHARED PARAMS";
-            modMdc.mkMDCdialogAlert(logStr);
+            modMdcOLD.mkMDCdialogAlert(logStr);
         });
         */
     </script>
@@ -2152,13 +2152,13 @@
 
 
             // FIX-ME: icons??
-            const modMdc = await importFc4i("util-mdc");
-            modMdc.setIconsFor("mm4i");
+            // const modMdcOLD = await importFc4i("util-mdc");
+            // modMdcOLD.setIconsFor("mm4i");
             const modBasic = await importFc4i("basic-ui");
             modBasic.setIconsFor("mm4i");
             const iconClass = modBasic.getIconClass();
-            const modBeerHtml = await importFc4i("bear-html");
-            modBeerHtml.setIconClass(iconClass);
+            const modBearHtml = await importFc4i("bear-html");
+            modBearHtml.setIconClass(iconClass);
 
 
             const modMMhelpers = await importFc4i("mindmap-helpers");
@@ -2221,7 +2221,7 @@
 
 
             // debugger;
-            // const iconHistory = modMdc.mkMDCicon("history");
+            // const iconHistory = modMdcOLD.mkMDCicon("history");
             const iconHistory = modBasic.mkMdcIcon("history");
             iconHistory.id = "icon-history";
             iconHistory.inert = true;
@@ -2244,9 +2244,9 @@
                 spanHistoryHeaderLeft.appendChild(spanLinearTree);
                 spanHistoryHeaderLeft.id = "span-history-left";
 
-                const OLDbtnBookmark = modMdc.mkMDCiconButton("bookmark", "Add/remove bookmark");
+                // const OLDbtnBookmark = modMdcOLD.mkMDCiconButton("bookmark", "Add/remove bookmark");
                 // debugger;
-                const btnBookmark = modBeerHtml.createButton({
+                const btnBookmark = modBearHtml.createButton({
                     icon: "bookmark",
                     // size: "large",
                     // title: "Add/remove bookmark"
@@ -2262,6 +2262,9 @@
                 async function dialogBookmark(btnBookmark) {
                     const divList = document.getElementById("mm4i-history-list");
                     const radChecked = divList.querySelector("input:checked");
+                    if (!radChecked) {
+                        return;
+                    }
                     const lblChecked = radChecked.closest("label");
                     const isPersistentBookmark = lblChecked.classList.contains("persistent-bookmark");
                     const isBookmarked = isPersistentBookmark || lblChecked.classList.contains("bookmarked");
@@ -2273,15 +2276,20 @@
                         if (isPersistentBookmark) {
                             await handlePersistentBookmark();
                             async function handlePersistentBookmark() {
-                                // const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                                // const iconBookmarkHeart = modMdcOLD.mkMDCicon("bookmark_heart");
                                 const iconBookmarkHeart = modBasic.mkMdcIcon("bookmark_heart");
                                 iconBookmarkHeart.style = `
                                 color: darkorange;
                                 margin-right: 5px;
                             `;
-                                // const iconDelete = modMdc.mkMDCicon("delete_forever")
-                                const iconDelete = modMdc.mkMdcIcon("delete_forever")
-                                const btnDeleteNamed = modMdc.mkMDCbutton("Delete named bookmark", undefined, iconDelete);
+                                // const iconDelete = modMdcOLD.mkMDCicon("delete_forever")
+                                // const iconDelete = modMdcOLD.mkMdcIcon("delete_forever")
+                                // const btnDeleteNamed = modMdcOLD.mkMDCbutton("Delete named bookmark", undefined, iconDelete);
+                                const btnDeleteNamed = modBearHtml.createButton({
+                                    icon: "delete_forever",
+                                    label: "Delete named bookmark"
+                                });
+
                                 const bookmarkName = lblChecked.textContent.trim();
                                 const spanBookmarkName = mkElt("span", undefined, bookmarkName);
                                 spanBookmarkName.style = `
@@ -2301,7 +2309,7 @@
                                     `),
                                     mkElt("p", undefined, btnDeleteNamed),
                                 ]);
-                                // const res = await modMdc.mkMDCdialogConfirm(body, "Delete", "Close");
+                                // const res = await modMdcOLD.mkMDCdialogConfirm(body, "Delete", "Close");
                                 // if (res) { deleteNamedBookmark(); }
                                 const dlg = await modMdc.mkMDCdialogAlert(body, "Close");
                                 dlg.dom.style.zIndex = "9999";
@@ -2330,12 +2338,27 @@
                         } else {
                             await handleTempBookmark();
                             async function handleTempBookmark() {
-                                const iconRemoveBookmark = modMdc.mkMDCicon("bookmark_remove");
-                                const btnRemove = modMdc.mkMDCbutton("Remove bookmark", undefined, iconRemoveBookmark);
-                                // const btnRename = modMdc.mkMDCbutton("rename");
-                                const inpName = modMdc.mkMDCtextFieldInput();
-                                inpName.value = getCheckedBookmarkName();
-                                const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                                // const iconRemoveBookmark = modMdcOLD.mkMDCicon("bookmark_remove");
+                                // const iconRemoveBookmark = modBasic.mkMdcIcon("bookmark_remove");
+                                // const btnRemove = modMdcOLD.mkMDCbutton("Remove bookmark", undefined, iconRemoveBookmark);
+                                const btnRemove = modBearHtml.createButton({
+                                    label: "Remove bookmark",
+                                    icon: "bookmark_remove"
+                                });
+                                // const btnRename = modMdcOLD.mkMDCbutton("rename");
+
+                                // inpName.value = getCheckedBookmarkName();
+                                // const inpName = modMdcOLD.mkMDCtextFieldInput();
+                                const objName = modBearHtml.createTextField({
+                                    label: "hej",
+                                    value: getCheckedBookmarkName(),
+                                });
+                                // debugger;
+                                const inpName = objName.input;
+                                const inpNameWrapper = objName.wrapper;
+
+                                // const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                                const iconBookmarkHeart = modBasic.mkMdcIcon("bookmark_heart");
                                 iconBookmarkHeart.style = `
                                 color: darkorange;
                                 margin-right: 5px;
@@ -2345,10 +2368,14 @@
                                     iconBookmarkHeart,
                                     "Named bookmarks are persistent."
                                 ]);
-                                const tfName = modMdc.mkMDCtextFieldOutlined("Bookmark name", inpName);
-                                const btnSaveNamedBookmark = modMdc.mkMDCbutton("Save");
+                                // const tfName = modMdcOLD.mkMDCtextFieldOutlined("Bookmark name", inpName);
+                                // const btnSaveNamedBookmark = modMdcOLD.mkMDCbutton("Save");
+                                const btnSaveNamedBookmark = modBearHtml.createButton({
+                                    label: "Save"
+                                });
                                 const divNaming = mkElt("p", undefined, [
-                                    tfName,
+                                    // tfName,
+                                    inpNameWrapper,
                                     btnSaveNamedBookmark,
                                 ])
                                 const divRename = mkElt("div", undefined, [
@@ -2390,15 +2417,16 @@
                                     divRename,
                                 ]);
                                 divActions.style = `
-                                display: flex;
-                                flex-direction: column;
-                                gap: 20px;
-                            `;
-                                const iconBookmark = modMdc.mkMDCicon("bookmark");
+                                    display: flex;
+                                    flex-direction: column;
+                                    gap: 20px;
+                                    `;
+                                // const iconBookmark = modMdcOLD.mkMDCicon("bookmark");
+                                const iconBookmark = modBasic.mkMdcIcon("bookmark");
                                 iconBookmark.style = `
-                                color: red;
-                                margin-right: 10px;
-                            `;
+                                    color: red;
+                                    margin-right: 10px;
+                                    `;
                                 const divInfoBookmarks = mkElt("p", undefined, [
                                     `
                                     Mindmap bookmarks are snapshots of bookmark state.
@@ -2463,7 +2491,7 @@
                                 btnSaveNamedBookmark.addEventListener("click", async evt => {
                                     evt.stopPropagation();
                                     // const eltNotYet = mkElt("span", { style: "color:red" }, "Handling named bookmarks is not fully implemented yet");
-                                    // modMdc.mkMDCsnackbar(eltNotYet);
+                                    // modMdcOLD.mkMDCsnackbar(eltNotYet);
                                     setBookmarkName(inpName.value.trim());
 
                                     const divList = document.getElementById("mm4i-history-list");
@@ -2484,8 +2512,9 @@
                                     saveMindmapBookmark(mindmapKey, bookmarkName, fullDisplayState);
                                     dlg.mdc.close();
                                 });
-                                dlg = await modMdc.mkMDCdialogAlert(body, "Close");
-                                dlg.dom.style.zIndex = "9999";
+                                // dlg = await modMdcOLD.mkMDCdialogAlert(body, "Close");
+                                // dlg.dom.style.zIndex = "9999";
+                                dlg = await modBasic.showDialog(body);
                             }
                         }
                     }
@@ -2529,7 +2558,13 @@
 
             const eltBoth = document.getElementById("both-versions");
             eltBoth.addEventListener("click", evt => { evt.stopPropagation(); });
-            const btnCloseBV = modMdc.mkMDCiconButton("close", "Remove version info");
+            // debugger;
+            // const btnCloseBV = modMdcOLD.mkMDCiconButton("close", "Remove version info");
+            const btnCloseBV = modBearHtml.createButton({ icon: "close" });
+            btnCloseBV.title = "- Remove version info";
+            btnCloseBV.style.background = "transparent";
+            btnCloseBV.style.color = "#0006";
+            btnCloseBV.style.padding = "0px";
             eltBoth.appendChild(btnCloseBV);
             btnCloseBV.addEventListener("click", evt => { evt.stopPropagation(); eltBoth.remove(); });
 
@@ -2552,10 +2587,12 @@
                     const spanAutoTopic = mkElt("span", undefined, autoTopic);
                     spanAutoTopic.classList.add("auto-topic");
                     const spanBookmarkName = mkElt("span");
-                    const iconBookmark = modMdc.mkMDCicon("bookmark");
+                    // const iconBookmark = modMdcOLD.mkMDCicon("bookmark");
+                    const iconBookmark = modBasic.mkMdcIcon("bookmark");
                     iconBookmark.classList.add("icon-bookmark");
                     iconBookmark.style.zoom = 0.7;
-                    const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                    // const iconBookmarkHeart = modMdcOLD.mkMDCicon("bookmark_heart");
+                    const iconBookmarkHeart = modBasic.mkMdcIcon("bookmark_heart");
                     iconBookmarkHeart.classList.add("icon-bookmark-named");
                     iconBookmarkHeart.style.zoom = 0.7;
                     const spanBookmarkedTopic = mkElt("span", undefined, [
@@ -2832,8 +2869,11 @@
             });
 
 
-            // const btnHistory = modMdc.mkMDCiconButton("deployed_code_history", "Undo/Redo");
-            const btnHistory = modMdc.mkMDCiconButton("history", "Undo/Redo");
+            // const btnHistory = modMdcOLD.mkMDCiconButton("deployed_code_history", "Undo/Redo");
+            // const btnHistory = modMdcOLD.mkMDCiconButton("history", "Undo/Redo");
+            // debugger;
+            const btnHistory = modBearHtml.createButton({ icon: "history" }, "Undo/Redo");
+            btnHistory.title = "- Undo/Redo";
             btnHistory.id = "mm4i-btn-history";
             btnHistory.classList.add("marker-at-bottom");
             let undoIsSetup = false;
