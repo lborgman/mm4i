@@ -418,10 +418,13 @@
             console.log("!thisIsPortableHtml: check importing pwa.js");
             // debugger;
             const modMMhelpers = await importFc4i("mindmap-helpers");
-            if (!modMMhelpers.isLocalhost()) {
+            // FIX-ME: no pwa on github yet:
+            const isOnGitHub = location.hostname === "lborgman.github.io";
+            const startPWA = (!isOnGitHub) && (!modMMhelpers.isLocalhost());
+            if (startPWA) {
                 import("./pwa.js");
             } else {
-                console.log("Not importing pwa.js, was localhost");
+                console.log("Not importing pwa.js");
             }
         }
     </script>
