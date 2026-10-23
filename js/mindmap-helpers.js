@@ -24,6 +24,11 @@ export function getUrlMindmapsPage() {
     if (usePrerender()) {
         return "./mm4i.html";
     }
+    // debugger;
+    // Getting rid of prerender and Vercel
+    if (-1 == location.host.search("vercel")) {
+        return "./mm4i.html";
+    }
     return "./mm4i-template.html";
 }
 
@@ -266,6 +271,7 @@ export async function save_NOT_SAVEABLE(jmDisplayed) {
 
     const modMdc = await importFc4i("util-mdc");
     const modBasic = await importFc4i("basic-ui");
+    const modBear = await importFc4i("bear-html");
 
     const spanText = marker.firstElementChild;
     if (!spanText) throw Error("Did not find spanText");
@@ -289,7 +295,8 @@ function askSave_NOT_SAVEABLE(jmDisplayed) {
         if ("string" != tofNS) throw Error(`typeof NOT_SAVEABLE: "${tofNS}" (not "string")`)
         const msgNS = jmDisplayed.NOT_SAVEABLE;
         const modMdc = await importFc4i("util-mdc");
-    const modBasic = await importFc4i("basic-ui");
+        const modBasic = await importFc4i("basic-ui");
+        const modBear = await importFc4i("bear-html");
         const body = mkElt("div", undefined, [
             mkElt("p", undefined, msgNS),
             mkElt("p", undefined, "Do you want to save it?")
@@ -419,9 +426,11 @@ async function checkInappAndSaveMindmap(keyName, objMindData, lastUpdated, lastS
     // const webbrowserInfo = await modTools.promWebBrowserInfo;
     const webbrowserInfo = await window["promWebBrowserInfo"];
     if (webbrowserInfo && webbrowserInfo.isInApp !== false) {
-        const modMdc = await importFc4i("util-mdc");
-    const modBasic = await importFc4i("basic-ui");
-        modMdc.mkMDCsnackbar("Did not save because in-app browser");
+        // const modMdc = await importFc4i("util-mdc");
+        const modBasic = await importFc4i("basic-ui");
+        // const modBear = await importFc4i("bear-html");
+        // modMdc.mkMDCsnackbar("Did not save because in-app browser");
+        modBasic.snackbar("Did not save because in-app browser");
         return;
     }
     const dbMindmaps = await importFc4i("db-mindmaps");
@@ -689,12 +698,19 @@ export async function getMindmapTopic(key) {
 async function dialogCreateMindMap() {
     const modMdc = await importFc4i("util-mdc");
     const modBasic = await importFc4i("basic-ui");
+    const modBear = await importFc4i("bear-html");
     const dbMindmaps = await importFc4i("db-mindmaps");
 
     const title = mkElt("h2", undefined, "Create new mindmap");
     const pTopicOk = mkElt("p", undefined, "");
     pTopicOk.textContent = "Please input a topic name.";
-    const inpRoot = modMdc.mkMDCtextFieldInput(undefined, "text");
+
+    debugger;
+    // const inpRoot = modMdc.mkMDCtextFieldInput(undefined, "text");
+    const test = modBear.createTextField({ label: "Topic", border: true });
+    console.log({ test });
+    const inpRoot = test.input;
+
     let btnOk;
     const arrAll = await dbMindmaps.DBgetAllMindmaps();
     inpRoot.addEventListener("input", _evt => {
@@ -711,7 +727,13 @@ async function dialogCreateMindMap() {
                 const mm = r.jsmindmap;
                 if (mm.format != "node_array") throw Error(`Expected format "node_array": ${mm.format}`);
                 const root = mm.data[0];
-                if (root.id != "root") throw Error(`Not root: ${root.id}`);
+                if (root.id != "root") {
+                    // throw Error(`Not root: ${root.id}`);
+                    const msg = `Not root: ${root.id}`;
+                    console.error(msg);
+                    debugger;
+                    // throw Error(msg);
+                }
                 const oldTopic = root.topic;
                 if (valid && (oldTopic === topic)) {
                     valid = false;
@@ -724,7 +746,8 @@ async function dialogCreateMindMap() {
             pTopicOk.textContent = "Name is valid";
         }
     });
-    const tfRoot = modMdc.mkMDCtextField("Mindmap name", inpRoot);
+    // const tfRoot = modMdc.mkMDCtextField("Mindmap name", inpRoot);
+    const tfRoot = test.wrapper;
     const body = mkElt("div", undefined, [
         title,
         tfRoot,
@@ -1359,6 +1382,7 @@ export async function checkWebBrowser() {
 
     const modMdc = await importFc4i("util-mdc");
     const modBasic = await importFc4i("basic-ui");
+    const modBear = await importFc4i("bear-html");
 
     const chkReverseInApp = mkElt("input", { type: "checkbox" });
     const lblReverseInApp = mkElt("label", undefined, ["Pretend revese in-app: ", chkReverseInApp]);

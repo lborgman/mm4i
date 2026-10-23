@@ -6109,11 +6109,11 @@ function convertToValidFilename(anyString) {
 
 
 // 🔥 Test Suite (Works in Browser Console and Node.js terminal)
-console.log(convertToValidFilename("my:invalid/file*name.txt"));
+// console.log(convertToValidFilename("my:invalid/file*name.txt"));
 // ➡️ "my invalid file name.txt"
 
-console.log(convertToValidFilename("报告/Report 2026?.pdf"));
+// console.log(convertToValidFilename("报告/Report 2026?.pdf"));
 // ➡️ "报告 Report 2026.pdf" (Preserves Chinese characters & accents!)
 
-console.log(convertToValidFilename("🚀".repeat(100) + ".png"));
+// console.log(convertToValidFilename("🚀".repeat(100) + ".png"));
 // ➡️ Automatically cuts off at exactly 255 bytes without breaking the emojis

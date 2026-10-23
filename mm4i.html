@@ -411,15 +411,17 @@
     <!-- FIX-ME: -->
     <!-- <script type="module" src="./pwa.js"></script> -->
     <script type="module">
-        debugger;
+        // debugger;
         // if ((typeof window.thisIsPortableHtml) == "undefined") {
         // if (!window.funThisIsPortableHtml()) {
         if (!document.documentElement.classList.contains("portable-map")) {
-            console.log("!thisIsPortableHtml: importing pwa.js");
-            debugger;
+            console.log("!thisIsPortableHtml: check importing pwa.js");
+            // debugger;
             const modMMhelpers = await importFc4i("mindmap-helpers");
             if (!modMMhelpers.isLocalhost()) {
                 import("./pwa.js");
+            } else {
+                console.log("Not importing pwa.js, was localhost");
             }
         }
     </script>
@@ -478,6 +480,7 @@
     <!-- <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.css"> -->
     <link rel="stylesheet" href="./ext/mdc/14.0.0/material-components-web.css">
 
+    <link href="https://cdn.jsdelivr.net/npm/beercss@5.0.3/dist/cdn/beer.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lborgman/text-and-link@main/basic-ui/new-basic-ui.css">
 
     <link rel="stylesheet" href="./css/mm4i.css">
@@ -503,6 +506,7 @@
         onload="this.onload=null; this.rel='stylesheet'" />
 
     <style>
+        /*
         dialog {
             border: none;
             border-radius: 4px;
@@ -520,6 +524,11 @@
             backdrop-filter: blur(2px);
             background-color: #99999966;
         }
+
+        dialog h2 {
+            font-size: 1.7rem;
+        }
+        */
 
 
         .mdc-tab {
@@ -2020,6 +2029,32 @@
             }
         }
     </style>
+    <!--
+    <style id="fix-beer-problems">
+
+        menu.active,
+        :not([data-ui]):focus-within>menu,
+        menu>li:hover>menu,
+        menu>li>menu:hover {
+            opacity: 1;
+            visibility: hidden;
+            transform: scale(1) translateY(100%);
+            transition: all var(--speed2), background-color 0s;
+            background-color: red;
+        }
+
+        menu.active,
+        :not([data-ui]):focus-within>menu,
+        menu>li:hover>menu,
+        menu>li>menu:hover {
+            opacity: 1;
+            visibility: visible;
+            transform: none;
+            transition: initial;
+            background-color: yellow;
+        }
+    </style>
+    -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind@0.5/es6/jsmind.js"></script> -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind/es6/jsmind.js"></script> -->
     <!-- <script src="./ext/jsmind/jsmind-dbg.js"></script> -->
@@ -2112,10 +2147,16 @@
             }
             const throttleSaveHistoryPanelSize = modTools.throttleTO(saveHistoryPanelSize, 200);
 
+
+            // FIX-ME: icons??
             const modMdc = await importFc4i("util-mdc");
             modMdc.setIconsFor("mm4i");
-            // FIX-ME: icons??
             const modBasic = await importFc4i("basic-ui");
+            modBasic.setIconsFor("mm4i");
+            const iconClass = modBasic.getIconClass();
+            const modBeerHtml = await importFc4i("bear-html");
+            modBeerHtml.setIconClass(iconClass);
+
 
             const modMMhelpers = await importFc4i("mindmap-helpers");
 
@@ -2131,7 +2172,7 @@
                 modMMhelpers.checkWebBrowser();
             }
             if (!calledCheckWebBrowser) {
-                debugger;
+                // debugger;
                 if (webbrowserInfo?.isInApp) {
                     modMMhelpers.checkWebBrowser();
                 }
@@ -2178,7 +2219,7 @@
 
             // debugger;
             // const iconHistory = modMdc.mkMDCicon("history");
-            const iconHistory = modBasic.mkIcon("history");
+            const iconHistory = modBasic.mkMdcIcon("history");
             iconHistory.id = "icon-history";
             iconHistory.inert = true;
 
@@ -2200,7 +2241,13 @@
                 spanHistoryHeaderLeft.appendChild(spanLinearTree);
                 spanHistoryHeaderLeft.id = "span-history-left";
 
-                const btnBookmark = modMdc.mkMDCiconButton("bookmark", "Add/remove bookmark");
+                const OLDbtnBookmark = modMdc.mkMDCiconButton("bookmark", "Add/remove bookmark");
+                // debugger;
+                const btnBookmark = modBeerHtml.createButton({
+                    icon: "bookmark",
+                    // size: "large",
+                    // title: "Add/remove bookmark"
+                });
                 btnBookmark.id = "btn-bookmark";
                 btnBookmark.inert = true;
                 spanHistoryHeaderLeft.appendChild(btnBookmark);
@@ -2223,12 +2270,14 @@
                         if (isPersistentBookmark) {
                             await handlePersistentBookmark();
                             async function handlePersistentBookmark() {
-                                const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                                // const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                                const iconBookmarkHeart = modBasic.mkMdcIcon("bookmark_heart");
                                 iconBookmarkHeart.style = `
                                 color: darkorange;
                                 margin-right: 5px;
                             `;
-                                const iconDelete = modMdc.mkMDCicon("delete_forever")
+                                // const iconDelete = modMdc.mkMDCicon("delete_forever")
+                                const iconDelete = modMdc.mkMdcIcon("delete_forever")
                                 const btnDeleteNamed = modMdc.mkMDCbutton("Delete named bookmark", undefined, iconDelete);
                                 const bookmarkName = lblChecked.textContent.trim();
                                 const spanBookmarkName = mkElt("span", undefined, bookmarkName);

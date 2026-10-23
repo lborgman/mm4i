@@ -19,6 +19,7 @@ if (!jsMind) { throw Error("jsMind is not setup"); }
 const modMMhelpers = await importFc4i("mindmap-helpers");
 const modMdc = await importFc4i("util-mdc");
 const modBasic = await importFc4i("basic-ui");
+const modBear = await importFc4i("bear-html");
 const modTools = await importFc4i("toolsJs");
 const modLocalSettings = await importFc4i("local-settings");
 const settingSortMm = new modLocalSettings.LocalSetting("mm4i-", "sortmm", "Name");
@@ -3121,7 +3122,7 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
             const eltMm = mkElt("div", undefined, [eltA, btnDelete]);
             const li = modMdc.mkMDCmenuItem(eltMm);
             li.addEventListener("click", () => {
-                closeDialog();
+                // closeDialog();
             });
             return li;
         });
@@ -3144,7 +3145,30 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
         btnSortMm.style.height = "40px";
         btnSortMm.style.aspectRatio = "1 / 1";
         btnSortMm.style.minWidth = "unset";
+
+        const objSortMenu = modBear.createMenu({
+            // trigger: btnSortMm,
+            items: [
+                {
+                    label: "item A",
+                    onSelect: () => alert("A")
+                }
+            ]
+        });
+        const menuSortMm = /** @type {HTMLMenuElement} */ (objSortMenu.menu);
+        const divSortMm = mkElt("div", undefined, [btnSortMm, menuSortMm]);
+        console.log("divSortMm", divSortMm);
+
+        // FIX-ME: moved to modBear:
+        // menuSortMm.attributeStyleMap.delete("display");
+        // menuSortMm.attributeStyleMap.delete("position");
+
+
+
         btnSortMm.addEventListener("click", () => {
+            console.log("clicked btnSortMm");
+        });
+        btnSortMm.addEventListener("NOclick", () => {
             const idSortMenu = "menu-sort-mm-list";
             if (removeMenu()) return;
             function removeMenu() {
@@ -3173,6 +3197,11 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
             const eltByName = mkEltBy("Name");
             const eltByAge = mkEltBy("Age");
 
+            const liHeader = mkElt("li", undefined, mkElt("b", undefined, "Sort"));
+            liHeader.style = `
+                display: flex;
+                background-color: #0004;
+            `;
             const liAddChild = mkMenuItem(eltByName, () => {
                 removeMenu();
                 settingSortMm.value = "Name";
@@ -3186,6 +3215,7 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
                 // alert("not ready")
             });
             const arrSortMenu = [
+                liHeader,
                 liAddChild,
                 liSortByAge
             ];
@@ -3201,12 +3231,19 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
 
             const bcrBtn = btnSortMm.getBoundingClientRect();
             divSortMenu.style.position = "fixed";
+
             divSortMenu.style.top = `${bcrBtn.top + 40}px`;
             divSortMenu.style.left = `${bcrBtn.left}px`;
 
+            // Inside dialog use this instead
+            divSortMenu.style.top = `10px`;
+            divSortMenu.style.left = `10px`;
+
+
             // document.body.appendChild(divSortMenu);
-            const divContainer = btnSortMm.closest("div.mdc-dialog__container")
-            divContainer.appendChild(divSortMenu);
+            // const divContainer = btnSortMm.closest("div.mdc-dialog__container")
+            // const divContainer = btnSortMm.closest("#div-dialog-mindmaps");
+            // divContainer.appendChild(divSortMenu);
 
             divSortMenu.style.opacity = "1";
             divSortMenu.style.backgroundColor = "#fff";
@@ -3216,22 +3253,16 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
 
             window.d = divSortMenu;
         });
-        spanButtons.appendChild(btnSortMm);
 
-        spanButtons.appendChild(btnSortMm);
 
         const eltIconNew = modMdc.mkMDCicon("add");
         const btnFabNew = modMdc.mkMDCfab(eltIconNew, "Create new mindmap", true);
         btnFabNew.addEventListener("click", () => {
             modMMhelpers.createAndShowNewMindmap();
         });
-        // btnFabNew.style.marginLeft = "40px";
-        // eltTitle.appendChild(btnFabNew);
-        spanButtons.appendChild(btnFabNew);
 
         const eltIconGenAI = modMdc.mkMDCicon("add_link");
         const btnFabGenAI = modMdc.mkMDCfab(eltIconGenAI, "Make mindmap with AI from link", true);
-        // btnFabGenAI.style.backgroundColor = "lightskyblue";
         btnFabGenAI.style.backgroundColor = "#FF0FDC";
 
         btnFabGenAI.addEventListener("click", async () => {
@@ -3242,7 +3273,9 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
             eltDialogOpen.remove();
             modAIhelpers.generateMindMap();
         });
+        spanButtons.appendChild(btnFabNew);
         spanButtons.appendChild(btnFabGenAI);
+        spanButtons.appendChild(divSortMm);
     }
 
     updateDivUlMM(settingSortMm.valueS);
@@ -3252,10 +3285,13 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
         divUlMM,
     ]);
 
-    const btnClose = modMdc.mkMDCdialogButton("Close", "close", true);
-    const eltActions = modMdc.mkMDCdialogActions([btnClose]);
-    const dlg = await modMdc.mkMDCdialog(body, eltActions);
-    function closeDialog() { dlg.mdc.close(); }
+    // const btnClose = modMdc.mkMDCdialogButton("Close", "close", true);
+    // const eltActions = modMdc.mkMDCdialogActions([btnClose]);
+    // const dlg = await modMdc.mkMDCdialog(body, eltActions);
+    // function closeDialog() { dlg.mdc.close(); }
+
+    await modBasic.showDialog(body);
+    // request
 }
 
 export async function dialogFindInMindMaps(key, provider) {

@@ -156,6 +156,7 @@ const cacheImportFc4i = new Map();
 
         "util-mdc": "./js/mod/util-mdc.js",
         "basic-ui": "https://cdn.jsdelivr.net/gh/lborgman/text-and-link@main/basic-ui/new-basic-ui.js",
+        "bear-html": "https://cdn.jsdelivr.net/gh/lborgman/text-and-link@main/bear-html.js",
 
 
         "woff-codepoints": "./js/mod/woff-codepoints.js",
@@ -228,6 +229,7 @@ const cacheImportFc4i = new Map();
 
     const isImporting = {};
 
+    let dbgHasCheckedInappFormat = false;
 
     /** @param {string} idOrLink @returns {Promise<Object>} */
     async function importFc4i(idOrLink) {
@@ -237,15 +239,18 @@ const cacheImportFc4i = new Map();
         // if ((typeof window.isPortableHtml) == "undefined") {
         // if (!window.funThisIsPortableHtml()) {
         if (!document.documentElement.classList.contains("portable-map")) {
-            const webBrowserInfo = await window["promWebBrowserInfo"];
-            const gotIsInApp = webBrowserInfo?.isInApp;
-            const tofGotIsInApp = typeof gotIsInApp;
-            if (tofGotIsInApp == "boolean") {
-                isInApp = gotIsInApp;
-            } else {
-                // debugger; // eslint-disable-line no-debugger
-                console.warn(`tofGotIsInapp == "${tofGotIsInApp}"`);
+            if (!dbgHasCheckedInappFormat) {
+                const webBrowserInfo = await window["promWebBrowserInfo"];
+                const gotIsInApp = webBrowserInfo?.isInApp;
+                const tofGotIsInApp = typeof gotIsInApp;
+                if (tofGotIsInApp == "boolean") {
+                    isInApp = gotIsInApp;
+                } else {
+                    // debugger; // eslint-disable-line no-debugger
+                    console.warn(`tofGotIsInapp == "${tofGotIsInApp}"`);
+                }
             }
+            dbgHasCheckedInappFormat = true;
         }
         if (idOrLink.startsWith("https://")) {
             return await import(idOrLink);
