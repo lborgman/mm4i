@@ -2058,6 +2058,58 @@
         }
     </style>
     -->
+    <style id="fix-beer-invalid">
+        /* Make native HTML validation behave like BeerCSS .invalid. From Copilot. */
+
+        .field.border:has(> :invalid)> :is(input, textarea, select),
+        .field.border:has(> :invalid)> :is(input, textarea, select):focus {
+            border-color: var(--error);
+        }
+
+        .field:not(.border, [class*="round"]):has(> :invalid)> :is(input, textarea, select),
+        .field:not(.border, [class*="round"]):has(> :invalid)> :is(input, textarea, select):focus {
+            border-block-end-color: var(--error);
+        }
+
+        .field.label:has(> :invalid)>label,
+        .field.label:has(> :invalid)>label::after {
+            color: var(--error) !important;
+            border-color: var(--error) !important;
+        }
+
+        .field:has(> :invalid)>i {
+            color: var(--error);
+        }
+
+        .field:has(> :invalid)>output.invalid {
+            display: block;
+        }
+
+        /* temp for testing: */
+        /* from mdc: */
+        .mdc-card {
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            position: relative;
+
+            /* Background and Theme Colors */
+            background-color: #fff;
+            background-color: var(--mdc-theme-surface, #fff);
+
+            /* Corners & Borders */
+            border-radius: 4px;
+            border-radius: var(--mdc-shape-medium, 4px);
+            border-width: 0;
+            border-style: solid;
+            border-color: transparent;
+
+            /* Default Elevation (Shadow) */
+            box-shadow: 0px 2px 1px -1px rgba(0, 0, 0, 0.2),
+                0px 1px 1px 0px rgba(0, 0, 0, 0.14),
+                0px 1px 3px 0px rgba(0, 0, 0, 0.12);
+        }
+    </style>
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind@0.5/es6/jsmind.js"></script> -->
     <!-- <script src="https://cdn.jsdelivr.net/npm/jsmind/es6/jsmind.js"></script> -->
     <!-- <script src="./ext/jsmind/jsmind-dbg.js"></script> -->
@@ -2311,11 +2363,16 @@
                                 ]);
                                 // const res = await modMdcOLD.mkMDCdialogConfirm(body, "Delete", "Close");
                                 // if (res) { deleteNamedBookmark(); }
-                                const dlg = await modMdc.mkMDCdialogAlert(body, "Close");
-                                dlg.dom.style.zIndex = "9999";
+
+                                // const dlg = await modMdc.mkMDCdialogAlert(body, "Close");
+                                // dlg.dom.style.zIndex = "9999";
+                                modBasic.showDialog(body);
+
                                 btnDeleteNamed.addEventListener("click", evt => {
                                     evt.stopPropagation();
-                                    dlg.mdc.close();
+                                    // dlg.mdc.close();
+                                    // debugger;
+                                    modBasic.closeMyDialog(btnDeleteNamed);
                                     deleteNamedBookmark();
                                 })
                                 async function deleteNamedBookmark() {
@@ -2458,11 +2515,16 @@
                                         const oldNames = getBookmarkNames();
                                         if (oldNames.includes(val)) {
                                             btnSaveNamedBookmark.inert = true;
-                                            modMdc.setValidityMDC(inpName, `Name "${val}" already in use`);
+                                            // modMdc.setValidityMDC(inpName, `Name "${val}" already in use`);
+                                            inpName.setCustomValidity(`Name "${val}" already in use`);
+                                            inpName.reportValidity();
                                             return;
                                         }
                                     }
-                                    modMdc.setValidityMDC(inpName, "");
+                                    // modMdc.setValidityMDC(inpName, "");
+                                    inpName.setCustomValidity("");
+                                    inpName.reportValidity();
+
                                     // btnSaveName.inert = val.length == 0;
                                     btnSaveNamedBookmark.inert = false;
                                 });
@@ -2510,7 +2572,8 @@
 
                                     // saveMindmapBookmark(mindmapKey, bookmarkName, objMindData);
                                     saveMindmapBookmark(mindmapKey, bookmarkName, fullDisplayState);
-                                    dlg.mdc.close();
+                                    // dlg.mdc.close();
+                                    modBasic.closeMyDialog(btnSaveNamedBookmark);
                                 });
                                 // dlg = await modMdcOLD.mkMDCdialogAlert(body, "Close");
                                 // dlg.dom.style.zIndex = "9999";
@@ -2634,7 +2697,8 @@
                     margin: 0 10px;
                     background-color: orange;
                 `;
-                    const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                    // const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                    const iconBookmarkHeart = modBasic.mkMdcIcon("bookmark_heart");
                     const eltPersistenHeader = mkElt("div", undefined, [
                         iconBookmarkHeart,
                         " Named bookmarks"
