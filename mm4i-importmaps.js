@@ -231,9 +231,16 @@ const cacheImportFc4i = new Map();
 
     let dbgHasCheckedInappFormat = false;
 
+    /** @param {string} idOrLink @returns {Object|undefined} */
+    function importFc4iCached(idOrLink) {
+        const oldModule = cacheImportFc4i.get(idOrLink);
+        return oldModule;
+    }
+
     /** @param {string} idOrLink @returns {Promise<Object>} */
     async function importFc4i(idOrLink) {
-        const oldModule = cacheImportFc4i.get(idOrLink);
+        // const oldModule = cacheImportFc4i.get(idOrLink);
+        const oldModule = importFc4iCached(idOrLink);
         if (oldModule) return oldModule;
         let isInApp = false;
         // if ((typeof window.isPortableHtml) == "undefined") {
