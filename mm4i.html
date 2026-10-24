@@ -2364,7 +2364,7 @@
                                 // const res = await modMdcOLD.mkMDCdialogConfirm(body, "Delete", "Close");
                                 // if (res) { deleteNamedBookmark(); }
 
-                                // const dlg = await modMdc.mkMDCdialogAlert(body, "Close");
+                                // const dlg = await modMdcOLD.mkMDCdialogAlert(body, "Close");
                                 // dlg.dom.style.zIndex = "9999";
                                 modBasic.showDialog(body);
 
@@ -2407,14 +2407,14 @@
                                 // inpName.value = getCheckedBookmarkName();
                                 // const inpName = modMdcOLD.mkMDCtextFieldInput();
                                 const objName = modBearHtml.createTextField({
-                                    label: "hej",
+                                    label: "Bookmark name",
                                     value: getCheckedBookmarkName(),
                                 });
                                 // debugger;
                                 const inpName = objName.input;
                                 const inpNameWrapper = objName.wrapper;
 
-                                // const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                                // const iconBookmarkHeart = modMdcOLD.mkMDCicon("bookmark_heart");
                                 const iconBookmarkHeart = modBasic.mkMdcIcon("bookmark_heart");
                                 iconBookmarkHeart.style = `
                                 color: darkorange;
@@ -2504,8 +2504,10 @@
                                     evt.stopPropagation();
                                     lblChecked.classList.remove("bookmarked");
                                     btnBookmark.classList.remove("bookmarked");
-                                    modMdc.mkMDCsnackbar("Removed bookmark");
-                                    dlg.mdc.close();
+                                    // modMdcOLD.mkMDCsnackbar("Removed bookmark");
+                                    modBasic.snackbar("Removed bookmark");
+                                    // dlg.mdc.close();
+                                    modBasic.closeMyDialog(btnRemove);
                                 });
                                 btnSaveNamedBookmark.inert = true;
                                 inpName.addEventListener("input", evt => {
@@ -2515,13 +2517,13 @@
                                         const oldNames = getBookmarkNames();
                                         if (oldNames.includes(val)) {
                                             btnSaveNamedBookmark.inert = true;
-                                            // modMdc.setValidityMDC(inpName, `Name "${val}" already in use`);
+                                            // modMdcOLD.setValidityMDC(inpName, `Name "${val}" already in use`);
                                             inpName.setCustomValidity(`Name "${val}" already in use`);
                                             inpName.reportValidity();
                                             return;
                                         }
                                     }
-                                    // modMdc.setValidityMDC(inpName, "");
+                                    // modMdcOLD.setValidityMDC(inpName, "");
                                     inpName.setCustomValidity("");
                                     inpName.reportValidity();
 
@@ -2697,7 +2699,7 @@
                     margin: 0 10px;
                     background-color: orange;
                 `;
-                    // const iconBookmarkHeart = modMdc.mkMDCicon("bookmark_heart");
+                    // const iconBookmarkHeart = modMdcOLD.mkMDCicon("bookmark_heart");
                     const iconBookmarkHeart = modBasic.mkMdcIcon("bookmark_heart");
                     const eltPersistenHeader = mkElt("div", undefined, [
                         iconBookmarkHeart,
@@ -2895,7 +2897,8 @@
                 const objMindStored = objHistoryFullDisplay.objMindStored;
                 if (!objMindStored) {
                     // debugger;
-                    modMdc.mkMDCsnackbar("Old format naned bookmark, please delete");
+                    // modMdcOLD.mkMDCsnackbar("Old format naned bookmark, please delete");
+                    modBasic.snackbar("Old format naned bookmark, please delete");
                     return;
                 }
 

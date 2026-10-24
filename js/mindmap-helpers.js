@@ -1171,8 +1171,8 @@ export function checkIsFullMindmapDisplayState(obj, where) {
     if (!modTools.haveSameKeys(objTemplate, obj)) {
         // const msg = `Not a fullDisplayState: ${JSON.stringify(obj)}`;
         const msg = `Not a fullDisplayState`;
-        // console.error(msg);
-        // debugger; // eslint-disable-line no-debugger
+        console.error(msg);
+        debugger; // eslint-disable-line no-debugger
         throwErr(msg);
     }
     checkIsMMformatStored(obj["objMindStored"], "checkIsFullDisplayState");

@@ -222,21 +222,38 @@ export async function wait4connected(elt, msMaxWait, msInterval) {
 
 async function getWebBrowserInfo() {
 
-    function getRealBrands() {
+    /*
+    function OLDgetRealBrands() {
         const userAgentData = navigator["userAgentData"];
         if (!userAgentData || !userAgentData?.brands) return [];
         return userAgentData.brands.filter(brand =>
             !/[^a-zA-Z0-9]/.test(brand.brand)
         );
     }
+    */
 
-    function isChromiumBased() {
+    /*
+    function OLDisChromiumBased() {
         const brands = getRealBrands();
         return brands.some(brand =>
             /Chromium|Chrome|GoogleChrome|MicrosoftEdge|Opera|Brave/i.test(brand.brand)
         ) ||
             // !!window.chrome;
             !!window["chrome"];
+    }
+    */
+    function isChromiumBrowser() {
+        // This is supposed to follow W3C spec!
+        // Check if the User-Agent Client Hints API is supported
+        // @ts-ignore
+        if (navigator.userAgentData && navigator.userAgentData.brands) {
+            // Look for "Chromium" in the brand array
+            // @ts-ignore
+            return navigator.userAgentData.brands.some(item => item.brand === 'Chromium');
+        }
+
+        // Return false if the API isn't supported (e.g., Safari, Firefox)
+        return false;
     }
 
     function isMobileDevice() {
@@ -293,7 +310,7 @@ async function getWebBrowserInfo() {
         }
         const { isInApp, appKey, appName } = modInappSpy.default();
         const isAndroidApp = getAndroidApp();
-        const isChromium = isChromiumBased();
+        const isChromium = isChromiumBrowser();
         const isPWA = getIsPWA();
         const hasSW = await getHasSW();
         const isMobile = isMobileDevice();
@@ -1488,11 +1505,12 @@ export async function fetchReTLD() {
  */
 export async function copyTextToClipboard(txt, noSnackbar) {
     const addSnackbar = noSnackbar == undefined ? true : !noSnackbar;
-    const modMdc = await importFc4i("util-mdc");
+    // const modMdcOLD = await importFc4i("util-mdc");
     const modBasic = await importFc4i("basic-ui");
     try {
         await navigator.clipboard.writeText(txt);
-        if (addSnackbar) modMdc.mkMDCsnackbar('Copied to clipboard');
+        // if (addSnackbar) modMdcOLD.mkMDCsnackbar('Copied to clipboard');
+        if (addSnackbar) modBasic.snackbar('Copied to clipboard');
         return true;
     } catch (error) {
         const errMsg = String(error);
@@ -1535,9 +1553,10 @@ async function showInfoPermissions(txtWhich) {
         ]),
         pLink
     ]);
-    const modMdc = await importFc4i("util-mdc");
+    // const modMdcOLD = await importFc4i("util-mdc");
     const modBasic = await importFc4i("basic-ui");
-    modMdc.mkMDCdialogAlert(body);
+    // modMdcOLD.mkMDCdialogAlert(body);
+    modBasic.showDialog(body);
 }
 
 export class TimeoutTimer {
@@ -2954,7 +2973,7 @@ async function show4bugLogs() {
         h2,
         divDebug
     ]);
-    const modMdc = await importFc4i("util-mdc");
+    // const modMdcOLD = await importFc4i("util-mdc");
     const modBasic = await importFc4i("basic-ui");
     setTimeout(() => {
         const openedDialog = h2.closest("div.mdc-dialog--open");
@@ -2965,7 +2984,8 @@ async function show4bugLogs() {
             openedDialog.style.zIndex = "9999";
         }
     }, 0.5 * 1000);
-    modMdc.mkMDCdialogAlert(body);
+    // modMdcOLD.mkMDCdialogAlert(body);
+    modBasic.showDialog(body);
 }
 
 window["fastLog4bug"] = log4bug;
@@ -2975,12 +2995,12 @@ window["fastLog4bugTurnOn"] = turnLog4Bug;
 
 export async function setupVirtualKeyboardDetection() {
     await promiseDOMready();
-    const modMdc = await importFc4i("util-mdc");
+    // const modMdcOLD = await importFc4i("util-mdc");
     const modBasic = await importFc4i("basic-ui");
 
     if ('virtualKeyboard' in navigator) {
         setTimeout(() => {
-            // modMdc.mkMDCsnackbar("has virtualKeyboard API");
+            // modMdcOLD.mkMDCsnackbar("has virtualKeyboard API");
             // Listen for geometry changes
             // https://gomakethings.com/checking-for-focus-in-an-element-using-css-in-your-javascript/
             // @ts-ignore
@@ -2988,8 +3008,9 @@ export async function setupVirtualKeyboardDetection() {
                 // @ts-ignore
                 const keyboardRect = navigator.virtualKeyboard.boundingRect;
                 const height = keyboardRect.height;
-                // const modMdc = await importFc4i("util-mdc");
-                modMdc.mkMDCsnackbar(`vk height: ${height}`);
+                // const modMdcOLD = await importFc4i("util-mdc");
+                // modMdcOLD.mkMDCsnackbar(`vk height: ${height}`);
+                modBasic.snackbar(`vk height: ${height}`);
                 if (height > 0) {
                     // You can now adjust your UI based on this height
                     vkActiveLocal(true);
@@ -2997,7 +3018,7 @@ export async function setupVirtualKeyboardDetection() {
                     vkActiveLocal(false);
                 }
             };
-            // modMdc.mkMDCsnackbar("Added geometrychange listener");
+            // modMdcOLD.mkMDCsnackbar("Added geometrychange listener");
 
 
 
@@ -3018,12 +3039,14 @@ export async function setupVirtualKeyboardDetection() {
 
                 // Use a small tolerance to avoid false positives from minor UI changes
                 if (Math.abs(currentViewportHeight - initialViewportHeight) > 100) {
-                    modMdc.mkMDCsnackbar("Virtual keyboard is likely active.");
+                    // modMdcOLD.mkMDCsnackbar("Virtual keyboard is likely active.");
+                    modBasic.snackbar("Virtual keyboard is likely active.");
                     // Adjust your PWA's layout here.
                     // For example, scroll an element into view or reposition it.
                     vkActiveLocal(true);
                 } else {
-                    modMdc.mkMDCsnackbar("Virtual keyboard is likely hidden.");
+                    // modMdcOLD.mkMDCsnackbar("Virtual keyboard is likely hidden.");
+                    modBasic.snackbar("Virtual keyboard is likely hidden.");
                     // Reset your layout adjustments.
                     vkActiveLocal(false);
                 }
@@ -3052,13 +3075,16 @@ async function vkActiveLocal(active) {
     return;
     const tofActive = typeof active;
     if ("boolean" != tofActive) throw Error(`vkActive: typeof active == "${tofActive}"`);
-    const modMdc = await importFc4i("util-mdc");
+    // const modMdcOLD = await importFc4i("util-mdc");
+    const modBasic = await importFc4i("basic-ui");
     if (active) {
         document.documentElement.classList.add("VK_ACTIVE");
-        modMdc.mkMDCsnackbar("Virtual keyboard ON");
+        // modMdcOLD.mkMDCsnackbar("Virtual keyboard ON");
+        modBasic.snackbar("Virtual keyboard ON");
     } else {
         document.documentElement.classList.remove("VK_ACTIVE");
-        modMdc.mkMDCsnackbar("Virtual keyboard OFF");
+        // modMdcOLD.mkMDCsnackbar("Virtual keyboard OFF");
+        modBasic.snackbar("Virtual keyboard OFF");
     }
 }
 
@@ -3615,7 +3641,7 @@ export async function testFetchCORSproxy(url = "https://sr.se") {
 export async function dialogUnblockerAPIkey(unblockData) {
     console.log("dialogUnblockerAPIkey", unblockData);
     debugger;
-    const modMdc = await importFc4i("util-mdc");
+    // const modMdcOLD = await importFc4i("util-mdc");
     const modBasic = await importFc4i("basic-ui");
     let btnOK;
     const inp = settingFetchItSerpKey.getInputElement();
@@ -3719,23 +3745,26 @@ export async function dialogUnblockerAPIkey(unblockData) {
         console.log("btnClipboard click", { dlgOuter });
         evt.stopPropagation();
         const eltTextArea = mkElt("textarea");
-        const btnGo = modMdc.mkMDCdialogButton("Call AI", "call-ai", true);
-        const btnCancel = modMdc.mkMDCdialogButton("Cancel", "cancel", true);
+        // const btnGo = modMdcOLD.mkMDCdialogButton("Call AI", "call-ai", true);
+        const btnGo = modBasic.mkButton("Call AI", "call-ai", true);
+        // const btnCancel = modMdcOLD.mkMDCdialogButton("Cancel", "cancel", true);
+        const btnCancel = modBasic.mkButton("Cancel", "cancel", true);
         const arrBtns = [
             btnGo,
             btnCancel
         ];
-        const eltActions = modMdc.mkMDCdialogActions(arrBtns);
+        // const eltActions = modMdcOLD.mkMDCdialogActions(arrBtns);
         const body = mkElt("div", undefined, [
             mkElt("h2", undefined, "Paste web page from clipboard"),
             eltTextArea,
         ]);
-        const dlg = await modMdc.mkMDCdialog(body, eltActions);
+        /*
+        const dlg = await modMdcOLD.mkMDCdialog(body, eltActions);
         const txt = await new Promise((resolve) => {
             /*
             dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async (evt) => {
             }));
-            */
+            * /
             dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async evt => {
                 const action = evt.detail.action;
                 switch (action) {
@@ -3750,9 +3779,14 @@ export async function dialogUnblockerAPIkey(unblockData) {
                 }
             }));
         });
-
         clipboardText = txt;
         dlgOuter.mdc.close();
+        */
+
+        const ans = modBasic.showDialogConfirm(body);
+        if (ans) {
+            clipboardText = eltTextArea.value.trim();
+        }
     });
     eltClipboard.style = `
         background-color: yellowgreen;
@@ -3772,30 +3806,16 @@ export async function dialogUnblockerAPIkey(unblockData) {
         ]),
     ]);
 
-    const btnClose = modMdc.mkMDCdialogButton("Close", "confirm", true);
+    /*
+    const btnClose = modMdcOLD.mkMDCdialogButton("Close", "confirm", true);
     const arrBtns = [btnClose];
-    const eltActions = modMdc.mkMDCdialogActions(arrBtns);
-    dlgOuter = await modMdc.mkMDCdialog(body, eltActions);
+    const eltActions = modMdcOLD.mkMDCdialogActions(arrBtns);
+    dlgOuter = await modMdcOLD.mkMDCdialog(body, eltActions);
     return await new Promise((resolve) => {
-        /*
-        dlg.dom.addEventListener("MDCDialog:closing", errorHandlerAsyncEvent(async (evt) => {
-            // evt.stopPropagation();
-            if (funCheckSave) console.warn("MDCDialog:closing", evt);
-            if (funCheckSave) {
-                if (funCheckSave(false)) {
-                    const confirmed = await mkMDCdialogConfirm("You have made changes. Do you want to save them?", "save", "discard");
-                    console.log({ confirmed });
-                    funCheckSave(true);
-                }
-            }
-        }));
-        */
         dlgOuter.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async evt => {
-            // if (funCheckSave) console.warn("MDCDialog:closed", evt);
             if (clipboardText) {
                 console.log("BEFORE resolve cliboardText");
                 resolve(clipboardText);
-                // debugger;
                 return;
             }
             const action = evt.detail.action;
@@ -3812,7 +3832,9 @@ export async function dialogUnblockerAPIkey(unblockData) {
             }
         }));
     });
+    */
 
+    return modBasic.showDialogConfirm(body);
 }
 
 /** @type {UnblockStatus|undefined} */
