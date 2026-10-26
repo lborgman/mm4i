@@ -2208,9 +2208,10 @@
             // modMdcOLD.setIconsFor("mm4i");
             const modBasic = await importFc4i("basic-ui");
             modBasic.setIconsFor("mm4i");
-            const iconClass = modBasic.getIconClass();
             const modBearHtml = await importFc4i("bear-html");
-            modBearHtml.setIconClass(iconClass);
+            // const iconClass = modBasic.getIconClass();
+            // const modBearHtml = await importFc4i("bear-html");
+            // modBearHtml.setIconClass(iconClass);
 
 
             const modMMhelpers = await importFc4i("mindmap-helpers");
@@ -2299,7 +2300,7 @@
                 // const OLDbtnBookmark = modMdcOLD.mkMDCiconButton("bookmark", "Add/remove bookmark");
                 // debugger;
                 const btnBookmark = modBearHtml.createButton({
-                    icon: "bookmark",
+                    icon: modBasic.mkMdcIcon("bookmark"),
                     // size: "large",
                     // title: "Add/remove bookmark"
                 });
@@ -2625,7 +2626,7 @@
             eltBoth.addEventListener("click", evt => { evt.stopPropagation(); });
             // debugger;
             // const btnCloseBV = modMdcOLD.mkMDCiconButton("close", "Remove version info");
-            const btnCloseBV = modBearHtml.createButton({ icon: "close" });
+            const btnCloseBV = modBearHtml.createButton({ icon: modBasic.mkMdcIcon("close") });
             btnCloseBV.title = "- Remove version info";
             btnCloseBV.style.background = "transparent";
             btnCloseBV.style.color = "#0006";
@@ -2939,7 +2940,7 @@
             // const btnHistory = modMdcOLD.mkMDCiconButton("deployed_code_history", "Undo/Redo");
             // const btnHistory = modMdcOLD.mkMDCiconButton("history", "Undo/Redo");
             // debugger;
-            const btnHistory = modBearHtml.createButton({ icon: "history" }, "Undo/Redo");
+            const btnHistory = modBearHtml.createButton({ icon: modBasic.mkMdcIcon("history") }, "Undo/Redo");
             btnHistory.title = "- Undo/Redo";
             btnHistory.id = "mm4i-btn-history";
             btnHistory.classList.add("marker-at-bottom");

@@ -691,9 +691,13 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
                 throw Error(`Node ${eltJmnode.textContent} already had "has-notes-mark"`);
             }
 
-            const iconNotes = "summarize";
+            // const iconNotes = "summarize";
+            // const iconNotesBtn = modMdcOLD.mkMDCiconButton(iconNotes, "Show notes");
+            const iconNotesBtn = modBear.createButton({
+                icon: "summarize",
+                label: "Show notes"
+            });
 
-            const iconNotesBtn = modMdc.mkMDCiconButton(iconNotes, "Show notes");
             iconNotesBtn.classList.add(clsIconButton);
 
             const eltSpanNotes = mkElt("span", undefined, iconNotesBtn);
@@ -711,6 +715,7 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
     }
 
 
+    /*
     const nodeLink = shapeEtc.nodeLink;
     const nodeCustom = shapeEtc.nodeCustom;
     let foundCustom = false;
@@ -737,7 +742,7 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
             //    Try to get around it by a simple check...
             const oldAimg = eltJmnode.querySelector(`.jsmind-renderer-img`);
             if (!oldAimg) {
-                const iconBtn = modMdc.mkMDCiconButton("", `Go to this item in ${provider} (3)`);
+                const iconBtn = modMdcOLD.mkMDCiconButton("", `Go to this item in ${provider} (3)`);
                 const bgImg = renderer.getLinkRendererImage(provider);
                 iconBtn.style.backgroundImage = `url(${bgImg})`;
                 iconBtn.classList.add(clsIconButton);
@@ -750,13 +755,14 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
     }
     if (!foundCustom) {
         if (nodeLink && nodeLink.length > 0) {
-            const iconBtn = modMdc.mkMDCiconButton("link", "Visit web page");
+            const iconBtn = modMdcOLD.mkMDCiconButton("link", "Visit web page");
             iconBtn.classList.add(clsIconButton);
             const eltA3 = mkElt("a", { href: nodeLink }, iconBtn);
             eltA3.classList.add("jsmind-plain-link");
             eltJmnode.appendChild(eltA3);
         }
     }
+    */
 
 }
 
@@ -803,7 +809,7 @@ function mkMenuItemA(lbl, url) {
     return li;
 }
 function mkMenuItem(lbl, fun, keyHint) {
-    // const li = modMdc.mkMDCmenuItem(lbl);
+    // const li = modMdcOLD.mkMDCmenuItem(lbl);
 
     const lblAndKey = mkElt("div", undefined, lbl);
     lblAndKey.classList.add("text-and-key");
@@ -1171,7 +1177,8 @@ async function dialogSetRoot(selected_node, mindmapKey) {
         mkElt("h2", undefined, "Save new root?"),
         eltDifference
     ]);
-    const save = await modMdc.mkMDCdialogConfirm(body, strSave, strDontSave);
+    // const save = await modMdcOLD.mkMDCdialogConfirm(body, strSave, strDontSave);
+    const save = await modBasic.showDialogConfirm(body, strSave, strDontSave);
     console.log({ save });
     if (save) {
         jmDisplayed = await displayOurMindmap(mindStored);

@@ -18,6 +18,7 @@ const wait4mutations = modTools.wait4mutations;
 const modMMhelpers = await importFc4i("mindmap-helpers");
 const modMdc = await importFc4i("util-mdc");
 const modBasic = await importFc4i("basic-ui");
+const modBear = await importFc4i("bear-html");
 const modColorTools = await importFc4i("color-tools");
 const modToastUIhelpers = await importFc4i("toast-ui-helpers");
 
@@ -287,8 +288,12 @@ export class CustomRenderer4jsMind {
         divBgOpLabels.style.display = "flex";
         divBgOpLabels.style.justifyContent = "space-between";
 
-        const inpUseBgMm = modMdc.mkMDCcheckboxInput();
-        const chkUseBgMm = await modMdc.mkMDCcheckboxElt(inpUseBgMm, "Set background color");
+        // const inpUseBgMm = modMdc.mkMDCcheckboxInput();
+        // const chkUseBgMm = await modMdc.mkMDCcheckboxElt(inpUseBgMm, "Set background color");
+        const { input: inpUseBgMm, wrapper: chkUseBgMm } = modBear.createSwitch({
+            label: "Set background color (new)"
+        });
+
         console.log({ oldGlobals });
 
         const inpBgMmColor = /** @type {HTMLInputElement} */ (mkElt("input", { type: "color" }));

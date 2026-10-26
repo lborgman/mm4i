@@ -707,9 +707,9 @@ async function dialogCreateMindMap() {
 
     debugger;
     // const inpRoot = modMdc.mkMDCtextFieldInput(undefined, "text");
-    const test = modBear.createTextField({ label: "Topic", border: true });
-    console.log({ test });
-    const inpRoot = test.input;
+    const { input: inpRoot, wrapper: tfRoot } = modBear.createTextField({ label: "Topic", border: true });
+    console.log({ inpRoot, tfRoot });
+    // const inpRoot = test.input;
 
     let btnOk;
     const arrAll = await dbMindmaps.DBgetAllMindmaps();
@@ -719,7 +719,7 @@ async function dialogCreateMindMap() {
         let valid = true;
         if (topic.length === 0) {
             valid = false;
-            pTopicOk.textContent = "Please input mindmap name.";
+            pTopicOk.textContent = "Please input mindmap topic.";
         }
         if (valid) {
             arrAll.forEach(r => {
@@ -747,23 +747,20 @@ async function dialogCreateMindMap() {
         }
     });
     // const tfRoot = modMdc.mkMDCtextField("Mindmap name", inpRoot);
-    const tfRoot = test.wrapper;
+    // const tfRoot = test.wrapper;
     const body = mkElt("div", undefined, [
         title,
         tfRoot,
         pTopicOk,
     ]);
-    setTimeout(() => {
-        if (!title) return;
-        // btnOk = title.closest("div.mdc-dialog").querySelector("button");
-        const dlg = title.closest("div.mdc-dialog");
-        if (!dlg) return;
-        btnOk = dlg.querySelector("button");
-        console.log({ btnOk });
-        if (!btnOk) return;
-        btnOk.disabled = true;
-    });
-    const res = await modMdc.mkMDCdialogConfirm(body);
+    // const res = await modMdcOLD.mkMDCdialogConfirm(body);
+    const res = await modBasic.showDialogConfirm(body, undefined, undefined,
+        /** @param {HTMLButtonElement} btn */
+        (btn) => {
+            btnOk = btn;
+            btnOk.disabled = true;
+        }
+    );
     console.log({ res });
     if (res) {
         const rootTopic = inpRoot.value.trim();

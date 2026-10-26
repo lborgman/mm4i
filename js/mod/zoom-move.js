@@ -259,8 +259,11 @@ function changeScale(amount) {
  */
 function changeScaleTo(scale) {
     if (isNaN(scale)) throw Error("isNaN(scale)");
-    if (scale > 1) throw Error("scale > 1");
-    if (scale < 0.01) throw Error("scale < 0.01");
+
+    // FIX-ME: Why did I do this:
+    // if (scale > 1) throw Error(`scale: ${scale} > 1`);
+
+    if (scale < 0.01) throw Error(`scale: ${scale} < 0.01`);
     eltZoomMove.style.transform = `scale(${scale})`;
     debounceDisplayZoomed(scale);
 }
