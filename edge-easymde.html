@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <title>EasyMDE Mobile Test</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/easymde/dist/easymde.min.css">
+
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+
+        #log {
+            margin-top: 20px;
+            padding: 10px;
+            background: #eee;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>EasyMDE Test</h2>
+
+    <textarea id="editor">
+# Hello
+
+Tap here and try typing.
+</textarea>
+
+    <div id="log"></div>
+
+    <script src="https://unpkg.com/easymde/dist/easymde.min.js"></script>
+
+    <script>
+        const logEl = document.getElementById("log");
+
+        function log(msg) {
+            console.log(msg);
+            logEl.textContent += msg + "\n";
+        }
+
+        const mde = new EasyMDE({
+            element: document.getElementById("editor"),
+            spellChecker: false
+        });
+
+        const cm = mde.codemirror;
+
+        cm.on("focus", () => log("CodeMirror focus"));
+        cm.on("blur", () => log("CodeMirror blur"));
+        cm.on("cursorActivity", () => log("cursorActivity"));
+
+        document.addEventListener("focusin", e => {
+            log("focusin: " + e.target.tagName);
+        });
+
+        setInterval(() => {
+            const ae = document.activeElement;
+
+            let s =
+                "activeElement: " +
+                (ae ? ae.tagName : "none");
+
+            const cmInput =
+                document.querySelector(".CodeMirror textarea");
+
+            if (cmInput) {
+                s +=
+                    " / cm-textarea-focused=" +
+                    (document.activeElement === cmInput);
+            }
+
+            log(s);
+        }, 5000);
+    </script>
+
+</body>
+
+</html>
