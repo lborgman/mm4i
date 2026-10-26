@@ -693,10 +693,30 @@ export async function applyShapeEtc(shapeEtc, eltJmnode) {
 
             // const iconNotes = "summarize";
             // const iconNotesBtn = modMdcOLD.mkMDCiconButton(iconNotes, "Show notes");
+            const eltIconNotes = mkElt("span", undefined, modBasic.mkMdcIcon("summarize"));
+            eltIconNotes.style = `
+                display: flex;
+                padding: 8px;
+                align-content: center;
+                justify-content: center;
+                align-items: center;
+                outline: 2px dotted blue;
+            `;
             const iconNotesBtn = modBear.createButton({
-                icon: "summarize",
-                label: "Show notes"
+                icon: eltIconNotes,
+                size: "small",
+                // label: "Show notes"
             });
+            iconNotesBtn.title = "- Show notes";
+            iconNotesBtn.style.color = "blue";
+            iconNotesBtn.style.backgroundColor = "wheat";
+            iconNotesBtn.style.border = "none";
+            // FIX-ME:
+            iconNotesBtn.style.width = "1rem";
+            iconNotesBtn.style.height = "1rem";
+
+
+
 
             iconNotesBtn.classList.add(clsIconButton);
 

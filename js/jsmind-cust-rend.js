@@ -1489,7 +1489,22 @@ export class CustomRenderer4jsMind {
         const divInfoAcc = mkElt("div", undefined,
             "You can make node text more readable both by text color and by blurring the image."
         );
-        const { eltSlider: eltSliderBlur, slider: sliderBlur } = await modMdc.mkMDCslider(0, 5, 0, undefined, "blur", onSliderChange, onSliderInput, false);
+
+        // const { eltSlider: eltSliderBlur, slider: sliderBlur } = await modMdc.mkMDCslider(0, 5, 0, undefined, "blur", onSliderChange, onSliderInput, false);
+        const { input: eltSliderBlur, wrapper} = await modBear.createSlider({
+            min: 0,
+            max: 5,
+            value: 0,
+            // step: undefined,
+            label: "blur",
+            // onSliderChange,
+            // onSliderInput,
+            // false;
+        });
+        debugger;
+        eltSliderBlur.addEventListener("change", evt => { onSliderChange(evt); });
+        eltSliderBlur.addEventListener("input", evt => { onSliderInput(evt); });
+
         // const sliderBlur = slider;
         // const eltSlider = await modMdc.mkMDCslider(0, 5, 1, 1, "blur", onSliderChange, onSliderInput, true);
 
