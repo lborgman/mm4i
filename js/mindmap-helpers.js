@@ -279,7 +279,8 @@ export async function save_NOT_SAVEABLE(jmDisplayed) {
     const spanIcon = marker.lastElementChild;
     if (!spanIcon) throw Error("Did not find spanIcon");
     modMdc.replaceMDCicon("playlist_add_check", spanIcon);
-    modMdc.mkMDCsnackbar("Saving mindmap...", 4 * 1000, { "background-color": "blue", "color": "white" });
+    // modMdcOLD.mkMDCsnackbar("Saving mindmap...", 4 * 1000, { "background-color": "blue", "color": "white" });
+    modBasic.snackbar("Saving mindmap...", 4 * 1000);
 
 }
 
@@ -301,7 +302,7 @@ function askSave_NOT_SAVEABLE(jmDisplayed) {
             mkElt("p", undefined, msgNS),
             mkElt("p", undefined, "Do you want to save it?")
         ]);
-        // const ans = await modMdc.mkMDCdialogConfirm(body, "Yes", "No");
+        // const ans = await modMdcOLD.mkMDCdialogConfirm(body, "Yes", "No");
         const ans = true;
         if (ans) {
             // debugger;
@@ -349,7 +350,7 @@ function askSave_NOT_SAVEABLE(jmDisplayed) {
                     btnOk.inert = true;
                     checkValidName();
                 });
-                // const res = await modMdc.mkMDCdialogConfirm(body);
+                // const res = await modMdcOLD.mkMDCdialogConfirm(body);
                 res = true;
                 if (!res) return false;
             }
@@ -429,7 +430,7 @@ async function checkInappAndSaveMindmap(keyName, objMindData, lastUpdated, lastS
         // const modMdc = await importFc4i("util-mdc");
         const modBasic = await importFc4i("basic-ui");
         // const modBear = await importFc4i("bear-html");
-        // modMdc.mkMDCsnackbar("Did not save because in-app browser");
+        // modMdcOLD.mkMDCsnackbar("Did not save because in-app browser");
         modBasic.snackbar("Did not save because in-app browser");
         return;
     }
@@ -706,7 +707,7 @@ async function dialogCreateMindMap() {
     pTopicOk.textContent = "Please input a topic name.";
 
     debugger;
-    // const inpRoot = modMdc.mkMDCtextFieldInput(undefined, "text");
+    // const inpRoot = modMdcOLD.mkMDCtextFieldInput(undefined, "text");
     const { input: inpRoot, wrapper: tfRoot } = modBear.createTextField({ label: "Topic", border: true });
     console.log({ inpRoot, tfRoot });
     // const inpRoot = test.input;
@@ -746,7 +747,7 @@ async function dialogCreateMindMap() {
             pTopicOk.textContent = "Name is valid";
         }
     });
-    // const tfRoot = modMdc.mkMDCtextField("Mindmap name", inpRoot);
+    // const tfRoot = modMdcOLD.mkMDCtextField("Mindmap name", inpRoot);
     // const tfRoot = test.wrapper;
     const body = mkElt("div", undefined, [
         title,
@@ -1250,7 +1251,7 @@ export async function ensureNodeVisible(toJmnode, jmDisplayed) {
             if (!wasExpanded) { await modTools.waitSeconds(1.0); }
         }
         // Now showing the node instead
-        // const topic = node.topic; modMdc.mkMDCsnackbar(`${topic} is currently hidden`);
+        // const topic = node.topic; modMdcOLD.mkMDCsnackbar(`${topic} is currently hidden`);
     }
 }
 

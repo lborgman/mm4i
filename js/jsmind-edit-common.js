@@ -1819,7 +1819,7 @@ export async function pageSetup() {
             modStairs.dialogStairs();
         }));
 
-        // const btnSyncMm = modMdc.mkMDCiconButton("sync_alt", "Sync mindmaps to your devices", 40);
+        // const btnSyncMm = modMdcOLD.mkMDCiconButton("sync_alt", "Sync mindmaps to your devices", 40);
         const btnSyncMm = modMdc.mkMDCiconButton("p2p", "Sync mindmap devices", 40);
         btnSyncMm.id = "btn-sync";
         btnSyncMm.addEventListener("click", async evt => {
@@ -3312,9 +3312,9 @@ async function dialogMindMaps(info, arrMindmapsHits, provider) {
         divUlMM,
     ]);
 
-    // const btnClose = modMdc.mkMDCdialogButton("Close", "close", true);
-    // const eltActions = modMdc.mkMDCdialogActions([btnClose]);
-    // const dlg = await modMdc.mkMDCdialog(body, eltActions);
+    // const btnClose = modMdcOLD.mkMDCdialogButton("Close", "close", true);
+    // const eltActions = modMdcOLD.mkMDCdialogActions([btnClose]);
+    // const dlg = await modMdcOLD.mkMDCdialog(body, eltActions);
     // function closeDialog() { dlg.mdc.close(); }
 
     await modBasic.showDialog(body);

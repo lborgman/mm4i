@@ -288,8 +288,8 @@ export class CustomRenderer4jsMind {
         divBgOpLabels.style.display = "flex";
         divBgOpLabels.style.justifyContent = "space-between";
 
-        // const inpUseBgMm = modMdc.mkMDCcheckboxInput();
-        // const chkUseBgMm = await modMdc.mkMDCcheckboxElt(inpUseBgMm, "Set background color");
+        // const inpUseBgMm = modMdcOLD.mkMDCcheckboxInput();
+        // const chkUseBgMm = await modMdcOLD.mkMDCcheckboxElt(inpUseBgMm, "Set background color");
         const { input: inpUseBgMm, wrapper: chkUseBgMm } = modBear.createSwitch({
             label: "Set background color (new)"
         });
@@ -370,8 +370,8 @@ export class CustomRenderer4jsMind {
 
         // mkMdcTabBarSimple(tabsRecs, contentElts, moreOnActivate) 
 
-        // const taDesc = modMdc.mkMDCtextFieldTextarea(undefined, 10, 10);
-        // const tafDesc = modMdc.mkMDCtextareaField("Mindmap description", taDesc);
+        // const taDesc = modMdcOLD.mkMDCtextFieldTextarea(undefined, 10, 10);
+        // const tafDesc = modMdcOLD.mkMDCtextareaField("Mindmap description", taDesc);
         // const divDesc = mkElt("div", undefined, tafDesc);
 
         const pDesc = mkElt("p", undefined, "Mindmap description. Same as notes for root node.");
@@ -742,7 +742,7 @@ export class CustomRenderer4jsMind {
         }
 
 
-        // await modMdc.mkMDCdialogConfirm(body, "close");
+        // await modMdcOLD.mkMDCdialogConfirm(body, "close");
         const modBasic = await importFc4i("basic-ui");
         body.style.backgroundColor = "white";
         await modBasic.showDialog(body);
@@ -1080,7 +1080,7 @@ export class CustomRenderer4jsMind {
             setupJmnodeBgTab();
         }
 
-        // const taTopic = modMdc.mkMDCtextFieldTextarea("ta-node-topic", 8, 50);
+        // const taTopic = modMdcOLD.mkMDCtextFieldTextarea("ta-node-topic", 8, 50);
         const taTopic = mkElt("textarea");
         taTopic.id = "ta-node-topic";
         taTopic.classList.add("jsmind-ednode-topic");
@@ -1133,7 +1133,7 @@ export class CustomRenderer4jsMind {
             // taTopicGrower,
             lblTopicGrower,
         ]);
-        // modMdc.mkTextareaGrowWrap(tftaTopic);
+        // modMdcOLD.mkTextareaGrowWrap(tftaTopic);
         // taTopic.classList.add("grow-wrap");
         taTopic.value = initTopic;
         modTools.mkTextareaGrowWrap(taTopic);
@@ -1490,7 +1490,7 @@ export class CustomRenderer4jsMind {
             "You can make node text more readable both by text color and by blurring the image."
         );
 
-        // const { eltSlider: eltSliderBlur, slider: sliderBlur } = await modMdc.mkMDCslider(0, 5, 0, undefined, "blur", onSliderChange, onSliderInput, false);
+        // const { eltSlider: eltSliderBlur, slider: sliderBlur } = await modMdcOLD.mkMDCslider(0, 5, 0, undefined, "blur", onSliderChange, onSliderInput, false);
         const { input: eltSliderBlur, wrapper} = await modBear.createSlider({
             min: 0,
             max: 5,
@@ -1506,7 +1506,7 @@ export class CustomRenderer4jsMind {
         eltSliderBlur.addEventListener("input", evt => { onSliderInput(evt); });
 
         // const sliderBlur = slider;
-        // const eltSlider = await modMdc.mkMDCslider(0, 5, 1, 1, "blur", onSliderChange, onSliderInput, true);
+        // const eltSlider = await modMdcOLD.mkMDCslider(0, 5, 1, 1, "blur", onSliderChange, onSliderInput, true);
 
         const divFgAccColor = mkElt("div");
         divFgAccColor.style.overflowWrap = "anywhere";
@@ -1907,9 +1907,9 @@ export class CustomRenderer4jsMind {
         // const aLinkPreview = mkElt("a");
         // const divLinkPreview = mkElt("div", undefined, ["Link: ", aLinkPreview]);
 
-        // const inpLink = modMdc.mkMDCtextFieldInput(undefined, "url");
+        // const inpLink = modMdcOLD.mkMDCtextFieldInput(undefined, "url");
         // const strLink = initialShapeEtc.nodeLink;
-        // const tfLink = modMdc.mkMDCtextField("Topic link", inpLink, strLink);
+        // const tfLink = modMdcOLD.mkMDCtextField("Topic link", inpLink, strLink);
 
         /*
         const onInpLink = async () => {
@@ -1941,7 +1941,7 @@ export class CustomRenderer4jsMind {
         // inpLink.addEventListener("input", debounceOnInpLink);
         /*
         setTimeout(() => {
-            // modMdc.setMdcInputValid(inpLink, true);
+            // modMdcOLD.setMdcInputValid(inpLink, true);
             onInpLink();
         }, 100);
         */
@@ -1954,7 +1954,7 @@ export class CustomRenderer4jsMind {
         }));
         async function dlgBgImage() {
             // const eltInfoAdd = mkElt("p", undefined, `You can add a background image either as a link or as an image from cliboard.`);
-            // const btnLink = modMdc.mkMDCbutton("Link", "raised");
+            // const btnLink = modMdcOLD.mkMDCbutton("Link", "raised");
 
             /*
             const body = mkElt("div", { id: "dlg-body-node-background" }, [
@@ -1964,7 +1964,7 @@ export class CustomRenderer4jsMind {
                 divBgChoices
             ]);
             */
-            // const save = await modMdc.mkMDCdialogConfirm(body, "save", "cancel");
+            // const save = await modMdcOLD.mkMDCdialogConfirm(body, "save", "cancel");
         }
         async function getBgFromClipboard(toDiv) {
             const modImages = await importFc4i("images");
@@ -2132,7 +2132,7 @@ export class CustomRenderer4jsMind {
         });
 
         // const lblLinkCustom = mkElt("label", undefined, [chkLinkCustom, "Link Custom"]);
-        // modMdc.mkMDCcheckboxElt
+        // modMdcOLD.mkMDCcheckboxElt
         const lbl = mkElt("span", undefined, "Link to Database Item");
         const eltLinkCustom = await modMdc.mkMDCcheckboxElt(chkLinkCustom, lbl);
         const detNodeChoiceCustom = mkElt("div", undefined, [

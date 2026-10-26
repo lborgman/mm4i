@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ContentEditable Test</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+            padding: 20px;
+        }
+
+        .box {
+            border: 2px solid #888;
+            min-height: 50px;
+            padding: 12px;
+            margin: 16px 0;
+            border-radius: 8px;
+        }
+
+        .log {
+            white-space: pre-wrap;
+            background: #f3f3f3;
+            padding: 8px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Input</h2>
+    <input type="text" placeholder="Tap me">
+
+    <h2>Textarea</h2>
+    <textarea rows="4" cols="40" placeholder="Tap me"></textarea>
+
+    <h2>ContentEditable</h2>
+    <div id="ce1" class="box" contenteditable="true">
+        Tap here and type
+    </div>
+
+    <h2>ContentEditable + tabindex</h2>
+    <div id="ce2" class="box" contenteditable="true" tabindex="0">
+        Tap here and type
+    </div>
+
+    <button id="focus1">Focus CE1</button>
+    <button id="focus2">Focus CE2</button>
+
+    <div id="log" class="log">Event log:\n</div>
+
+    <script>
+        const log = msg => {
+            document.getElementById("log").textContent += msg + "\n";
+            console.log(msg);
+        };
+
+        for (const id of ["ce1", "ce2"]) {
+            const el = document.getElementById(id);
+
+            ["focus", "blur", "click", "input"].forEach(evt => {
+                el.addEventListener(evt, () => {
+                    log(
+                        `${id} ${evt}, active=${document.activeElement === el
+                        }`
+                    );
+                });
+            });
+        }
+
+        focus1.addEventListener("click", () => {
+            ce1.focus();
+            log("focus() called on ce1");
+        });
+
+        focus2.addEventListener("click", () => {
+            ce2.focus();
+            log("focus() called on ce2");
+        });
+    </script>
+
+</body>
+
+</html>
