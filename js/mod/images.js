@@ -255,18 +255,27 @@ export async function alertNoImagesFound() {
             ]),
         ]),
     ]);
-    const modMdc = await importFc4i("util-mdc");
+    // const modMdcOLD = await importFc4i("util-mdc");
+    // modMdcOLD.mkMDCdialogAlert(bodyAlert);
     const modBasic = await importFc4i("basic-ui");
-    modMdc.mkMDCdialogAlert(bodyAlert);
+    modBasic.showDialog(bodyAlert);
 }
 
 export async function mkImageCard(blob, extraClass, debugInfo) {
-    const modMdc = await importFc4i("util-mdc");
-    const modBasic = await importFc4i("basic-ui");
     const eltImg = mkElt("span", { class: "image-bg-contain image-bg-size mdc-card" });
+
+    const modMdcOLD = await importFc4i("util-mdc");
     // const toFun = typeof funCheckSave;
     // if (toFun != "function") throw Error(`funCheckSave is not funtion (${toFun})`);
-    const btnDeleteImage = modMdc.mkMDCiconButton("delete_forever", "Delete image");
+    // const btnDeleteImage = modMdcOLD.mkMDCiconButton("delete_forever", "Delete image");
+
+    const modBasic = await importFc4i("basic-ui");
+    const iconDelete = modBasic.mkMdcIcon("delete_forever");
+    const modBear = await importFc4i("bear-html")
+    const btnDeleteImage = modBear.createButton({
+        icon:iconDelete,
+    });
+
     btnDeleteImage.classList.add("image-delete");
     btnDeleteImage.addEventListener("click", errorHandlerAsyncEvent(async evt => {
         // FIX-ME: ask

@@ -297,6 +297,7 @@ export class CustomRenderer4jsMind {
         console.log({ oldGlobals });
 
         const inpBgMmColor = /** @type {HTMLInputElement} */ (mkElt("input", { type: "color" }));
+        /** @type {HTMLInputElement|undefined} */
         let sliBgMmOpacity;
         const divBgCtrls = mkElt("div", { class: "mdc-card" }, [
             inpBgMmColor,
@@ -315,7 +316,8 @@ export class CustomRenderer4jsMind {
          * @param {boolean} disabled 
          */
         function setBgMmDisabled(disabled) {
-            modMdc.setMDCSliderDisabled(sliBgMmOpacity, disabled);
+            // modMdcOLD.setMDCSliderDisabled(sliBgMmOpacity, disabled);
+            if (sliBgMmOpacity) { sliBgMmOpacity.disabled = disabled; }
             inpBgMmColor.disabled = disabled;
             if (disabled) {
                 divBgCtrls.style.opacity = "0.3";
@@ -354,12 +356,21 @@ export class CustomRenderer4jsMind {
             // sliBgOpacity = await modIsDisplayed.mkSliderInContainer(divBgOpacity, 0, 1, opacity, step, title, funChange);
             const modIsDisplayed = await importFc4i("is-displayed");
             const iOpacity = Math.floor(100 * (opacity + 0.001));
+            /*
             sliBgMmOpacity = await modIsDisplayed.mkSliderInContainer(
                 divBgOpSlider,
-                // FIX-ME: Can't get it to work with step "undefined"???
-                // 0, 1, opacity, undefined,
                 0, 100, iOpacity, 10,
                 "Opacity", funChange, funInput);
+            */
+            const { input, wrapper } = modBear.createSlider({
+                min: 0, max: 100, step: 10, value: iOpacity,
+                onInput: funInput,
+                name: "Opacity"
+            });
+            if (!input) { debugger; }
+            sliBgMmOpacity = input;
+            divBgOpSlider.appendChild(wrapper);
+
             const inpBgEnabled = oldGlobals?.backgroundCss != undefined;
             inpUseBgMm.checked = inpBgEnabled;
             setBgMmDisabled(!inpBgEnabled);
@@ -401,14 +412,16 @@ export class CustomRenderer4jsMind {
         const jmOpt = this.getJmOptions();
         const defaultLineW = jmOpt.view.line_width;
         const defaultLineC = jmOpt.view.line_color;
-        const inpChkChangeLines = modMdc.mkMDCcheckboxInput();
+        // const inpChkChangeLines = modMdcOLD.mkMDCcheckboxInput();
+        const inpChkChangeLines = mkElt("input", { type: "checkbox" });
         inpChkChangeLines.addEventListener("input", () => {
             disableCardLine(!inpChkChangeLines.checked);
         });
         inpChkChangeLines.addEventListener("change", () => {
             // console.log("chk line change"); debugger; // eslint-disable-line no-debugger
         });
-        const lblChkLines = await modMdc.mkMDCcheckboxElt(inpChkChangeLines, "Change color and width");
+        // const lblChkLines = await modMdcOLD.mkMDCcheckboxElt(inpChkChangeLines, "Change color and width");
+        const lblChkLines = mkElt("label", undefined, [inpChkChangeLines, "Change color and width"]);
         // lblChkLines.classList.add("mdc-chkbox-label-helper");
         const divPreviewLine = mkElt("div");
         // divPreviewLine.style.height = `${defaultLineW}px`;
@@ -442,7 +455,8 @@ export class CustomRenderer4jsMind {
             }
         }
         function disableCardLine(disabled) {
-            modMdc.setMDCSliderDisabled(sliLineWidth, disabled);
+            // modMdcOLD.setMDCSliderDisabled(sliLineWidth, disabled);
+            sliLineWidth.disabled = disabled;
             if (!inpLineColor.parentElement) throw Error("inpLineColor.parentElement is null");
             inpLineColor.parentElement.inert = disabled;
         }
@@ -463,7 +477,15 @@ export class CustomRenderer4jsMind {
                     divPreviewLine.style.height = `${val}px`;
                     funDebounceSomethingToSaveMm();
                 }
-                sliLineWidth = await modIsDisplayed.mkSliderInContainer(divLineWidth, 1, 10, defaultLineW, 1, "Line width", undefined, funInput);
+                // sliLineWidth = await modIsDisplayedOLD.mkSliderInContainer(
+                //     divLineWidth, 1, 10, defaultLineW, 1, "Line width", undefined, funInput);
+                sliLineWidth = modBear.createSlider({
+                    min: 1,
+                    max: 10,
+                    step: 1,
+                    value: defaultLineW,
+                    onInput: funInput,
+                });
                 // console.log({sli})
             }
             if (lineTabActivated) return;
@@ -477,7 +499,8 @@ export class CustomRenderer4jsMind {
             const line_width = old_line_width || defaultLineW;
             const line_color = old_line_color || defaultLineC;
             inpLineColor.value = modColorTools.standardizeColorTo6Hex(line_color);
-            sliLineWidth["myMdc"].setValue(line_width);
+            // sliLineWidth["myMdc"].setValue(line_width);
+            sliLineWidth.value = line_width;
             divPreviewLine.style.height = `${line_width}px`;
             divPreviewLine.style.backgroundColor = line_color;
             initialLineValues = getLineValues();
@@ -604,7 +627,8 @@ export class CustomRenderer4jsMind {
                 console.log({ inpBgMmColor }, inpBgMmColor.value);
                 console.log({ modColorConverter: modColorTools });
                 const arr = modColorTools.toRgbaArr(inpBgMmColor.value);
-                const opRaw = sliBgMmOpacity["myMdc"].getInput().value;
+                // const opRaw = sliBgMmOpacity["myMdc"].getInput().value;
+                const opRaw = sliBgMmOpacity.value;
                 const op = Math.round(opRaw / 100 * 255);
                 arr[3] = op;
 
@@ -617,7 +641,8 @@ export class CustomRenderer4jsMind {
                 // tempGlobals.line_color = modColorTools.toRgba(inpLineColor.value);
                 // tempGlobals.line_color = modColorTools.colorToRGBA(inpLineColor.value);
                 tempGlobals.line_color = inpLineColor.value;
-                tempGlobals.line_width = sliLineWidth["myMdc"].getValue();
+                // tempGlobals.line_width = sliLineWidth["myMdc"].getValue();
+                tempGlobals.line_width = sliLineWidth.value;
             } else {
                 delete tempGlobals.line_color;
                 delete tempGlobals.line_width;
@@ -1491,7 +1516,7 @@ export class CustomRenderer4jsMind {
         );
 
         // const { eltSlider: eltSliderBlur, slider: sliderBlur } = await modMdcOLD.mkMDCslider(0, 5, 0, undefined, "blur", onSliderChange, onSliderInput, false);
-        const { input: eltSliderBlur, wrapper} = await modBear.createSlider({
+        const { input: eltSliderBlur, wrapper } = await modBear.createSlider({
             min: 0,
             max: 5,
             value: 0,
