@@ -558,7 +558,7 @@ export class CustomRenderer4jsMind {
             // rend.setMindmapGlobals(saveGlobals);
             /*
             if (somethingHasChangedLines()) {
-                modMdc.mkMDCdialogAlert(
+                modMdcOLD.mkMDCdialogAlert(
                     "Changes to line color/width is not shown until mindmap is opened next time");
             }
             */
@@ -580,7 +580,8 @@ export class CustomRenderer4jsMind {
             evt.stopImmediatePropagation();
             evt.preventDefault();
             if (somethingHasChangedLines()) {
-                modMdc.mkMDCdialogAlert(
+                // modMdcOLD.mkMDCdialogAlert(
+                modBasic.showDialog(
                     "Changes to line color/width is not shown in preview");
             }
             const style = [
@@ -1106,23 +1107,22 @@ export class CustomRenderer4jsMind {
         }
 
         // const taTopic = modMdcOLD.mkMDCtextFieldTextarea("ta-node-topic", 8, 50);
-        const taTopic = mkElt("textarea");
-        taTopic.id = "ta-node-topic";
-        taTopic.classList.add("jsmind-ednode-topic");
+        // const taTopic = mkElt("textarea");
+        // taTopic.id = "ta-node-topic";
+        // taTopic.classList.add("jsmind-ednode-topic");
         // taTopic.style.resize = "vertical";
 
         function onTaTopicInput() {
             currentShapeEtc.temp.topic = taTopic.value;
             eltCopiedText.textContent = taTopic.value;
         }
-        taTopic.addEventListener("input", () => {
-            onTaTopicInput();
-        });
+        // taTopic.addEventListener("input", () => { onTaTopicInput(); });
         // const initialCustomTopic = currentShapeEtc.nodeCustom;
         // const copiedWasCustom = initialCustomTopic != undefined;
         const initTopic = initialTempData.topic;
         const initNotes = initialShapeEtc.notes;
 
+        /*
         const inpTopic = modMdc.mkMDCtextFieldInput("inp-node-topic", "text");
         inpTopic.value = initTopic;
         const tfTopic = modMdc.mkMDCtextFieldOutlined("Displayed Topic", inpTopic);
@@ -1133,35 +1133,45 @@ export class CustomRenderer4jsMind {
         inpTopic.addEventListener("input", () => {
             onInpTopicInput();
         });
+        */
 
 
         const divEasyMdeOuterWrapper = mkElt("div");
 
-        const taTopicGrower = mkElt("div", { class: "grow-wrap" }, taTopic);
-        const eltTopicText = mkElt("span", undefined, "Topic");
-        eltTopicText.style.fontSize = "0.8rem";
-        const lblTopicGrower = mkElt("label", undefined, [eltTopicText, taTopicGrower]);
+        // const taTopicGrower = mkElt("div", { class: "grow-wrap" }, taTopic);
+        // const eltTopicText = mkElt("span", undefined, "Topic");
+        // eltTopicText.style.fontSize = "0.8rem";
+        // const lblTopicGrower = mkElt("label", undefined, [eltTopicText, taTopicGrower]);
 
+        /*
         lblTopicGrower.style = `
             padding: 5px 15px 15px 15px;
             border: 1px solid #0006;
             border-radius: 4px;
             `;
         // taTopic.style.borderColor = "#0002";
-        taTopic.style.borderColor = "transparent";
-        taTopic.style.backgroundColor = "transparent";
+        // taTopic.style.borderColor = "transparent";
+        // taTopic.style.backgroundColor = "transparent";
+        */
 
+        const {field:fieldTopic, textarea: taTopic} = modBear.createTextareaField({
+            value: initTopic,
+            label: "Topic",
+            border: true,
+            onInput: onTaTopicInput
+        })
         const divTopicTab = mkElt("div", undefined, [
             // tftaTopic,
             // taTopic,
             // tfTopic,
             // taTopicGrower,
-            lblTopicGrower,
+            // lblTopicGrower,
+            fieldTopic,
         ]);
         // modMdcOLD.mkTextareaGrowWrap(tftaTopic);
         // taTopic.classList.add("grow-wrap");
-        taTopic.value = initTopic;
-        modTools.mkTextareaGrowWrap(taTopic);
+        // taTopic.value = initTopic;
+        // modTools.mkTextareaGrowWrap(taTopic);
 
         const divNotesTab = mkElt("div", undefined, [
             divEasyMdeOuterWrapper,
@@ -2272,6 +2282,7 @@ export class CustomRenderer4jsMind {
             // const initHex6 = modJsEditCommon.to6HexColor(initColor);
             const initHex6 = modColorTools.standardizeColorTo6Hex(initColor);
             const inpColor = mkElt("input", { type: "color", value: initHex6 });
+            inpColor.classList.add("input-color-square");
             // const funGrp = onCtrlsGrpChg[objShEtc.grpName];
             inpColor.addEventListener("input", () => {
                 console.log("inpColor, input", inpColor.value);
