@@ -2710,7 +2710,7 @@ setIconsUsed.add("edit_off");
 
 let iconsForApp;
 const idBtnSym = "button-mdc-symbols"
-if (location.hostname == "localhost") {
+if (false && (location.hostname == "localhost")) {
     const btnSymbols = mkElt("button", { id: idBtnSym }, "Get Woff2");
     btnSymbols.style = `
         position: fixed;
@@ -2743,6 +2743,7 @@ const setIconsInWoffFile = await getIconsInWoffFile();
 addToUsedSymbols("edit");
 addToUsedSymbols("edit_off");
 export function addToUsedSymbols(sym) {
+    return;
     if (location.hostname != "localhost") return;
     const tofSym = typeof sym;
     if (tofSym != "string") { throw Error(`typeof sym is not "string", but "${tofSym}"`); }

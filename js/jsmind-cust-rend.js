@@ -2310,13 +2310,12 @@ export class CustomRenderer4jsMind {
                 onAnyCtrlChangeNode(); // throttle
             }
             async function setFromCurrentSlider() {
-                // myPromMdc
-                // const mdc = sli?.myMdc;
-                const mdc = await sli?.myPromMdc;
-                // const val = mdc?.getValue();
-                const val = mdc.getValue();
+                // const mdc = await sli?.myPromMdc;
+                // const val = mdc.getValue();
+                const val = sli.value;
                 if (val == undefined) {
-                    const msg = "mdc.getValue() return undefined";
+                    // const msg = "mdc.getValue() return undefined";
+                    const msg = "sli.value return undefined";
                     console.error(msg);
                     debugger; // eslint-disable-line no-debugger
                     throw Error(msg);

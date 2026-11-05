@@ -70,12 +70,21 @@ export async function mkSliderInContainer(eltCont, min, max, now, step, label, o
     if (!sli) {
         try {
             const modMdc = await importFc4i("util-mdc");
-            const modBasic = await importFc4i("basic-ui");
-            sli = await modMdc.mkMDCslider(min, max, now, step, label, onChange, onInput, disable);
-            sli.classList.add("mdc-my-slider-colors-fix");
-            await AddBeforeWhenContainerIsDisplayed(eltCont, sli);
-            if (!sli.parentElement) return;
-            const mdc = sli.myMdc || await sli.myPromMdc;
+            const modBear = await importFc4i("bear-html");
+            console.log(modBear);
+            // debugger;
+            const { input, wrapper } = modBear.createSlider({
+                min, max, step, value: now, onInput: onChange, showBubble: true
+            });
+            eltCont.appendChild(wrapper);
+            sli = input;
+            sli.style.width = "stretch";
+            // sli = await modMdc.mkMDCslider(min, max, now, step, label, onChange, onInput, disable);
+
+            // sli.classList.add("mdc-my-slider-colors-fix");
+            // await AddBeforeWhenContainerIsDisplayed(eltCont, sli);
+            // if (!sli.parentElement) return;
+            // const mdc = sli.myMdc || await sli.myPromMdc;
         } catch (err) {
             console.error("mkSliderInContainer", err);
         }
