@@ -2,6 +2,13 @@
 <html lang="en">
 
 <head>
+    <script type="importmap">
+        {
+            "imports": {
+                        "custom-elts-helpers": "https://cdn.jsdelivr.net/gh/lborgman/text-and-link@main/custom-elts-helpers.js"
+            }
+        }
+    </script>
     <script>
         const scriptUrlFull = /** @type {HTMLScriptElement|null} */ (document.currentScript)?.src || document.baseURI;
         console.log({ scriptUrlFull });

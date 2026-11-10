@@ -353,15 +353,8 @@ export class CustomRenderer4jsMind {
                 console.log("input op");
                 funDebounceSomethingToSaveMm();
             }
-            // sliBgOpacity = await modIsDisplayed.mkSliderInContainer(divBgOpacity, 0, 1, opacity, step, title, funChange);
             const modIsDisplayed = await importFc4i("is-displayed");
             const iOpacity = Math.floor(100 * (opacity + 0.001));
-            /*
-            sliBgMmOpacity = await modIsDisplayed.mkSliderInContainer(
-                divBgOpSlider,
-                0, 100, iOpacity, 10,
-                "Opacity", funChange, funInput);
-            */
             const { input, wrapper } = modBear.createSlider({
                 min: 0, max: 100, step: 10, value: iOpacity,
                 onInput: funInput,
@@ -375,7 +368,8 @@ export class CustomRenderer4jsMind {
             inpUseBgMm.checked = inpBgEnabled;
             setBgMmDisabled(!inpBgEnabled);
         }
-        // sli = await modIsDisplayed.mkSliderInContainer(eltCont, min, max, initVal, step, title, funChange);
+
+
 
         ////// tabs
 
@@ -456,6 +450,7 @@ export class CustomRenderer4jsMind {
         }
         function disableCardLine(disabled) {
             // modMdcOLD.setMDCSliderDisabled(sliLineWidth, disabled);
+            debugger;
             sliLineWidth.disabled = disabled;
             if (!inpLineColor.parentElement) throw Error("inpLineColor.parentElement is null");
             inpLineColor.parentElement.inert = disabled;
@@ -477,8 +472,6 @@ export class CustomRenderer4jsMind {
                     divPreviewLine.style.height = `${val}px`;
                     funDebounceSomethingToSaveMm();
                 }
-                // sliLineWidth = await modIsDisplayedOLD.mkSliderInContainer(
-                //     divLineWidth, 1, 10, defaultLineW, 1, "Line width", undefined, funInput);
                 sliLineWidth = modBear.createSlider({
                     min: 1,
                     max: 10,
@@ -500,6 +493,7 @@ export class CustomRenderer4jsMind {
             const line_color = old_line_color || defaultLineC;
             inpLineColor.value = modColorTools.standardizeColorTo6Hex(line_color);
             // sliLineWidth["myMdc"].setValue(line_width);
+            debugger;
             sliLineWidth.value = line_width;
             divPreviewLine.style.height = `${line_width}px`;
             divPreviewLine.style.backgroundColor = line_color;
@@ -643,6 +637,7 @@ export class CustomRenderer4jsMind {
                 // tempGlobals.line_color = modColorTools.colorToRGBA(inpLineColor.value);
                 tempGlobals.line_color = inpLineColor.value;
                 // tempGlobals.line_width = sliLineWidth["myMdc"].getValue();
+                debugger;
                 tempGlobals.line_width = sliLineWidth.value;
             } else {
                 delete tempGlobals.line_color;
@@ -1154,7 +1149,7 @@ export class CustomRenderer4jsMind {
         // taTopic.style.backgroundColor = "transparent";
         */
 
-        const {field:fieldTopic, textarea: taTopic} = modBear.createTextareaField({
+        const { field: fieldTopic, textarea: taTopic } = modBear.createTextareaField({
             value: initTopic,
             label: "Topic",
             border: true,
@@ -1526,7 +1521,7 @@ export class CustomRenderer4jsMind {
         );
 
         // const { eltSlider: eltSliderBlur, slider: sliderBlur } = await modMdcOLD.mkMDCslider(0, 5, 0, undefined, "blur", onSliderChange, onSliderInput, false);
-        const { input: eltSliderBlur, wrapper } = await modBear.createSlider({
+        const { input: inpSliderBlur, wrapper: wrapperSliderBlur } = await modBear.createSlider({
             min: 0,
             max: 5,
             value: 0,
@@ -1536,9 +1531,9 @@ export class CustomRenderer4jsMind {
             // onSliderInput,
             // false;
         });
-        debugger;
-        eltSliderBlur.addEventListener("change", evt => { onSliderChange(evt); });
-        eltSliderBlur.addEventListener("input", evt => { onSliderInput(evt); });
+        // debugger;
+        inpSliderBlur.addEventListener("change", evt => { onSliderChange(evt); });
+        inpSliderBlur.addEventListener("input", evt => { onSliderInput(evt); });
 
         // const sliderBlur = slider;
         // const eltSlider = await modMdcOLD.mkMDCslider(0, 5, 1, 1, "blur", onSliderChange, onSliderInput, true);
@@ -1606,7 +1601,7 @@ export class CustomRenderer4jsMind {
         // const divBlur = mkElt("div", undefined, [tfBlur, eltSlider]);
         const sliderBlurContainer = mkElt("div", undefined, [
             "Blur:",
-            eltSliderBlur,
+            wrapperSliderBlur,
         ]);
         sliderBlurContainer.style = `
             NOdisplay: flex;
@@ -2208,10 +2203,18 @@ export class CustomRenderer4jsMind {
 
         const divShadowDetails =
             mkElt("div", { class: "specify-shadow-detail" }, [
+                // mkElt("div", undefined, ["Shadow blur:", divSliShadowBlur]),
+                mkElt("div", { style: "margin-top:10px;" },
+                    mkElt("label", { style: "font-size:1rem;" },
+                        ["Color: ", mkCtrlColor("shadow.color", "red")])),
                 mkElt("div", undefined, ["Horizontal offset:", divSliShadowOffX]),
                 mkElt("div", undefined, ["Vertical offset:", divSliShadowOffY]),
-                mkElt("div", undefined, mkCtrlColor("shadow.color", "red")),
             ]);
+        // divShadowDetails.style.outline = "1px dotted green";
+        divShadowDetails.style.display = "flex";
+        divShadowDetails.style.flexDirection = "column";
+        divShadowDetails.style.gap = "10px";
+
         if ((!currentShapeEtc.shadow) || (currentShapeEtc.shadow.blur == 0)) divShadowDetails.inert = true;
         const divShadow = mkElt("div", undefined, [
             mkElt("div", undefined, ["Shadow blur:", divSliShadowBlur]),
@@ -2292,6 +2295,8 @@ export class CustomRenderer4jsMind {
                 console.log("inpColor, change", inpColor.value);
                 // setBorderCopied();
             });
+            inpColor.style.position = "static";
+            return inpColor;
             const lbl = mkElt("label", { class: "specify-border-detail" }, [
                 "Color: ", inpColor
             ]);
@@ -2322,7 +2327,8 @@ export class CustomRenderer4jsMind {
                 }
                 setInShapeEtc(val, objShEtc, currentShapeEtc);
             }
-            sli = await modIsDisplayed.mkSliderInContainer(eltCont, min, max, initVal, step, title, funChange);
+            // sli = await modIsDisplayed.OLDmkSliderInContainer(eltCont, min, max, initVal, step, title, funChange);
+            sli = mkSliderInContainer(eltCont, min, max, initVal, step, title, funChange);
             ctrlsSliders[pathShEtc] = sli;
         }
         /////////////////////////////////////
@@ -2418,7 +2424,7 @@ export class CustomRenderer4jsMind {
             contentElts,
             // detThemes,
         ])
-        const body = mkElt("div", { id: "jsmind-ednode" }, [
+        const bdy = mkElt("div", { id: "jsmind-ednode" }, [
             mkElt("h2", undefined, "Edit node"),
             divEdnodeParts,
         ]);
@@ -2592,7 +2598,8 @@ export class CustomRenderer4jsMind {
         function getBtnSave() {
             if (btnSave) return btnSave;
             // const contBtns = body.querySelector(".mdc-dialog__actions");
-            const contBtns = body.closest(".mdc-dialog__surface").querySelector(".mdc-dialog__actions");
+            // const contBtns = bdy.closest(".mdc-dialog__surface").querySelector(".mdc-dialog__actions");
+            const contBtns = bdy.closest("dialog").querySelector(".dialog-buttons");
             // FIX-ME: Should be the first?
             btnSave = contBtns.querySelector("button");
             if (btnSave.textContent != "save") throw Error("Did not find the save button");
@@ -2612,11 +2619,11 @@ export class CustomRenderer4jsMind {
 
         if (scrollToNotes) {
             setTimeout(() => {
-                if (!body.ownerDocument) {
+                if (!bdy.ownerDocument) {
                     debugger; // eslint-disable-line no-debugger
                     throw Error("body is not yet in document");
                 }
-                const divNotes = body.querySelector("div.EasyMDEContainer");
+                const divNotes = bdy.querySelector("div.EasyMDEContainer");
                 console.log({ divNotes });
                 if (!divNotes) {
                     debugger; // eslint-disable-line no-debugger
@@ -2627,7 +2634,9 @@ export class CustomRenderer4jsMind {
             }, 200);
         }
 
-        const save = await modMdc.mkMDCdialogConfirm(body, "save", "cancel");
+        // const save = await modMdcOLD.mkMDCdialogConfirm(bdy, "save", "cancel");
+        // debugger;
+        const save = await modBasic.showDialogConfirm(bdy, "save", "cancel");
         // console.log({ save });
         if (save) {
             const saveFromButton = () => {
@@ -2661,19 +2670,6 @@ export class CustomRenderer4jsMind {
                     // await modJsEditCommon.fixJmnodeProblem(eltJmnode);
                     modJsEditCommon.applyNodeShapeEtc(node_copied, eltJmnode);
                     modMMhelpers.DBrequestSaveMindmapPlusUndoRedo(this.THEjmDisplayed, `Edited "${node_copied.topic}"`);
-
-                    // FIX-ME: use lastElementChild instead???
-                    // if (node_copied.data.fc4i) this.updateJmnodeFromCustom(eltJmnode);
-                    /*
-                    const eltLast = eltJmnode.lastElementChild;
-                    if (!eltLast) return;
-                    const strCustom = eltLast.dataset.jsmindCustom;
-                    if (strCustom) {
-                        this.updateJmnodeFromCustom(eltJmnode);
-                        // } else {
-                        // this.updateEltNodeLink(eltJmnode);
-                    }
-                    */
                 }, 1100);
 
 
@@ -2912,4 +2908,27 @@ function forCoverage() {
     return;
     const r = new CustomRenderer4jsMind();
     console.log(r);
+}
+
+function mkSliderInContainer(eltCont, min, max, now, step, label, onChange, onInput, disable) {
+    // let sli = eltCont.querySelector("div.mdc-slider");
+    let sli = eltCont.querySelector("input[type=range]");
+    // debugger;
+    let input, wrapper;
+    if (!sli) {
+        try {
+            const rec = modBear.createSlider({
+                min, max, value: now, onInput: onChange, showBubble: false
+            });
+            ({ input, wrapper } = rec);
+            eltCont.appendChild(wrapper);
+            sli = input;
+            // debugger;
+            // sli.style.width = "stretch";
+        } catch (err) {
+            console.error("mkSliderInContainer", err);
+        }
+    }
+    return sli;
+    // return wrapper;
 }

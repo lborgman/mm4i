@@ -157,6 +157,7 @@ const cacheImportFc4i = new Map();
         "util-mdc": "./js/mod/util-mdc.js",
         "basic-ui": "https://cdn.jsdelivr.net/gh/lborgman/text-and-link@main/basic-ui/new-basic-ui.js",
         "bear-html": "https://cdn.jsdelivr.net/gh/lborgman/text-and-link@main/bear-html.js",
+        // "custom-elts-helpers": "https://cdn.jsdelivr.net/gh/lborgman/text-and-link@main/custom-elts-helpers.js",
         "mdc-icons": "https://cdn.jsdelivr.net/gh/lborgman/text-and-link@main/mdc-icons.js",
 
 
