@@ -134,13 +134,15 @@ export class CustomRenderer4jsMind {
     }
     */
 
-    async getFullMindmapDisplayState() {
+    async getMindmapDisplayState() {
         const fullMindmapDisplayState = await modMMhelpers.getFullMindmapDisplayState(this.THEjmDisplayed);
         return fullMindmapDisplayState;
     }
     async editMindmapDialog() {
+        const self = this;
+        const debounceSomethingToSaveMm = debounce(checkSomethingToSaveMm, 1000);
         const modJsEditCommon = await importFc4i("jsmind-edit-common");
-        const modIsDisplayed = await importFc4i("is-displayed");
+        // const modIsDisplayed = await importFc4i("is-displayed");
         // theme
         const rend = await getOurCustomRenderer();
         const mindmapName = rend.getMindmapName();
@@ -422,8 +424,27 @@ export class CustomRenderer4jsMind {
         // divPreviewLine.style.backgroundColor = defaultLineC;
         const divLinePreview = mkElt("div", { id: "div-line-preview", class: "mdc-card" }, divPreviewLine);
         divLinePreview.style.padding = "20px";
-        const inpLineColor = /** @type {HTMLInputElement} */ (mkElt("input", { type: "color" }));
-        const lblLineColor = mkElt("label", undefined, ["Line color: ", inpLineColor]);
+
+
+        // const inpLineColor = modBasic.mkColorPickerSquare();
+        // debugger;
+        const wrapperInpColor = modBear.createTextField({
+            label: "Color",
+            border: true
+        });
+
+        const funDummy = () => {
+            console.log("funDummy here");
+            divPreviewLine.style.backgroundColor = wrapperInpColor.input.value;
+            funDebounceSomethingToSaveMm();
+        }
+        const objLineColor = modBasic.mkDoubleColorInputs(wrapperInpColor, funDummy);
+        console.log({ objLineColor });
+        // debugger;
+
+
+        // const lblLineColor = mkElt("label", undefined, ["Line color: ", OLDinpLineColor]);
+        const lblLineColor = mkElt("label", undefined, ["Line color: ", objLineColor.wrapper]);
         const divLineWidth = mkElt("div");
         let sliLineWidth;
 
@@ -448,21 +469,28 @@ export class CustomRenderer4jsMind {
                 line_width: divPreviewLine.style.height
             }
         }
+        /**
+         * @param {boolean} disabled 
+         */
         function disableCardLine(disabled) {
             // modMdcOLD.setMDCSliderDisabled(sliLineWidth, disabled);
-            debugger;
-            sliLineWidth.disabled = disabled;
-            if (!inpLineColor.parentElement) throw Error("inpLineColor.parentElement is null");
-            inpLineColor.parentElement.inert = disabled;
+            // debugger;
+            // sliLineWidth.disabled = disabled;
+            // if (!inpLineColor.parentElement) throw Error("inpLineColor.parentElement is null");
+            // inpLineColor.parentElement.inert = disabled;
+            const card = objLineColor.wrapper.closest("div.mdc-card");
+            card.inert = disabled;
         }
         // .mindmapGlobals
         inpChkChangeLines.addEventListener("input", () => {
             funDebounceSomethingToSaveMm();
         });
-        inpLineColor.addEventListener("input", () => {
+        /*
+        OLDinpLineColor.addEventListener("input", () => {
             divPreviewLine.style.backgroundColor = inpLineColor.value;
             funDebounceSomethingToSaveMm();
         });
+        */
         let lineTabActivated = false;
         async function activateLineTab() {
             if (!sliLineWidth) {
@@ -491,9 +519,12 @@ export class CustomRenderer4jsMind {
             inpChkChangeLines.checked = old_line;
             const line_width = old_line_width || defaultLineW;
             const line_color = old_line_color || defaultLineC;
-            inpLineColor.value = modColorTools.standardizeColorTo6Hex(line_color);
+
+            // OLDinpLineColor.value = modColorTools.standardizeColorTo6Hex(line_color);
+            wrapperInpColor.input.value = modColorTools.standardizeColorTo6Hex(line_color);
+
             // sliLineWidth["myMdc"].setValue(line_width);
-            debugger;
+            // debugger;
             sliLineWidth.value = line_width;
             divPreviewLine.style.height = `${line_width}px`;
             divPreviewLine.style.backgroundColor = line_color;
@@ -535,40 +566,74 @@ export class CustomRenderer4jsMind {
             contentElts,
         ]);
 
-        const btnTestMm = modMdc.mkMDCdialogButton("Test", "test");
-        const btnSaveMm = modMdc.mkMDCdialogButton("Save", "save", true);
-        const btnCancelMm = modMdc.mkMDCdialogButton("Cancel", "close");
-        const eltActions = modMdc.mkMDCdialogActions([btnTestMm, btnSaveMm, btnCancelMm]);
-        const dlg = await modMdc.mkMDCdialog(body, eltActions);
+        // const btnTestMm = modMdcOLD.mkMDCdialogButton("Test", "test");
+        // const btnTestMm = modBasic.mkButton("Test", "test");
+        const btnTestMm = mkElt("button", undefined, "Test");
+
+        // const btnSaveMm = modMdcOLD.mkMDCdialogButton("Save", "save", true);
+        // const btnSaveMm = modBasic.mkButton("Save", "save", true);
+        const btnSaveMm = mkElt("button", undefined, "Save");
+
+        // const btnCancelMm = modMdcOLD.mkMDCdialogButton("Cancel", "close");
+        // const btnCancelMm = modBasic.mkButton("Cancel", "close");
+        const btnCancelMm = mkElt("button", undefined, "Cancel");
+
+        // const eltActions = modMdc.mkMDCdialogActions([btnTestMm, btnSaveMm, btnCancelMm]);
+        // const dlg = await modMdc.mkMDCdialog(body, eltActions);
+
+        // const divButtons = mkElt("div", undefined, [btnTestMm, btnSaveMm, btnCancelMm]);
+        // body.appendChild(divButtons);
+        // debugger;
+        const funRetVal = async () => {
+            return await new Promise(resolve => {
+                btnCancelMm.addEventListener("click", /** @param {Event} evt */(evt) => {
+                    resolve(false);
+                    modBasic.closeMyDialog(btnCancelMm);
+                });
+                btnSaveMm.addEventListener("click",/** @param {Event} evt */ evt => {
+                    resolve(true);
+                    modBasic.closeMyDialog(btnSaveMm);
+                });
+            });
+
+        }
+        const retVal = await modBasic.showDialog(body, funRetVal, [btnTestMm, btnSaveMm, btnCancelMm]);
+        // debugger;
+        if (retVal) {
+            funBtnSaveMm();
+        }
+
         const somethingHasChangedLines = () => {
             if (!initialLineValues) return false;
             const currentLineValues = getLineValues();
             return JSON.stringify(initialLineValues) != JSON.stringify(currentLineValues);
         }
-        btnSaveMm.addEventListener("click", errorHandlerAsyncEvent(async () => {
-            // if (initialDescription != currentDescription) { root_node.data.shapeEtc.notes = currentDescription; }
-            // const saveGlobals = { themeCls: selectedThemeCls, }
-            // const r = await getOurCustomRenderer();
-            // rend.setMindmapGlobals(saveGlobals);
-            /*
-            if (somethingHasChangedLines()) {
-                modMdcOLD.mkMDCdialogAlert(
-                    "Changes to line color/width is not shown until mindmap is opened next time");
-            }
-            */
+        // btnSaveMm.addEventListener("click", errorHandlerAsyncEvent(async () => {
+        async function funBtnSaveMm() {
             rend.setMindmapGlobals(tempGlobals);
             rend.applyThisMindmapGlobals();
-            this.requestSaveMindMap();
+            // this.requestSaveMindMap();
+            self.requestSaveMindMap();
             // const fullMindmapDisplayState = await modMMhelpers.getFullMindmapDisplayState(this.THEjmDisplayed);
-            const fullMindmapDisplayState = await this.getFullMindmapDisplayState();
-            console.log({ fullMindmapDisplayState });
+            // const fullMindmapDisplayState = await this.getFullMindmapDisplayState();
+
+            // const r = await getOurCustomRenderer(); console.log({ r }); debugger;
+            // const jm = r
+            // const fullMindmapDisplayState = await self.getFullMindmapDisplayState();
+            // console.log({ fullMindmapDisplayState });
             // FIX-ME: better way to get key?
+            debugger;
+            const jmd = self.THEjmDisplayed;
+            const mindStored = jmd.get_data("node_array");
+            const fullMindmapDisplayState = await modMMhelpers.getFullMindmapDisplayState(jmd);
             const mk = new URLSearchParams(location.search).get("mindmap");
-            const objDataMind = fullMindmapDisplayState.objDataMind;
-            objDataMind.key = mk;
-            const jm = await modJsEditCommon.displayOurMindmap(objDataMind);
+            // const objDataMind = fullMindmapDisplayState.objDataMind;
+            // objDataMind.key = mk;
+            mindStored.key = mk;
+            const jm = await modJsEditCommon.displayOurMindmap(mindStored);
             modMMhelpers.applyDisplayStateOther(fullMindmapDisplayState.other, jm);
-        }));
+            // }));
+        }
         btnTestMm.addEventListener("click", evt => {
             evt.stopPropagation();
             evt.stopImmediatePropagation();
@@ -635,9 +700,12 @@ export class CustomRenderer4jsMind {
             if (inpChkChangeLines.checked) {
                 // tempGlobals.line_color = modColorTools.toRgba(inpLineColor.value);
                 // tempGlobals.line_color = modColorTools.colorToRGBA(inpLineColor.value);
-                tempGlobals.line_color = inpLineColor.value;
+
+                // tempGlobals.line_color = OLDinpLineColor.value;
+                tempGlobals.line_color = wrapperInpColor.input.value;
+
                 // tempGlobals.line_width = sliLineWidth["myMdc"].getValue();
-                debugger;
+                // debugger;
                 tempGlobals.line_width = sliLineWidth.value;
             } else {
                 delete tempGlobals.line_color;
@@ -653,25 +721,8 @@ export class CustomRenderer4jsMind {
             btnSaveMm.disabled = !maySave;
             btnTestMm.disabled = !maySave;
         }
-        const debounceSomethingToSaveMm = debounce(checkSomethingToSaveMm, 1000);
         function funDebounceSomethingToSaveMm() { debounceSomethingToSaveMm(); }
 
-
-        return await new Promise((resolve) => {
-            dlg.dom.addEventListener("MDCDialog:closed", errorHandlerAsyncEvent(async evt => {
-                const action = evt.detail.action;
-                switch (action) {
-                    case "save":
-                        resolve(true);
-                        break;
-                    case "close":
-                        resolve(false);
-                        break;
-                    default:
-                        throw Error(`error in editMindmapDialog, action is ${action}`)
-                }
-            }));
-        });
     }
 
     // FIX-ME: use this!

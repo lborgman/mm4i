@@ -1163,10 +1163,12 @@ async function dialogSetRoot(selected_node, mindmapKey) {
         // eltNotReady,
         mkElt("h2", undefined, `Make "${node_topic}" new mindmap root`)
     ]);
-    const ans = await modMdc.mkMDCdialogConfirm(body2, "Set new root", "Cancel");
+    // const ans = await modMdcOLD.mkMDCdialogConfirm(body2, "Set new root", "Cancel");
+    const ans = await modBasic.showDialogConfirm(body2, "Set new root", "Cancel");
     console.log({ ans });
     if (!ans) {
-        modMdc.mkMDCsnackbar("Canceled (root not changed)");
+        // modMdcOLD.mkMDCsnackbar("Canceled (root not changed)");
+        modBasic.snackbar("Canceled (root not changed)");
         return;
     }
 
@@ -1260,6 +1262,7 @@ export async function displayOurMindmap(mindStored) {
     // if (modJsmindDraggable.setJmnodeDragged) {
     let strChoosen = await (async () => {
         return "connectFsm";
+        /*
         if (location.hostname != "localhost") return "connectFsm";
         const mkChoice = (what) => {
             return mkElt("div", undefined, [
@@ -1283,10 +1286,11 @@ export async function displayOurMindmap(mindStored) {
             mkElt("h3", { style: "color:red;" }, "Testing..."),
             listChoices,
         ]);
-        await modMdc.mkMDCdialogConfirm(body);
+        await modMdcOLD.mkMDCdialogConfirm(body);
         const choosen = listChoices.querySelector("input:checked");
         console.log({ choosen });
         return choosen.value;
+        */
     })();
     // const eltFsm = getEltFsm();
 
@@ -1561,7 +1565,8 @@ export async function pageSetup() {
                     divSaveLinked.textContent = "Saved to your device";
                 });
             }
-            modMdc.mkMDCdialogAlert(body, "Close");
+            // modMdcOLD.mkMDCdialogAlert(body, "Close");
+            modBasic.showDialog(body);
         });
         const addShareMarker = () => {
             if (spTitle == null) throw Error("spTitle == null");

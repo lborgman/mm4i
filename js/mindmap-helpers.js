@@ -188,7 +188,7 @@ export async function getCurrentFullMindmapDisplayState() {
  */
 export async function getFullMindmapDisplayState(jmDisplayed) {
     // @ts-ignore
-    const selected_id = jmDisplayed.get_selected_node().id;
+    const selected_id = jmDisplayed.get_selected_node()?.id || 0;
     const modZoomMove = await importFc4i("zoom-move");
     const zoomed = modZoomMove.getZoomPercentage();
     const moved = modZoomMove.getMoved();
