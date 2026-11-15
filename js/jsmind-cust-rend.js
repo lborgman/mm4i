@@ -2,7 +2,8 @@
 
 const importFc4i = window["importFc4i"];
 const mkElt = window["mkElt"];
-const errorHandlerAsyncEvent = window["errorHandlerAsyncEvent"];
+// @ts-ignore
+const errorHandlerAsyncEvent = /** @type {function} */ (window["errorHandlerAsyncEvent"]);
 const jsMind = window["jsMind"];
 
 const CUST_REND_VER = "0.0.3";
@@ -29,6 +30,10 @@ const modToastUIhelpers = await importFc4i("toast-ui-helpers");
 
 let theCustomRenderer;
 
+/**
+ * @param {any} variable 
+ * @param {string} wantType 
+ */
 function checkType(variable, wantType) {
     const hasType = typeof variable;
     if (hasType != wantType) {
@@ -85,6 +90,7 @@ export class CustomRenderer4jsMind {
 
     setJm(jmDisplayed) { this.THEjmDisplayed = jmDisplayed; }
     getJm() { return this.THEjmDisplayed; }
+    /** @param {object} jmOptions */
     setJmOptions(jmOptions) { this.THEjmOptions = jmOptions; }
     getJmOptions() { return this.THEjmOptions; }
     getMindmapName() {
@@ -102,6 +108,9 @@ export class CustomRenderer4jsMind {
         const elt = this.getEltRoot();
         return elt.closest("jmnodes");
     }
+    /**
+     * @param {object} globals 
+     */
     setMindmapGlobals(globals) {
         const root_node = this.THEjmDisplayed.get_root();
         root_node.data.mindmapGlobals = globals;
@@ -173,8 +182,14 @@ export class CustomRenderer4jsMind {
         console.log({ oldThemeCls });
         setupThemeChoices(oldThemeCls);
         let selectedThemeCls = oldThemeCls;
+        /** @param {string} oldThemeCls */
         function setupThemeChoices(oldThemeCls) {
+            /** @type {string[]} */
             const arrFormThemes = modJsEditCommon.getMatchesInCssRules(/\.(theme-[^.#\s]*)/);
+            /**
+             * @param {string} cls
+             * @returns {HTMLElement}
+             */
             function mkThemeAlt(cls) {
                 const themeName = cls.substring(6);
                 // console.log("mkThemeAlt", { cls, themeName });
@@ -197,7 +212,6 @@ export class CustomRenderer4jsMind {
                 return mkElt("jmnodes", { class: cls }, eltJmnode);
             }
             arrFormThemes.forEach(cls => {
-                // divThemeChoices.appendChild(mkThemeAlt(cls));
                 divThemeChoicesInner.appendChild(mkThemeAlt(cls));
             });
 
@@ -226,6 +240,10 @@ export class CustomRenderer4jsMind {
             checkThemesContrast(divThemeChoices);
         }
         let allThemesContrastsChecked = false;
+        /**
+         * @param {HTMLDivElement} divThemeChoices
+         * @returns {Promise<void>}
+         */
         async function checkThemesContrast(divThemeChoices) {
             if (allThemesContrastsChecked) return;
             const modContrast = await importFc4i("acc-colors");
@@ -413,50 +431,76 @@ export class CustomRenderer4jsMind {
         inpChkChangeLines.addEventListener("input", () => {
             disableCardLine(!inpChkChangeLines.checked);
         });
-        inpChkChangeLines.addEventListener("change", () => {
-            // console.log("chk line change"); debugger; // eslint-disable-line no-debugger
-        });
-        // const lblChkLines = await modMdcOLD.mkMDCcheckboxElt(inpChkChangeLines, "Change color and width");
         const lblChkLines = mkElt("label", undefined, [inpChkChangeLines, "Change color and width"]);
-        // lblChkLines.classList.add("mdc-chkbox-label-helper");
         const divPreviewLine = mkElt("div");
-        // divPreviewLine.style.height = `${defaultLineW}px`;
-        // divPreviewLine.style.backgroundColor = defaultLineC;
-        const divLinePreview = mkElt("div", { id: "div-line-preview", class: "mdc-card" }, divPreviewLine);
+        const divLinePreview = mkElt("div", { id: "div-line-preview", class: "mdc-card" }, [
+            mkElt("p", undefined, "Preview line:"),
+            divPreviewLine,
+        ]);
         divLinePreview.style.padding = "20px";
 
-
-        // const inpLineColor = modBasic.mkColorPickerSquare();
-        // debugger;
         const wrapperInpColor = modBear.createTextField({
             label: "Color",
             border: true
         });
 
-        const funDummy = () => {
-            console.log("funDummy here");
-            divPreviewLine.style.backgroundColor = wrapperInpColor.input.value;
+        let wrapperLineWidth;
+        const setSliderLineWidthColor = (ourColor) => {
+            divPreviewLine.style.backgroundColor = ourColor;
+            wrapperLineWidth.style.setProperty("--active", ourColor);
+            wrapperLineWidth.style.color = ourColor;
+        }
+
+        const funInputColor = () => {
+            console.warn("funInputColor here");
+            const ourColor = wrapperInpColor.input.value;
+            setSliderLineWidthColor(ourColor);
             funDebounceSomethingToSaveMm();
         }
-        const objLineColor = modBasic.mkDoubleColorInputs(wrapperInpColor, funDummy);
+        const objLineColor = modBasic.mkDoubleColorInputs(wrapperInpColor, funInputColor);
         console.log({ objLineColor });
-        // debugger;
+
+        /**
+         * @param {number} val 
+         * @return {void}
+         */
+        const funLineWidthInput = (val) => {
+            console.log("funInput line width");
+            divPreviewLine.style.height = `${val}px`;
+            wrapperLineWidth.style.setProperty("--_track", `${val}px`);
+            funDebounceSomethingToSaveMm();
+        }
+
+        /** @returns {{ wrapper: HTMLElement, input: HTMLInputElement, funInit: (val:number) => void }} */
+        const objLineWidth = modBear.createSlider({
+            min: 1,
+            max: 10,
+            step: 1,
+            value: defaultLineW,
+            onInput: funLineWidthInput,
+        });
+        wrapperLineWidth = objLineWidth.wrapper;
+        console.log({ objLineWidth });
 
 
-        // const lblLineColor = mkElt("label", undefined, ["Line color: ", OLDinpLineColor]);
-        const lblLineColor = mkElt("label", undefined, ["Line color: ", objLineColor.wrapper]);
-        const divLineWidth = mkElt("div");
-        let sliLineWidth;
+
+        const divLineColor = mkElt("div", undefined, [objLineColor.wrapper]);
+        divLineColor.style.display = "flex";
+        divLineColor.style.justifyContent = "center";
 
         const cardLine = mkElt("div", { class: "mdc-card" }, [
-            lblLineColor,
-            divLineWidth,
+            // mkElt("div", { style: "font-size:1.2rem; font-weight:bold; padding-bottom:20px;" }, "Line"),
+            objLineWidth.wrapper,
+            divLineColor,
         ]);
-        cardLine.style.padding = "10px";
+        cardLine.style.padding = "20px";
+        cardLine.style.display = "flex";
+        cardLine.style.gap = "15px";
         const divLines = mkElt("div", undefined, [
-            divLinePreview,
+            mkElt("p", { style: "font-size:1.2rem; font-weight:bold;" }, "For the lines between nodes."),
             lblChkLines,
-            cardLine
+            cardLine,
+            // divLinePreview,
         ]);
         divLines.style.display = "flex";
         divLines.style.gap = "10px";
@@ -473,44 +517,19 @@ export class CustomRenderer4jsMind {
          * @param {boolean} disabled 
          */
         function disableCardLine(disabled) {
-            // modMdcOLD.setMDCSliderDisabled(sliLineWidth, disabled);
-            // debugger;
-            // sliLineWidth.disabled = disabled;
-            // if (!inpLineColor.parentElement) throw Error("inpLineColor.parentElement is null");
-            // inpLineColor.parentElement.inert = disabled;
             const card = objLineColor.wrapper.closest("div.mdc-card");
             card.inert = disabled;
         }
-        // .mindmapGlobals
         inpChkChangeLines.addEventListener("input", () => {
             funDebounceSomethingToSaveMm();
         });
-        /*
-        OLDinpLineColor.addEventListener("input", () => {
-            divPreviewLine.style.backgroundColor = inpLineColor.value;
-            funDebounceSomethingToSaveMm();
-        });
-        */
         let lineTabActivated = false;
         async function activateLineTab() {
-            if (!sliLineWidth) {
-                const funInput = () => {
-                    console.log("funInput line width");
-                    const val = sliLineWidth["myMdc"].getValue();
-                    divPreviewLine.style.height = `${val}px`;
-                    funDebounceSomethingToSaveMm();
-                }
-                sliLineWidth = modBear.createSlider({
-                    min: 1,
-                    max: 10,
-                    step: 1,
-                    value: defaultLineW,
-                    onInput: funInput,
-                });
-                // console.log({sli})
-            }
             if (lineTabActivated) return;
             lineTabActivated = true;
+            if (!objLineWidth) {
+                debugger;
+            }
             const bgColorJmnodes = getComputedStyle(eltJmnodes).backgroundColor;
             divLinePreview.style.backgroundColor = bgColorJmnodes;
             const old_line_width = oldGlobals?.line_width;
@@ -520,14 +539,14 @@ export class CustomRenderer4jsMind {
             const line_width = old_line_width || defaultLineW;
             const line_color = old_line_color || defaultLineC;
 
-            // OLDinpLineColor.value = modColorTools.standardizeColorTo6Hex(line_color);
-            wrapperInpColor.input.value = modColorTools.standardizeColorTo6Hex(line_color);
+            objLineColor.funInitColor(line_color);
+            setSliderLineWidthColor(line_color);
+            // objLineWidth.input.value = line_width;
+            objLineWidth.funInit(line_width);
 
-            // sliLineWidth["myMdc"].setValue(line_width);
-            // debugger;
-            sliLineWidth.value = line_width;
             divPreviewLine.style.height = `${line_width}px`;
             divPreviewLine.style.backgroundColor = line_color;
+
             initialLineValues = getLineValues();
         }
 
@@ -612,27 +631,15 @@ export class CustomRenderer4jsMind {
         async function funBtnSaveMm() {
             rend.setMindmapGlobals(tempGlobals);
             rend.applyThisMindmapGlobals();
-            // this.requestSaveMindMap();
             self.requestSaveMindMap();
-            // const fullMindmapDisplayState = await modMMhelpers.getFullMindmapDisplayState(this.THEjmDisplayed);
-            // const fullMindmapDisplayState = await this.getFullMindmapDisplayState();
 
-            // const r = await getOurCustomRenderer(); console.log({ r }); debugger;
-            // const jm = r
-            // const fullMindmapDisplayState = await self.getFullMindmapDisplayState();
-            // console.log({ fullMindmapDisplayState });
-            // FIX-ME: better way to get key?
-            debugger;
             const jmd = self.THEjmDisplayed;
             const mindStored = jmd.get_data("node_array");
             const fullMindmapDisplayState = await modMMhelpers.getFullMindmapDisplayState(jmd);
             const mk = new URLSearchParams(location.search).get("mindmap");
-            // const objDataMind = fullMindmapDisplayState.objDataMind;
-            // objDataMind.key = mk;
             mindStored.key = mk;
             const jm = await modJsEditCommon.displayOurMindmap(mindStored);
             modMMhelpers.applyDisplayStateOther(fullMindmapDisplayState.other, jm);
-            // }));
         }
         btnTestMm.addEventListener("click", evt => {
             evt.stopPropagation();
@@ -687,7 +694,6 @@ export class CustomRenderer4jsMind {
                 console.log({ inpBgMmColor }, inpBgMmColor.value);
                 console.log({ modColorConverter: modColorTools });
                 const arr = modColorTools.toRgbaArr(inpBgMmColor.value);
-                // const opRaw = sliBgMmOpacity["myMdc"].getInput().value;
                 const opRaw = sliBgMmOpacity.value;
                 const op = Math.round(opRaw / 100 * 255);
                 arr[3] = op;
@@ -698,15 +704,8 @@ export class CustomRenderer4jsMind {
             } else {
             }
             if (inpChkChangeLines.checked) {
-                // tempGlobals.line_color = modColorTools.toRgba(inpLineColor.value);
-                // tempGlobals.line_color = modColorTools.colorToRGBA(inpLineColor.value);
-
-                // tempGlobals.line_color = OLDinpLineColor.value;
                 tempGlobals.line_color = wrapperInpColor.input.value;
-
-                // tempGlobals.line_width = sliLineWidth["myMdc"].getValue();
-                // debugger;
-                tempGlobals.line_width = sliLineWidth.value;
+                tempGlobals.line_width = objLineWidth.input.value;
             } else {
                 delete tempGlobals.line_color;
                 delete tempGlobals.line_width;
@@ -2337,7 +2336,6 @@ export class CustomRenderer4jsMind {
             const initHex6 = modColorTools.standardizeColorTo6Hex(initColor);
             const inpColor = mkElt("input", { type: "color", value: initHex6 });
             inpColor.classList.add("input-color-square");
-            // const funGrp = onCtrlsGrpChg[objShEtc.grpName];
             inpColor.addEventListener("input", () => {
                 console.log("inpColor, input", inpColor.value);
                 setInShapeEtc(inpColor.value, objShEtc, currentShapeEtc);
@@ -2362,15 +2360,11 @@ export class CustomRenderer4jsMind {
             const funChange = async () => {
                 await setFromCurrentSlider();
                 if (funChgThis) funChgThis();
-                // const funGrp = onCtrlsGrpChg[objShEtc.grpName];
                 onAnyCtrlChangeNode(); // throttle
             }
             async function setFromCurrentSlider() {
-                // const mdc = await sli?.myPromMdc;
-                // const val = mdc.getValue();
                 const val = sli.value;
                 if (val == undefined) {
-                    // const msg = "mdc.getValue() return undefined";
                     const msg = "sli.value return undefined";
                     console.error(msg);
                     debugger; // eslint-disable-line no-debugger

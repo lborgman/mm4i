@@ -74,7 +74,8 @@ export async function buildPortableHtml(baseUrl = new URL(".", location.href).hr
 
     // function removeControlCharsForJson(str) { return str.replace(/[\u0000-\u001F\u007F]/g, ""); }
 
-    // let nWait = 0;
+    /*
+    let nWait = 0;
     // displayIt();
     async function wait4jsMind() {
         if (!window.jsMind) {
@@ -88,7 +89,7 @@ export async function buildPortableHtml(baseUrl = new URL(".", location.href).hr
         modMMhelpers.checkIsMMformatStored(j, 'portableHtml');
         const jm = await modJsEditCommon.displayOurMindmap(j);
     }
-    debugger;
+    */
 
     // const modMMhelpers = importFc4i("mindmap-helpers");
     const js = [

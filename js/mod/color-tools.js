@@ -304,8 +304,11 @@ export function standardizeColorTo6Hex(strColor) {
     }
     if (!colorOut.startsWith("#")) {
         if (colorOut.startsWith("rgba")) {
-            const msg = `Colors with transparency converted to rgba: ${strColor} -> ${colorOut}`;
-            console.error(msg);
+            if (!strColor.startsWith("rgba")) {
+                debugger;
+                const msg = `Colors with transparency converted to rgba: ${strColor} -> ${colorOut}`;
+                console.error(msg);
+            }
             // throw Error(msg); // FIX-ME:
         }
     }
