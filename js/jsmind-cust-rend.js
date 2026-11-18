@@ -584,7 +584,8 @@ export class CustomRenderer4jsMind {
                     throw Error(`Activation code missing for tab, idx=${idx} `);
             }
         }
-        const eltTabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, onActivateMore);
+        // const eltTabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, onActivateMore);
+        const eltTabs = modBear.createTabs(tabRecs, contentElts, onActivateMore);
 
         const body = mkElt("div", undefined, [
             mkElt("h2", undefined, [
@@ -607,8 +608,8 @@ export class CustomRenderer4jsMind {
         // const btnCancelMm = modBasic.mkButton("Cancel", "close");
         const btnCancelMm = mkElt("button", undefined, "Cancel");
 
-        // const eltActions = modMdc.mkMDCdialogActions([btnTestMm, btnSaveMm, btnCancelMm]);
-        // const dlg = await modMdc.mkMDCdialog(body, eltActions);
+        // const eltActions = modMdcOLD.mkMDCdialogActions([btnTestMm, btnSaveMm, btnCancelMm]);
+        // const dlg = await modMdcOLD.mkMDCdialog(body, eltActions);
 
         // const divButtons = mkElt("div", undefined, [btnTestMm, btnSaveMm, btnCancelMm]);
         // body.appendChild(divButtons);
@@ -1181,9 +1182,9 @@ export class CustomRenderer4jsMind {
         const initNotes = initialShapeEtc.notes;
 
         /*
-        const inpTopic = modMdc.mkMDCtextFieldInput("inp-node-topic", "text");
+        const inpTopic = modMdcOLD.mkMDCtextFieldInput("inp-node-topic", "text");
         inpTopic.value = initTopic;
-        const tfTopic = modMdc.mkMDCtextFieldOutlined("Displayed Topic", inpTopic);
+        const tfTopic = modMdcOLD.mkMDCtextFieldOutlined("Displayed Topic", inpTopic);
         function onInpTopicInput() {
             currentShapeEtc.temp.topic = inpTopic.value;
             eltCopiedText.textContent = inpTopic.value;
@@ -2489,12 +2490,25 @@ export class CustomRenderer4jsMind {
             onAnyCtrlChangeNode(); // throttle
         });
 
-        const tabBar = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, onActivateMore);
-        tabBar.style.marginTop = "20px";
+        // const tabBar = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, onActivateMore);
+        function mkBearTabsParam(tabRecs, contentElts, onChange) {
+            const arrTabObj = [];
+            const arrElts = [...contentElts.childNodes];
+            for (let i = 0; i < tabRecs.length; i++) {
+                const label = tabRecs[i];
+                const panel = arrElts[i];
+                arrTabObj.push({ label, panel });
+            }
+            return { tabs: arrTabObj, onChange }
+        }
+        const tabBar = modBear.createTabs(mkBearTabsParam(tabRecs, contentElts, onActivateMore));
+        tabBar.nav.style.marginTop = "20px";
+        // tabBar.nav.style.backgroundColor = "yellow";
         const divEdnodeParts = mkElt("div", { id: "jsmind-ednode-parts" }, [
             divEdnodeCopied,
-            tabBar,
-            contentElts,
+            tabBar.nav,
+            // contentElts,
+            tabBar.panelsContainer,
             // detThemes,
         ])
         const bdy = mkElt("div", { id: "jsmind-ednode" }, [
