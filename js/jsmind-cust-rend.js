@@ -317,8 +317,10 @@ export class CustomRenderer4jsMind {
         console.log({ oldGlobals });
 
         const inpBgMmColor = /** @type {HTMLInputElement} */ (mkElt("input", { type: "color" }));
-        /** @type {HTMLInputElement|undefined} */
-        let sliBgMmOpacity;
+        /* * @type {HTMLInputElement|undefined} */
+        // let sliBgMmOpacity;
+        /** @type {{ wrapper: HTMLElement, input: HTMLInputElement, funInit: (val:number) => void }} */
+        let objBgMmOpacity;
         const divBgCtrls = mkElt("div", { class: "mdc-card" }, [
             inpBgMmColor,
             mkElt("p", undefined, [
@@ -336,8 +338,11 @@ export class CustomRenderer4jsMind {
          * @param {boolean} disabled 
          */
         function setBgMmDisabled(disabled) {
-            // modMdcOLD.setMDCSliderDisabled(sliBgMmOpacity, disabled);
-            if (sliBgMmOpacity) { sliBgMmOpacity.disabled = disabled; }
+            // if (sliBgMmOpacity) { sliBgMmOpacity.disabled = disabled; }
+            if (objBgMmOpacity) {
+                // debugger;
+                objBgMmOpacity.input.disabled = disabled;
+            }
             inpBgMmColor.disabled = disabled;
             if (disabled) {
                 divBgCtrls.style.opacity = "0.3";
@@ -375,14 +380,19 @@ export class CustomRenderer4jsMind {
             }
             const modIsDisplayed = await importFc4i("is-displayed");
             const iOpacity = Math.floor(100 * (opacity + 0.001));
-            const { input, wrapper } = modBear.createSlider({
+            objBgMmOpacity = modBear.createSlider({
                 min: 0, max: 100, step: 10, value: iOpacity,
                 onInput: funInput,
                 name: "Opacity"
             });
-            if (!input) { debugger; }
-            sliBgMmOpacity = input;
-            divBgOpSlider.appendChild(wrapper);
+            if (!objBgMmOpacity) {
+                throw Error("!objBgMmOpacity");
+            }
+            // const { input, wrapper } = modBear.createSlider({
+            // if (!input) { debugger; }
+            // sliBgMmOpacity = objBgMmOpacity.slider;
+            // debugger;
+            divBgOpSlider.appendChild(objBgMmOpacity.wrapper);
 
             const inpBgEnabled = oldGlobals?.backgroundCss != undefined;
             inpUseBgMm.checked = inpBgEnabled;
@@ -471,7 +481,7 @@ export class CustomRenderer4jsMind {
             funDebounceSomethingToSaveMm();
         }
 
-        /** @returns {{ wrapper: HTMLElement, input: HTMLInputElement, funInit: (val:number) => void }} */
+        /** @type {{ wrapper: HTMLElement, input: HTMLInputElement, funInit: (val:number) => void }} */
         const objLineWidth = modBear.createSlider({
             min: 1,
             max: 10,
@@ -694,7 +704,8 @@ export class CustomRenderer4jsMind {
                 console.log({ inpBgMmColor }, inpBgMmColor.value);
                 console.log({ modColorConverter: modColorTools });
                 const arr = modColorTools.toRgbaArr(inpBgMmColor.value);
-                const opRaw = sliBgMmOpacity.value;
+                // const opRaw = sliBgMmOpacity.value;
+                const opRaw = objBgMmOpacity.slider.value;
                 const op = Math.round(opRaw / 100 * 255);
                 arr[3] = op;
 
@@ -979,6 +990,7 @@ export class CustomRenderer4jsMind {
             const eltCont = divSliBorderWidth;
             const title = "Border width";
             const funChange = onCtrlChgBorderWidth;
+            // debugger;
             await mkSlider4shapeEtc("border.width", eltCont, 0, 20, 0, 2, title, funChange);
         }
 
@@ -1030,6 +1042,7 @@ export class CustomRenderer4jsMind {
 
         let borderTabwasSetup = false;
         function setupBorderTab() {
+            // debugger;
             // return; // No setup needed with new UI slider
             if (borderTabwasSetup) return;
             borderTabwasSetup = true;
@@ -1571,12 +1584,13 @@ export class CustomRenderer4jsMind {
         );
 
         // const { eltSlider: eltSliderBlur, slider: sliderBlur } = await modMdcOLD.mkMDCslider(0, 5, 0, undefined, "blur", onSliderChange, onSliderInput, false);
+        /** @type {{ wrapper: HTMLElement, input: HTMLInputElement, funInit: (val:number) => void }} */
         const { input: inpSliderBlur, wrapper: wrapperSliderBlur } = await modBear.createSlider({
             min: 0,
             max: 5,
             value: 0,
             // step: undefined,
-            label: "blur",
+            // label: "blur",
             // onSliderChange,
             // onSliderInput,
             // false;
@@ -2355,15 +2369,15 @@ export class CustomRenderer4jsMind {
         async function mkSlider4shapeEtc(pathShEtc, eltCont, min, max, defaultVal, step, title, funChgThis) {
             const objShEtc = getShapeEtcGrpMbr(pathShEtc);
             const initVal = getFromShapeEtc(objShEtc, initialShapeEtc) || defaultVal;
-            let sli = ctrlsSliders[pathShEtc];
-            if (sli) return;
+            let objSli = ctrlsSliders[pathShEtc];
+            if (objSli) return;
             const funChange = async () => {
                 await setFromCurrentSlider();
                 if (funChgThis) funChgThis();
                 onAnyCtrlChangeNode(); // throttle
             }
             async function setFromCurrentSlider() {
-                const val = sli.value;
+                const val = objSli.input.value;
                 if (val == undefined) {
                     const msg = "sli.value return undefined";
                     console.error(msg);
@@ -2373,8 +2387,22 @@ export class CustomRenderer4jsMind {
                 setInShapeEtc(val, objShEtc, currentShapeEtc);
             }
             // sli = await modIsDisplayed.OLDmkSliderInContainer(eltCont, min, max, initVal, step, title, funChange);
-            sli = mkSliderInContainer(eltCont, min, max, initVal, step, title, funChange);
-            ctrlsSliders[pathShEtc] = sli;
+            // sli = mkSliderInContainer(eltCont, min, max, initVal, step, title, funChange);
+            // debugger;
+            objSli = modBear.createSlider({
+                // eltCont,
+                min,
+                max,
+                value: initVal,
+                step,
+                // title,
+                onChange: funChange,
+            });
+            objSli.funInit(initVal);
+
+            ctrlsSliders[pathShEtc] = objSli;
+            // debugger;
+            eltCont.appendChild(objSli.wrapper);
         }
         /////////////////////////////////////
 
@@ -2962,6 +2990,7 @@ function mkSliderInContainer(eltCont, min, max, now, step, label, onChange, onIn
     let input, wrapper;
     if (!sli) {
         try {
+            /** @type {{ wrapper: HTMLElement, input: HTMLInputElement, funInit: (val:number) => void }} */
             const rec = modBear.createSlider({
                 min, max, value: now, onInput: onChange, showBubble: false
             });

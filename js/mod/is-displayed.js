@@ -29,7 +29,7 @@ async function AddBeforeWhenContainerIsDisplayed(eltContainer, eltNew, eltBefore
 }
 
 
-export async function waitUntilDisplayed(elt, msMax) {
+export async function OLDwaitUntilDisplayed(elt, msMax) {
     const isDisplayed = () => {
         const dispJq = isDisplayedJq(elt);
         const dispOP = isDisplayedOffsetParent(elt);
@@ -65,7 +65,7 @@ export async function waitUntilDisplayed(elt, msMax) {
 }
 
 
-export async function mkSliderInContainer(eltCont, min, max, now, step, label, onChange, onInput, disable) {
+export async function OLDMDCmkSliderInContainer(eltCont, min, max, now, step, label, onChange, onInput, disable) {
     let sli = eltCont.querySelector("div.mdc-slider");
     if (!sli) {
         try {
