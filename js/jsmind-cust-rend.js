@@ -584,16 +584,18 @@ export class CustomRenderer4jsMind {
                     throw Error(`Activation code missing for tab, idx=${idx} `);
             }
         }
-        // const eltTabs = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, onActivateMore);
-        const eltTabs = modBear.createTabs(tabRecs, contentElts, onActivateMore);
+        // const eltTabs = modMdcOLD.mkMdcTabBarSimple(tabRecs, contentElts, onActivateMore);
+        // const eltTabs = modBear.createTabs(tabRecs, contentElts, onActivateMore);
+        const objTabs = modBear.createTabs(mkBearTabsParam(tabRecs, contentElts, onActivateMore));
 
         const body = mkElt("div", undefined, [
             mkElt("h2", undefined, [
                 mkElt("span", { style: "font-style:italic;opacity: 0.5;margin-right:10px;" }, "Mindmap:"),
                 mindmapName
             ]),
-            eltTabs,
-            contentElts,
+            objTabs.nav,
+            // contentElts,
+            objTabs.panelsContainer,
         ]);
 
         // const btnTestMm = modMdcOLD.mkMDCdialogButton("Test", "test");
@@ -2490,17 +2492,7 @@ export class CustomRenderer4jsMind {
             onAnyCtrlChangeNode(); // throttle
         });
 
-        // const tabBar = modMdc.mkMdcTabBarSimple(tabRecs, contentElts, onActivateMore);
-        function mkBearTabsParam(tabRecs, contentElts, onChange) {
-            const arrTabObj = [];
-            const arrElts = [...contentElts.childNodes];
-            for (let i = 0; i < tabRecs.length; i++) {
-                const label = tabRecs[i];
-                const panel = arrElts[i];
-                arrTabObj.push({ label, panel });
-            }
-            return { tabs: arrTabObj, onChange }
-        }
+        // const tabBar = modMdcOLD.mkMdcTabBarSimple(tabRecs, contentElts, onActivateMore);
         const tabBar = modBear.createTabs(mkBearTabsParam(tabRecs, contentElts, onActivateMore));
         tabBar.nav.style.marginTop = "20px";
         // tabBar.nav.style.backgroundColor = "yellow";
@@ -3019,4 +3011,15 @@ function mkSliderInContainer(eltCont, min, max, now, step, label, onChange, onIn
     }
     return sli;
     // return wrapper;
+}
+
+function mkBearTabsParam(tabRecs, contentElts, onChange) {
+    const arrTabObj = [];
+    const arrElts = [...contentElts.childNodes];
+    for (let i = 0; i < tabRecs.length; i++) {
+        const label = tabRecs[i];
+        const panel = arrElts[i];
+        arrTabObj.push({ label, panel });
+    }
+    return { tabs: arrTabObj, onChange }
 }
